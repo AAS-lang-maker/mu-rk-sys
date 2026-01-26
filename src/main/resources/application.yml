@@ -1,0 +1,22 @@
+# 服务器配置
+server:
+  port: 8080 # 项目启动端口，浏览器访问http://localhost:8080/xxx
+  servlet:
+    context-path: /music # 项目访问前缀，接口路径会带/music，比如http://localhost:8080/music/song/list
+
+# 数据库连接配置（MySQL8.0，5.7仅需改驱动类）
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver # MySQL8.0驱动（5.7用com.mysql.jdbc.Driver）
+    url: jdbc:mysql://localhost:3306/music_db?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
+    # 解释：localhost=本地数据库，3306=MySQL默认端口，music_db=你的数据库名（需自己在MySQL中建）
+    username: root # 你的MySQL账号（默认root）
+    password: 280939 # 你的MySQL密码（改成自己的）
+
+# MyBatis核心配置（整合SSM关键，匹配mapper接口和XML）
+mybatis:
+  type-aliases-package: com.music.pojo # 实体类包路径，XML中可直接写实体类名（不用写全限定名）
+  mapper-locations: classpath:mapper/*.xml # 扫描resources/mapper下的所有XXXMapper.xml文件
+  configuration:
+    map-underscore-to-camel-case: true # 开启下划线转驼峰（数据库字段user_name→实体类属性userName）
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 开启SQL日志，控制台打印执行的SQL（开发必备，方便调试）
