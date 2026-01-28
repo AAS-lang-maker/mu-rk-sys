@@ -28,7 +28,7 @@ public class JwtUtils {
      * @param username 用户名
      * @return Token字符串
      */
-    public String generateToken(Long userId, String username) {
+    public  static String generateToken(int userId, String username) {
         // 封装Token的自定义数据（Claims）
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);

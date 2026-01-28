@@ -126,7 +126,13 @@
             <version>0.11.5</version>
             <scope>runtime</scope>
         </dependency>
-
+        <!-- 适用于 Spring Boot 2.x 及之前版本 -->
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>4.0.1</version>
+            <scope>provided</scope> <!-- provided 表示由容器（如Tomcat）提供，打包时不包含 -->
+        </dependency>
     </dependencies>
 
     <build>
