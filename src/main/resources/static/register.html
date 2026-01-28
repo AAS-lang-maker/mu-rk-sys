@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #1a365d;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            display: flex;
+            max-width: 1000px;
+            width: 90%;
+            min-height: 600px;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .illustration-side {
+            flex: 1.2;
+            background: linear-gradient(135deg, #1a202c, #2d3748);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .space-illustration {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .planet {
+            position: absolute;
+            border-radius: 50%;
+        }
+
+        .moon {
+            position: absolute;
+            border-radius: 50%;
+        }
+
+        .moon-1 {
+            width: 220px;
+            height: 220px;
+            background: radial-gradient(circle at 30% 30%, #ffd700, #ffed4e, #e6c200);
+            top: 15%;
+            left: 15%;
+            box-shadow: 0 0 60px rgba(255, 215, 0, 0.7);
+            animation: glow 3s ease-in-out infinite alternate;
+        }
+
+        .moon-1::before {
+            content: '';
+            position: absolute;
+            width: 260px;
+            height: 25px;
+            border: 2px solid rgba(255, 215, 0, 0.4);
+            border-radius: 50%;
+            top: 50%;
+            left: -20px;
+            transform: translateY(-50%);
+            animation: rotate 20s linear infinite;
+        }
+
+        .moon-1::after {
+            content: '';
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: rgba(229, 177, 0, 0.8);
+            border-radius: 50%;
+            top: 30%;
+            left: 20%;
+        }
+
+        .moon-2 {
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle at 30% 30%, #ff6b6b, #ff8787, #ff5252);
+            bottom: 20%;
+            right: 20%;
+            box-shadow: 0 0 40px rgba(255, 107, 107, 0.6);
+            animation: glow-red 4s ease-in-out infinite alternate-reverse;
+        }
+
+        .moon-2::before {
+            content: '';
+            position: absolute;
+            width: 200px;
+            height: 20px;
+            border: 2px solid rgba(255, 107, 107, 0.4);
+            border-radius: 50%;
+            top: 50%;
+            left: -25px;
+            transform: translateY(-50%);
+            animation: rotate 15s linear infinite reverse;
+        }
+
+        .moon-2::after {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: rgba(225, 83, 97, 0.7);
+            border-radius: 50%;
+            top: 40%;
+            left: 30%;
+        }
+
+        @keyframes glow {
+            0% {
+                box-shadow: 0 0 40px rgba(255, 215, 0, 0.5);
+            }
+
+            100% {
+                box-shadow: 0 0 80px rgba(255, 215, 0, 0.9);
+            }
+        }
+
+        @keyframes glow-red {
+            0% {
+                box-shadow: 0 0 40px rgba(255, 107, 107, 0.5);
+            }
+
+            100% {
+                box-shadow: 0 0 60px rgba(255, 107, 107, 0.9);
+            }
+        }
+
+        @keyframes rotate {
+            from {
+                transform: translateY(-50%) rotate(0deg);
+            }
+
+            to {
+                transform: translateY(-50%) rotate(360deg);
+            }
+        }
+
+        .astronaut {
+            position: absolute;
+            width: 180px;
+            height: 180px;
+            bottom: 15%;
+            left: 30%;
+        }
+
+        .astronaut-hand {
+            position: absolute;
+            width: 100px;
+            height: 120px;
+            background: #f7fafc;
+            border-radius: 50px;
+            bottom: 0;
+            left: 40px;
+        }
+
+        .astronaut-hand::before {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 40px;
+            background: #f7fafc;
+            border-radius: 15px;
+            top: -20px;
+            left: 35px;
+        }
+
+        .astronaut-hand::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 30px;
+            background: #f7fafc;
+            border-radius: 10px;
+            top: -15px;
+            left: 15px;
+            transform: rotate(-30deg);
+        }
+
+        .stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+
+            0%,
+            100% {
+                opacity: 0.3;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .login-side {
+            flex: 1;
+            padding: 80px 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .login-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 50px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 16px;
+            color: #718096;
+            margin-bottom: 10px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 16px 20px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #4299e1;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+        }
+
+        .form-input.error {
+            border-color: #e53e3e;
+        }
+
+        .error-message {
+            display: flex;
+            align-items: center;
+            margin-top: 6px;
+            font-size: 14px;
+            color: #e53e3e;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .error-message.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .error-icon {
+            margin-right: 6px;
+            font-size: 16px;
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 16px;
+            background: #2d3748;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 20px;
+        }
+
+        .login-button:hover {
+            background: #1a202c;
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 16px;
+            color: #718096;
+        }
+
+        .register-link a {
+            color: #4299e1;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .login-container {
+                flex-direction: column;
+                min-height: 700px;
+            }
+
+            .illustration-side {
+                height: 350px;
+                flex: none;
+            }
+
+            .login-side {
+                padding: 50px 40px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="login-container">
+    <div class="illustration-side">
+        <div class="space-illustration">
+            <div class="moon moon-1"></div>
+            <div class="moon moon-2"></div>
+            <div class="astronaut">
+                <div class="astronaut-hand"></div>
+            </div>
+            <div class="stars">
+                <div class="star" style="top: 20%; left: 10%; animation-delay: 0s;"></div>
+                <div class="star" style="top: 35%; left: 25%; animation-delay: 0.5s;"></div>
+                <div class="star" style="top: 60%; left: 40%; animation-delay: 1s;"></div>
+                <div class="star" style="top: 45%; left: 70%; animation-delay: 1.5s;"></div>
+                <div class="star" style="top: 70%; left: 85%; animation-delay: 2s;"></div>
+                <div class="star" style="top: 15%; left: 60%; animation-delay: 2.5s;"></div>
+                <div class="star" style="top: 80%; left: 30%; animation-delay: 0.8s;"></div>
+                <div class="star" style="top: 25%; left: 80%; animation-delay: 1.2s;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="login-side">
+        <h1 class="login-title">注册</h1>
+        <form class="login-form" action="/user/register" method="post">
+            <div class="form-group">
+                <label class="form-label">用户名</label>
+                <input type="text" class="form-input" placeholder="请输入用户名" name="username" id="username">
+                <div class="error-message" id="username-error">
+                    <span class="error-icon">!</span>
+                    <span class="message"></span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">密码</label>
+                <input type="password" class="form-input" placeholder="请输入密码" name="password" id="password">
+                <div class="error-message" id="password-error">
+                    <span class="error-icon">!</span>
+                    <span class="message"></span>
+                </div>
+            </div>
+            <button type="submit" class="login-button" id="register-button">注册</button>
+            <div class="register-link">
+                已有账号？<a href="/music/login.html">立即登录</a>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+    // 生成随机星星
+    const starsContainer = document.querySelector('.stars');
+    for (let i = 0; i < 30; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        star.style.top = Math.random() * 100 + '%';
+        star.style.left = Math.random() * 100 + '%';
+        star.style.animationDelay = Math.random() * 3 + 's';
+        starsContainer.appendChild(star);
+    }
+
+    // 获取DOM元素
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const usernameError = document.getElementById('username-error');
+    const passwordError = document.getElementById('password-error');
+    const registerButton = document.getElementById('register-button');
+
+    // 验证函数
+    function validateUsername() {
+        const username = usernameInput.value.trim();
+        const errorMessage = usernameError.querySelector('.message');
+
+        if (!username) {
+            showError(usernameInput, usernameError, '用户名不能为空');
+            return false;
+        } else if (username.length < 3 || username.length > 16) {
+            showError(usernameInput, usernameError, '用户名长度要在3~16位');
+            return false;
+        } else {
+            hideError(usernameInput, usernameError);
+            return true;
+        }
+    }
+
+    function validatePassword() {
+        const password = passwordInput.value;
+        const errorMessage = passwordError.querySelector('.message');
+
+        if (!password) {
+            showError(passwordInput, passwordError, '密码不能为空');
+            return false;
+        } else if (password.length < 6 || password.length > 15) {
+            showError(passwordInput, passwordError, '密码长度要在6~15位');
+            return false;
+        } else {
+            hideError(passwordInput, passwordError);
+            return true;
+        }
+    }
+
+    function showError(input, errorElement, message) {
+        input.classList.add('error');
+        errorElement.querySelector('.message').textContent = message;
+        errorElement.classList.add('show');
+    }
+
+    function hideError(input, errorElement) {
+        input.classList.remove('error');
+        errorElement.classList.remove('show');
+    }
+
+    // 输入事件监听
+    usernameInput.addEventListener('input', validateUsername);
+    passwordInput.addEventListener('input', validatePassword);
+
+    // 注册按钮点击事件
+    registerButton.addEventListener('click', function () {
+        const isUsernameValid = validateUsername();
+        const isPasswordValid = validatePassword();
+
+        if (isUsernameValid && isPasswordValid) {
+            // 模拟表单提交
+            alert('注册信息已提交，将跳转到注册接口');
+            // 实际项目中这里会执行表单提交
+            // document.querySelector('.login-form').submit();
+        }
+    });
+</script>
+</body>
+
+</html>

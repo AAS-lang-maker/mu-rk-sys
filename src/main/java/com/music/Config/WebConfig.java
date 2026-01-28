@@ -4,6 +4,7 @@ import com.music.interceptor.LoginInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
@@ -12,7 +13,12 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  */
 @Configuration // 标记为配置类，Spring启动时自动加载
 public class WebConfig implements WebMvcConfigurer {
-
+    // 放行静态资源：让Spring Boot能找到static下的HTML/CSS/JS
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/**") // 匹配所有访问路径
+                .addResourceLocations("classpath:/static/"); // 静态资源所在目录
+    }
     // 注入自定义的登录拦截器
     @Autowired
     private LoginInterceptor loginInterceptor;

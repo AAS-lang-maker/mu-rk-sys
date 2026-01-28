@@ -64,7 +64,7 @@ public class UserServiceImpl implements service {
             return Result.error("用户名长度要在3-16位");
         }
         if(userRegisterDTO.getPassword().length()<6||userRegisterDTO.getPassword().length()>15){
-            return Result.error("用户名长度要在6-15位");
+            return Result.error("用户密码要在6-15位");
         }
         User user= (User) userMapper.selectByUsername(userRegisterDTO.getUsername());
         if(user!=null){
