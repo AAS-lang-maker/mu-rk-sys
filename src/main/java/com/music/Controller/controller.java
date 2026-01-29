@@ -5,6 +5,7 @@ import com.music.dto.UserLoginDTO;
 import com.music.dto.UserRegisterDTO;
 import com.music.utils.Result;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.ognl.Token;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,10 @@ public class controller {
     public String login(@Validated UserLoginDTO userLoginDTO, RedirectAttributes redirectAttributes) {
         Result<String> result = Service.login(userLoginDTO);
         if (result.getCode() == 200) {
+            String token = result.getData();
+            String username = result.getData();
+            redirectAttributes.addAttribute("token", token);
+            redirectAttributes.addAttribute("username", username);
             redirectAttributes.addFlashAttribute("success", "登录成功，将为您跳转到首页");
             return "redirect:/index.html";  //重定向回到首页
         } else
@@ -50,10 +55,10 @@ public class controller {
     @PostMapping("/register")
     public String register(@Validated UserRegisterDTO userRegisterDTO, RedirectAttributes  redirectAttributes) {
         //Model最没用的一集，由于在注册中要重定向，所以用RedirectAttributes传参数
-        Result<String> result = Service.register(userRegisterDTO);//让Serrvice层校验用户名是否存在
+        Result<String> result = Service.register(userRegisterDTO);//让Service层校验用户名是否存在
         if (result.getCode() == 200) {
             redirectAttributes.addFlashAttribute("success", "注册成功，已为您跳转到首页");
-            return "redirect:/index.html";
+            return "redirect:/login.html";
         } else {
             String s2 = "该用户已经存在，请重新进行登录";
             redirectAttributes.addAttribute("errormessage", s2 + result.getMsg());

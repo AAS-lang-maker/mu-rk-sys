@@ -48,7 +48,7 @@ public class UserServiceImpl implements service {
         String token = JwtUtils.generateToken(user.getId(),user.getUsername());
         //token工具类里面方法的参数对应，上面句子也是卡了我1个小时，getId一直爆红。何意味？
         Result<String> res=Result.success(token);//Result类里面new过了，现在只是要获取成功的结果
-        res.setMsg("登录成功");//设置返回结果成功的信息，而不是get获取信息
+        res.setMsg("登录成功");//重新设置返回结果成功的信息，而不是get获取信息
         return res;
     }
     /*注册思路逻辑：
@@ -88,9 +88,10 @@ public class UserServiceImpl implements service {
         /*豆包唯一权威的一次，让我用try-catch去调用mapper层，这样可以在出现：数据库连接失败，数据库约束冲突等一系列问题
         时可以看到异常的提示信息，提醒用户“注册失败。。。。。”*/
 
-        //try-catch的代码是依托屎。
+        //try-catch的代码是依托屎吗？
+        //又看了一遍还是觉得写的是屎。
         try{
-            int insertRows=userInfoMapper.insert(newUser);
+            int insertRows=userInfoMapper.insert(newUser);//想到转成整数的是神吗？
              //insert返回值设置为整数，用于接住异常
             if(insertRows!=1){
                 System.out.println("注册失败:用户"+username+"插入数据库失败");//屎

@@ -403,19 +403,39 @@
     }
 
 
-    // 【新增】页面加载时解析地址栏错误参数（核心：重定向后显示提示）
+    // 【新增】页面加载时解析地址栏参数（接收 Token + 显示错误提示）
     window.onload = function() {
-        // 解析地址栏的?err=xxx参数
+        // 解析地址栏所有参数（Token、用户名、错误信息）
         const urlParams = new URLSearchParams(window.location.search);
-        const errorMsg = urlParams.get('errormessage'); // 对应后端重定向的err参数名
+        const token = urlParams.get('token');
+        const username = urlParams.get('username');
+        const errorMsg = urlParams.get('errormessage'); // 和后端参数名一致
 
-        // 如果有错误参数，显示小红框提示
+        // 1. 处理 Token：接收并存储（核心功能）
+        if (token) {
+            localStorage.setItem("token", token); // 存 Token
+            console.log("Token 已接收并存储：", token);
+
+            // 存用户名（可选）
+            if (username) {
+                localStorage.setItem("username", username);
+                alert("登录成功，欢迎 " + username + "！");
+            }
+
+            // 清除地址栏参数（美化 URL）
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
+        // 2. 处理错误信息：显示小红框（保留你的原有逻辑）
         if (errorMsg) {
-            showErrorTip(errorMsg);
-            // 可选优化：清空密码框，方便用户重新输入
-            document.querySelector('input[name="password"]').value = "";
-            // 可选优化：光标聚焦到密码框
-            document.querySelector('input[name="password"]').focus();
+            showErrorTip(errorMsg); // 显示错误提示
+
+            // 【修复空指针】先获取密码框，再判断是否存在
+            const passwordInput = document.querySelector('input[name="password"]');
+            if (passwordInput) {
+                passwordInput.value = ""; // 清空密码框
+                passwordInput.focus(); // 聚焦密码框
+            }
         }
     };
 </script>
