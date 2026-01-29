@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>登录</title>
+    <!-- CDN引入Axios（推荐，无需下载，直接粘贴） -->
+
     <style>
         * {
             margin: 0;
@@ -289,6 +291,18 @@
                 padding: 50px 40px;
             }
         }
+        /* 小红框错误提示样式 - 直接粘贴到原有<style>内最后面 */
+        .error-alert {
+            display: none; /* 默认隐藏，不影响原有页面布局 */
+            background-color: #fef2f2; /* 浅红背景 */
+            border: 1px solid #ffccc7; /* 红边框 */
+            color: #ef4444; /* 红色文字 */
+            padding: 10px 15px;
+            border-radius: 4px; /* 圆角，更美观 */
+            margin: 15px 0; /* 和上下元素保持间距 */
+            font-size: 14px;
+            line-height: 1.5;
+        }
     </style>
 </head>
 <body>
@@ -314,7 +328,9 @@
     </div>
     <div class="login-side">
         <h1 class="login-title">登录</h1>
-        <form class="login-form" action="/user/login" method="post">
+        <form class="login-form" action="/music/user/login" method="post">
+            <!-- 小红框提示容器 - 粘贴到登录表单最上方 -->
+            <div class="error-alert" id="errorAlert"></div>
             <div class="form-group">
                 <label class="form-label">请输入用户名</label>
                 <input type="text" class="form-input" placeholder="请输入您的用户民" name="username" required>
@@ -342,37 +358,66 @@
         star.style.animationDelay = Math.random() * 3 + 's';
         starsContainer.appendChild(star);
     }
-
-    // 登录按钮点击事件
+    // 登录按钮点击事件：完全恢复原生同步提交，保留你的前端校验，删除所有Axios！
     document.querySelector('.login-button').addEventListener('click', function(e) {
+        // 1. 阻止默认提交（先做前端校验，校验通过再手动提交）
         e.preventDefault();
-        const username = document.querySelector('input[name="username"]').value;
-        const password = document.querySelector('input[name="password"]').value;
 
+        const username = document.querySelector('input[name="username"]').value.trim();
+        const password = document.querySelector('input[name="password"]').value.trim();
+
+        // 2. 保留你原有的前端非空校验（提升体验，不变）
         if (!username || !password) {
-            alert('请输入用户名和密码');
+            // 这里用小红框提示前端校验错误（替代原有alert）
+            showErrorTip('请输入用户名和密码');
             return;
         }
 
-        // 模拟表单提交
-        alert('登录信息已提交，将跳转到登录接口');
-        // 实际项目中这里会执行表单提交
-        // document.querySelector('.login-form').submit();
+        // 3. 校验通过，执行**原生同步表单提交**（核心：恢复重定向依赖的同步提交）
+        document.querySelector('.login-form').submit();
     });
 
-    // 注册链接点击事件
+    // 其他代码：注册链接、社交登录（完全保留，不变）
     document.querySelector('.register-link a').addEventListener('click', function(e) {
-        e.preventDefault();
-        alert('跳转到注册页面');
-        // 实际项目中这里会跳转到注册页面
+        // 无拦截，正常跳转
     });
-
-    // 社交登录按钮点击事件
     document.querySelectorAll('.social-button').forEach(button => {
         button.addEventListener('click', function() {
-            alert('使用社交账号登录');
+            alert('社交登录功能暂未开放，敬请期待！');
         });
     });
+
+    // 【新增通用方法】小红框提示工具函数（一次定义，多处调用，避免重复代码）
+    function showErrorTip(msg, fontColor = '#ef4444', bgColor = '#fef2f2', borderColor = '#ffccc7') {
+        const errorAlert = document.getElementById("errorAlert"); // 对应小红框容器的ID
+        errorAlert.innerText = msg; // 设置提示文字
+        // 自定义样式（默认红色错误，可传参改为绿色成功）
+        errorAlert.style.color = fontColor;
+        errorAlert.style.backgroundColor = bgColor;
+        errorAlert.style.borderColor = borderColor;
+        errorAlert.style.display = "block"; // 显示小红框
+        // 3秒后自动隐藏
+        setTimeout(() => {
+            errorAlert.style.display = "none";
+        }, 3000);
+    }
+
+
+    // 【新增】页面加载时解析地址栏错误参数（核心：重定向后显示提示）
+    window.onload = function() {
+        // 解析地址栏的?err=xxx参数
+        const urlParams = new URLSearchParams(window.location.search);
+        const errorMsg = urlParams.get('errormessage'); // 对应后端重定向的err参数名
+
+        // 如果有错误参数，显示小红框提示
+        if (errorMsg) {
+            showErrorTip(errorMsg);
+            // 可选优化：清空密码框，方便用户重新输入
+            document.querySelector('input[name="password"]').value = "";
+            // 可选优化：光标聚焦到密码框
+            document.querySelector('input[name="password"]').focus();
+        }
+    };
 </script>
 </body>
 </html>

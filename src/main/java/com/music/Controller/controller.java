@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-@RestController
+@Controller
 @RequestMapping("/user")
 @Validated  //对前端传来的参数实现分组校验
 public class controller {
@@ -33,10 +33,10 @@ public class controller {
         Result<String> result = Service.login(userLoginDTO);
         if (result.getCode() == 200) {
             redirectAttributes.addFlashAttribute("success", "登录成功，将为您跳转到首页");
-            return "redirect:/music/index.html";  //重定向回到首页
+            return "redirect:/index.html";  //重定向回到首页
         } else
             redirectAttributes.addAttribute("errormessage", result.getMsg());//给前端传递错误信息
-        String s1 = "forward:/music/login.html";
+        String s1 = "redirect:/login.html";
         return s1; //转发返回登录页面
     }
 
@@ -53,7 +53,7 @@ public class controller {
         Result<String> result = Service.register(userRegisterDTO);//让Serrvice层校验用户名是否存在
         if (result.getCode() == 200) {
             redirectAttributes.addFlashAttribute("success", "注册成功，已为您跳转到首页");
-            return "redirect:/music/index.html";
+            return "redirect:/index.html";
         } else {
             String s2 = "该用户已经存在，请重新进行登录";
             redirectAttributes.addAttribute("errormessage", s2 + result.getMsg());

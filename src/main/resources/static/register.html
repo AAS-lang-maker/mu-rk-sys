@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>注册</title>
+    <!-- CDN引入Axios（推荐，无需下载，直接粘贴） -->
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.7/dist/axios.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -345,6 +347,24 @@
                 padding: 50px 40px;
             }
         }
+        /* 注册页错误提示样式 - 粘贴到 <style> 标签内 */
+        .error-alert {
+            display: none; /* 默认隐藏 */
+            background-color: #fef2f2;
+            border: 1px solid #ffccc7;
+            color: #ef4444;
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+            font-size: 14px;
+            text-align: center;
+        }
+        /* 可选：成功提示的绿色样式（注册成功时用） */
+        .success-alert {
+            background-color: #e6f4ea;
+            border-color: #b7eb8f;
+            color: #52c41a;
+        }
     </style>
 </head>
 
@@ -371,7 +391,8 @@
     </div>
     <div class="login-side">
         <h1 class="login-title">注册</h1>
-        <form class="login-form" action="/user/register" method="post">
+        <form class="login-form" action="/music/user/register" method="post">
+            <div class="error-alert" id="errorAlert"></div>
             <div class="form-group">
                 <label class="form-label">用户名</label>
                 <input type="text" class="form-input" placeholder="请输入用户名" name="username" id="username">
@@ -406,15 +427,17 @@
         star.style.animationDelay = Math.random() * 3 + 's';
         starsContainer.appendChild(star);
     }
-
     // 获取DOM元素
     const usernameInput = document.getElementById('username');
     const passwordInput = document.getElementById('password');
     const usernameError = document.getElementById('username-error');
     const passwordError = document.getElementById('password-error');
     const registerButton = document.getElementById('register-button');
+    // 【新增】获取form元素（关键：要通过form提交数据）
+    const registerForm = document.querySelector('.login-form');// 注意：form的class是login-form，和登录页一致，若不一样要改
+    const errorAlert = document.getElementById("errorAlert");
 
-    // 验证函数
+    // 验证函数（保留，这部分写得很好，不用动）
     function validateUsername() {
         const username = usernameInput.value.trim();
         const errorMessage = usernameError.querySelector('.message');
@@ -458,22 +481,53 @@
         errorElement.classList.remove('show');
     }
 
-    // 输入事件监听
+    // 输入事件监听（保留，实时校验）
     usernameInput.addEventListener('input', validateUsername);
     passwordInput.addEventListener('input', validatePassword);
 
-    // 注册按钮点击事件
+    // 注册按钮点击事件：恢复原生同步提交，保留前端校验
     registerButton.addEventListener('click', function () {
+        // 保留你原有的前端校验（用户名长度、密码长度，不变）
         const isUsernameValid = validateUsername();
         const isPasswordValid = validatePassword();
 
+        // 校验通过，执行原生同步表单提交
         if (isUsernameValid && isPasswordValid) {
-            // 模拟表单提交
-            alert('注册信息已提交，将跳转到注册接口');
-            // 实际项目中这里会执行表单提交
-            // document.querySelector('.login-form').submit();
+            document.querySelector('.login-form').submit();
         }
     });
+    // 【新增通用函数：放在所有代码的最后面】
+    function showTip(msg, isSuccess = false) {
+        // 重置样式
+        errorAlert.className = 'error-alert';
+        // 如果是成功，加绿色样式（如果你没写success-alert样式，就注释掉下面一行）
+        if (isSuccess) {
+            errorAlert.classList.add('success-alert');
+        }
+        // 显示文字并展示
+        errorAlert.innerText = msg;
+        errorAlert.style.display = "block";
+        // 3秒后自动消失
+        setTimeout(() => {
+            errorAlert.style.display = "none";
+        }, 3000);
+    }
+    window.onload = function() {
+        // 1. 解析地址栏的参数（?err=xxx 或 ?errormessage=xxx，和后端保持一致）
+        const urlParams = new URLSearchParams(window.location.search);
+        const errorMsg = urlParams.get('errormessage'); // 后端重定向的参数名，比如?err=用户已存在
+
+        // 2. 如果有错误信息，调用你的 showTip 显示
+        if (errorMsg) {
+            showTip(errorMsg); // 用你现有的函数显示错误
+            // 可选优化：清空密码框并聚焦
+            const passwordInput = document.getElementById('password');
+            if (passwordInput) {
+                passwordInput.value = "";
+                passwordInput.focus();
+            }
+        }
+    };
 </script>
 </body>
 

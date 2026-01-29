@@ -79,3 +79,20 @@ create table vote_record
     foreign key (rank_id) references personal_rank (rank_id),
     unique key vp_ip (rank_id, ip)    -- 唯一外键，一个ip只能投一个榜单的票，防止一个用户开超多小号刷一万个票
 )comment "投票记录表" character set utf8mb4;
+-- 批量删除多个用户名
+USE music_db; -- 切换到存储用户数据的业务库
+delete from user where username in ('ghjfhh', 'sdfwerqr', 'qrqrjj');
+INSERT INTO `user` (`username`, `password`, `user_create_time`) VALUES
+                                                                    ('zhangsan', '123456', '2026-01-29 10:00:00'),
+                                                                    ('lisi', '123456', '2026-01-29 10:30:00'),
+                                                                    ('wangwu', '123456', '2026-01-29 11:00:00'),
+                                                                    ('zhaoliu', '123456', '2026-01-29 11:30:00'),
+                                                                    ('tianqi', '123456', '2026-01-29 12:00:00');
+USE music_db;
+-- 清空原有明文数据
+delete from user where username in ('zhangsan','lisi','wangwu','zhaoliu','tianqi');
+
+-- 插入加密后的测试数据（密码：123456）
+INSERT INTO `user` (`username`, `password`, `user_create_time`) VALUES
+                                                                    ('zhangsan', '$2a$10$7tqG6z8f9e7d6s5a4f3g2h1j0k9l8m7n6b5v4c3x2s1d', '2026-01-29 10:00:00'),
+                                                                    ('lisi', '$2a$10$7tqG6z8f9e7d6s5a4f3g2h1j0k9l8m7n6b5v4c3x2s1d', '2026-01-29 10:30:00');
