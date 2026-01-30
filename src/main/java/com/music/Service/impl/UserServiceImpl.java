@@ -2,7 +2,7 @@ package com.music.Service.impl;
 
 
 import com.music.Mapper.UserInfoMapper;
-import com.music.Service.service;
+import com.music.Service.UserInfoService;
 import com.music.dto.UserLoginDTO;
 import com.music.dto.UserRegisterDTO;
 import com.music.pojo.UserInfo;
@@ -16,7 +16,7 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 
 @Service
-public class UserServiceImpl implements service {
+public class UserServiceImpl implements UserInfoService {
     @Autowired
      private UserInfoMapper userInfoMapper;
     @Autowired  //怎么会有这么高级的注解。。密码加密器
@@ -104,4 +104,6 @@ public class UserServiceImpl implements service {
         }
         return Result.success();
     }
+
+
 }

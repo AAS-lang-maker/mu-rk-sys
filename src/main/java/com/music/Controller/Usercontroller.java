@@ -1,8 +1,11 @@
 package com.music.Controller;
 
-import com.music.Service.service;
+import com.music.Service.UserInfoService;
+import com.music.Service.impl.UserServiceImpl;
+import com.music.Service.UserInfoService;
 import com.music.dto.UserLoginDTO;
 import com.music.dto.UserRegisterDTO;
+import com.music.pojo.Category;
 import com.music.utils.Result;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.ognl.Token;
@@ -11,18 +14,18 @@ import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
+import java.util.Locale;
+
 @Controller
-@RequestMapping("/user")
+@RequestMapping("/api/user")
 @Validated  //对前端传来的参数实现分组校验
-public class controller {
+public class Usercontroller {
     @Autowired//注入service层
-    private service Service;
+    private UserInfoService userInfoService;
     /*登录实现逻辑：
                 1.接受前端传递的用户信息（注解）
                 2.调用Service层
@@ -31,7 +34,7 @@ public class controller {
 
     @PostMapping("/login")
     public String login(@Validated UserLoginDTO userLoginDTO, RedirectAttributes redirectAttributes) {
-        Result<String> result = Service.login(userLoginDTO);
+        Result<String> result = userInfoService.login(userLoginDTO);
         if (result.getCode() == 200) {
             String token = result.getData();
             String username = result.getData();
@@ -55,7 +58,7 @@ public class controller {
     @PostMapping("/register")
     public String register(@Validated UserRegisterDTO userRegisterDTO, RedirectAttributes  redirectAttributes) {
         //Model最没用的一集，由于在注册中要重定向，所以用RedirectAttributes传参数
-        Result<String> result = Service.register(userRegisterDTO);//让Service层校验用户名是否存在
+        Result<String> result = userInfoService.register(userRegisterDTO);//让Service层校验用户名是否存在
         if (result.getCode() == 200) {
             redirectAttributes.addFlashAttribute("success", "注册成功，已为您跳转到首页");
             return "redirect:/login.html";
@@ -65,5 +68,7 @@ public class controller {
             return "redirect:/login.html";
         }
     }
+
 }
+
 

@@ -94,5 +94,6 @@ delete from user where username in ('zhangsan','lisi','wangwu','zhaoliu','tianqi
 
 -- 插入加密后的测试数据（密码：123456）
 INSERT INTO `user` (`username`, `password`, `user_create_time`) VALUES
-                                                                    ('zhangsan', '$2a$10$7tqG6z8f9e7d6s5a4f3g2h1j0k9l8m7n6b5v4c3x2s1d', '2026-01-29 10:00:00'),
-                                                                    ('lisi', '$2a$10$7tqG6z8f9e7d6s5a4f3g2h1j0k9l8m7n6b5v4c3x2s1d', '2026-01-29 10:30:00');
+    ('tianqi', '123456', '2026-01-29 12:00:00');
+('zhangsan', '$2a$10$7tqG6z8f9e7d6s5a4f3g2h1j0k9l8m7n6b5v4c3x2s1d', '2026-01-29 10:00:00'),
+USE music_db;                                                                    ('lisi', '$2a$10$7tqG6z8f9e7d6s5a4f3g2h1j0k9l8m7n6b5v4c3x2s1d', '2026-01-29 10:30:00');

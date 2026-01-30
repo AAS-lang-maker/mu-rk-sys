@@ -43,6 +43,9 @@ public class JwtUtils {
                 .compact();
     }
 
+    public static Integer getUserIdFromTken(String token) {
+    }
+
     /**
      * 解析Token：获取其中的用户信息
      * @param token Token字符串

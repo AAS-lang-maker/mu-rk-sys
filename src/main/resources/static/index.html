@@ -1,11 +1,350 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
-    <title>首页</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>音乐排行榜 - 首页</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #1E293B;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255, 250, 205, 0.08)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>') repeat;
+            z-index: -1;
+        }
+
+        .header {
+            background: rgba(26, 32, 44, 0.9);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(255, 250, 205, 0.3);
+            padding: 30px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .welcome-user {
+            color: #f7fafc;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .logo {
+            color: #fffa9c;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        .home-link {
+            color: #f7fafc;
+            font-size: 18px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .home-link:hover {
+            color: #fffa9c;
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            padding: 60px 50px;
+            position: relative;
+        }
+
+        .login-button-container {
+            position: absolute;
+            left: 50px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 10;
+        }
+
+        .login-button {
+            background: rgba(255, 250, 205, 0.9);
+            backdrop-filter: blur(10px);
+            border: none;
+            border-radius: 8px;
+            padding: 18px 24px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a202c;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(255, 250, 205, 0.3);
+            transition: all 0.3s ease;
+            transform: translateX(0);
+        }
+
+        .login-button:hover {
+            background: rgba(255, 250, 205, 1);
+            box-shadow: 0 6px 20px rgba(255, 250, 205, 0.4);
+            transform: translateX(5px);
+        }
+
+        .login-button.collapsed {
+            transform: translateX(-85%);
+        }
+
+        .toggle-button {
+            position: absolute;
+            top: 50%;
+            right: -15px;
+            transform: translateY(-50%);
+            background: rgba(255, 250, 205, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #1a202c;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-button:hover {
+            background: rgba(255, 250, 205, 1);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-left: 120px;
+        }
+
+        .boxes-container {
+            display: flex;
+            gap: 80px;
+            margin-bottom: 50px;
+            width: 100%;
+            max-width: 1100px;
+            justify-content: center;
+        }
+
+        .category-box {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 250, 205, 0.2);
+            border-radius: 16px;
+            width: 500px;
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .category-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 250, 205, 0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .category-box:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 12px 40px rgba(255, 250, 205, 0.2);
+            border-color: rgba(255, 250, 205, 0.4);
+        }
+
+        .category-box:hover::before {
+            opacity: 1;
+        }
+
+        .box-title {
+            font-size: 48px;
+            font-weight: 700;
+            color: #fffa9c;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            margin-bottom: 10px;
+        }
+
+        .box-subtitle {
+            font-size: 24px;
+            font-weight: 500;
+            color: rgba(255, 250, 205, 0.8);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .instruction {
+            color: #f7fafc;
+            font-size: 20px;
+            text-align: center;
+            margin-top: 20px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            width: 100%;
+        }
+
+        @media (max-width: 1200px) {
+            .category-box {
+                width: 420px;
+                height: 350px;
+            }
+
+            .box-title {
+                font-size: 40px;
+            }
+
+            .box-subtitle {
+                font-size: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 25px 30px;
+            }
+
+            .logo {
+                font-size: 24px;
+            }
+
+            .container {
+                flex-direction: column;
+                padding: 40px 30px;
+            }
+
+            .login-button-container {
+                position: relative;
+                left: 0;
+                top: 0;
+                transform: none;
+                margin-bottom: 40px;
+                align-self: flex-start;
+            }
+
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .boxes-container {
+                flex-direction: column;
+                gap: 40px;
+                align-items: center;
+            }
+
+            .category-box {
+                width: 100%;
+                max-width: 450px;
+                height: 320px;
+            }
+
+            .box-title {
+                font-size: 36px;
+            }
+
+            .box-subtitle {
+                font-size: 18px;
+            }
+        }
+    </style>
 </head>
+
 <body>
-<h1>恭喜！登录/注册成功！</h1>
-<p>这是临时首页，说明跳转逻辑通了！</p>
+<header class="header">
+    <div class="welcome-user">欢迎用户:</div>
+    <div class="logo">MUSIC - RANK</div>
+    <a href="/music/index.html" class="home-link">首页</a>
+</header>
+
+<div class="container">
+    <div class="login-button-container">
+        <button class="login-button" id="loginButton">重新登录</button>
+        <button class="toggle-button" id="toggleButton">↔</button>
+    </div>
+
+    <div class="main-content">
+        <div class="boxes-container">
+            <div class="category-box">
+                <h2 class="box-title">歌手明星</h2>
+                <p class="box-subtitle">Singers & Celebrities</p>
+            </div>
+            <div class="category-box">
+                <h2 class="box-title">影视游戏</h2>
+                <p class="box-subtitle">Movies & Games</p>
+            </div>
+        </div>
+        <div class="instruction">请选择你心仪的榜单类别</div>
+    </div>
+</div>
+
+<script>
+    // 获取DOM元素
+    const loginButton = document.getElementById('loginButton');
+    const toggleButton = document.getElementById('toggleButton');
+    let isExpanded = true;
+
+    // 切换登录按钮的展开/收起状态
+    toggleButton.addEventListener('click', function () {
+        isExpanded = !isExpanded;
+        if (isExpanded) {
+            loginButton.classList.remove('collapsed');
+        } else {
+            loginButton.classList.add('collapsed');
+        }
+    });
+
+    // 登录按钮点击事件
+    loginButton.addEventListener('click', function () {
+        // 跳转到登录页面
+        window.location.href = '/music/login.html';
+    });
+
+    // 类别盒子点击事件
+    document.querySelectorAll('.category-box').forEach((box, index) => {
+        box.addEventListener('click', function () {
+            // 按顺序给两个分类分配ID：歌手明星=1，影视游戏=2（和后端数据库分类ID一致）
+            const categoryId = index + 1;
+            // 跳转后端接口（必须加/api，完整路径：/music/api/category/redirect）
+            window.location.href = `/music/api/category/redirect?categoryId=${categoryId}`;
+        });
+    });
+</script>
 </body>
+
 </html>
