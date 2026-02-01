@@ -53,7 +53,7 @@ public class UserPublishController {
              return "redirect:/login.html";
          }
          //调用Service层
-         boolean result=UserPublishService.insertRank(categoryId,userId,rankAddRequestDto);
+         boolean result=userPublishService.insertRank(categoryId,userId,rankAddRequestDto);
          if(result){
              redirectAttributes.addFlashAttribute("success"+"发布榜单成功！");
               return "redirect:/publish.html";

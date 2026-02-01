@@ -30,11 +30,13 @@ public class userPublishServiceImpl implements UserPublishService {
         personalRank.setRankName(rankAddRequestDto.getRankName());
         userPublishMapper.insertRank(personalRank);
         //主表和子表的外键关联要拿出来（666）
+        Integer rankId = personalRank.getRankId();
         List<rankSong> ranksongList=new ArrayList<rankSong>();//用集合接受前端榜单数据，因为歌曲和排名有很多，一个用户还可能有多个榜单
         //豆包大人教我写最难写的lamda？？表达式
         rankAddRequestDto.getSongItems().forEach(item->{
             rankSong rankSong=new rankSong();
-            rankSong.setRankId(item.getRanking());
+            rankSong.setRankId(rankId);
+            rankSong.setRanking(item.getRanking());
             rankSong.setSongId(item.getSongId());
             ranksongList.add(rankSong);
         });
