@@ -6,16 +6,24 @@
 <!-- 核心：namespace必须等于UserMapper接口的全限定类名（包名+接口名） -->
 <mapper namespace="com.music.Mapper.UserPublishMapper">
 
-    <insert id="insertRank" useGeneratedKeys="true" keyProperty="rankId">
-        insert into personal_rank(rank_name, user_id, category_id, target_id) VALUES (#{rankName},#{userId},#{categoryId},#{targetId})
+    <insert id="insertRank" parameterType="com.music.pojo.personalRank" useGeneratedKeys="true" keyProperty="rankId" keyColumn="rank_id">
+        insert into personal_rank(rank_name, user_id, category_id, target_id)
+        VALUES (#{rankName},#{userId},#{categoryId},#{targetId})
     </insert>
     <!--批量插入子表-->
     <insert id="sixInsert">
-       insert into rank_song(rank_id, song_id, ranking) VALUES
+       insert into rank_song(rank_id, song_id, ranking)
+       VALUES
                                                             <!--豆包又教我：用遍历集合，遍历Service层用户对歌曲榜单排名的List-->
      <foreach collection="list" item="item" separator=",">
                                                             <!--foreach中的item和前面的Service无关联，此处只是给遍历的元素起一个别名，随意起-->
          (#{item.rankId},#{item.songId},#{item.ranking})
      </foreach>
     </insert>
+    <select id="selectSinger" resultType="com.music.pojo.Singer">
+        select singer_id,singer_name from singer where category_id=#{categoryId} and singer_status=1
+    </select>
+    <select id="selectSong" resultType="com.music.pojo.Song">
+        select song_id,song.song_name from song where singer_id=#{singerId} and song_status=1
+    </select>
 </mapper>

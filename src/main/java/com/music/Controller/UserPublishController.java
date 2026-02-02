@@ -2,6 +2,8 @@ package com.music.Controller;
 
 import com.music.Service.UserPublishService;
 import com.music.dto.RankAddRequest;
+import com.music.pojo.Singer;
+import com.music.pojo.Song;
 import com.music.pojo.UserInfo;
 import com.music.utils.JwtUtils;
 import com.music.utils.Result;
@@ -18,36 +20,36 @@ import java.util.List;
 public class UserPublishController {
     @Autowired
     private UserPublishService userPublishService;
-    @PostMapping("/add")
+    @PostMapping("/add/{categoryId}")
     public String add(@PathVariable("categoryId") Integer categoryId, @RequestBody RankAddRequest rankAddRequestDto,
-    HttpServletRequest request, RedirectAttributes redirectAttributes) {
+                      @RequestHeader("Authorization") String authHeader, RedirectAttributes redirectAttributes) throws Exception {
         /*校验榜单名，用户登录状态，用户发布的歌曲不能为空或小于等于1首，分类id*/
+        String token = authHeader.substring(7).trim();
+        Integer userId = JwtUtils.getUserIdFromToken(token);
         if(rankAddRequestDto.getRankName()==null||rankAddRequestDto.getRankName()==""){
             redirectAttributes.addFlashAttribute("errormessage"+"榜单名不能为空");
-            return "redirect:/rank/add";
+            return "redirect:/publish.html"+token+"&userId="+userId+"&categoryId="+categoryId;
         }
         //想不到的点又降临了。。调用DTO类下的songDTO，并将其值传给集合，因为用户会上传很多歌曲及其对应排名
         List<RankAddRequest.RankSongItem> songItems = rankAddRequestDto.getSongItems();
         for(RankAddRequest.RankSongItem item:songItems){
             if(item.getSongId()==null||item.getRanking()==0){
                 redirectAttributes.addFlashAttribute("errormessage"+"榜单的歌曲不能不存在或者其排名为空");
-                return "redirect:/rank/add";
+                return "redirect:/publish.html"+token+"&userId="+userId+"&categoryId="+categoryId;
             }
         }
         if(songItems==null||songItems.isEmpty()){
             redirectAttributes.addFlashAttribute("errormessage"+"歌曲榜单不能完全为空");
-            return "redirect:/rank/add";
+            return "redirect:/publish.html"+token+"&userId="+userId+"&categoryId="+categoryId;
         }
         //验证登录状态，基于Jwt令牌验证
-        String token = request.getHeader("token");
         if(token==null||token==""){
             redirectAttributes.addFlashAttribute("errormessage"+"歌曲榜单不能完全为空");
-            return "redirect:/rank/add";
+            return "redirect:/login.html";
         }
         token = token.substring(7);//高级东西又来了，去掉token的“Bearer”前缀。。。
-        Integer userId;
          try{
-             userId= JwtUtils.getUserIdFromTken(token);//从令牌中拿去用户的id，这里要在Jwt工具类中新建此方法
+             userId= JwtUtils.getUserIdFromToken(token);//从令牌中拿去用户的id，这里要在Jwt工具类中新建此方法
          }catch(Exception e){
              redirectAttributes.addFlashAttribute("errormessage"+"登录失效，请重新登录");
              return "redirect:/login.html";
@@ -56,10 +58,28 @@ public class UserPublishController {
          boolean result=userPublishService.insertRank(categoryId,userId,rankAddRequestDto);
          if(result){
              redirectAttributes.addFlashAttribute("success"+"发布榜单成功！");
-              return "redirect:/publish.html";
+              return "redirect:/publish.html"+token+"&userId="+userId+"&categoryId="+categoryId;
          }else{
              redirectAttributes.addFlashAttribute("errormessage"+"发布失败，请稍后再试");
-             return "redirect:/rank/add";
+             return "redirect:/publish.html"+token+"&userId="+userId+"&categoryId="+categoryId;
          }
+    }
+    @GetMapping("/singer")
+    @ResponseBody
+    //点击添加歌曲的按钮不涉及重定向，URL没有变化，页面也没有刷新
+    public List<Singer> singer(    @RequestParam("token") String token, // 接收前端的token
+                                   @RequestParam("userId") Integer userId, // 接收前端的userId
+                                   @RequestParam("categoryId") Integer categoryId){
+        List<Singer> singers=userPublishService.selectSinger(categoryId);
+        return singers;
+    }
+    @GetMapping("/song")
+    @ResponseBody
+    public List<Song>  song( @RequestParam("token") String token,
+                             @RequestParam("userId") Integer userId,
+                             @RequestParam("singerId") Integer singerId
+                            ){
+        List<Song> songs=userPublishService.selectSong(singerId);
+        return songs;
     }
 }

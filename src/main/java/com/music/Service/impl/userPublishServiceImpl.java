@@ -3,6 +3,8 @@ package com.music.Service.impl;
 import com.music.Mapper.UserPublishMapper;
 import com.music.Service.UserPublishService;
 import com.music.dto.RankAddRequest;
+import com.music.pojo.Singer;
+import com.music.pojo.Song;
 import com.music.pojo.personalRank;
 import com.music.pojo.rankSong;
 import com.music.utils.Result;
@@ -26,7 +28,8 @@ public class userPublishServiceImpl implements UserPublishService {
         personalRank personalRank = new personalRank();
         personalRank.setCategoryId(categoryId);
         personalRank.setUserId(userId);
-        personalRank.setTargetId(rankAddRequestDto.getTargetId());
+        //细心豆包，数据库里面默认target——id为空，所以当它真的为空，就设置其值为0
+        personalRank.setTargetId(rankAddRequestDto.getTargetId() == null ? 0 : rankAddRequestDto.getTargetId());
         personalRank.setRankName(rankAddRequestDto.getRankName());
         userPublishMapper.insertRank(personalRank);
         //主表和子表的外键关联要拿出来（666）
@@ -43,4 +46,16 @@ public class userPublishServiceImpl implements UserPublishService {
         userPublishMapper.sixInsert(ranksongList);
         return  true;
         }
+
+    @Override
+    public List<Singer> selectSinger(Integer categoryId) {
+        List<Singer> singers=userPublishMapper.selectSinger(categoryId);
+        return singers;
     }
+
+    @Override
+    public List<Song> selectSong(Integer singerId) {
+        List<Song> songs=userPublishMapper.selectSong(singerId);
+        return songs;
+    }
+}

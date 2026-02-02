@@ -287,7 +287,8 @@
 
 <body>
 <header class="header">
-    <div class="welcome-user">欢迎用户:</div>
+    <!-- 修正：添加span用于渲染用户名 -->
+    <div class="welcome-user">欢迎用户:<span id="userName" style="color: #fffa9c; margin-left: 8px;">未知用户</span></div>
     <div class="logo">MUSIC - RANK</div>
     <a href="/music/index.html" class="home-link">首页</a>
 </header>
@@ -314,6 +315,29 @@
 </div>
 
 <script>
+    // ************************** 新增1：通用URL参数获取函数（核心，解析token/userId/userName） **************************
+    function getUrlParam(paramName) {
+        const reg = new RegExp("(^|&)" + paramName + "=([^&]*)(&|$)");
+        const paramMatch = window.location.search.substr(1).match(reg);
+        return paramMatch ? decodeURIComponent(paramMatch[2]) : null;
+    }
+
+    // ************************** 新增2：全局变量存储登录态参数（从URL解析，登录页跳转时拼接） **************************
+    let token = getUrlParam("token");    // 登录令牌
+    let userId = getUrlParam("userId");  // 用户ID
+    let userName = getUrlParam("userName") || "未知用户"; // 用户名，默认未知
+
+    // ************************** 新增3：页面加载时渲染用户名+校验登录态 **************************
+    window.onload = function() {
+        // 渲染用户名到页面
+        document.getElementById("userName").innerText = userName;
+        // 基础登录态校验：若token/userId缺失，直接引导重新登录
+        if (!token || !userId) {
+            alert("登录信息失效，请重新登录！");
+            window.location.href = "/music/login.html";
+        }
+    }
+
     // 获取DOM元素
     const loginButton = document.getElementById('loginButton');
     const toggleButton = document.getElementById('toggleButton');
@@ -331,20 +355,29 @@
 
     // 登录按钮点击事件
     loginButton.addEventListener('click', function () {
-        // 跳转到登录页面
+        // 跳转到登录页面，清空当前登录态
+        token = '';
+        userId = '';
         window.location.href = '/music/login.html';
     });
 
     // 类别盒子点击事件
     document.querySelectorAll('.category-box').forEach((box, index) => {
         box.addEventListener('click', function () {
-            // 按顺序给两个分类分配ID：歌手明星=1，影视游戏=2（和后端数据库分类ID一致）
+            // 1. 按顺序分配分类ID：歌手明星=1，影视游戏=2（和后端数据库一致）
             const categoryId = index + 1;
-            // 跳转后端接口（必须加/api，完整路径：/music/api/category/redirect）
-            window.location.href = `/music/api/category/redirect?categoryId=${categoryId}`;
+            // 2. 二次校验登录态，防止参数被篡改
+            if (!token || !userId) {
+                alert("登录信息失效，请重新登录！");
+                window.location.href = "/music/login.html";
+                return;
+            }
+            // ************************** 核心修正：拼接token+userId+categoryId三个参数 **************************
+            // 移除冗余的/music前缀，直接拼接后端接口路径，参数之间用&分隔
+            const jumpUrl = `/music/api/category/redirect?categoryId=${categoryId}&token=${token}&userId=${userId}`;
+            window.location.href = jumpUrl;
         });
     });
 </script>
 </body>
-
 </html>

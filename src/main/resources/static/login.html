@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>登录</title>
-    <!-- CDN引入Axios（推荐，无需下载，直接粘贴） -->
-
+    <!-- 新增：CDN引入Axios（异步请求必备，直接粘贴，无需本地下载） -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -291,7 +291,7 @@
                 padding: 50px 40px;
             }
         }
-        /* 小红框错误提示样式 - 直接粘贴到原有<style>内最后面 */
+        /* 小红框错误提示样式 - 保留原有 */
         .error-alert {
             display: none; /* 默认隐藏，不影响原有页面布局 */
             background-color: #fef2f2; /* 浅红背景 */
@@ -300,6 +300,18 @@
             padding: 10px 15px;
             border-radius: 4px; /* 圆角，更美观 */
             margin: 15px 0; /* 和上下元素保持间距 */
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        /* 新增：成功提示样式（可选，绿色） */
+        .success-alert {
+            display: none;
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #16a34a;
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin: 15px 0;
             font-size: 14px;
             line-height: 1.5;
         }
@@ -328,27 +340,30 @@
     </div>
     <div class="login-side">
         <h1 class="login-title">登录</h1>
-        <form class="login-form" action="/music/api/user/login" method="post">
-            <!-- 小红框提示容器 - 粘贴到登录表单最上方 -->
+        <!-- 改造：移除form的action和method，改为异步提交 -->
+        <form class="login-form">
+            <!-- 保留原有错误提示框 -->
             <div class="error-alert" id="errorAlert"></div>
+            <!-- 新增成功提示框 -->
+            <div class="success-alert" id="successAlert"></div>
             <div class="form-group">
                 <label class="form-label">请输入用户名</label>
-                <input type="text" class="form-input" placeholder="请输入您的用户民" name="username" required>
+                <!-- 修复：占位符错别字“用户民”→“用户名” -->
+                <input type="text" class="form-input" placeholder="请输入您的用户名" name="username" required>
             </div>
             <div class="form-group">
                 <label class="form-label">密码</label>
                 <input type="password" class="form-input" placeholder="请输入密码" name="password" required>
             </div>
-            <button type="submit" class="login-button">登录</button>
+            <button type="button" class="login-button" id="loginBtn">登录</button>
             <div class="register-link">
                 还没有账号？<a href="/music/register.html">立即注册</a>
             </div>
-
         </form>
     </div>
 </div>
 <script>
-    // 生成随机星星
+    // 生成随机星星 - 保留原有代码
     const starsContainer = document.querySelector('.stars');
     for (let i = 0; i < 30; i++) {
         const star = document.createElement('div');
@@ -358,83 +373,112 @@
         star.style.animationDelay = Math.random() * 3 + 's';
         starsContainer.appendChild(star);
     }
-    // 登录按钮点击事件：完全恢复原生同步提交，保留你的前端校验，删除所有Axios！
-    document.querySelector('.login-button').addEventListener('click', function(e) {
-        // 1. 阻止默认提交（先做前端校验，校验通过再手动提交）
-        e.preventDefault();
 
+    // 优化：复用页面内置提示框，样式和页面统一，删除动态创建逻辑
+    function showErrorTip(msg) {
+        const errorAlert = document.getElementById('errorAlert');
+        errorAlert.innerText = msg;
+        errorAlert.style.display = 'block';
+        setTimeout(() => {
+            errorAlert.style.display = 'none';
+        }, 3000);
+    }
+
+    function showSuccessTip(msg) {
+        const successAlert = document.getElementById('successAlert');
+        successAlert.innerText = msg;
+        successAlert.style.display = 'block';
+        setTimeout(() => {
+            successAlert.style.display = 'none';
+        }, 1500);
+    }
+
+
+    // 【核心改造】登录按钮异步点击事件（Axios请求，替代原生表单提交）
+    document.getElementById('loginBtn').addEventListener('click', async function() {
+        // 1. 获取并校验表单数据
         const username = document.querySelector('input[name="username"]').value.trim();
         const password = document.querySelector('input[name="password"]').value.trim();
 
-        // 2. 保留你原有的前端非空校验（提升体验，不变）
         if (!username || !password) {
-            // 这里用小红框提示前端校验错误（替代原有alert）
             showErrorTip('请输入用户名和密码');
             return;
         }
 
-        // 3. 校验通过，执行**原生同步表单提交**（核心：恢复重定向依赖的同步提交）
-        document.querySelector('.login-form').submit();
+        // 2. 构造请求参数
+        const loginData = {
+            username: username,
+            password: password
+        };
+
+        try {
+            // 3. 异步请求后端登录接口（关键：和后端接口地址一致）
+            const response = await axios({
+                url: '/music/api/user/login', // 后端登录接口地址，和你原有form的action一致
+                method: 'post',
+                data: loginData, // POST请求传参
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8' // 告诉后端是JSON数据
+                }
+            });
+
+            // 4. 处理后端返回结果（核心：获取token/userId/userName）
+            const res = response.data;
+            // 假设后端返回格式：{code:200, msg:"登录成功", data:{token:"xxx", userId:1, userName:"张三"}}
+            if (res.code === 200) {
+                const { token, userId, userName } = res.data;
+                // 校验后端是否返回完整参数
+                if (!token || !userId || !userName) {
+                    showErrorTip('登录接口返回参数不完整，请检查后端');
+                    return;
+                }
+
+                // 5. 显示成功提示并拼接参数跳转到首页（解决缺少userId的核心步骤）
+                showSuccessTip('登录成功，即将跳转到首页...');
+                // 编码用户名（防止中文/特殊字符解析失败）
+                const encodeUserName = encodeURIComponent(userName);
+                // 拼接token+userId+userName到首页URL
+                const homeUrl = `/music/index.html?token=${token}&userId=${userId}&userName=${encodeUserName}`;
+                // 延迟跳转，让用户看到成功提示
+                setTimeout(() => {
+                    window.location.href = homeUrl;
+                }, 1500);
+
+            } else {
+                // 后端返回业务错误（如用户名密码错误）
+                showErrorTip(res.msg || '登录失败，请重试');
+            }
+
+        } catch (error) {
+            // 处理网络错误/接口404/500等异常
+            console.error('登录请求异常：', error);
+            if (error.response) {
+                // 后端返回错误状态码（如401/404）
+                showErrorTip('登录失败，' + (error.response.data?.msg || '服务器异常'));
+            } else if (error.request) {
+                // 无响应（网络问题/后端未启动）
+                showErrorTip('网络异常，请检查后端服务是否启动');
+            } else {
+                // 请求构造错误
+                showErrorTip('请求失败，' + error.message);
+            }
+        }
     });
 
-    // 其他代码：注册链接、社交登录（完全保留，不变）
+    // 保留原有：注册链接、社交登录点击事件
     document.querySelector('.register-link a').addEventListener('click', function(e) {
         // 无拦截，正常跳转
     });
-    document.querySelectorAll('.social-button').forEach(button => {
-        button.addEventListener('click', function() {
-            alert('社交登录功能暂未开放，敬请期待！');
-        });
-    });
-
-    // 【新增通用方法】小红框提示工具函数（一次定义，多处调用，避免重复代码）
-    function showErrorTip(msg, fontColor = '#ef4444', bgColor = '#fef2f2', borderColor = '#ffccc7') {
-        const errorAlert = document.getElementById("errorAlert"); // 对应小红框容器的ID
-        errorAlert.innerText = msg; // 设置提示文字
-        // 自定义样式（默认红色错误，可传参改为绿色成功）
-        errorAlert.style.color = fontColor;
-        errorAlert.style.backgroundColor = bgColor;
-        errorAlert.style.borderColor = borderColor;
-        errorAlert.style.display = "block"; // 显示小红框
-        // 3秒后自动隐藏
-        setTimeout(() => {
-            errorAlert.style.display = "none";
-        }, 3000);
-    }
-
-
-    // 【新增】页面加载时解析地址栏参数（接收 Token + 显示错误提示）
+    // 保留原有：页面加载解析参数（可移除，因改为异步跳转，地址栏不再有参数）
     window.onload = function() {
-        // 解析地址栏所有参数（Token、用户名、错误信息）
         const urlParams = new URLSearchParams(window.location.search);
-        const token = urlParams.get('token');
-        const username = urlParams.get('username');
-        const errorMsg = urlParams.get('errormessage'); // 和后端参数名一致
-
-        // 1. 处理 Token：接收并存储（核心功能）
-        if (token) {
-            localStorage.setItem("token", token); // 存 Token
-            console.log("Token 已接收并存储：", token);
-
-            // 存用户名（可选）
-            if (username) {
-                localStorage.setItem("username", username);
-                alert("登录成功，欢迎 " + username + "！");
-            }
-
-            // 清除地址栏参数（美化 URL）
-            window.history.replaceState({}, document.title, window.location.pathname);
-        }
-
-        // 2. 处理错误信息：显示小红框（保留你的原有逻辑）
+        const errorMsg = urlParams.get('errormessage');
         if (errorMsg) {
-            showErrorTip(errorMsg); // 显示错误提示
-
-            // 【修复空指针】先获取密码框，再判断是否存在
+            showErrorTip(errorMsg);
             const passwordInput = document.querySelector('input[name="password"]');
             if (passwordInput) {
-                passwordInput.value = ""; // 清空密码框
-                passwordInput.focus(); // 聚焦密码框
+                passwordInput.value = "";
+                passwordInput.focus();
             }
         }
     };

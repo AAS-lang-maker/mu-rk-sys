@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>添加榜单</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #1E293B;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #f7fafc;
+            padding: 20px;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255, 250, 255, 0.08)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>') repeat;
+            z-index: -1;
+        }
+
+        .container {
+            width: 70%;
+            max-width: 800px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .form-group {
+            margin-bottom: 30px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 18px;
+            color: #fffa9c;
+            margin-bottom: 10px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 250, 156, 0.3);
+            border-radius: 8px;
+            color: #f7fafc;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #fffa9c;
+            box-shadow: 0 0 20px rgba(255, 250, 156, 0.4);
+            transform: scale(1.02);
+        }
+
+        .add-song-btn {
+            display: inline-block;
+            background-color: #fffa9c;
+            color: #1a202c;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+        }
+
+        .add-song-btn:hover {
+            background-color: #fff780;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 250, 156, 0.4);
+        }
+
+        .song-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .song-table th,
+        .song-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .song-table th {
+            color: #fffa9c;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .song-table td {
+            color: #f7fafc;
+        }
+
+        .rank-op-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .song-table input {
+            width: 100%;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            color: #f7fafc;
+        }
+
+        .song-table input:focus {
+            outline: none;
+            border-color: #fffa9c;
+        }
+
+        .song-name-col {
+            width: 70%;
+        }
+
+        .song-rank-col {
+            width: 30%;
+        }
+
+        .del-btn {
+            background: transparent;
+            border: none;
+            color: #aaa;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            padding: 2px 6px;
+            transition: all 0.2s ease;
+            line-height: 1;
+        }
+
+        .del-btn:hover {
+            color: #fffa9c;
+            transform: scale(1.1);
+            background: rgba(255, 250, 205, 0.1);
+        }
+
+        .submit-btn {
+            display: block;
+            width: 100%;
+            background-color: #fffa9c;
+            color: #1a202c;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 30px;
+        }
+
+        .submit-btn:hover {
+            background-color: #fff780;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 250, 156, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                width: 90%;
+                padding: 30px;
+            }
+
+            .song-name-col {
+                width: 60%;
+            }
+
+            .song-rank-col {
+                width: 40%;
+            }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: #1E293B;
+            margin: 15% auto;
+            padding: 30px;
+            border-radius: 12px;
+            width: 80%;
+            max-width: 500px;
+            border: 1px solid rgba(255, 250, 205, 0.3);
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #fffa9c;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px;
+            margin: 15px 0;
+            border: 1px solid rgba(255, 250, 205, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #f7fafc;
+            outline: none;
+        }
+
+        .singer-list,
+        .song-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 15px 0;
+        }
+
+        .singer-item,
+        .song-item {
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .singer-item:hover,
+        .song-item:hover {
+            background: rgba(255, 250, 205, 0.15);
+            color: #fffa9c;
+        }
+
+        /* 新增：自定义提示框样式，贴合页面风格 */
+        .tip-box {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            border-radius: 8px;
+            color: #1E293B;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 2000;
+            display: none;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+        }
+        .tip-success {
+            background: #fffa9c;
+        }
+        .tip-error {
+            background: #ff6347;
+            color: #f7fafc;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+    <div class="form-group">
+        <label for="list-name">榜单名</label>
+        <input type="text" id="list-name" placeholder="请输入榜单名称">
+    </div>
+    <!-- 新增：动态添加行按钮 -->
+    <button class="add-song-btn" id="openModalBtn">选择歌曲</button>
+    <button class="add-song-btn" style="margin-left: 10px;" id="addRowBtn">新增歌曲行</button>
+
+    <table class="song-table" id="songTable">
+        <thead>
+        <tr>
+            <th class="song-name-col">歌曲名称</th>
+            <th class="song-rank-col">排名</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td><input type="text" placeholder="请输入歌曲名称"></td>
+            <td>
+                <div class="rank-op-container">
+                    <input type="number" placeholder="排名" min="1">
+                    <button class="del-btn">×</button>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td><input type="text" placeholder="请输入歌曲名称"></td>
+            <td>
+                <div class="rank-op-container">
+                    <input type="number" placeholder="排名" min="1">
+                    <button class="del-btn">×</button>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td><input type="text" placeholder="请输入歌曲名称"></td>
+            <td>
+                <div class="rank-op-container">
+                    <input type="number" placeholder="排名" min="1">
+                    <button class="del-btn">×</button>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td><input type="text" placeholder="请输入歌曲名称"></td>
+            <td>
+                <div class="rank-op-container">
+                    <input type="number" placeholder="排名" min="1">
+                    <button class="del-btn">×</button>
+                </div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <button class="submit-btn" id="publishBtn">发布榜单</button>
+</div>
+
+<div id="singerModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h3>选择歌手和歌曲</h3>
+        <input type="text" id="singerSearch" placeholder="搜索歌手..." class="search-input">
+        <div id="singerList" class="singer-list"></div>
+        <div id="songList" class="song-list" style="display: none;">
+            <h4>选择歌曲</h4>
+            <div id="songItems"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 新增：自定义提示框DOM -->
+<div class="tip-box" id="customTip"></div>
+
+<script>
+    // 获取DOM元素
+    const openModalBtn = document.getElementById('openModalBtn');
+    const addRowBtn = document.getElementById('addRowBtn');
+    const publishBtn = document.getElementById('publishBtn');
+    const modal = document.getElementById('singerModal');
+    const closeBtn = document.querySelector('.close');
+    const singerSearch = document.getElementById('singerSearch');
+    const singerList = document.getElementById('singerList');
+    const songList = document.getElementById('songList');
+    const songItems = document.getElementById('songItems');
+    const songTable = document.getElementById('songTable').querySelector('tbody');
+    const customTip = document.getElementById('customTip');
+    const listNameInput = document.getElementById('list-name');
+
+    // 全局变量（存储URL参数，类型转换为后端匹配的Integer）
+    let token = '';
+    let userId = '';
+    let categoryId = '';
+    let allSingers = []; // 存储后端返回的歌手数据
+
+    // ************************** 通用工具函数 **************************
+    // 1. 获取URL参数
+    function getUrlParam(paramName) {
+        const reg = new RegExp("(^|&)" + paramName + "=([^&]*)(&|$)");
+        const paramMatch = window.location.search.substr(1).match(reg);
+        return paramMatch ? decodeURIComponent(paramMatch[2]) : null;
+    }
+
+    // 2. 自定义提示框（替换原生alert）
+    function showTip(msg, isError = false) {
+        customTip.textContent = msg;
+        customTip.className = 'tip-box ' + (isError ? 'tip-error' : 'tip-success');
+        customTip.style.display = 'block';
+        setTimeout(() => {
+            customTip.style.display = 'none';
+        }, 2000);
+    }
+
+    // 3. 检查登录态（页面加载时执行）
+    function checkAuth() {
+        token = getUrlParam('token');
+        userId = getUrlParam('userId');
+        categoryId = getUrlParam('categoryId');
+
+        // 类型转换+非空校验（匹配后端Integer类型）
+        userId = userId ? Number(userId) : null;
+        categoryId = categoryId ? Number(categoryId) : null;
+        token = token ? encodeURIComponent(token) : ''; // token编码，防止特殊字符
+
+        if (!token || !userId || isNaN(userId)) {
+            showTip('登录信息失效，请重新登录！', true);
+            setTimeout(() => window.location.href = '/music/login.html', 1500);
+            return false;
+        }
+        if (!categoryId || isNaN(categoryId)) {
+            showTip('未获取到榜单分类，请重新选择！', true);
+            setTimeout(() => window.location.href = '/music/index.html', 1500);
+            return false;
+        }
+        return true;
+    }
+
+    // ************************** 页面初始化 **************************
+    window.onload = function() {
+        if (!checkAuth()) return;
+        // 初始化时不请求歌手，仅打开弹窗时请求
+    };
+
+    // ************************** 弹窗相关逻辑 **************************
+    // 打开弹窗+请求歌手数据
+    openModalBtn.onclick = function() {
+        if (!checkAuth()) return;
+        modal.style.display = "block";
+        singerSearch.value = '';
+        songList.style.display = "none";
+        loadSingers(); // 打开弹窗时才请求歌手数据
+    };
+
+    // 关闭弹窗
+    closeBtn.onclick = function() {
+        modal.style.display = "none";
+        songList.style.display = "none";
+    };
+    window.onclick = function(event) {
+        if (event.target === modal) {
+            modal.style.display = "none";
+            songList.style.display = "none";
+        }
+    };
+
+    // ************************** 后端接口请求 **************************
+    // 1. 请求歌手列表（补充/music前缀+正确拼接参数+设置请求头）
+    function loadSingers() {
+        singerList.innerHTML = '<div style="padding:10px; color:#aaa; text-align:center;">加载中...</div>';
+        fetch(`/music/api/rank/singer?token=${token}&userId=${userId}&categoryId=${categoryId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json;charset=utf-8'
+            }
+        })
+            .then(response => {
+                if (!response.ok) throw new Error(`接口返回${response.status}`);
+                return response.json();
+            })
+            .then(data => {
+                allSingers = data || [];
+                renderSingerList(allSingers);
+            })
+            .catch(error => {
+                console.error('加载歌手失败：', error);
+                singerList.innerHTML = '<div style="padding:10px; color:#ff6347; text-align:center;">加载歌手失败，请重试</div>';
+            });
+    }
+
+    // 2. 根据歌手ID请求歌曲列表（补充/music前缀+匹配后端singerId字段）
+    function showSongs(singer) {
+        if (!singer || !singer.singerId) return;
+        songList.style.display = "block";
+        songItems.innerHTML = '<div style="padding:10px; color:#aaa; text-align:center;">加载中...</div>';
+
+        fetch(`/music/api/rank/song?token=${token}&userId=${userId}&singerId=${singer.singerId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json;charset=utf-8'
+            }
+        })
+            .then(response => {
+                if (!response.ok) throw new Error(`接口返回${response.status}`);
+                return response.json();
+            })
+            .then(songs => {
+                songItems.innerHTML = '';
+                const songData = songs || [];
+                if (songData.length === 0) {
+                    songItems.innerHTML = '<div style="padding:10px; color:#aaa; text-align:center;">该歌手暂无歌曲</div>';
+                    return;
+                }
+                // 匹配后端songId/songName字段
+                // 匹配后端songId/songName字段
+                songData.forEach(song => {
+                    const item = document.createElement('div');
+                    item.className = 'song-item';
+                    item.textContent = song.songName || '未知歌曲';
+                    // 新增1：把歌曲ID绑定到元素的dataset上，方便点击时获取
+                    item.dataset.songId = song.songId;
+                    // 改造2：点击时同时传递 歌曲名称 + 歌曲ID 给selectSong
+                    item.onclick = () => selectSong(song.songName, song.songId);
+                    songItems.appendChild(item);
+                });
+            })
+            .catch(error => {
+                console.error('加载歌曲失败：', error);
+                songItems.innerHTML = '<div style="padding:10px; color:#ff6347; text-align:center;">加载歌曲失败，请重试</div>';
+            });
+    }
+
+    // ************************** 页面渲染逻辑 **************************
+    // 渲染歌手列表（匹配后端singerName字段）
+    function renderSingerList(list) {
+        singerList.innerHTML = '';
+        if (list.length === 0) {
+            singerList.innerHTML = '<div style="padding:10px; color:#aaa; text-align:center;">未找到歌手</div>';
+            return;
+        }
+        list.forEach(singer => {
+            const item = document.createElement('div');
+            item.className = 'singer-item';
+            item.textContent = singer.singerName || '未知歌手';
+            item.onclick = () => showSongs(singer);
+            singerList.appendChild(item);
+        });
+    }
+
+    // 选择歌曲填入表格
+    // 选择歌曲填入表格：新增songId参数，接收并存储到输入框
+    function selectSong(songName, songId) {
+        // 校验：歌曲名称和ID都不能为空（防止无效数据）
+        if (!songName || !songId) return;
+        // 查找第一个空的歌曲输入框
+        const emptyInputs = songTable.querySelectorAll('input[placeholder="请输入歌曲名称"]');
+        let emptyInput = null;
+        for (let input of emptyInputs) {
+            if (!input.value.trim()) {
+                emptyInput = input;
+                // 核心：把songId存储到输入框的dataset中，发布时可直接获取
+                emptyInput.dataset.songId = songId;
+                break;
+            }
+        }
+        if (emptyInput) {
+            emptyInput.value = songName;
+            emptyInput.focus();
+        } else {
+            showTip('当前无空行，可点击「新增歌曲行」', true);
+        }
+        modal.style.display = "none";
+        songList.style.display = "none";
+    }
+    // ************************** 表格操作逻辑 **************************
+    // ************************** 发布榜单校验 **************************
+    publishBtn.onclick = function() {
+        // 1. 榜单名非空校验（原有代码，不变）
+        const listName = listNameInput.value.trim();
+        if (!listName) {
+            showTip('请输入榜单名称！', true);
+            listNameInput.focus();
+            return;
+        }
+        // 2. 歌曲-排名成对校验（原有代码，不变）
+        const rows = songTable.querySelectorAll('tr');
+        let hasError = false;
+        const songItems = []; // 新增：存储歌曲ID和排名的数组
+        rows.forEach((row, index) => {
+            const songName = row.querySelector('input[placeholder="请输入歌曲名称"]').value.trim();
+            const rankVal = row.querySelector('input[placeholder="排名"]').value.trim();
+            // 有一个填了，另一个必须填
+            if ((songName && !rankVal) || (!songName && rankVal)) {
+                showTip(`第${index+1}行：歌曲和排名需成对填写！`, true);
+                hasError = true;
+            }
+            // 排名必须是数字
+            if (rankVal && isNaN(Number(rankVal))) {
+                showTip(`第${index+1}行：排名必须是数字！`, true);
+                hasError = true;
+            }
+            // 新增：收集有效歌曲（需关联歌曲ID，这里需要前端存储歌曲ID）
+            if (songName && rankVal) {
+                // 注意：当前前端仅存储了歌曲名称，缺少歌曲ID！需修改selectSong逻辑，存储songId
+                songItems.push({
+                    songId: 0, // 这里需要替换为实际选择的歌曲ID（需前端改造存储）
+                    ranking: Number(rankVal)
+                });
+            }
+        });
+        if (hasError) return;
+        if (songItems.length === 0) {
+            showTip('请至少选择1首歌曲！', true);
+            return;
+        }
+
+        // 3. 新增：构造后端需要的请求体
+        const requestData = {
+            rankName: listName,
+            songItems: songItems,
+            targetId: 0 // 若有targetId需求，补充对应值
+        };
+
+        // 4. 新增：提交到后端发布接口
+        fetch(`/music/api/rank/add/${categoryId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json;charset=utf-8',
+                'Authorization': `Bearer ${decodeURIComponent(token)}`
+            },
+            body: JSON.stringify(requestData)
+        })
+            .then(response => {
+                if (!response.ok) throw new Error(`发布失败，接口返回${response.status}`);
+                return response.text(); // 后端是重定向，返回文本
+            })
+            .then(() => {
+                showTip('发布榜单成功！', false);
+                // 发布成功后跳转（根据后端重定向逻辑）
+                setTimeout(() => window.location.href = `/music/publish.html?token=${token}&userId=${userId}&categoryId=${categoryId}`, 1500);
+            })
+            .catch(error => {
+                console.error('发布失败：', error);
+                showTip('发布榜单失败，请重试！', true);
+            });
+    };
+</script>
+
+</body>
+</html>

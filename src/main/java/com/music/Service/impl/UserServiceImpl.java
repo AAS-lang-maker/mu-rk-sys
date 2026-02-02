@@ -3,6 +3,7 @@ package com.music.Service.impl;
 
 import com.music.Mapper.UserInfoMapper;
 import com.music.Service.UserInfoService;
+import com.music.dto.LoginSuccessVo;
 import com.music.dto.UserLoginDTO;
 import com.music.dto.UserRegisterDTO;
 import com.music.pojo.UserInfo;
@@ -28,7 +29,7 @@ public class UserServiceImpl implements UserInfoService {
                       3.校验前端的明文密码和数据库中的加密密码是否一致
                       4.给Controller层返回响应成功或失败结果
                       5.如果登录成功还要生成token令牌给Controller*/
-    public Result<String> login(UserLoginDTO userLoginDTO) {
+    public Result<LoginSuccessVo> login(UserLoginDTO userLoginDTO) {
         if(userLoginDTO==null|| StringUtils.isEmpty(userLoginDTO.getUsername())
                 ||StringUtils.isEmpty(userLoginDTO.getPassword())){
             return Result.error("用户名或密码不能为空");
@@ -44,12 +45,15 @@ public class UserServiceImpl implements UserInfoService {
         {
             return Result.error("密码错误");
         }
-        // 用user.getId()作为Token的用户标识（如果你的实体类属性是id）
-        String token = JwtUtils.generateToken(user.getId(),user.getUsername());
-        //token工具类里面方法的参数对应，上面句子也是卡了我1个小时，getId一直爆红。何意味？
-        Result<String> res=Result.success(token);//Result类里面new过了，现在只是要获取成功的结果
-        res.setMsg("登录成功");//重新设置返回结果成功的信息，而不是get获取信息
-        return res;
+        String token = JwtUtils.generateToken(user.getId(), user.getUsername());
+        // 3. 封装登录成功数据（新增：用LoginSuccessVO封装3个核心字段）
+        LoginSuccessVo loginSuccessVo = new LoginSuccessVo();
+        loginSuccessVo.setToken(token);       // 设置JWT令牌
+        loginSuccessVo.setUserId(String.valueOf(user.getId())); // 设置数据库user表的id
+        loginSuccessVo.setUserName(user.getUsername()); // 设置数据库user表的username
+
+        // 4. 复用原有Result.success(T data)方法，返回VO对象
+        return Result.success(loginSuccessVo);
     }
     /*注册思路逻辑：
                 1.获取前端传递的用户信息

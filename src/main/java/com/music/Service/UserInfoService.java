@@ -1,12 +1,13 @@
 package com.music.Service;
 
+import com.music.dto.LoginSuccessVo;
 import com.music.dto.UserLoginDTO;
 import com.music.dto.UserRegisterDTO;
 import com.music.utils.Result;
 
 public interface UserInfoService {
     //登录功能
-    Result<String> login(UserLoginDTO userLoginDTO);
+    Result<LoginSuccessVo> login(UserLoginDTO userLoginDTO);
     //注册功能
     Result<String> register(UserRegisterDTO userRegisterDTO);
     //首页功能
