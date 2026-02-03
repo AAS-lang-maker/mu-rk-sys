@@ -328,7 +328,7 @@
             </td>
         </tr>
         <tr>
-            <td><input type="text" placeholder="请输入歌曲名称"></td>
+            <td><input type="text" placeholder="请输入歌曲名称" readonly style="cursor: not-allowed;"></td>
             <td>
                 <div class="rank-op-container">
                     <input type="number" placeholder="排名" min="1">
@@ -386,8 +386,8 @@
     let token = '';
     let userId = '';
     let categoryId = '';
-    let allSingers = []; // 存储后端返回的歌手数据
-
+    let allSingers = [];// 存储后端返回的歌手数据
+    let selectedSongIds = new Set();
     // ************************** 通用工具函数 **************************
     // 1. 获取URL参数
     function getUrlParam(paramName) {
@@ -543,9 +543,18 @@
 
     // 选择歌曲填入表格
     // 选择歌曲填入表格：新增songId参数，接收并存储到输入框
+    // 选择歌曲填入表格：新增songId参数，接收并存储到输入框 + 核心去重
     function selectSong(songName, songId) {
         // 校验：歌曲名称和ID都不能为空（防止无效数据）
-        if (!songName || !songId) return;
+        if (!songName || !songId || isNaN(Number(songId))) return;
+        const songIdNum = Number(songId);
+        // 核心去重：判断songId是否已存在
+        if (selectedSongIds.has(songIdNum)) {
+            showTip('该歌曲已加入榜单，请勿重复选择！', true);
+            modal.style.display = "none";
+            songList.style.display = "none";
+            return;
+        }
         // 查找第一个空的歌曲输入框
         const emptyInputs = songTable.querySelectorAll('input[placeholder="请输入歌曲名称"]');
         let emptyInput = null;
@@ -553,13 +562,16 @@
             if (!input.value.trim()) {
                 emptyInput = input;
                 // 核心：把songId存储到输入框的dataset中，发布时可直接获取
-                emptyInput.dataset.songId = songId;
+                emptyInput.dataset.songId = songIdNum;
                 break;
             }
         }
         if (emptyInput) {
             emptyInput.value = songName;
             emptyInput.focus();
+            // 新增：选歌成功，将songId加入去重集合
+            selectedSongIds.add(songIdNum);
+            showTip('歌曲添加成功！', false);
         } else {
             showTip('当前无空行，可点击「新增歌曲行」', true);
         }
@@ -567,55 +579,117 @@
         songList.style.display = "none";
     }
     // ************************** 表格操作逻辑 **************************
+    // ************************** 表格操作逻辑 **************************
+    // 新增：添加歌曲行（带只读歌曲输入框）
+    addRowBtn.onclick = function() {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+        <td><input type="text" placeholder="请输入歌曲名称" readonly style="cursor: not-allowed;"></td>
+        <td>
+            <div class="rank-op-container">
+                <input type="number" placeholder="排名" min="1">
+                <button class="del-btn">×</button>
+            </div>
+        </td>
+    `;
+        songTable.appendChild(tr);
+        // 给新行的删除按钮绑定事件
+        tr.querySelector('.del-btn').onclick = function() {
+            // 删除行时，同步从去重集合移除songId
+            const songInput = tr.querySelector('input[placeholder="请输入歌曲名称"]');
+            const songId = Number(songInput.dataset.songId);
+            if (songId && !isNaN(songId)) {
+                selectedSongIds.delete(songId);
+            }
+            tr.remove();
+            showTip('已移除歌曲行', false);
+        };
+    };
+
+    // 新增：初始化表格删除按钮事件（原有行的删除逻辑）
+    document.querySelectorAll('.del-btn').forEach(btn => {
+        btn.onclick = function() {
+            const tr = this.closest('tr');
+            // 删除行时，同步从去重集合移除songId
+            const songInput = tr.querySelector('input[placeholder="请输入歌曲名称"]');
+            const songId = Number(songInput.dataset.songId);
+            if (songId && !isNaN(songId)) {
+                selectedSongIds.delete(songId);
+            }
+            tr.remove();
+            showTip('已移除歌曲行', false);
+        };
+    });
+    // ************************** 发布榜单校验 **************************
     // ************************** 发布榜单校验 **************************
     publishBtn.onclick = function() {
-        // 1. 榜单名非空校验（原有代码，不变）
+        // 1. 榜单名非空校验
         const listName = listNameInput.value.trim();
         if (!listName) {
             showTip('请输入榜单名称！', true);
             listNameInput.focus();
             return;
         }
-        // 2. 歌曲-排名成对校验（原有代码，不变）
+        // 2. 歌曲-排名成对校验 + 收集有效数据
         const rows = songTable.querySelectorAll('tr');
         let hasError = false;
-        const songItems = []; // 新增：存储歌曲ID和排名的数组
+        const songItems = []; // 存储歌曲ID和排名的数组
+        // 临时集合：发布前二次去重，双重兜底
+        const publishCheckSet = new Set();
+
         rows.forEach((row, index) => {
-            const songName = row.querySelector('input[placeholder="请输入歌曲名称"]').value.trim();
-            const rankVal = row.querySelector('input[placeholder="排名"]').value.trim();
+            const songInput = row.querySelector('input[placeholder="请输入歌曲名称"]');
+            const rankInput = row.querySelector('input[placeholder="排名"]');
+            const songName = songInput.value.trim();
+            const rankVal = rankInput.value.trim();
+            const songId = Number(songInput.dataset.songId);
+
             // 有一个填了，另一个必须填
             if ((songName && !rankVal) || (!songName && rankVal)) {
                 showTip(`第${index+1}行：歌曲和排名需成对填写！`, true);
                 hasError = true;
+                return;
             }
-            // 排名必须是数字
-            if (rankVal && isNaN(Number(rankVal))) {
-                showTip(`第${index+1}行：排名必须是数字！`, true);
-                hasError = true;
+            // 排名必须是数字且≥1
+            if (rankVal) {
+                const rankNum = Number(rankVal);
+                if (isNaN(rankNum) || rankNum < 1) {
+                    showTip(`第${index+1}行：排名必须是大于0的数字！`, true);
+                    hasError = true;
+                    return;
+                }
             }
-            // 新增：收集有效歌曲（需关联歌曲ID，这里需要前端存储歌曲ID）
-            if (songName && rankVal) {
-                // 注意：当前前端仅存储了歌曲名称，缺少歌曲ID！需修改selectSong逻辑，存储songId
+            // 收集有效歌曲（有名称+排名+有效songId）
+            if (songName && rankVal && songId && !isNaN(songId) && songId > 0) {
+                // 发布前二次去重校验
+                if (publishCheckSet.has(songId)) {
+                    showTip(`第${index+1}行：歌曲重复，请检查！`, true);
+                    hasError = true;
+                    return;
+                }
+                publishCheckSet.add(songId);
                 songItems.push({
-                    songId: 0, // 这里需要替换为实际选择的歌曲ID（需前端改造存储）
+                    songId: songId,
                     ranking: Number(rankVal)
                 });
             }
         });
+
         if (hasError) return;
+        // 校验：至少选择1首歌曲
         if (songItems.length === 0) {
             showTip('请至少选择1首歌曲！', true);
             return;
         }
 
-        // 3. 新增：构造后端需要的请求体
+        // 3. 构造后端需要的请求体
         const requestData = {
             rankName: listName,
             songItems: songItems,
             targetId: 0 // 若有targetId需求，补充对应值
         };
 
-        // 4. 新增：提交到后端发布接口
+        // 4. 提交到后端发布接口
         fetch(`/music/api/rank/add/${categoryId}`, {
             method: 'POST',
             headers: {
@@ -630,6 +704,8 @@
             })
             .then(() => {
                 showTip('发布榜单成功！', false);
+                // 发布成功后重置去重集合和表格
+                selectedSongIds.clear();
                 // 发布成功后跳转（根据后端重定向逻辑）
                 setTimeout(() => window.location.href = `/music/publish.html?token=${token}&userId=${userId}&categoryId=${categoryId}`, 1500);
             })

@@ -9,7 +9,7 @@ import java.util.List;
 
 
 public interface UserPublishService {
-    boolean insertRank(Integer categoryId, Integer userId, RankAddRequest rankAddRequestDto) ;
+    public boolean insertRank(Integer categoryId, Integer userId, RankAddRequest rankAddRequestDto) ;
 
     List<Singer> selectSinger(Integer categoryId);
 

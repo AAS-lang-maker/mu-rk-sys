@@ -6,7 +6,7 @@
 <!-- 核心：namespace必须等于UserMapper接口的全限定类名（包名+接口名） -->
 <mapper namespace="com.music.Mapper.UserPublishMapper">
 
-    <insert id="insertRank" parameterType="com.music.pojo.personalRank" useGeneratedKeys="true" keyProperty="rankId" keyColumn="rank_id">
+    <insert id="insertRank" parameterType="com.music.pojo.PersonalRank" useGeneratedKeys="true" keyProperty="rankId" keyColumn="rank_id">
         insert into personal_rank(rank_name, user_id, category_id, target_id)
         VALUES (#{rankName},#{userId},#{categoryId},#{targetId})
     </insert>

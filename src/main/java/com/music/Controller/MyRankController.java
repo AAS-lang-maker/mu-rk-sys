@@ -2,11 +2,7 @@ package com.music.Controller;
 
 import com.music.Service.MyRankService;
 import com.music.dto.MyRankWithSong;
-import com.music.dto.RankAddRequest;
-import com.music.pojo.personalRank;
 import com.music.utils.JwtUtils;
-import com.music.utils.Result;
-import org.apache.ibatis.ognl.Token;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

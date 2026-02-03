@@ -5,7 +5,7 @@ import lombok.Data;
 import java.util.Date;
 
 @Data
-public class personalRank {
+public class PersonalRank {
     private Integer rankId;
     private String rankName;
     private Integer userId;

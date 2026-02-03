@@ -5,27 +5,28 @@ import com.music.Service.UserPublishService;
 import com.music.dto.RankAddRequest;
 import com.music.pojo.Singer;
 import com.music.pojo.Song;
-import com.music.pojo.personalRank;
-import com.music.pojo.rankSong;
-import com.music.utils.Result;
+import com.music.pojo.PersonalRank;
+import com.music.pojo.RankSong;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
-@Transactional//事务注解:主表和子表的Service层操作必须同时成功，否则就是失败
+
 public class userPublishServiceImpl implements UserPublishService {
     @Autowired
     private UserPublishMapper userPublishMapper;
 
     @Override
+    @Transactional(rollbackFor = Exception.class,propagation = Propagation.REQUIRED)//事务注解:主表和子表的Service层操作必须同时成功，否则就是失败
     public boolean insertRank(Integer categoryId, Integer userId, RankAddRequest rankAddRequestDto) {
        //？依旧难想，将Dto类转化为对应数据库的实体类
         //先创建一个pojo对应的对象，再将前端dto的对应值传进去，最后调用Mapper层
-        personalRank personalRank = new personalRank();
+        PersonalRank personalRank = new PersonalRank();
         personalRank.setCategoryId(categoryId);
         personalRank.setUserId(userId);
         //细心豆包，数据库里面默认target——id为空，所以当它真的为空，就设置其值为0
@@ -34,16 +35,26 @@ public class userPublishServiceImpl implements UserPublishService {
         userPublishMapper.insertRank(personalRank);
         //主表和子表的外键关联要拿出来（666）
         Integer rankId = personalRank.getRankId();
-        List<rankSong> ranksongList=new ArrayList<rankSong>();//用集合接受前端榜单数据，因为歌曲和排名有很多，一个用户还可能有多个榜单
+        System.out.println("获取的rankId：" + rankId);
+        if (rankId == null) {
+            System.out.println("rankId为null，直接返回失败"); // 新增：打印跳过逻辑
+            return false;
+        }
+
+        List<RankSong> ranksongList=new ArrayList<RankSong>();//用集合接受前端榜单数据，因为歌曲和排名有很多，一个用户还可能有多个榜单
         //豆包大人教我写最难写的lamda？？表达式
         rankAddRequestDto.getSongItems().forEach(item->{
-            rankSong rankSong=new rankSong();
+            RankSong rankSong=new RankSong();
             rankSong.setRankId(rankId);
             rankSong.setRanking(item.getRanking());
             rankSong.setSongId(item.getSongId());
             ranksongList.add(rankSong);
         });
-        userPublishMapper.sixInsert(ranksongList);
+        int insertCount = userPublishMapper.sixInsert(ranksongList);
+        if (insertCount != ranksongList.size()) {
+            System.out.println("子表插入行数与预期不符，返回失败");
+            return false; // 触发事务回滚
+        }
         return  true;
         }
 

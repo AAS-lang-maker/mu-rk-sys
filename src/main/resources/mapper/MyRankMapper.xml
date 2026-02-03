@@ -18,7 +18,7 @@
         <result property="voteCount" column="vote_count"/>
         <result property="updateTime" column="rank_update_time"/>
         <!-- 子查询映射：把同一个榜单下的歌曲映射到songList列表 -->
-        <collection property="rankSongList" ofType="com.music.pojo.rankSong">
+        <collection property="rankSongList" ofType="com.music.pojo.RankSong">
             <result property="songId" column="song_id"/>
             <result property="ranking" column="ranking"/>
             <result property="rankUpdateTime" column="rank_update_time"/>
