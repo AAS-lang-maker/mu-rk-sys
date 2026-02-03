@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人榜单</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #1E293B;
+            min-height: 100vh;
+            color: #f7fafc;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255, 250, 255, 0.08)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>') repeat;
+            z-index: -1;
+        }
+
+
+        .sidebar {
+            position: fixed;
+            left: -120px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 160px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 0 12px 12px 0;
+            padding: 20px;
+            transition: all 0.3s ease;
+            z-index: 100;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar:hover {
+            left: 0;
+        }
+
+        .sidebar-btn {
+            background-color: #fffa9c;
+            color: #1a202c;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .sidebar-btn:hover {
+            background-color: #fff780;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 250, 156, 0.4);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            flex: 1;
+        }
+
+        .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-right: 20px;
+            object-fit: cover;
+            border: 3px solid #fffa9c;
+            box-shadow: 0 4px 12px rgba(255, 250, 156, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .avatar:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(255, 250, 156, 0.5);
+        }
+
+        .user-details h2 {
+            font-size: 24px;
+            color: #fffa9c;
+            margin-bottom: 5px;
+        }
+
+        .user-details p {
+            font-size: 14px;
+            color: rgba(247, 250, 252, 0.7);
+        }
+
+        .rankings-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .rankings-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .ranking-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .ranking-content {
+            flex: 1;
+        }
+
+        .edit-btn {
+            background-color: #fffa9c;
+            color: #1a202c;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-left: 20px;
+            align-self: flex-start;
+        }
+
+        .edit-btn:hover {
+            background-color: #fff780;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 250, 156, 0.4);
+        }
+
+        .ranking-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(10px);
+            border-left-color: #fffa9c;
+        }
+
+        .ranking-item h3 {
+            color: #fffa9c;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .ranking-item p {
+            color: rgba(247, 250, 252, 0.7);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 40px;
+        }
+
+        .pagination button {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 250, 156, 0.3);
+            color: #f7fafc;
+            border-radius: 6px;
+            padding: 8px 16px;
+            margin: 0 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background-color: #fffa9c;
+            color: #1a202c;
+            transform: translateY(-2px);
+        }
+
+        .pagination button.active {
+            background-color: #fffa9c;
+            color: #1a202c;
+            font-weight: bold;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .user-info {
+                margin-bottom: 20px;
+            }
+
+            .avatar {
+                width: 60px;
+                height: 60px;
+            }
+
+            .rankings-container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="sidebar">
+    <button class="sidebar-btn" onclick="window.location.href='首页.html'">返回主页</button>
+    <button class="sidebar-btn" onclick="window.location.href='login.html'">重新登录</button>
+    <button class="sidebar-btn" onclick="window.location.href='首页.html'">返回首页</button>
+</div>
+
+<div class="container">
+    <div class="header">
+        <div class="user-info">
+            <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=user%20avatar%20profile%20picture%20friendly%20face&image_size=square"
+                 alt="用户头像" class="avatar">
+            <div class="user-details">
+                <h2 th:text="${userName}">用户名</h2>
+                <p>个人榜单管理</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="rankings-container">
+        <div th:each="ranking, stat : ${rankings}" class="ranking-item">
+            <div class="ranking-content">
+                <h3 th:text="${ranking.title}">榜单标题</h3>
+                <p th:text="${ranking.description}">榜单描述</p>
+            </div>
+            <button class="edit-btn" th:onclick="|editRanking(${ranking.id})|">编辑</button>
+        </div>
+    </div>
+
+    <div class="pagination">
+        <button th:disabled="${currentPage == 1}" th:onclick="|goToPage(${currentPage - 1})|">上一页</button>
+
+        <button th:each="i : ${#numbers.sequence(1, totalPages)}" th:class="${currentPage == i ? 'active' : ''}"
+                th:onclick="|goToPage(${i})|" th:text="${i}">1</button>
+
+        <button th:disabled="${currentPage == totalPages}" th:onclick="|goToPage(${currentPage + 1})|">下一页</button>
+    </div>
+</div>
+
+<script>
+    // 编辑榜单
+    function editRanking(id) {
+        // 跳转到编辑页面，传递榜单ID
+        window.location.href = '/edit-ranking?id=' + id;
+    }
+
+    // 分页导航
+    function goToPage(page) {
+        // 跳转到指定页码
+        window.location.href = '/personal-rankings?page=' + page;
+    }
+</script>
+</body>
+
+</html>

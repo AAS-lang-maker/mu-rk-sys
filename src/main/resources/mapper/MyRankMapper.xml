@@ -6,8 +6,8 @@
 <!-- 核心：namespace必须等于UserMapper接口的全限定类名（包名+接口名） -->
 <mapper namespace="com.music.Mapper.MyRankMapper">
 
-    <select id="selectMyRank" resultType="com.music.dto.MyRankWithSong">
-        select a.rank_name,a.vote_count,b.song_id,b.ranking,b.rank_update_time from personal_rank as a
+    <select id="selectMyRank" resultMap="MyRankWithSongsResultMap">
+        select a.rank_id,a.rank_name,a.vote_count,b.song_id,b.ranking,b.rank_update_time from personal_rank as a
         left join rank_song as b on a.rank_id = b.rank_id where a.user_id=#{userId}
         order by a.publish_time asc ,b.ranking asc;
     </select>

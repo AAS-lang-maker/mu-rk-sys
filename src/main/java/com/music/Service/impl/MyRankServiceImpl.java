@@ -1,5 +1,7 @@
 package com.music.Service.impl;
 
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import com.music.Mapper.MyRankMapper;
 import com.music.Service.MyRankService;
 import com.music.dto.MyRankWithSong;
@@ -17,12 +19,9 @@ private MyRankMapper myRankMapper;
 
     //查询personl_rank主表
     @Override
-    public List<MyRankWithSong> selectMyrank(Integer urluserId) {
-      List<MyRankWithSong> personalRanks=myRankMapper.selectMyRank();
-      if(CollectionUtils.isEmpty(personalRanks)){
-          return Collections.emptyList();
-    }else{
-          return personalRanks;
-      }
+    public PageInfo<MyRankWithSong> selectMyrank(Integer pageNum,Integer pageSize,Integer userId) {
+        PageHelper.startPage(pageNum,pageSize);
+      List<MyRankWithSong> personalRanks=myRankMapper.selectMyRank(userId);
+          return new PageInfo<>(personalRanks);
     }
 }
