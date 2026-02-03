@@ -22,16 +22,17 @@ public class MyRankController {
 
 
     @GetMapping("/my")//没有调用Service，只负责页面跳转，没有要操作数据库的逻辑
-    public String myRank(@RequestParam("token")String token,HttpServletRequest request, RedirectAttributes redirectAttributes){
-
-    Integer userId=validateToken(token,redirectAttributes);
-    if(userId==null){
+    public String myRank(@RequestParam(value = "token",required = true)String token,@RequestParam(value = "userId",required = true)Integer userId,
+                         RedirectAttributes redirectAttributes){
+System.out.println("========/my接口被调用了========" );
+    Integer paramuserId=validateToken(token,redirectAttributes);
+    if(userId==null||!userId.equals(paramuserId)){
         return "redirect:/login";
     }
 
        redirectAttributes.addFlashAttribute("userId", userId);
        redirectAttributes.addFlashAttribute("token", token);
-        return "redirect:/api/mine/myrank";
+        return "redirect:/api/mine/myrank?token="+token+"&userId="+userId;
     }
 
     @GetMapping("/myrank")
@@ -43,7 +44,7 @@ public class MyRankController {
                          @RequestParam(defaultValue="1")Integer pageNum, @RequestParam(defaultValue = "5")Integer pageSize){//userId要随着重定向和转发跟随到下一个新页面
 
        Integer userId=validateToken(token,redirectAttributes);
-       if(validateToken(token,redirectAttributes)==null){
+       if(userId==null){
            return "redirect:/login.html";
        }
        if(!userId.equals(paramuserId)){
@@ -54,7 +55,7 @@ public class MyRankController {
         PageInfo<MyRankWithSong> personalRanks=myRankService.selectMyrank(pageNum,pageSize,userId);
         model.addAttribute("personalRanks",personalRanks);//把这两个必要数据传进URL而不是一次性的Flash，重定向的时候数据也进去了
         model.addAttribute("userId", userId);
-        return "myrank—page";
+        return "myrank-page";
     }
     private Integer validateToken(String token,RedirectAttributes redirectAttributes) {
         if (token == null || token.isEmpty()) {

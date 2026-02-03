@@ -133,6 +133,17 @@
             <version>4.0.1</version>
             <scope>provided</scope> <!-- provided 表示由容器（如Tomcat）提供，打包时不包含 -->
         </dependency>
+        <!-- Thymeleaf核心依赖（Spring Boot 2.x/3.x通用） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+
+        <!-- 可选：Thymeleaf布局支持（如果需要用公共片段） -->
+        <dependency>
+            <groupId>nz.net.ultraq.thymeleaf</groupId>
+            <artifactId>thymeleaf-layout-dialect</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

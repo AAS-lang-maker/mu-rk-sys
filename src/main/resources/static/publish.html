@@ -132,20 +132,137 @@
         <p>点击下方的加号按钮可以跳转到添加新内容的页面。</p>
     </div>
 </div>
-
 <div class="add-button-container">
     <button class="add-button" id="addBtn">+</button>
 </div>
+<!-- 可伸缩的“我的榜单”按钮（放在页面右侧） -->
+<div class="slide-btn-container">
+    <button class="slide-btn-toggle" id="slideBtnToggle">
+        <span class="toggle-icon">我的榜单</span>
+    </button>
+    <button class="slide-btn-content" id="myRankBtn">进入我的榜单</button>
+</div>
 
+<style>
+    .slide-btn-container {
+        position: fixed;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 999;
+        display: flex;
+        align-items: center;
+    }
+    .slide-btn-toggle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50% 0 0 50%;
+        background: #fffa9c;
+        color: #333;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+    }
+    .slide-btn-toggle.expanded {
+        background: #fffa9c !important;
+        width: 80px; /* 展开后加宽，显示文字 */
+    }
+    .toggle-icon {
+        display: none;
+        font-size: 12px;
+        margin-left: 5px;
+    }
+    .slide-btn-toggle.expanded .toggle-icon {
+        display: inline;
+    }
+    .slide-btn-content {
+        height: 40px;
+        padding: 0 15px;
+        background: #333;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+        border-radius: 4px 0 0 4px;
+        margin-right: -1px;
+        transform: translateX(100%);
+        opacity: 0;
+        transition: all 0.3s;
+    }
+    .slide-btn-content.show {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    .slide-btn-content:hover {
+        background: #555;
+    }
+</style>
+</body>
 <script>
-    // ************************** 新增1：通用URL参数获取工具函数（核心，所有页面复用） **************************
-    // 作用：从页面URL中解析出token、userId、categoryId等参数（如：publish.html?token=xxx&userId=1&categoryId=1）
-    // 通用URL参数获取工具函数
     function getUrlParam(paramName) {
         const reg = new RegExp("(^|&)" + paramName + "=([^&]*)(&|$)");
         const paramMatch = window.location.search.substr(1).match(reg);
         return paramMatch ? decodeURIComponent(paramMatch[2]) : null;
     }
+
+    // 修复2：确保showErrorTip的DOM存在（如果没有，加一个）
+    function showErrorTip(msg) {
+        // 如果页面没有errorAlert，动态创建一个
+        let el = document.getElementById('errorAlert');
+        if (!el) {
+            el = document.createElement('div');
+            el.id = 'errorAlert';
+            el.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:10px 20px;background:#ff4444;color:#fff;border-radius:4px;z-index:9999;';
+            document.body.appendChild(el);
+        }
+        el.innerText = msg;
+        el.style.display = 'block';
+        setTimeout(() => el.style.display = 'none', 2000);
+    }
+
+    // 修复3：按钮交互+跳转逻辑
+    const slideBtnToggle = document.getElementById('slideBtnToggle');
+    const myRankBtn = document.getElementById('myRankBtn');
+    let isExpanded = false;
+
+    // 展开/收起按钮
+    slideBtnToggle.onclick = function() {
+        isExpanded = !isExpanded;
+        slideBtnToggle.classList.toggle('expanded', isExpanded);
+        myRankBtn.classList.toggle('show', isExpanded);
+    };
+
+    // 点击“进入我的榜单”跳转（加控制台日志，方便排查）
+    myRankBtn.onclick = function() {
+        const token = getUrlParam("token");
+        const userId = getUrlParam("userId"); // 关键修改：和URL的userId保持一致
+        console.log("当前token：", token);
+        console.log("当前userId：", userId); // 打印日志也同步修改
+
+        // 参数校验（同步修改为userId）
+        if (!token || !userId || isNaN(userId)) {
+            showErrorTip("缺少登录信息，请重新登录！");
+            setTimeout(() => window.location.href = "/music/login.html", 1500);
+            return;
+        }
+
+        // 跳转URL（同步传递userId，和后端保持一致）
+        const jumpUrl = `/music/api/mine/my?token=${encodeURIComponent(token)}&userId=${userId}`;
+        console.log("跳转URL：", jumpUrl);
+        window.location.href = jumpUrl;
+    };
+    // ************************** 新增1：通用URL参数获取工具函数（核心，所有页面复用） **************************
+    // 作用：从页面URL中解析出token、userId、categoryId等参数（如：publish.html?token=xxx&userId=1&categoryId=1）
+    // 通用URL参数获取工具函数
+    // 你的getUrlParam函数应该是这样的（如果不是，改成下面的标准写法）：
+    function getUrlParam(paramName) {
+        const reg = new RegExp("(^|&)" + paramName + "=([^&]*)(&|$)");
+        const paramMatch = window.location.search.substr(1).match(reg);
+        return paramMatch ? decodeURIComponent(paramMatch[2]) : null;
+    }
+
 
     // 自定义提示方法
     function showErrorTip(msg) {
