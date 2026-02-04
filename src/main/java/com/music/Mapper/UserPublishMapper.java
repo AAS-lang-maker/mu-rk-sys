@@ -1,11 +1,10 @@
 package com.music.Mapper;
 
-import com.music.pojo.Singer;
-import com.music.pojo.Song;
-import com.music.pojo.PersonalRank;
-import com.music.pojo.RankSong;
+import com.music.dto.MyRankWithSong;
+import com.music.pojo.*;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
 
@@ -18,5 +17,15 @@ public interface UserPublishMapper {
     List<Singer> selectSinger(Integer categoryId);
 
     List<Song> selectSong(Integer singerId);
+
+    List<MyRankWithSong> selectPublishRank(@Param("category")Integer category,@Param("pageSize") Integer pageSize,
+                                           @Param("offset") Integer offset);
+
+    @Select("select count(*) from personal_rank where category_id=#{categoryId}")
+    Integer selectTotal(@Param("category") Integer category);
+
+    Integer insertVote(Integer userId, Integer rankId, String ip);
+
+    int checkip(String ip, Integer rankId);
     //@Param("list")注解，专门为Maybatis批量插入的需求的List集合起一个别名
 }

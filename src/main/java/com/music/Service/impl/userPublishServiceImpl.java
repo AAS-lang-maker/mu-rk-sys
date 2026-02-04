@@ -1,17 +1,17 @@
 package com.music.Service.impl;
 
+import com.github.pagehelper.PageInfo;
 import com.music.Mapper.UserPublishMapper;
 import com.music.Service.UserPublishService;
+import com.music.dto.MyRankWithSong;
 import com.music.dto.RankAddRequest;
-import com.music.pojo.Singer;
-import com.music.pojo.Song;
-import com.music.pojo.PersonalRank;
-import com.music.pojo.RankSong;
+import com.music.pojo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -68,5 +68,33 @@ public class userPublishServiceImpl implements UserPublishService {
     public List<Song> selectSong(Integer singerId) {
         List<Song> songs=userPublishMapper.selectSong(singerId);
         return songs;
+    }
+
+    @Override
+    public PageInfo<MyRankWithSong> selectPublishRank(Integer category, Integer pageNum, Integer pageSize, Integer offset) {
+        List<MyRankWithSong> ranks=userPublishMapper.selectPublishRank(category,pageSize,offset);
+        PageInfo<MyRankWithSong> pageInfo=new PageInfo();
+        Integer total=userPublishMapper.selectTotal(category);
+        Integer pages=(total+pageSize-1)/pageSize;
+        System.out.println("所有榜单："+ranks.size());
+        pageInfo.setList(ranks);
+        pageInfo.setPageNum(pageNum);
+        pageInfo.setPageSize(pageSize);
+        pageInfo.setTotal(total);
+        pageInfo.setPages(pages);
+        return pageInfo;
+    }
+
+    @Override
+    public boolean insertVote(Integer userId, Integer rankId, String ip) {
+        int record=userPublishMapper.checkip(ip,rankId);//防刷票，匿名投票，利用ip检查
+        if(record>0)
+        { return false;}
+        int rows=userPublishMapper.insertVote(userId,rankId,ip);
+        if(rows>0){
+            return true;
+        }else{
+            return false;
+        }
     }
 }

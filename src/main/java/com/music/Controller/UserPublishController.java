@@ -1,6 +1,8 @@
 package com.music.Controller;
 
+import com.github.pagehelper.PageInfo;
 import com.music.Service.UserPublishService;
+import com.music.dto.MyRankWithSong;
 import com.music.dto.RankAddRequest;
 import com.music.pojo.Singer;
 import com.music.pojo.Song;
@@ -10,6 +12,7 @@ import com.music.utils.Result;
 import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -21,6 +24,35 @@ import java.util.List;
 public class UserPublishController {
     @Resource
     private UserPublishService userPublishService;
+    @GetMapping("/publish")
+    public String publish(@RequestParam("token")String token, @RequestParam("category")Integer category,
+                          RedirectAttributes redirectAttributes,@RequestParam("pageNum")Integer pageNum,
+                          @RequestParam("pageSize")Integer pageSize,Model model) {
+        if (token == null || token.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errormessage", "token已失效");
+            return "redirect:/login.html";
+        }
+        if (token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+        Integer userId;
+        try {
+            userId = JwtUtils.getUserIdFromToken(token);
+        } catch (Exception e) {
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("errormessage", "token不见啦，请重新登录");
+            return "redirect:/login.html";
+        }
+       Integer offset = (pageNum-1)*pageSize;
+        PageInfo<MyRankWithSong> publishRanks=userPublishService.selectPublishRank(category,pageNum,pageSize,offset);
+        System.out.println("所有榜单是这样："+publishRanks.getList());
+        model.addAllAttributes(publishRanks.getList());
+        model.addAttribute("category",category);
+        model.addAttribute("pageNum",pageNum);
+        model.addAttribute("pageSize",pageSize);
+        model.addAttribute("offset",offset);
+        return "publish-page";
+    }
     @PostMapping("/add/{categoryId}")
     public String add(@PathVariable("categoryId") Integer categoryId,
                       @RequestBody RankAddRequest rankAddRequestDto,
@@ -96,5 +128,32 @@ public class UserPublishController {
                             ){
         List<Song> songs=userPublishService.selectSong(singerId);
         return songs;
+    }
+    @PostMapping("/vote")
+    public String vote(@RequestParam("token")String token,@RequestParam("rankId")Integer rankId,
+                       RedirectAttributes redirectAttributes,HttpServletRequest request) throws Exception {
+        if (token == null || token.isEmpty()) {
+           redirectAttributes.addFlashAttribute("errormessage","token不能为空，请重新登录");
+           return "redirect:/login.html";
+        }
+        Integer userId= null;
+        try {
+            userId = JwtUtils.getUserIdFromToken(token);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        if (userId == null) {
+            redirectAttributes.addFlashAttribute("errormessage","userId不能为空，请重新登录");
+            return "redirect:/login.html";
+        }
+        String ip = request.getRemoteAddr();
+        boolean voteResult=userPublishService.insertVote(userId,rankId,ip);
+        if (voteResult) {
+            redirectAttributes.addFlashAttribute("success","投票成功");
+            return "publish-page";
+        }else{
+            redirectAttributes.addAttribute("errormessage","投票失败，请稍后再试");
+            return "publish-page";
+        }
     }
 }

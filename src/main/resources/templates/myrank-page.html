@@ -403,7 +403,7 @@
         // 编辑榜单
         // 分页方法修正
         // 分页方法（正确写法：只用 JS 变量 page，去掉 ${}）
-        function goToPage(page) {
+              function goToPage(page) {
             // 用 + 拼接 JS 变量，encodeURIComponent 处理特殊字符
             window.location.href = '/music/api/mine/myrank?page=' + page + '&token=' + encodeURIComponent(token) + '&userId=' + userId;
         }

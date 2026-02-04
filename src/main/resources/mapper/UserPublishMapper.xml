@@ -20,10 +20,42 @@
          (#{item.rankId},#{item.songId},#{item.ranking})
      </foreach>
     </insert>
+
+    <insert id="insertVote">
+        insert into vote_record  (ip,vote_status,vote,rank_id,vote_time)
+            values (#{ip},1,1,#{rank_id},now())
+    </insert>
     <select id="selectSinger" resultType="com.music.pojo.Singer">
         select singer_id,singer_name from singer where category_id=#{categoryId} and singer_status=1
     </select>
     <select id="selectSong" resultType="com.music.pojo.Song">
         select song_id,song.song_name from song where singer_id=#{singerId} and song_status=1
     </select>
+    <select id="checkip" resultType="java.lang.Integer">
+        select count(*) from vote_record where ip=#{ip} and rank_id=#{rankId}
+    </select>
+    <select id="selectPublishRank" resultMap="MyRankWithSongResultMap">
+    select a.rank_id,a.rank_name,a.vote_count,a.publish_time,b.rs_id,b.rank_id,
+               b.song_id,b.ranking,b.rank_create_time,c.song_name from (select rank_id,
+               rank_name,vote_count,publish_time from personal_rank where category_id=#{categoryId}
+               order by publish_time asc limit #{pageSize} offset #{offset}) a
+               left join rank_song as b on a.rank_id=b.rank_id
+               left join song as c on b.song_id = c.song_id
+               order by b.ranking asc,b.rank_update_time asc
+    </select>
+    <resultMap id="MyRankWithSongResultMap" type="com.music.dto.MyRankWithSong">
+        <id property="rankId" column="rank_id"/>
+        <result property="rankName" column="rank_name"/>
+        <result property="voteCount" column="vote_count"/>
+        <result property="publishTime" column="publish_time"/>
+        <!-- 子查询映射：把同一个榜单下的歌曲映射到songList列表 -->
+        <collection property="rankSongList" ofType="com.music.pojo.RankSong">
+            <id property="rsId" column="rs_id"/>
+            <result property="songId" column="song_id"/>
+            <result property="songName" column="song_name"/>
+            <result property="ranking" column="ranking"/>
+            <result property="rankUpdateTime" column="rank_update_time"/>
+        </collection>
+    </resultMap>
+
 </mapper>
