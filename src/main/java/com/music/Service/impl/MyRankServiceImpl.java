@@ -19,9 +19,17 @@ private MyRankMapper myRankMapper;
 
     //查询personl_rank主表
     @Override
-    public PageInfo<MyRankWithSong> selectMyrank(Integer pageNum,Integer pageSize,Integer userId) {
-        PageHelper.startPage(pageNum,pageSize);
-      List<MyRankWithSong> personalRanks=myRankMapper.selectMyRank(userId);
-          return new PageInfo<>(personalRanks);
+    public PageInfo<MyRankWithSong> selectMyrank(Integer pageNum,Integer pageSize,Integer offset,Integer userId) {
+      List<MyRankWithSong> list =myRankMapper.selectMyRank(userId,pageSize,offset);
+      System.out.println("Mapper查询到的榜单数："+list.size());
+      Integer total = myRankMapper.selectMyRankTotal(userId);
+      Integer pages=(total+pageSize-1)/pageSize;
+       PageInfo<MyRankWithSong> pageInfo=new PageInfo<>();
+       pageInfo.setList(list);
+       pageInfo.setPageNum(pageNum);
+       pageInfo.setPageSize(pageSize);
+       pageInfo.setTotal(total);
+       pageInfo.setPages(pages);
+          return pageInfo;
     }
 }

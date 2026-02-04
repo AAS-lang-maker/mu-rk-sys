@@ -26,3 +26,7 @@ mybatis:
   configuration:
     map-underscore-to-camel-case: true # 开启下划线转驼峰（数据库字段user_name→实体类属性userName）
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # 开启SQL日志，控制台打印执行的SQL（开发必备，方便调试）
+pagehelper:
+  helper-dialect: mysql
+  support-methods-arguments: false
+  reasonable: false

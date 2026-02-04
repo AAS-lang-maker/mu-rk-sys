@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface MyRankService {
 
-    PageInfo<MyRankWithSong> selectMyrank(Integer pageNum, Integer pageSize, Integer userId);
+    PageInfo<MyRankWithSong> selectMyrank(Integer pageNum, Integer pageSize,Integer offset, Integer userId);
 }

@@ -51,8 +51,9 @@ System.out.println("========/my接口被调用了========" );
            redirectAttributes.addFlashAttribute("errormessage","无权访问他人数据");
            return "redirect:/login.html";
        }
-
-        PageInfo<MyRankWithSong> personalRanks=myRankService.selectMyrank(pageNum,pageSize,userId);
+       Integer offset = (pageNum-1)*pageSize;
+        PageInfo<MyRankWithSong> personalRanks=myRankService.selectMyrank(pageNum,pageSize,offset,userId);
+       System.out.println(personalRanks.getList());
         model.addAttribute("personalRanks",personalRanks);//把这两个必要数据传进URL而不是一次性的Flash，重定向的时候数据也进去了
         model.addAttribute("userId", userId);
         return "myrank-page";

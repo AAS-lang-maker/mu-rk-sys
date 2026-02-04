@@ -14,8 +14,7 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background-color: #1a202c;
-            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
+            background-color: #1E293B;
             min-height: 100vh;
             color: #f7fafc;
             position: relative;
@@ -247,6 +246,60 @@
                 padding: 20px;
             }
         }
+
+        .song-list {
+            margin-top: 15px;
+            padding-left: 0;
+        }
+
+        .song-list h4 {
+            color: #fffa9c;
+            font-size: 16px;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        .song-list ul {
+            list-style: none;
+            padding: 0;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 6px;
+            padding: 10px;
+        }
+
+        .song-list li {
+            margin: 8px 0;
+            padding: 10px 15px;
+            border-bottom: 1px solid rgba(255, 250, 156, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .song-list li:last-child {
+            border-bottom: none;
+        }
+
+        .song-list li:hover {
+            background: rgba(255, 250, 156, 0.05);
+        }
+
+        .song-name {
+            color: #f7fafc;
+            font-size: 15px;
+            flex: 1;
+        }
+
+        .song-rank {
+            color: #fffa9c;
+            font-size: 15px;
+            font-weight: 600;
+            margin-left: 20px;
+            padding: 4px 10px;
+            background: rgba(255, 250, 156, 0.1);
+            border-radius: 4px;
+        }
     </style>
 </head>
 
@@ -260,69 +313,106 @@
 <div class="container">
     <div class="header">
         <div class="user-info">
-            <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=user%20avatar%20profile%20picture%20friendly%20face&image_size=square"
-                 alt="用户头像" class="avatar">
+            <img
+                    src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=user%20avatar%20profile%20picture%20friendly%20face&image_size=square"
+                    alt="用户头像" class="avatar">
             <div class="user-details">
                 <h2 th:text="${userName}">用户名</h2>
                 <p>个人榜单管理</p>
             </div>
         </div>
     </div>
-
     <div class="rankings-container">
-        <div th:each="ranking, stat : ${rankings}" class="ranking-item">
+        <!-- 新增：空数据提示（关键验证） -->
+        <div th:if="${#lists.isEmpty(personalRanks.list)}" class="empty-tip">
+            <p>⚠️ 暂无榜单数据</p>
+        </div>
+        <!-- 榜单循环：确保没有引号问题 -->
+        <div th:each="ranking, stat : ${personalRanks.list}" class="ranking-item">
             <div class="ranking-content">
-                <h3 th:text="${ranking.title}">榜单标题</h3>
-                <p th:text="${ranking.description}">榜单描述</p>
+                <h3 th:text="${ranking.rankName}">榜单标题</h3>
+                <p th:text="|更新于: ${ranking.publishTime}|">最后更新时间</p>
+                <p th:text="|投票数: ${ranking.voteCount}|">投票数</p>
+
+                <!-- 歌曲列表 -->
+                <div class="song-list">
+                    <h4>歌曲列表</h4>
+                    <ul>
+                        <li th:each="song : ${ranking.rankSongList}">
+                            <span class="song-name" th:text="${song.songName}">歌曲名称</span>
+                            <span class="song-rank" th:text="${song.ranking}">排名</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 编辑按钮：同样去掉 onclick 里的引号 -->
+                <button class="edit-btn"
+                        th:onclick="editRanking(${ranking.rankId})">
+                    编辑
+                </button>
             </div>
-            <button class="edit-btn" th:onclick="|editRanking(${ranking.id})|">编辑</button>
         </div>
     </div>
 
-    <div class="pagination">
-        <button th:disabled="${currentPage == 1}" th:onclick="|goToPage(${currentPage - 1})|">上一页</button>
 
-        <button th:each="i : ${#numbers.sequence(1, totalPages)}" th:class="${currentPage == i ? 'active' : ''}"
-                th:onclick="|goToPage(${i})|" th:text="${i}">1</button>
 
-        <button th:disabled="${currentPage == totalPages}" th:onclick="|goToPage(${currentPage + 1})|">下一页</button>
-    </div>
-</div>
 
-<script>
-    // 页面加载时获取并保存token和userId
-    let token = '';
-    let userId = '';
+        <div class="pagination">
+            <!-- 1. 上一页：去掉引号，直接写表达式 -->
+            <button th:disabled="${personalRanks.pageNum == 1}"
+                    th:onclick="goToPage(${personalRanks.pageNum - 1})">
+                上一页
+            </button>
 
-    window.onload = function() {
-        token = getUrlParam('token');
-        userId = getUrlParam('userId');
+            <!-- 2. 页码：同理，去掉 th:onclick 里的引号 -->
+            <button th:each="i : ${#numbers.sequence(1, personalRanks.pages)}"
+                    th:class="${personalRanks.pageNum == i ? 'active' : ''}"
+                    th:onclick="goToPage(${i})"
+                    th:text="${i}">
+                1
+            </button>
 
-        // 校验参数，缺失则跳转登录页
-        if (!token || !userId || isNaN(userId)) {
-            showErrorTip('登录信息失效，请重新登录');
-            setTimeout(() => window.location.href = '/music/login.html', 1500);
+            <!-- 3. 下一页：去掉引号，直接写表达式 -->
+            <button th:disabled="${personalRanks.pageNum == personalRanks.pages}"
+                    th:onclick="goToPage(${personalRanks.pageNum + 1})">
+                下一页
+            </button>
+        </div>
+
+    <script>
+        // 页面加载时获取并保存token和userId
+        let token = '';
+        let userId = '';
+
+        window.onload = function () {
+            token = getUrlParam('token');
+            userId = getUrlParam('userId');
+
+            // 校验参数，缺失则跳转登录页
+            if (!token || !userId || isNaN(userId)) {
+                showErrorTip('登录信息失效，请重新登录');
+                setTimeout(() => window.location.href = '/music/login.html', 1500);
+            }
+        };
+
+        // 复用你之前的getUrlParam函数（如果页面里没有，要加上）
+        function getUrlParam(paramName) {
+            const searchParams = new URLSearchParams(window.location.search);
+            return searchParams.get(paramName);
         }
-    };
+        // 编辑榜单
+        // 分页方法修正
+        // 分页方法（正确写法：只用 JS 变量 page，去掉 ${}）
+        function goToPage(page) {
+            // 用 + 拼接 JS 变量，encodeURIComponent 处理特殊字符
+            window.location.href = '/music/api/mine/myrank?page=' + page + '&token=' + encodeURIComponent(token) + '&userId=' + userId;
+        }
 
-    // 复用你之前的getUrlParam函数（如果页面里没有，要加上）
-    function getUrlParam(paramName) {
-        const searchParams = new URLSearchParams(window.location.search);
-        return searchParams.get(paramName);
-    }
-    // 编辑榜单
-    function editRanking(id) {
-        // 拼接完整参数
-        window.location.href = `/music/edit-ranking?id=${id}&token=${encodeURIComponent(token)}&userId=${userId}`;
-    }
-
-    // 分页导航
-
-    function goToPage(page) {
-        // 拼接完整参数
-        window.location.href = `/music/api/mine/myrank?page=${page}&token=${encodeURIComponent(token)}&userId=${userId}`;
-    }
-</script>
-</body>
+        // 编辑榜单方法（正确写法：只用 JS 变量 id，去掉 ${}）
+        function editRanking(id) {
+            window.location.href = '/music/edit-ranking?id=' + id + '&token=' + encodeURIComponent(token) + '&userId=' + userId;
+        }
+    </script>
+  </body>
 
 </html>
