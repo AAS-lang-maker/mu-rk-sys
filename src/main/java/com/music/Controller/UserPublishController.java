@@ -156,4 +156,27 @@ public class UserPublishController {
             return "publish-page";
         }
     }
+    @PostMapping("/love")
+    public String love(@RequestParam("token")String token,@RequestParam("userId")Integer userId,@RequestParam("rankId")Integer rankId,
+                       RedirectAttributes redirectAttributes,HttpServletRequest request) throws Exception {
+        if (token == null || token.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errormessage","token不能为空，请重新登录");
+            return "redirect:/login.html";
+        }
+        if (userId == null) {
+            redirectAttributes.addFlashAttribute("errormessage","userId不能为空，请重新登录");
+            return "redirect:/login.html";
+        }
+        String ip = request.getRemoteAddr();
+        boolean loveResult=userPublishService.insertLove(userId,ip,rankId);
+        if (loveResult) {
+            redirectAttributes.addFlashAttribute("success","收藏成功");
+            return "publish-page";
+        }else{
+            redirectAttributes.addFlashAttribute("errormessage","收藏失败，请稍后再试");
+            return "publish-page";
+        }
+    }
+
+
 }

@@ -25,6 +25,10 @@
         insert into vote_record  (ip,vote_status,vote,rank_id,vote_time)
             values (#{ip},1,1,#{rank_id},now())
     </insert>
+    <insert id="insertLove">
+        insert into love_record(ip,love_status,love,rank_id,user_id,love_time)
+        values (#{ip},1,1,#{rankId},#{userId},now())
+    </insert>
     <select id="selectSinger" resultType="com.music.pojo.Singer">
         select singer_id,singer_name from singer where category_id=#{categoryId} and singer_status=1
     </select>
@@ -35,18 +39,25 @@
         select count(*) from vote_record where ip=#{ip} and rank_id=#{rankId}
     </select>
     <select id="selectPublishRank" resultMap="MyRankWithSongResultMap">
-    select a.rank_id,a.rank_name,a.vote_count,a.publish_time,b.rs_id,b.rank_id,
-               b.song_id,b.ranking,b.rank_create_time,c.song_name from (select rank_id,
-               rank_name,vote_count,publish_time from personal_rank where category_id=#{categoryId}
-               order by publish_time asc limit #{pageSize} offset #{offset}) a
-               left join rank_song as b on a.rank_id=b.rank_id
-               left join song as c on b.song_id = c.song_id
-               order by b.ranking asc,b.rank_update_time asc
+        select a.rank_id,a.rank_name,a.total_vote as vote_count,a.total_love as love_count,a.publish_time,
+               b.rs_id,b.song_id,b.ranking,b.rank_update_time,c.song_name
+        from (select p.rank_id,p.rank_name,ifnull(sum(v.vote),0) as total_vote,p.publish_time,
+                     ifnull(sum(l.love),0) as total_love from personal_rank as p
+                                                                  left join vote_record as v on v.rank_id=p.rank_id
+                                                                  left join  love_record as l on l.rank_id=p.rank_id
+              where p.category_id=#{categoryId}
+              group by p.rank_id, p.rank_name, p.publish_time
+              order by publish_time asc
+              limit #{pageSize} offset #{offset}) a
+                 left join rank_song as b on a.rank_id = b.rank_id
+                 left join song as c on c.song_id=b.song_id
+        order by b.rank_update_time asc, b.ranking asc
     </select>
     <resultMap id="MyRankWithSongResultMap" type="com.music.dto.MyRankWithSong">
         <id property="rankId" column="rank_id"/>
         <result property="rankName" column="rank_name"/>
         <result property="voteCount" column="vote_count"/>
+        <result property="loveCount" column="love_count"/>
         <result property="publishTime" column="publish_time"/>
         <!-- 子查询映射：把同一个榜单下的歌曲映射到songList列表 -->
         <collection property="rankSongList" ofType="com.music.pojo.RankSong">

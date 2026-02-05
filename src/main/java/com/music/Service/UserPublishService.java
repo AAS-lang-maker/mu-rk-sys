@@ -20,4 +20,6 @@ public interface UserPublishService {
     PageInfo<MyRankWithSong> selectPublishRank(Integer category, Integer pageNum, Integer pageSize, Integer offset);
 
     boolean insertVote(Integer userId, Integer rankId, String ip);
+
+    boolean insertLove(Integer userId, String ip, Integer rankId);
 }

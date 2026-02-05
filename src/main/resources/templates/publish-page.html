@@ -225,13 +225,16 @@
             border-radius: 4px;
         }
 
-        /* 投票按钮样式 */
-        .vote-section {
+        /* 互动按钮样式 */
+        .interaction-section {
             margin-top: 15px;
             padding-left: 15px;
+            display: flex;
+            gap: 15px;
         }
 
-        .vote-btn {
+        .vote-btn,
+        .collect-btn {
             background: transparent;
             border: none;
             display: flex;
@@ -244,6 +247,10 @@
 
         .vote-btn:hover {
             background: rgba(255, 182, 193, 0.2);
+        }
+
+        .collect-btn:hover {
+            background: rgba(192, 192, 192, 0.2);
         }
 
         .heart-icon {
@@ -262,10 +269,34 @@
             color: #ff69b4;
         }
 
-        .vote-count {
-            color: rgba(255, 182, 193, 0.9);
+        .star-icon {
+            color: #e68181;
+            font-size: 18px;
+            margin-right: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .collect-btn:hover .star-icon {
+            color: #ffffff;
+            transform: scale(1.1);
+        }
+
+        .collect-btn.collected .star-icon {
+            color: #ffffff;
+        }
+
+        .vote-count,
+        .collect-count {
             font-size: 14px;
             font-weight: bold;
+        }
+
+        .vote-count {
+            color: rgba(255, 182, 193, 0.9);
+        }
+
+        .collect-count {
+            color: rgba(192, 192, 192, 0.9);
         }
 
         @media (max-width: 768px) {
@@ -298,14 +329,15 @@
     </div>
 
     <div class="content">
-        <h2>歌曲榜单中心</h2>
+        <h2>榜单列表</h2>
 
         <!-- 动态榜单列表 -->
         <div class="rankings-list">
-            <div th:each="ranking, stat : ${publishRanks.list}" class="ranking-item">
+            <div th:each="ranking, stat : ${rankings.list}" class="ranking-item">
                 <h3 th:text="${ranking.rankName}">榜单标题</h3>
+                <p th:text="${ranking.description}">榜单描述</p>
                 <p class="ranking-meta">
-                    <span th:text="|创建者: ${ranking.publishTime}|">创建者</span>
+                    <span th:text="|创建者: ${ranking.creatorName}|">创建者</span>
                     <span th:text="|更新时间: ${ranking.updateTime}|">更新时间</span>
                 </p>
 
@@ -319,11 +351,15 @@
                         </li>
                     </ul>
 
-                    <!-- 投票按钮 -->
-                    <div class="vote-section">
+                    <!-- 投票和收藏按钮 -->
+                    <div class="interaction-section">
                         <button class="vote-btn" th:onclick="|voteForRanking(${publishRanks.rankId})|">
                             <span class="heart-icon">❤</span>
                             <span class="vote-count" th:text="${publishRanks.voteCount}">0</span>
+                        </button>
+                        <button class="collect-btn" th:onclick="|collectRanking(${publishRanks.rankId})|">
+                            <span class="star-icon">★</span>
+                            <span class="collect-count" th:text="${publishRanks.collectCount}">0</span>
                         </button>
                     </div>
                 </div>
@@ -332,13 +368,13 @@
 
         <!-- 分页组件 -->
         <div class="pagination">
-            <button th:disabled="${publishRanks.pageNum == 1}"
-                    th:onclick="|goToPage(${publishRanks.pageNum - 1})|">上一页</button>
-            <button th:each="i : ${#numbers.sequence(1, publishRanks.pages)}"
-                    th:class="${publishRanks.pageNum == i ? 'active' : ''}" th:onclick="|goToPage(${i})|"
+            <button th:disabled="${rankings.pageNum == 1}"
+                    th:onclick="|goToPage(${rankings.pageNum - 1})|">上一页</button>
+            <button th:each="i : ${#numbers.sequence(1, rankings.pages)}"
+                    th:class="${rankings.pageNum == i ? 'active' : ''}" th:onclick="|goToPage(${i})|"
                     th:text="${i}">1</button>
             <button th:disabled="${rankings.pageNum == rankings.pages}"
-                    th:onclick="|goToPage(${publishRanks.pageNum + 1})|">下一页</button>
+                    th:onclick="|goToPage(${rankings.pageNum + 1})|">下一页</button>
         </div>
     </div>
 </div>
@@ -559,7 +595,7 @@
 
     // 分页导航函数
     function goToPage(page) {
-        window.location.href = '/music/api/rank/publish?page=' + page + '&token=' + encodeURIComponent(token) + '&userId=' + userId;
+        window.location.href = `/music/api/mine/my?page=${page}&token=${encodeURIComponent(token)}&userId=${userId}&categoryId=${categoryId}`;
     }
 
     // 投票函数
@@ -603,6 +639,51 @@
             })
             .catch(error => {
                 console.error("投票请求异常：", error);
+                showErrorTip("网络错误，请稍后重试");
+            });
+    }
+
+    // 收藏函数
+    function collectRanking(rankId) {
+        if (!token || !userId || isNaN(userId)) {
+            showErrorTip("请先登录后再收藏！");
+            return;
+        }
+
+        // 构建收藏请求
+        const collectUrl = `/music/api/rank/collect?token=${encodeURIComponent(token)}&userId=${userId}&rankId=${rankId}`;
+
+        fetch(collectUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('收藏失败');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    showSuccessTip("收藏成功！");
+                    // 更新收藏数显示
+                    const collectBtn = document.querySelector(`[onclick*="collectRanking(${rankId})"]`);
+                    if (collectBtn) {
+                        const collectCount = collectBtn.querySelector('.collect-count');
+                        if (collectCount) {
+                            const currentCount = parseInt(collectCount.textContent);
+                            collectCount.textContent = currentCount + 1;
+                            collectBtn.classList.add('collected');
+                        }
+                    }
+                } else {
+                    showErrorTip(data.message || "收藏失败，请重试");
+                }
+            })
+            .catch(error => {
+                console.error("收藏请求异常：", error);
                 showErrorTip("网络错误，请稍后重试");
             });
     }

@@ -90,11 +90,23 @@ public class userPublishServiceImpl implements UserPublishService {
         int record=userPublishMapper.checkip(ip,rankId);//防刷票，匿名投票，利用ip检查
         if(record>0)
         { return false;}
-        int rows=userPublishMapper.insertVote(userId,rankId,ip);
+        int rows=userPublishMapper.insertVote(rankId,ip);
         if(rows>0){
             return true;
         }else{
             return false;
         }
+    }
+
+    @Override
+    public boolean insertLove(Integer userId, String ip, Integer rankId) {
+        int record1=userPublishMapper.checkip(ip,rankId);
+        if(record1>0)
+        { return false;}
+        int row1=userPublishMapper.insertLove(userId,ip,rankId);
+        if(row1>0){
+            return true;
+        }
+        return false;
     }
 }

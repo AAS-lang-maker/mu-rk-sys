@@ -300,6 +300,70 @@
             background: rgba(255, 250, 156, 0.1);
             border-radius: 4px;
         }
+
+        /* 互动图标样式 */
+        .interaction-section {
+            margin-top: 15px;
+            padding-left: 15px;
+            display: flex;
+            gap: 20px;
+        }
+
+        .vote-btn,
+        .collect-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 8px 12px;
+            border-radius: 20px;
+        }
+
+        .vote-btn:hover {
+            background: rgba(255, 182, 193, 0.2);
+        }
+
+        .collect-btn:hover {
+            background: rgba(192, 192, 193, 0.2);
+        }
+
+        .heart-icon {
+            color: #ffb6c1;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+
+        .vote-btn:hover .heart-icon {
+            color: #ff69b4;
+            transform: scale(1.1);
+        }
+
+        .star-icon {
+            color: #fbfbfb;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+
+        .collect-btn:hover .star-icon {
+            color: #d87272;
+            transform: scale(1.1);
+        }
+
+        .vote-count,
+        .collect-count {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .vote-count {
+            color: rgba(255, 182, 193, 0.9);
+        }
+
+        .collect-count {
+            color: rgba(192, 192, 192, 0.9);
+        }
     </style>
 </head>
 
@@ -322,19 +386,16 @@
             </div>
         </div>
     </div>
+
     <div class="rankings-container">
-        <!-- 新增：空数据提示（关键验证） -->
-        <div th:if="${#lists.isEmpty(personalRanks.list)}" class="empty-tip">
-            <p>⚠️ 暂无榜单数据</p>
-        </div>
-        <!-- 榜单循环：确保没有引号问题 -->
         <div th:each="ranking, stat : ${personalRanks.list}" class="ranking-item">
             <div class="ranking-content">
+                <!-- 榜单基本信息 -->
                 <h3 th:text="${ranking.rankName}">榜单标题</h3>
-                <p th:text="|更新于: ${ranking.publishTime}|">最后更新时间</p>
-                <p th:text="|投票数: ${ranking.voteCount}|">投票数</p>
+                <p th:text="|更新于: ${ranking.updateTime}|">最后更新时间</p>
 
-                <!-- 歌曲列表 -->
+
+                <!-- 榜单下的歌曲列表 -->
                 <div class="song-list">
                     <h4>歌曲列表</h4>
                     <ul>
@@ -343,41 +404,36 @@
                             <span class="song-rank" th:text="${song.ranking}">排名</span>
                         </li>
                     </ul>
+
+                    <!-- 互动图标 -->
+                    <div class="interaction-section">
+                        <div class="vote-btn">
+                            <span class="heart-icon">❤</span>
+                            <span class="vote-count" th:text="${ranking.voteCount}">0</span>
+                        </div>
+                        <div class="collect-btn">
+                            <span class="star-icon">★</span>
+                            <span class="collect-count" th:text="${ranking.collectCount}">0</span>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- 编辑按钮：同样去掉 onclick 里的引号 -->
-                <button class="edit-btn"
-                        th:onclick="editRanking(${ranking.rankId})">
-                    编辑
-                </button>
+                <button class="edit-btn" th:onclick="|editRanking(${ranking.rankId})|">编辑</button>
             </div>
         </div>
-    </div>
-
-
-
 
         <div class="pagination">
-            <!-- 1. 上一页：去掉引号，直接写表达式 -->
             <button th:disabled="${personalRanks.pageNum == 1}"
-                    th:onclick="goToPage(${personalRanks.pageNum - 1})">
-                上一页
-            </button>
+                    th:onclick="|goToPage(${personalRanks.pageNum - 1})|">上一页</button>
 
-            <!-- 2. 页码：同理，去掉 th:onclick 里的引号 -->
             <button th:each="i : ${#numbers.sequence(1, personalRanks.pages)}"
-                    th:class="${personalRanks.pageNum == i ? 'active' : ''}"
-                    th:onclick="goToPage(${i})"
-                    th:text="${i}">
-                1
-            </button>
+                    th:class="${personalRanks.pageNum == i ? 'active' : ''}" th:onclick="|goToPage(${i})|"
+                    th:text="${i}">1</button>
 
-            <!-- 3. 下一页：去掉引号，直接写表达式 -->
             <button th:disabled="${personalRanks.pageNum == personalRanks.pages}"
-                    th:onclick="goToPage(${personalRanks.pageNum + 1})">
-                下一页
-            </button>
+                    th:onclick="|goToPage(${personalRanks.pageNum + 1})|">下一页</button>
         </div>
+    </div>
 
     <script>
         // 页面加载时获取并保存token和userId
@@ -401,18 +457,91 @@
             return searchParams.get(paramName);
         }
         // 编辑榜单
-        // 分页方法修正
-        // 分页方法（正确写法：只用 JS 变量 page，去掉 ${}）
-              function goToPage(page) {
-            // 用 + 拼接 JS 变量，encodeURIComponent 处理特殊字符
-            window.location.href = '/music/api/mine/myrank?page=' + page + '&token=' + encodeURIComponent(token) + '&userId=' + userId;
+        function editRanking(id) {
+            // 拼接完整参数
+            window.location.href = `/music/edit-ranking?id=${id}&token=${encodeURIComponent(token)}&userId=${userId}`;
         }
 
-        // 编辑榜单方法（正确写法：只用 JS 变量 id，去掉 ${}）
-        function editRanking(id) {
-            window.location.href = '/music/edit-ranking?id=' + id + '&token=' + encodeURIComponent(token) + '&userId=' + userId;
+        // 投票方法
+        function voteForRanking(rankId) {
+            if (!token || !userId || isNaN(userId)) {
+                alert('请先登录后再投票！');
+                return;
+            }
+
+            // 构建投票请求
+            const voteUrl = `/music/api/rank/vote?token=${encodeURIComponent(token)}&userId=${userId}&rankId=${rankId}`;
+
+            fetch(voteUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('投票失败');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        alert('投票成功！');
+                        // 刷新页面或更新投票数
+                        location.reload();
+                    } else {
+                        alert(data.message || '投票失败，请重试');
+                    }
+                })
+                .catch(error => {
+                    console.error('投票请求异常：', error);
+                    alert('网络错误，请稍后重试');
+                });
+        }
+
+        // 收藏方法
+        function collectRanking(rankId) {
+            if (!token || !userId || isNaN(userId)) {
+                alert('请先登录后再收藏！');
+                return;
+            }
+
+            // 构建收藏请求
+            const collectUrl = `/music/api/rank/collect?token=${encodeURIComponent(token)}&userId=${userId}&rankId=${rankId}`;
+
+            fetch(collectUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('收藏失败');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        alert('收藏成功！');
+                        // 刷新页面或更新收藏数
+                        location.reload();
+                    } else {
+                        alert(data.message || '收藏失败，请重试');
+                    }
+                })
+                .catch(error => {
+                    console.error('收藏请求异常：', error);
+                    alert('网络错误，请稍后重试');
+                });
+        }
+
+        // 分页导航
+        function goToPage(page) {
+            // 拼接完整参数
+            window.location.href = `/music/api/mine/myrank?page=${page}&token=${encodeURIComponent(token)}&userId=${userId}`;
         }
     </script>
-  </body>
+</body>
 
 </html>

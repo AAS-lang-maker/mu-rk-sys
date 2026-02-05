@@ -24,8 +24,10 @@ public interface UserPublishMapper {
     @Select("select count(*) from personal_rank where category_id=#{categoryId}")
     Integer selectTotal(@Param("category") Integer category);
 
-    Integer insertVote(Integer userId, Integer rankId, String ip);
+    Integer insertVote(Integer rankId, String ip);
 
     int checkip(String ip, Integer rankId);
+
+    int insertLove(Integer userId, String ip, Integer rankId);
     //@Param("list")注解，专门为Maybatis批量插入的需求的List集合起一个别名
 }

@@ -2,8 +2,12 @@ package com.music.Controller;
 
 import com.github.pagehelper.PageInfo;
 import com.music.Service.MyRankService;
+import com.music.dto.EditRank;
 import com.music.dto.MyRankWithSong;
+import com.music.pojo.Singer;
+import com.music.pojo.Song;
 import com.music.utils.JwtUtils;
+import com.music.utils.Result;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -58,6 +62,33 @@ System.out.println("========/my接口被调用了========" );
         model.addAttribute("userId", userId);
         return "myrank-page";
     }
+    @GetMapping("/edit/{rankId}")
+    public Result<MyRankWithSong> edit(@PathVariable("rankId") Integer rankId, @RequestParam("token")String token){
+        MyRankWithSong newRank=myRankService.getRank(rankId);
+        if(!(newRank==null)){
+        return Result.success(newRank);}
+        else{
+            return Result.error("errormessage");
+        }
+    }
+    @GetMapping("/singer")
+    @ResponseBody
+    //点击添加歌曲的按钮不涉及重定向，URL没有变化，页面也没有刷新
+    public List<Singer> singer(@RequestParam("token") String token, // 接收前端的token
+                               @RequestParam("userId") Integer userId, // 接收前端的userId
+                               @RequestParam("categoryId") Integer categoryId){
+        List<Singer> singers=myRankService.selectSinger(categoryId);
+        return singers;
+    }
+    @GetMapping("/song")
+    @ResponseBody
+    public List<Song>  song(@RequestParam("token") String token,
+                            @RequestParam("userId") Integer userId,
+                            @RequestParam("singerId") Integer singerId
+    ){
+        List<Song> songs=myRankService.selectSong(singerId);
+        return songs;
+    }
     private Integer validateToken(String token,RedirectAttributes redirectAttributes) {
         if (token == null || token.isEmpty()) {
             redirectAttributes.addFlashAttribute("errormessage", "token已失效");
@@ -75,6 +106,14 @@ System.out.println("========/my接口被调用了========" );
             redirectAttributes.addFlashAttribute("errormessage", "token不见啦，请重新登录");
             return null;
         }
+    }
+    @PostMapping("/save")
+    @ResponseBody
+    //和前端配合，不用重定向，实现弹窗关闭
+    public Result<String> save(@RequestBody EditRank dto,RedirectAttributes redirectAttributes){
+        myRankService.insertNewRank(dto);
+        redirectAttributes.addFlashAttribute("success","榜单重新编辑成功，已经保存");
+        return Result.success("榜单编辑成功");
     }
 }
 
