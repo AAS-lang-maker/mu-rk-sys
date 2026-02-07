@@ -30,10 +30,18 @@ public class CategoryController {
                                           @RequestParam(value = "token", required = true) String token,
                                           @RequestParam(value = "userId", required = true) Integer userId,
                                           RedirectAttributes redirectAttributes) {
+        if(token==null||token==""){
+            redirectAttributes.addFlashAttribute("errormessage","token不能为空");
+            return "redirect:/login.html";
+        }
+        if(userId==null||userId==0){
+            redirectAttributes.addFlashAttribute("errormessage","userId不能为空");
+            return "redirect:/login.html";
+        }
             Result<Category> result = categoryService.selectCategoryId(categoryId);
             if (result.getCode() == 200) {
                 redirectAttributes.addAttribute("success", "即将为您跳转至榜单发布页面");
-                return "redirect:/publish.html?token=" + token + "&userId=" + userId + "&categoryId=" + categoryId;
+                return "redirect:/api/rank/publish?token=" + token + "&userId=" + userId + "&category=" + categoryId;
             } else {
                 redirectAttributes.addAttribute("errormessage", "点击失败，请重新选择类别");
                 return "redirect:/index.html?token=" + token + "&userId=" + userId;

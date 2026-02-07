@@ -392,7 +392,7 @@
             <div class="ranking-content">
                 <!-- 榜单基本信息 -->
                 <h3 th:text="${ranking.rankName}">榜单标题</h3>
-                <p th:text="|更新于: ${ranking.updateTime}|">最后更新时间</p>
+                <p th:text="|更新于: ${ranking.publishTime}|">最后更新时间</p>
 
 
                 <!-- 榜单下的歌曲列表 -->
@@ -413,7 +413,7 @@
                         </div>
                         <div class="collect-btn">
                             <span class="star-icon">★</span>
-                            <span class="collect-count" th:text="${ranking.collectCount}">0</span>
+                            <span class="collect-count" th:text="${ranking.loveCount}">0</span>
                         </div>
                     </div>
                 </div>
@@ -542,6 +542,6 @@
             window.location.href = `/music/api/mine/myrank?page=${page}&token=${encodeURIComponent(token)}&userId=${userId}`;
         }
     </script>
-</body>
+ </body>
 
 </html>

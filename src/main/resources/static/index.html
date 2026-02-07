@@ -374,7 +374,7 @@
             }
             // ************************** 核心修正：拼接token+userId+categoryId三个参数 **************************
             // 移除冗余的/music前缀，直接拼接后端接口路径，参数之间用&分隔
-            const jumpUrl = `/music/api/category/redirect?categoryId=${categoryId}&token=${token}&userId=${userId}`;
+            const jumpUrl = `/music/api/category/redirect?categoryId=${categoryId}&token=${encodeURIComponent(token)}&userId=${userId}`;
             window.location.href = jumpUrl;
         });
     });

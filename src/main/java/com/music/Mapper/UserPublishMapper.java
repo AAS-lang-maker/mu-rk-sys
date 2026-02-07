@@ -21,7 +21,7 @@ public interface UserPublishMapper {
     List<MyRankWithSong> selectPublishRank(@Param("category")Integer category,@Param("pageSize") Integer pageSize,
                                            @Param("offset") Integer offset);
 
-    @Select("select count(*) from personal_rank where category_id=#{categoryId}")
+    @Select("select count(*) from personal_rank where category_id=#{category}")
     Integer selectTotal(@Param("category") Integer category);
 
     Integer insertVote(Integer rankId, String ip);

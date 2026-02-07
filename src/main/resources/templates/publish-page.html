@@ -1,17 +1,16 @@
 <!DOCTYPE html>
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>榜单页</title>
     <style>
+        /* 保留你原来的所有样式，不修改 */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background-color: #1E293B;
@@ -19,29 +18,24 @@
             position: relative;
             color: #f7fafc;
         }
-
         .container {
             padding: 40px;
             max-width: 1200px;
             margin: 0 auto;
         }
-
         .header {
             text-align: center;
             margin-bottom: 60px;
         }
-
         .header h1 {
             font-size: 36px;
             color: #fffa9c;
             margin-bottom: 20px;
         }
-
         .header p {
             font-size: 18px;
             color: rgba(247, 250, 252, 0.7);
         }
-
         .content {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
@@ -49,19 +43,16 @@
             padding: 40px;
             margin-bottom: 100px;
         }
-
         .content h2 {
             font-size: 24px;
             color: #fffa9c;
             margin-bottom: 30px;
         }
-
         .content p {
             font-size: 16px;
             line-height: 1.6;
             margin-bottom: 20px;
         }
-
         .add-button-container {
             position: fixed;
             bottom: 40px;
@@ -69,7 +60,6 @@
             transform: translateX(-50%);
             z-index: 100;
         }
-
         .add-button {
             width: 80px;
             height: 80px;
@@ -86,20 +76,16 @@
             align-items: center;
             justify-content: center;
         }
-
         .add-button:hover {
             transform: scale(1.1);
             box-shadow: 0 6px 20px rgba(255, 250, 205, 0.6);
         }
-
         .add-button:active {
             transform: scale(0.95);
         }
-
         .rankings-list {
             margin-bottom: 30px;
         }
-
         .ranking-item {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 8px;
@@ -108,40 +94,34 @@
             transition: all 0.3s ease;
             border-left: 4px solid transparent;
         }
-
         .ranking-item:hover {
             background: rgba(255, 255, 255, 0.1);
             transform: translateX(10px);
             border-left-color: #fffa9c;
         }
-
         .ranking-item h3 {
             color: #fffa9c;
             font-size: 18px;
             margin-bottom: 10px;
         }
-
         .ranking-item p {
             color: rgba(247, 250, 252, 0.7);
             font-size: 14px;
             line-height: 1.5;
             margin-bottom: 8px;
         }
-
         .ranking-meta {
             display: flex;
             gap: 20px;
             font-size: 13px;
             color: rgba(255, 250, 156, 0.8);
         }
-
         .pagination {
             display: flex;
             justify-content: center;
             align-items: center;
             margin-top: 40px;
         }
-
         .pagination button {
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 250, 156, 0.3);
@@ -152,37 +132,30 @@
             cursor: pointer;
             transition: all 0.3s ease;
         }
-
         .pagination button:hover:not(:disabled) {
             background-color: #fffa9c;
             color: #1a202c;
             transform: translateY(-2px);
         }
-
         .pagination button.active {
             background-color: #fffa9c;
             color: #1a202c;
             font-weight: bold;
         }
-
         .pagination button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
-
-        /* 歌曲列表样式 */
         .song-list {
             margin-top: 15px;
             padding-left: 0;
         }
-
         .song-list h4 {
             color: #fffa9c;
             font-size: 16px;
             margin-bottom: 12px;
             font-weight: 500;
         }
-
         .song-list ul {
             list-style: none;
             padding: 0;
@@ -190,7 +163,6 @@
             border-radius: 6px;
             padding: 10px;
         }
-
         .song-list li {
             margin: 8px 0;
             padding: 10px 15px;
@@ -200,21 +172,17 @@
             align-items: center;
             transition: all 0.2s ease;
         }
-
         .song-list li:last-child {
             border-bottom: none;
         }
-
         .song-list li:hover {
             background: rgba(255, 250, 156, 0.05);
         }
-
         .song-name {
             color: #f7fafc;
             font-size: 15px;
             flex: 1;
         }
-
         .song-rank {
             color: #fffa9c;
             font-size: 15px;
@@ -224,15 +192,12 @@
             background: rgba(255, 250, 156, 0.1);
             border-radius: 4px;
         }
-
-        /* 互动按钮样式 */
         .interaction-section {
             margin-top: 15px;
             padding-left: 15px;
             display: flex;
             gap: 15px;
         }
-
         .vote-btn,
         .collect-btn {
             background: transparent;
@@ -244,85 +209,162 @@
             padding: 8px 15px;
             border-radius: 20px;
         }
-
         .vote-btn:hover {
             background: rgba(255, 182, 193, 0.2);
         }
-
         .collect-btn:hover {
             background: rgba(192, 192, 192, 0.2);
         }
-
         .heart-icon {
             color: #ffb6c1;
             font-size: 18px;
             margin-right: 5px;
             transition: all 0.3s ease;
         }
-
         .vote-btn:hover .heart-icon {
             color: #ff69b4;
             transform: scale(1.1);
         }
-
         .vote-btn.voted .heart-icon {
             color: #ff69b4;
         }
-
         .star-icon {
             color: #e68181;
             font-size: 18px;
             margin-right: 5px;
             transition: all 0.3s ease;
         }
-
         .collect-btn:hover .star-icon {
             color: #ffffff;
             transform: scale(1.1);
         }
-
         .collect-btn.collected .star-icon {
             color: #ffffff;
         }
-
         .vote-count,
         .collect-count {
             font-size: 14px;
             font-weight: bold;
         }
-
         .vote-count {
             color: rgba(255, 182, 193, 0.9);
         }
-
         .collect-count {
             color: rgba(192, 192, 192, 0.9);
         }
-
         @media (max-width: 768px) {
             .container {
                 padding: 20px;
             }
-
             .header h1 {
                 font-size: 28px;
             }
-
             .content {
                 padding: 30px;
             }
-
             .add-button {
                 width: 70px;
                 height: 70px;
                 font-size: 36px;
             }
         }
+        /* 新增提示框样式 */
+        #errorAlert {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            background: #ff4444;
+            color: #fff;
+            border-radius: 4px;
+            z-index: 9999;
+        }
+        #successAlert {
+            display: none;
+            position: fixed;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            background: #00C851;
+            color: #fff;
+            border-radius: 4px;
+            z-index: 9999;
+        }
+        /* 我的榜单按钮样式 */
+        .slide-btn-container {
+            position: fixed;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 999;
+            display: flex;
+            align-items: center;
+        }
+        .slide-btn-toggle {
+            width: 120px;
+            height: 50px;
+            border-radius: 25px 0 0 25px;
+            background: #fffa9c;
+            color: #1a202c;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: -2px 0 10px rgba(255, 250, 156, 0.3);
+        }
+        .slide-btn-toggle:hover {
+            background: #fff780;
+            box-shadow: -2px 0 15px rgba(255, 250, 156, 0.5);
+        }
+        .slide-btn-toggle.collapsed {
+            width: 50px;
+            background: rgba(255, 250, 156, 0.8);
+        }
+        .slide-btn-toggle.collapsed .toggle-icon {
+            display: none;
+        }
+        .toggle-icon {
+            display: inline;
+            font-size: 14px;
+            margin-left: 5px;
+        }
+        .slide-btn-content {
+            height: 50px;
+            padding: 0 20px;
+            background: #fffa9c;
+            color: #1a202c;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px 0 0 4px;
+            margin-right: -1px;
+            transform: translateX(100%);
+            opacity: 0;
+            transition: all 0.3s;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .slide-btn-content.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        .slide-btn-content:hover {
+            background: #fff780;
+        }
     </style>
 </head>
-
 <body>
 <div class="container">
+    <!-- 新增提示框（后端重定向的提示会显示在这里） -->
+    <div id="errorAlert" th:text="${errormessage}"></div>
+    <div id="successAlert" th:text="${success}"></div>
+
     <div class="header">
         <h1>音乐排行榜</h1>
         <p>探索热门音乐和艺术家</p>
@@ -330,18 +372,15 @@
 
     <div class="content">
         <h2>榜单列表</h2>
-
-        <!-- 动态榜单列表 -->
+        <!-- 动态榜单列表：适配后端传递的PageInfo对象 -->
         <div class="rankings-list">
-            <div th:each="ranking, stat : ${rankings.list}" class="ranking-item">
+            <div th:each="ranking, stat : ${publishRanks.list}" class="ranking-item">
                 <h3 th:text="${ranking.rankName}">榜单标题</h3>
-                <p th:text="${ranking.description}">榜单描述</p>
                 <p class="ranking-meta">
-                    <span th:text="|创建者: ${ranking.creatorName}|">创建者</span>
-                    <span th:text="|更新时间: ${ranking.updateTime}|">更新时间</span>
+                    <span th:text="'更新时间：' + ${ranking.publishTime}">更新时间</span>
                 </p>
-
                 <!-- 歌曲列表 -->
+                <!-- 歌曲列表（从rankSongList中取songName） -->
                 <div class="song-list">
                     <h4>歌曲列表</h4>
                     <ul>
@@ -350,370 +389,188 @@
                             <span class="song-rank" th:text="${song.ranking}">排名</span>
                         </li>
                     </ul>
-
-                    <!-- 投票和收藏按钮 -->
-                    <div class="interaction-section">
-                        <button class="vote-btn" th:onclick="|voteForRanking(${publishRanks.rankId})|">
-                            <span class="heart-icon">❤</span>
-                            <span class="vote-count" th:text="${publishRanks.voteCount}">0</span>
-                        </button>
-                        <button class="collect-btn" th:onclick="|collectRanking(${publishRanks.rankId})|">
-                            <span class="star-icon">★</span>
-                            <span class="collect-count" th:text="${publishRanks.collectCount}">0</span>
-                        </button>
-                    </div>
+                </div>
+                <!-- 投票和收藏按钮 -->
+                <div class="interaction-section">
+                    <button class="vote-btn" th:onclick="voteForRanking(${ranking.rankId})">
+                        <span class="heart-icon">♥</span>
+                        <span class="vote-count" th:text="${ranking.voteCount}">0</span>
+                    </button>
+                    <button class="collect-btn" th:onclick="collectRanking(${ranking.rankId})">
+                        <span class="star-icon">★</span>
+                        <span class="collect-count" th:text="${ranking.loveCount}">0</span>
+                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- 分页组件 -->
-        <div class="pagination">
-            <button th:disabled="${rankings.pageNum == 1}"
-                    th:onclick="|goToPage(${rankings.pageNum - 1})|">上一页</button>
-            <button th:each="i : ${#numbers.sequence(1, rankings.pages)}"
-                    th:class="${rankings.pageNum == i ? 'active' : ''}" th:onclick="|goToPage(${i})|"
-                    th:text="${i}">1</button>
-            <button th:disabled="${rankings.pageNum == rankings.pages}"
-                    th:onclick="|goToPage(${rankings.pageNum + 1})|">下一页</button>
-        </div>
-    </div>
-</div>
+
+<!-- 加号发布榜单按钮 -->
 <div class="add-button-container">
     <button class="add-button" id="addBtn">+</button>
 </div>
-<!-- 可伸缩的"我的榜单"按钮（放在页面右侧） -->
+
+<!-- 我的榜单按钮 -->
 <div class="slide-btn-container">
     <button class="slide-btn-toggle expanded" id="slideBtnToggle">
         <span class="toggle-icon">我的榜单</span>
     </button>
     <button class="slide-btn-content show" id="myRankBtn">进入我的榜单</button>
 </div>
-
-<style>
-    .slide-btn-container {
-        position: fixed;
-        right: 0;
-        top: 50%;
-        transform: translateY(-50%);
-        z-index: 999;
-        display: flex;
-        align-items: center;
-    }
-
-    .slide-btn-toggle {
-        width: 120px;
-        height: 50px;
-        border-radius: 25px 0 0 25px;
-        background: #fffa9c;
-        color: #1a202c;
-        border: none;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.3s;
-        font-size: 16px;
-        font-weight: bold;
-        box-shadow: -2px 0 10px rgba(255, 250, 156, 0.3);
-    }
-
-    .slide-btn-toggle:hover {
-        background: #fff780;
-        box-shadow: -2px 0 15px rgba(255, 250, 156, 0.5);
-    }
-
-    .slide-btn-toggle.collapsed {
-        width: 50px;
-        background: rgba(255, 250, 156, 0.8);
-    }
-
-    .slide-btn-toggle.collapsed .toggle-icon {
-        display: none;
-    }
-
-    .toggle-icon {
-        display: inline;
-        font-size: 14px;
-        margin-left: 5px;
-    }
-
-    .slide-btn-content {
-        height: 50px;
-        padding: 0 20px;
-        background: #fffa9c;
-        color: #1a202c;
-        border: none;
-        cursor: pointer;
-        border-radius: 4px 0 0 4px;
-        margin-right: -1px;
-        transform: translateX(100%);
-        opacity: 0;
-        transition: all 0.3s;
-        font-size: 14px;
-        font-weight: bold;
-    }
-
-    .slide-btn-content.show {
-        transform: translateX(0);
-        opacity: 1;
-    }
-
-    .slide-btn-content:hover {
-        background: #fff780;
-    }
-</style>
-</body>
-<script>
-    function getUrlParam(paramName) {
-        const reg = new RegExp("(^|&)" + paramName + "=([^&]*)(&|$)");
-        const paramMatch = window.location.search.substr(1).match(reg);
-        return paramMatch ? decodeURIComponent(paramMatch[2]) : null;
-    }
-
-    // 修复2：确保showErrorTip的DOM存在（如果没有，加一个）
-    function showErrorTip(msg) {
-        // 如果页面没有errorAlert，动态创建一个
-        let el = document.getElementById('errorAlert');
-        if (!el) {
-            el = document.createElement('div');
-            el.id = 'errorAlert';
-            el.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:10px 20px;background:#ff4444;color:#fff;border-radius:4px;z-index:9999;';
-            document.body.appendChild(el);
-        }
-        el.innerText = msg;
-        el.style.display = 'block';
-        setTimeout(() => el.style.display = 'none', 2000);
-    }
-
-    // 修复3：按钮交互+跳转逻辑
-    const slideBtnToggle = document.getElementById('slideBtnToggle');
-    const myRankBtn = document.getElementById('myRankBtn');
-    let isExpanded = true;
-
-    // 展开/收起按钮
-    slideBtnToggle.onclick = function () {
-        isExpanded = !isExpanded;
-        if (isExpanded) {
-            slideBtnToggle.classList.remove('collapsed');
-            slideBtnToggle.classList.add('expanded');
-            myRankBtn.classList.add('show');
-        } else {
-            slideBtnToggle.classList.remove('expanded');
-            slideBtnToggle.classList.add('collapsed');
-            myRankBtn.classList.remove('show');
-        }
-    };
-
-    // 点击“进入我的榜单”跳转（加控制台日志，方便排查）
-    myRankBtn.onclick = function () {
-        const token = getUrlParam("token");
-        const userId = getUrlParam("userId"); // 关键修改：和URL的userId保持一致
-        console.log("当前token：", token);
-        console.log("当前userId：", userId); // 打印日志也同步修改
-
-        // 参数校验（同步修改为userId）
-        if (!token || !userId || isNaN(userId)) {
-            showErrorTip("缺少登录信息，请重新登录！");
-            setTimeout(() => window.location.href = "/music/login.html", 1500);
-            return;
-        }
-
-        // 跳转URL（同步传递userId，和后端保持一致）
-        const jumpUrl = `/music/api/mine/my?token=${encodeURIComponent(token)}&userId=${userId}`;
-        console.log("跳转URL：", jumpUrl);
-        window.location.href = jumpUrl;
-    };
-    // ************************** 新增1：通用URL参数获取工具函数（核心，所有页面复用） **************************
-    // 作用：从页面URL中解析出token、userId、categoryId等参数（如：publish.html?token=xxx&userId=1&categoryId=1）
-    // 通用URL参数获取工具函数
-    // 你的getUrlParam函数应该是这样的（如果不是，改成下面的标准写法）：
-    function getUrlParam(paramName) {
-        const reg = new RegExp("(^|&)" + paramName + "=([^&]*)(&|$)");
-        const paramMatch = window.location.search.substr(1).match(reg);
-        return paramMatch ? decodeURIComponent(paramMatch[2]) : null;
-    }
-
-
-    // 自定义提示方法
-    function showErrorTip(msg) {
-        const el = document.getElementById('errorAlert');
-        el.innerText = msg;
-        el.style.display = 'block';
-        setTimeout(() => el.style.display = 'none', 3000);
-    }
-    function showSuccessTip(msg) {
-        const el = document.getElementById('successAlert');
-        el.innerText = msg;
-        el.style.display = 'block';
-        setTimeout(() => el.style.display = 'none', 2000);
-    }
-
-    // 全局变量
-    let token = '';
-    let userId = '';
-    let categoryId = '';
-
-    // 页面加载核心逻辑
-    window.onload = function () {
-        // 解析参数
-        token = getUrlParam("token");
-        userId = getUrlParam("userId");
-        categoryId = getUrlParam("categoryId");
-
-        // 类型转换+空值校验
-        userId = userId ? Number(userId) : null;
-        categoryId = categoryId ? Number(categoryId) : null;
-
-        // 登录态校验
-        if (!token || token.trim() === '' || !userId || isNaN(userId)) {
-            showErrorTip("登录信息失效，请重新登录！");
-            setTimeout(() => window.location.href = "/music/login.html", 1500);
-            return;
-        }
-        // 分类ID校验
-        if (!categoryId || isNaN(categoryId)) {
-            showErrorTip("未获取到有效榜单分类，请重新选择！");
-            setTimeout(() => window.location.href = "/music/index.html", 1500);
-            return;
-        }
-
-        // 调试日志
-        console.log("认证参数校验通过：", { token, userId, categoryId });
-        showSuccessTip("页面加载成功，可发布榜单啦！");
-    };
-
-    // 加号按钮点击事件
-    document.getElementById("addBtn").onclick = function () {
-        if (!token || !userId || !categoryId || isNaN(userId) || isNaN(categoryId)) {
-            showErrorTip("参数缺失，请刷新页面重试！");
-            return;
-        }
-        // 编码参数+拼接/music前缀
-        const jumpUrl = `/music/rank.html?token=${encodeURIComponent(token)}&userId=${userId}&categoryId=${categoryId}`;
-        window.location.href = jumpUrl;
-    };
-
-    // 分页导航函数
-    function goToPage(page) {
-        window.location.href = `/music/api/mine/my?page=${page}&token=${encodeURIComponent(token)}&userId=${userId}&categoryId=${categoryId}`;
-    }
-
-    // 投票函数
-    function voteForRanking(rankId) {
-        if (!token || !userId || isNaN(userId)) {
-            showErrorTip("请先登录后再投票！");
-            return;
-        }
-
-        // 构建投票请求
-        const voteUrl = `/music/api/rank/vote?token=${encodeURIComponent(token)}&userId=${userId}&rankId=${rankId}`;
-
-        fetch(voteUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
+        <script>
+            // 1. 工具函数：获取URL参数
+            function getUrlParam(paramName) {
+                const reg = new RegExp("(^|&)" + paramName + "=([^&]*)(&|$)");
+                const paramMatch = window.location.search.substr(1).match(reg);
+                return paramMatch ? decodeURIComponent(paramMatch[2]) : null;
             }
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('投票失败');
+
+            // 2. 全局变量（只声明一次）
+            let token = getUrlParam("token");
+            let userId = getUrlParam("userId");
+            let category = parseInt(getUrlParam("category")) || 1; // 兜底1
+            let pageNum = parseInt(getUrlParam("pageNum")) || 1;
+            let pageSize = parseInt(getUrlParam("pageSize")) || 10;
+
+            console.log("解析到的category：", getUrlParam("category"));
+            console.log("转成数字后：", category);
+
+            // 3. 动态路径工具
+            function getTargetPublishPath(category) {
+                return "/music" +
+                    "/api/mine/my";
+            }
+            function getTargetVotePath(category) {
+                return category === 1 ? "/music/api/rank/vote" : "/music/api/workrank/vote";
+            }
+            function getTargetLovePath(category) {
+                return category === 1 ? "/music/api/rank/love" : "/music/api/workrank/love";
+            }
+
+            // 4. 提示框
+            function showErrorTip(msg) {
+                let el = document.getElementById('errorAlert');
+                if (!el) {
+                    el = document.createElement('div');
+                    el.id = 'errorAlert';
+                    el.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:10px 20px;background:#ff4444;color:#fff;border-radius:4px;z-index:9999;';
+                    document.body.appendChild(el);
                 }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    showSuccessTip("投票成功！");
-                    // 更新投票数显示
-                    const voteBtn = document.querySelector(`[onclick*="voteForRanking(${rankId})"]`);
-                    if (voteBtn) {
-                        const voteCount = voteBtn.querySelector('.vote-count');
-                        if (voteCount) {
-                            const currentCount = parseInt(voteCount.textContent);
-                            voteCount.textContent = currentCount + 1;
-                            voteBtn.classList.add('voted');
-                        }
+                el.innerText = msg;
+                el.style.display = 'block';
+                setTimeout(() => el.style.display = 'none', 2000);
+            }
+            function showSuccessTip(msg) {
+                let el = document.getElementById('successAlert');
+                if (!el) {
+                    el = document.createElement('div');
+                    el.id = 'successAlert';
+                    el.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);padding:10px 20px;background:#00C851;color:#fff;border-radius:4px;z-index:9999;';
+                    document.body.appendChild(el);
+                }
+                el.innerText = msg;
+                el.style.display = 'block';
+                setTimeout(() => el.style.display = 'none', 2000);
+            }
+
+            // 5. 页面加载完成后，再绑定所有事件（核心！）
+            window.onload = function () {
+                console.log("DOM加载完成，开始绑定事件");
+
+                // 先获取所有按钮（只在这里获取一次）
+                const slideBtnToggle = document.getElementById('slideBtnToggle');
+                const myRankBtn = document.getElementById('myRankBtn');
+                const addBtn = document.getElementById("addBtn");
+
+                // 我的榜单展开/收起
+                let isExpanded = true;
+                slideBtnToggle.onclick = function () {
+                    isExpanded = !isExpanded;
+                    if (isExpanded) {
+                        slideBtnToggle.classList.remove('collapsed');
+                        slideBtnToggle.classList.add('expanded');
+                        myRankBtn.classList.add('show');
+                    } else {
+                        slideBtnToggle.classList.remove('expanded');
+                        slideBtnToggle.classList.add('collapsed');
+                        myRankBtn.classList.remove('show');
                     }
-                } else {
-                    showErrorTip(data.message || "投票失败，请重试");
-                }
-            })
-            .catch(error => {
-                console.error("投票请求异常：", error);
-                showErrorTip("网络错误，请稍后重试");
-            });
-    }
+                };
 
-    // 收藏函数
-    function collectRanking(rankId) {
-        if (!token || !userId || isNaN(userId)) {
-            showErrorTip("请先登录后再收藏！");
-            return;
-        }
-
-        // 构建收藏请求
-        const collectUrl = `/music/api/rank/collect?token=${encodeURIComponent(token)}&userId=${userId}&rankId=${rankId}`;
-
-        fetch(collectUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('收藏失败');
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    showSuccessTip("收藏成功！");
-                    // 更新收藏数显示
-                    const collectBtn = document.querySelector(`[onclick*="collectRanking(${rankId})"]`);
-                    if (collectBtn) {
-                        const collectCount = collectBtn.querySelector('.collect-count');
-                        if (collectCount) {
-                            const currentCount = parseInt(collectCount.textContent);
-                            collectCount.textContent = currentCount + 1;
-                            collectBtn.classList.add('collected');
-                        }
+                // 进入我的榜单（核心跳转）
+                myRankBtn.onclick = function () {
+                    console.log("【进入我的榜单】按钮被点击");
+                    if (!token || !userId || isNaN(userId)) {
+                        showErrorTip("缺少登录信息，请重新登录！");
+                        setTimeout(() => window.location.href = "/login.html", 1500);
+                        return false;
                     }
-                } else {
-                    showErrorTip(data.message || "收藏失败，请重试");
-                }
-            })
-            .catch(error => {
-                console.error("收藏请求异常：", error);
-                showErrorTip("网络错误，请稍后重试");
-            });
-    }
+                    const targetPath = getTargetPublishPath(category);
+                    const jumpUrl = `${targetPath}?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}&pageNum=1&pageSize=10`;
+                    console.log("跳转URL：", jumpUrl);
+                    window.location.href = jumpUrl;
+                    return false;
+                };
 
-    // 预留接口请求基础逻辑
-    function requestApi(apiUrl, method = "GET", data = {}) {
-        let fullUrl = `/music${apiUrl}?token=${encodeURIComponent(token)}&userId=${userId}&categoryId=${categoryId}`;
-        const requestOptions = {
-            method: method,
-            headers: {
-                "Content-Type": "application/json;charset=utf-8"
+                // 加号发布榜单
+                addBtn.onclick = function () {
+                    console.log("【加号发布】按钮被点击");
+                    if (!token || !userId || !category || isNaN(userId) || isNaN(category)) {
+                        showErrorTip("参数缺失，请刷新页面重试！");
+                        return false;
+                    }
+                    let addPagePath = category === 1 ? "/music/rank.html" : "/music/workrank.html";
+                    const jumpUrl = `${addPagePath}?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}`;
+                    console.log("发布跳转URL：", jumpUrl);
+                    window.location.href = jumpUrl;
+                    return false;
+                };
+
+                // 页面加载校验
+                if (!token || token.trim() === '' || !userId || isNaN(userId)) {
+                    showErrorTip("登录信息失效，请重新登录！");
+                    setTimeout(() => window.location.href = "/login.html", 1500);
+                    return;
+                }
+                console.log("页面加载成功，参数：", { token, userId, category, pageNum, pageSize });
+                showSuccessTip("页面加载成功！");
+            };
+
+            // 6. 分页
+            function goToPage(page) {
+                const targetPath = getTargetPublishPath(category);
+                const jumpUrl = `${targetPath}?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}&pageNum=${page}&pageSize=${pageSize}`;
+                window.location.href = jumpUrl;
             }
-        };
-        if (method === "POST") {
-            requestOptions.body = JSON.stringify(data);
-        }
-        return fetch(fullUrl, requestOptions)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`接口请求失败：${response.status}`);
-                }
-                return response.json();
-            })
-            .catch(error => {
-                console.error("接口请求异常：", error);
-                showErrorTip("接口请求失败，请检查后端服务或登录信息！");
-                throw error;
-            });
-    }
-</script>
-</body>
 
+            // 7. 投票
+            function voteForRanking(rankId) {
+                if (!token) {
+                    showErrorTip("请先登录后再投票！");
+                    return;
+                }
+                const votePath = getTargetVotePath(category);
+                const voteUrl = `${votePath}?token=${encodeURIComponent(token)}&rankId=${rankId}&category=${category}&pageNum=${pageNum}&pageSize=${pageSize}`;
+                fetch(voteUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+                    .then(res => res.ok ? res.text() : Promise.reject('投票失败'))
+                    .then(() => { showSuccessTip("投票成功！"); window.location.reload(); })
+                    .catch(err => { console.error(err); showErrorTip("网络错误，请稍后重试"); });
+            }
+
+            // 8. 收藏
+            function collectRanking(rankId) {
+                if (!token || !userId || isNaN(userId)) {
+                    showErrorTip("请先登录后再收藏！");
+                    return;
+                }
+                const lovePath = getTargetLovePath(category);
+                const collectUrl = `${lovePath}?token=${encodeURIComponent(token)}&userId=${userId}&rankId=${rankId}&category=${category}&pageNum=${pageNum}&pageSize=${pageSize}`;
+                fetch(collectUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+                    .then(res => res.ok ? res.text() : Promise.reject('收藏失败'))
+                    .then(() => { showSuccessTip("收藏成功！"); window.location.reload(); })
+                    .catch(err => { console.error(err); showErrorTip("网络错误，请稍后重试"); });
+            }
+        </script>
+
+</body>
 </html>

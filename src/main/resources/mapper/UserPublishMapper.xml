@@ -45,7 +45,7 @@
                      ifnull(sum(l.love),0) as total_love from personal_rank as p
                                                                   left join vote_record as v on v.rank_id=p.rank_id
                                                                   left join  love_record as l on l.rank_id=p.rank_id
-              where p.category_id=#{categoryId}
+              where p.category_id=#{category}
               group by p.rank_id, p.rank_name, p.publish_time
               order by publish_time asc
               limit #{pageSize} offset #{offset}) a
