@@ -53,6 +53,7 @@
             line-height: 1.6;
             margin-bottom: 20px;
         }
+        /* 修改加号按钮定位：固定在视口底部中央 */
         .add-button-container {
             position: fixed;
             bottom: 40px;
@@ -357,6 +358,47 @@
         .slide-btn-content:hover {
             background: #fff780;
         }
+        /* 新增：暂无数据样式 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(247, 250, 252, 0.6);
+            font-size: 18px;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 40px;
+        }
+
+        .pagination button {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 250, 156, 0.3);
+            color: #f7fafc;
+            border-radius: 6px;
+            padding: 8px 16px;
+            margin: 0 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background-color: #fffa9c;
+            color: #1a202c;
+            transform: translateY(-2px);
+        }
+
+        .pagination button.active {
+            background-color: #fffa9c;
+            color: #1a202c;
+            font-weight: bold;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -374,13 +416,13 @@
         <h2>榜单列表</h2>
         <!-- 动态榜单列表：适配后端传递的PageInfo对象 -->
         <div class="rankings-list">
+            <!-- 有数据时显示榜单 -->
             <div th:each="ranking, stat : ${publishRanks.list}" class="ranking-item">
                 <h3 th:text="${ranking.rankName}">榜单标题</h3>
                 <p class="ranking-meta">
                     <span th:text="'更新时间：' + ${ranking.publishTime}">更新时间</span>
                 </p>
                 <!-- 歌曲列表 -->
-                <!-- 歌曲列表（从rankSongList中取songName） -->
                 <div class="song-list">
                     <h4>歌曲列表</h4>
                     <ul>
@@ -402,175 +444,182 @@
                     </button>
                 </div>
             </div>
+            <div class="pagination">
+                <button th:disabled="${publishRanks.pageNum == 1}"
+                        th:onclick="|goToPage(${publishRanks.pageNum - 1})|">上一页</button>
+
+                <button th:each="i : ${#numbers.sequence(1, publishRanks.pages)}"
+                        th:class="${publishRanks.pageNum == i ? 'active' : ''}" th:onclick="|goToPage(${i})|"
+                        th:text="${i}">1</button>
+
+                <button th:disabled="${publishRanks.pageNum == publishRanks.pages}"
+                        th:onclick="|goToPage(${publishRanks.pageNum + 1})|">下一页</button>
+            </div>
+
+            <!-- 无数据时显示暂无数据 -->
+            <div th:if="${publishRanks.list == null or publishRanks.list.size() == 0}" class="empty-state">
+                暂无榜单数据
+            </div>
         </div>
+    </div>
 
+    <!-- 加号发布榜单按钮 -->
+    <div class="add-button-container">
+        <button class="add-button" id="addBtn">+</button>
+    </div>
 
-<!-- 加号发布榜单按钮 -->
-<div class="add-button-container">
-    <button class="add-button" id="addBtn">+</button>
+    <!-- 我的榜单按钮 -->
+    <div class="slide-btn-container">
+        <button class="slide-btn-toggle expanded" id="slideBtnToggle">
+            <span class="toggle-icon">我的榜单</span>
+        </button>
+        <button class="slide-btn-content show" id="myRankBtn">进入我的榜单</button>
+    </div>
 </div>
 
-<!-- 我的榜单按钮 -->
-<div class="slide-btn-container">
-    <button class="slide-btn-toggle expanded" id="slideBtnToggle">
-        <span class="toggle-icon">我的榜单</span>
-    </button>
-    <button class="slide-btn-content show" id="myRankBtn">进入我的榜单</button>
-</div>
-        <script>
-            // 1. 工具函数：获取URL参数
-            function getUrlParam(paramName) {
-                const reg = new RegExp("(^|&)" + paramName + "=([^&]*)(&|$)");
-                const paramMatch = window.location.search.substr(1).match(reg);
-                return paramMatch ? decodeURIComponent(paramMatch[2]) : null;
+<script>
+    // 1. 工具函数：获取URL参数
+    function getUrlParam(paramName) {
+        const reg = new RegExp("(^|&)" + paramName + "=([^&]*)(&|$)");
+        const paramMatch = window.location.search.substr(1).match(reg);
+        return paramMatch ? decodeURIComponent(paramMatch[2]) : null;
+    }
+
+    // 2. 全局变量（只声明一次）
+    let token = getUrlParam("token");
+    let userId = getUrlParam("userId");
+    let category = parseInt(getUrlParam("category")) || 1; // 兜底1
+    let pageNum = parseInt(getUrlParam("pageNum")) || 1;
+    let pageSize = parseInt(getUrlParam("pageSize")) || 4;
+
+    console.log("解析到的category：", getUrlParam("category"));
+    console.log("转成数字后：", category);
+
+    // 3. 动态路径工具
+    function getTargetPublishPath(category) {
+        return "/music" +
+            "/api/mine/my";
+    }
+    function getTargetVotePath(category) {
+        return category === 1 ? "/music/api/rank/vote" : "/music/api/workrank/vote";
+    }
+    function getTargetLovePath(category) {
+        return category === 1 ? "/music/api/rank/love" : "/music/api/workrank/love";
+    }
+
+    // 4. 提示框
+    function showErrorTip(msg) {
+        let el = document.getElementById('errorAlert');
+        if (!el) {
+            el = document.createElement('div');
+            el.id = 'errorAlert';
+            el.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:10px 20px;background:#ff4444;color:#fff;border-radius:4px;z-index:9999;';
+            document.body.appendChild(el);
+        }
+        el.innerText = msg;
+        el.style.display = 'block';
+        setTimeout(() => el.style.display = 'none', 2000);
+    }
+
+
+    // 5. 页面加载完成后，再绑定所有事件（核心！）
+    window.onload = function () {
+        console.log("DOM加载完成，开始绑定事件");
+
+        // 先获取所有按钮（只在这里获取一次）
+        const slideBtnToggle = document.getElementById('slideBtnToggle');
+        const myRankBtn = document.getElementById('myRankBtn');
+        const addBtn = document.getElementById("addBtn");
+
+        // 我的榜单展开/收起
+        let isExpanded = true;
+        slideBtnToggle.onclick = function () {
+            isExpanded = !isExpanded;
+            if (isExpanded) {
+                slideBtnToggle.classList.remove('collapsed');
+                slideBtnToggle.classList.add('expanded');
+                myRankBtn.classList.add('show');
+            } else {
+                slideBtnToggle.classList.remove('expanded');
+                slideBtnToggle.classList.add('collapsed');
+                myRankBtn.classList.remove('show');
             }
+        };
 
-            // 2. 全局变量（只声明一次）
-            let token = getUrlParam("token");
-            let userId = getUrlParam("userId");
-            let category = parseInt(getUrlParam("category")) || 1; // 兜底1
-            let pageNum = parseInt(getUrlParam("pageNum")) || 1;
-            let pageSize = parseInt(getUrlParam("pageSize")) || 10;
-
-            console.log("解析到的category：", getUrlParam("category"));
-            console.log("转成数字后：", category);
-
-            // 3. 动态路径工具
-            function getTargetPublishPath(category) {
-                return "/music" +
-                    "/api/mine/my";
+        // 进入我的榜单（核心跳转）
+        myRankBtn.onclick = function () {
+            console.log("【进入我的榜单】按钮被点击");
+            if (!token || !userId || isNaN(userId)) {
+                showErrorTip("缺少登录信息，请重新登录！");
+                setTimeout(() => window.location.href = "/login.html", 1500);
+                return false;
             }
-            function getTargetVotePath(category) {
-                return category === 1 ? "/music/api/rank/vote" : "/music/api/workrank/vote";
+            const targetPath = getTargetPublishPath(category);
+            const jumpUrl = `${targetPath}?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}&pageNum=1&pageSize=10`;
+            console.log("跳转URL：", jumpUrl);
+            window.location.href = jumpUrl;
+            return false;
+        };
+
+        // 加号发布榜单
+        addBtn.onclick = function () {
+            console.log("【加号发布】按钮被点击");
+            if (!token || !userId || !category || isNaN(userId) || isNaN(category)) {
+                showErrorTip("参数缺失，请刷新页面重试！");
+                return false;
             }
-            function getTargetLovePath(category) {
-                return category === 1 ? "/music/api/rank/love" : "/music/api/workrank/love";
-            }
+            let addPagePath = category === 1 ? "/music/rank.html" : "/music/workrank.html";
+            const jumpUrl = `${addPagePath}?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}`;
+            console.log("发布跳转URL：", jumpUrl);
+            window.location.href = jumpUrl;
+            return false;
+        };
 
-            // 4. 提示框
-            function showErrorTip(msg) {
-                let el = document.getElementById('errorAlert');
-                if (!el) {
-                    el = document.createElement('div');
-                    el.id = 'errorAlert';
-                    el.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:10px 20px;background:#ff4444;color:#fff;border-radius:4px;z-index:9999;';
-                    document.body.appendChild(el);
-                }
-                el.innerText = msg;
-                el.style.display = 'block';
-                setTimeout(() => el.style.display = 'none', 2000);
-            }
-            function showSuccessTip(msg) {
-                let el = document.getElementById('successAlert');
-                if (!el) {
-                    el = document.createElement('div');
-                    el.id = 'successAlert';
-                    el.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);padding:10px 20px;background:#00C851;color:#fff;border-radius:4px;z-index:9999;';
-                    document.body.appendChild(el);
-                }
-                el.innerText = msg;
-                el.style.display = 'block';
-                setTimeout(() => el.style.display = 'none', 2000);
-            }
+        // 页面加载校验
+        if (!token || token.trim() === '' || !userId || isNaN(userId)) {
+            showErrorTip("登录信息失效，请重新登录！");
+            setTimeout(() => window.location.href = "/login.html", 1500);
+            return;
+        }
+        console.log("页面加载成功，参数：", { token, userId, category, pageNum, pageSize });
+        showSuccessTip("页面加载成功！");
+    };
 
-            // 5. 页面加载完成后，再绑定所有事件（核心！）
-            window.onload = function () {
-                console.log("DOM加载完成，开始绑定事件");
+    // 6. 分页
+    function goToPage(page) {
+        const targetPath = getTargetPublishPath(category);
+        const jumpUrl = `/music/api/rank/publish?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}&pageNum=${page}&pageSize=${pageSize}`;
+        window.location.href = jumpUrl;
+    }
 
-                // 先获取所有按钮（只在这里获取一次）
-                const slideBtnToggle = document.getElementById('slideBtnToggle');
-                const myRankBtn = document.getElementById('myRankBtn');
-                const addBtn = document.getElementById("addBtn");
+    // 7. 投票
+    function voteForRanking(rankId) {
+        if (!token) {
+            showErrorTip("请先登录后再投票！");
+            return;
+        }
+        const votePath = getTargetVotePath(category);
+        const voteUrl = `${votePath}?token=${encodeURIComponent(token)}&rankId=${rankId}&category=${category}&pageNum=${pageNum}&pageSize=${pageSize}`;
+        fetch(voteUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+            .then(res => res.ok ? res.text() : Promise.reject('投票失败'))
+            .then(() => { showSuccessTip("投票成功！"); window.location.reload(); })
+            .catch(err => { console.error(err); showErrorTip("网络错误，请稍后重试"); });
+    }
 
-                // 我的榜单展开/收起
-                let isExpanded = true;
-                slideBtnToggle.onclick = function () {
-                    isExpanded = !isExpanded;
-                    if (isExpanded) {
-                        slideBtnToggle.classList.remove('collapsed');
-                        slideBtnToggle.classList.add('expanded');
-                        myRankBtn.classList.add('show');
-                    } else {
-                        slideBtnToggle.classList.remove('expanded');
-                        slideBtnToggle.classList.add('collapsed');
-                        myRankBtn.classList.remove('show');
-                    }
-                };
-
-                // 进入我的榜单（核心跳转）
-                myRankBtn.onclick = function () {
-                    console.log("【进入我的榜单】按钮被点击");
-                    if (!token || !userId || isNaN(userId)) {
-                        showErrorTip("缺少登录信息，请重新登录！");
-                        setTimeout(() => window.location.href = "/login.html", 1500);
-                        return false;
-                    }
-                    const targetPath = getTargetPublishPath(category);
-                    const jumpUrl = `${targetPath}?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}&pageNum=1&pageSize=10`;
-                    console.log("跳转URL：", jumpUrl);
-                    window.location.href = jumpUrl;
-                    return false;
-                };
-
-                // 加号发布榜单
-                addBtn.onclick = function () {
-                    console.log("【加号发布】按钮被点击");
-                    if (!token || !userId || !category || isNaN(userId) || isNaN(category)) {
-                        showErrorTip("参数缺失，请刷新页面重试！");
-                        return false;
-                    }
-                    let addPagePath = category === 1 ? "/music/rank.html" : "/music/workrank.html";
-                    const jumpUrl = `${addPagePath}?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}`;
-                    console.log("发布跳转URL：", jumpUrl);
-                    window.location.href = jumpUrl;
-                    return false;
-                };
-
-                // 页面加载校验
-                if (!token || token.trim() === '' || !userId || isNaN(userId)) {
-                    showErrorTip("登录信息失效，请重新登录！");
-                    setTimeout(() => window.location.href = "/login.html", 1500);
-                    return;
-                }
-                console.log("页面加载成功，参数：", { token, userId, category, pageNum, pageSize });
-                showSuccessTip("页面加载成功！");
-            };
-
-            // 6. 分页
-            function goToPage(page) {
-                const targetPath = getTargetPublishPath(category);
-                const jumpUrl = `${targetPath}?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}&pageNum=${page}&pageSize=${pageSize}`;
-                window.location.href = jumpUrl;
-            }
-
-            // 7. 投票
-            function voteForRanking(rankId) {
-                if (!token) {
-                    showErrorTip("请先登录后再投票！");
-                    return;
-                }
-                const votePath = getTargetVotePath(category);
-                const voteUrl = `${votePath}?token=${encodeURIComponent(token)}&rankId=${rankId}&category=${category}&pageNum=${pageNum}&pageSize=${pageSize}`;
-                fetch(voteUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
-                    .then(res => res.ok ? res.text() : Promise.reject('投票失败'))
-                    .then(() => { showSuccessTip("投票成功！"); window.location.reload(); })
-                    .catch(err => { console.error(err); showErrorTip("网络错误，请稍后重试"); });
-            }
-
-            // 8. 收藏
-            function collectRanking(rankId) {
-                if (!token || !userId || isNaN(userId)) {
-                    showErrorTip("请先登录后再收藏！");
-                    return;
-                }
-                const lovePath = getTargetLovePath(category);
-                const collectUrl = `${lovePath}?token=${encodeURIComponent(token)}&userId=${userId}&rankId=${rankId}&category=${category}&pageNum=${pageNum}&pageSize=${pageSize}`;
-                fetch(collectUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
-                    .then(res => res.ok ? res.text() : Promise.reject('收藏失败'))
-                    .then(() => { showSuccessTip("收藏成功！"); window.location.reload(); })
-                    .catch(err => { console.error(err); showErrorTip("网络错误，请稍后重试"); });
-            }
-        </script>
+    // 8. 收藏
+    function collectRanking(rankId) {
+        if (!token || !userId || isNaN(userId)) {
+            showErrorTip("请先登录后再收藏！");
+            return;
+        }
+        const lovePath = getTargetLovePath(category);
+        const collectUrl = `${lovePath}?token=${encodeURIComponent(token)}&userId=${userId}&rankId=${rankId}&category=${category}&pageNum=${pageNum}&pageSize=${pageSize}`;
+        fetch(collectUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+            .then(res => res.ok ? res.text() : Promise.reject('收藏失败'))
+            .then(() => { showSuccessTip("收藏成功！"); window.location.reload(); })
+            .catch(err => { console.error(err); showErrorTip("网络错误，请稍后重试"); });
+    }
+</script>
 
 </body>
 </html>

@@ -26,7 +26,7 @@ public class UserPublishController {
     private UserPublishService userPublishService;
     @GetMapping("/publish")
      public String publish(@RequestParam("token")String token,RedirectAttributes redirectAttributes,@RequestParam("category")Integer category,
-                           @RequestParam(value = "pageNum",defaultValue = "1")Integer pageNum,@RequestParam(value = "pageSize",defaultValue = "10")Integer pageSize,Model model){
+                           @RequestParam(value = "pageNum",defaultValue = "1")Integer pageNum,@RequestParam(value = "pageSize",defaultValue = "3")Integer pageSize,Model model){
         if (token == null || token.isEmpty()) {
             redirectAttributes.addFlashAttribute("errormessage", "token已失效");
             return "redirect:/login.html";
@@ -44,6 +44,10 @@ public class UserPublishController {
         }
        Integer offset = (pageNum-1)*pageSize;
         PageInfo<MyRankWithSong> publishRanks=userPublishService.selectPublishRank(category,pageNum,pageSize,offset);
+        System.out.println("当前页pageNum：" + publishRanks.getPageNum());
+        System.out.println("总页数pages：" + publishRanks.getPages());
+        System.out.println("总条数total：" + publishRanks.getTotal());
+        System.out.println("每页条数pageSize：" + publishRanks.getPageSize());
         System.out.println("所有榜单是这样："+publishRanks.getList());
         model.addAllAttributes(publishRanks.getList());
         model.addAttribute("publishRanks",publishRanks);

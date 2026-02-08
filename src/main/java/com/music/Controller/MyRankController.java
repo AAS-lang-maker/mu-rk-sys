@@ -45,7 +45,7 @@ System.out.println("========/my接口被调用了========" );
     //pageNum 页码数，pageSize一个页面的展示数
     public String myrank(@RequestParam(value = "token",required = false)String token,
                          @RequestParam("userId")Integer paramuserId,RedirectAttributes redirectAttributes,Model model,
-                         @RequestParam(defaultValue="1")Integer pageNum, @RequestParam(defaultValue = "5")Integer pageSize){//userId要随着重定向和转发跟随到下一个新页面
+                         @RequestParam(defaultValue="1")Integer pageNum, @RequestParam(defaultValue = "3")Integer pageSize){//userId要随着重定向和转发跟随到下一个新页面
 
        Integer userId=validateToken(token,redirectAttributes);
        if(userId==null){
@@ -57,6 +57,11 @@ System.out.println("========/my接口被调用了========" );
        }
        Integer offset = (pageNum-1)*pageSize;
         PageInfo<MyRankWithSong> personalRanks=myRankService.selectMyrank(pageNum,pageSize,offset,userId);
+        // 新增：打印PageInfo的所有关键字段
+        System.out.println("当前页pageNum：" + personalRanks.getPageNum());
+        System.out.println("总页数pages：" + personalRanks.getPages());
+        System.out.println("总条数total：" + personalRanks.getTotal());
+        System.out.println("每页条数pageSize：" + personalRanks.getPageSize());
        System.out.println(personalRanks.getList());
         model.addAttribute("personalRanks",personalRanks);//把这两个必要数据传进URL而不是一次性的Flash，重定向的时候数据也进去了
         model.addAttribute("userId", userId);

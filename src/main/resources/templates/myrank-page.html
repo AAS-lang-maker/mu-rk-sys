@@ -538,10 +538,11 @@
 
         // 分页导航
         function goToPage(page) {
-            // 拼接完整参数
-            window.location.href = `/music/api/mine/myrank?page=${page}&token=${encodeURIComponent(token)}&userId=${userId}`;
+            const currentToken = getUrlParam('token');
+            const currentUserId = getUrlParam('userId');
+            window.location.href = `/music/api/mine/myrank?pageNum=${page}&token=${encodeURIComponent(currentToken)}&userId=${currentUserId}`;
         }
     </script>
- </body>
+</body>
 
 </html>
