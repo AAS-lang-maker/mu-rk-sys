@@ -22,4 +22,5 @@ public interface UserPublishService {
     boolean insertVote(Integer userId, Integer rankId, String ip);
 
     boolean insertLove(Integer userId, String ip, Integer rankId);
+
 }

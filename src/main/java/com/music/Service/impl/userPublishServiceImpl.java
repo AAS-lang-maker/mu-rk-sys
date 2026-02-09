@@ -87,6 +87,9 @@ public class userPublishServiceImpl implements UserPublishService {
 
     @Override
     public boolean insertVote(Integer userId, Integer rankId, String ip) {
+        if (ip == null) {
+            ip = "127.0.0.1"; // 使用默认 IP
+        }
         int record=userPublishMapper.checkip(ip,rankId);//防刷票，匿名投票，利用ip检查
         if(record>0)
         { return false;}
@@ -100,7 +103,10 @@ public class userPublishServiceImpl implements UserPublishService {
 
     @Override
     public boolean insertLove(Integer userId, String ip, Integer rankId) {
-        int record1=userPublishMapper.checkip(ip,rankId);
+        if (ip == null) {
+            ip = "127.0.0.1"; // 使用默认 IP
+        }
+        int record1=userPublishMapper.checkLoveip(ip,rankId);
         if(record1>0)
         { return false;}
         int row1=userPublishMapper.insertLove(userId,ip,rankId);
@@ -109,4 +115,5 @@ public class userPublishServiceImpl implements UserPublishService {
         }
         return false;
     }
+
 }

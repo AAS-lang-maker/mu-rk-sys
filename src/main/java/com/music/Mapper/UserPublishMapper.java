@@ -28,6 +28,9 @@ public interface UserPublishMapper {
 
     int checkip(String ip, Integer rankId);
 
-    int insertLove(Integer userId, String ip, Integer rankId);
+    int insertLove(Integer userId,String ip, Integer rankId);
+
+    int checkLoveip(String ip, Integer rankId);
+
     //@Param("list")注解，专门为Maybatis批量插入的需求的List集合起一个别名
 }

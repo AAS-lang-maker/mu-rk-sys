@@ -39,7 +39,7 @@
             <result property="rankUpdateTime" column="rank_update_time"/>
         </collection>
     </resultMap>
-    <select id="getRank" resultType="com.music.dto.MyRankWithSong">
+    <select id="getRank" resultMap="MyRankWithSongsResultMap">
          select a.rank_id,a.rank_name,b.rs_id,b.song_id,b.ranking,b.rank_update_time
          ,c.song_name from personal_rank as a left join rank_song as b
          on a.rank_id = b.rank_id

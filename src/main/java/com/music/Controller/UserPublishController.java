@@ -14,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpServletRequest;
@@ -24,9 +26,10 @@ import java.util.List;
 public class UserPublishController {
     @Resource
     private UserPublishService userPublishService;
+
     @GetMapping("/publish")
-     public String publish(@RequestParam("token")String token,RedirectAttributes redirectAttributes,@RequestParam("category")Integer category,
-                           @RequestParam(value = "pageNum",defaultValue = "1")Integer pageNum,@RequestParam(value = "pageSize",defaultValue = "3")Integer pageSize,Model model){
+    public String publish(@RequestParam("token") String token, RedirectAttributes redirectAttributes, @RequestParam("category") Integer category,
+                          @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum, @RequestParam(value = "pageSize", defaultValue = "4") Integer pageSize, Model model) {
         if (token == null || token.isEmpty()) {
             redirectAttributes.addFlashAttribute("errormessage", "token已失效");
             return "redirect:/login.html";
@@ -42,27 +45,23 @@ public class UserPublishController {
             redirectAttributes.addFlashAttribute("errormessage", "token不见啦，请重新登录");
             return "redirect:/login.html";
         }
-       Integer offset = (pageNum-1)*pageSize;
-        PageInfo<MyRankWithSong> publishRanks=userPublishService.selectPublishRank(category,pageNum,pageSize,offset);
-        System.out.println("当前页pageNum：" + publishRanks.getPageNum());
-        System.out.println("总页数pages：" + publishRanks.getPages());
-        System.out.println("总条数total：" + publishRanks.getTotal());
-        System.out.println("每页条数pageSize：" + publishRanks.getPageSize());
-        System.out.println("所有榜单是这样："+publishRanks.getList());
+        Integer offset = (pageNum - 1) * pageSize;
+        PageInfo<MyRankWithSong> publishRanks = userPublishService.selectPublishRank(category, pageNum, pageSize, offset);
         model.addAllAttributes(publishRanks.getList());
-        model.addAttribute("publishRanks",publishRanks);
-        model.addAttribute("category",category);
-        model.addAttribute("pageNum",pageNum);
-        model.addAttribute("pageSize",pageSize);
-        model.addAttribute("offset",offset);
+        model.addAttribute("publishRanks", publishRanks);
+        model.addAttribute("category", category);
+        model.addAttribute("pageNum", pageNum);
+        model.addAttribute("pageSize", pageSize);
+        model.addAttribute("offset", offset);
         return "publish-page";
     }
+
     @PostMapping("/add/{category}")
     public String add(@PathVariable("category") Integer category,
                       @RequestBody RankAddRequest rankAddRequestDto,
                       @RequestHeader("Authorization") String authHeader,
                       RedirectAttributes redirectAttributes) throws Exception {
-        String token=authHeader.substring(7).trim();
+        String token = authHeader.substring(7).trim();
         // 1. 修复：仅截取1次Bearer前缀（删除后续重复截取的错误代码）
         if (token == null || token.isEmpty()) {
             redirectAttributes.addFlashAttribute("errormessage", "token已失效");
@@ -128,73 +127,81 @@ public class UserPublishController {
             return "redirect:/music/api/rank/publish?token=" + token + "&userId=" + userId + "&category=" + category;
         }
     }
+
     @GetMapping("/singer")
     @ResponseBody
     //点击添加歌曲的按钮不涉及重定向，URL没有变化，页面也没有刷新
-    public List<Singer> singer(    @RequestParam("token") String token, // 接收前端的token
-                                   @RequestParam("userId") Integer userId, // 接收前端的userId
-                                   @RequestParam("category") Integer category){
-        List<Singer> singers=userPublishService.selectSinger(category
+    public List<Singer> singer(@RequestParam("token") String token, // 接收前端的token
+                               @RequestParam("userId") Integer userId, // 接收前端的userId
+                               @RequestParam("category") Integer category) {
+        List<Singer> singers = userPublishService.selectSinger(category
         );
         return singers;
     }
+
     @GetMapping("/song")
     @ResponseBody
-    public List<Song>  song( @RequestParam("token") String token,
-                             @RequestParam("userId") Integer userId,
-                             @RequestParam("singerId") Integer singerId
-                            ){
-        List<Song> songs=userPublishService.selectSong(singerId);
+    public List<Song> song(@RequestParam("token") String token,
+                           @RequestParam("userId") Integer userId,
+                           @RequestParam("singerId") Integer singerId
+    ) {
+        List<Song> songs = userPublishService.selectSong(singerId);
         return songs;
     }
+
     @PostMapping("/vote")
-    public String vote(@RequestParam("token")String token,@RequestParam("rankId")Integer rankId,
-                       RedirectAttributes redirectAttributes,HttpServletRequest request) throws Exception {
+    public String vote(@RequestParam("token") String token, @RequestParam("rankId") Integer rankId,
+                       RedirectAttributes redirectAttributes,@RequestParam("category")Integer category
+                       ,@RequestParam("pageNum")Integer pageNum,
+                       @RequestParam("pageSize")Integer pageSize) throws Exception {
         if (token == null || token.isEmpty()) {
-           redirectAttributes.addFlashAttribute("errormessage","token不能为空，请重新登录");
-           return "redirect:/login.html";
+            redirectAttributes.addFlashAttribute("errormessage", "token不能为空，请重新登录");
+            return "redirect:/login.html";
         }
-        Integer userId= null;
+        Integer userId=JwtUtils.getUserIdFromToken(token);
         try {
             userId = JwtUtils.getUserIdFromToken(token);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
         if (userId == null) {
-            redirectAttributes.addFlashAttribute("errormessage","userId不能为空，请重新登录");
+            redirectAttributes.addFlashAttribute("errormessage", "userId不能为空，请重新登录");
             return "redirect:/login.html";
         }
-        String ip = request.getRemoteAddr();
-        boolean voteResult=userPublishService.insertVote(userId,rankId,ip);
+        boolean voteResult = userPublishService.insertVote(userId, rankId, null);
         if (voteResult) {
-            redirectAttributes.addFlashAttribute("success","投票成功");
-            return "redirect:/music/api/rank/publish?token=" + token;
-        }else{
-            redirectAttributes.addAttribute("errormessage","投票失败，请稍后再试");
-            return "redirect:/music/api/rank/publish?token=" + token ;
+            redirectAttributes.addFlashAttribute("success", "投票成功");
+            return "redirect:/api/rank/publish?token=" + token + "&userId=" + userId + "&rankId=" + rankId + "&category=" + category + "&pageNum=" + pageNum + "&pageSize=" + pageSize;
+        } else {
+            redirectAttributes.addAttribute("errormessage", "投票失败，请稍后再试");
+            return "redirect:/api/rank/publish?token=" + token + "&userId=" + userId + "&rankId=" + rankId + "&category=" + category + "&pageNum=" + pageNum + "&pageSize=" + pageSize;
         }
+
     }
+
     @PostMapping("/love")
-    public String love(@RequestParam("token")String token,@RequestParam("userId")Integer userId,@RequestParam("rankId")Integer rankId,
-                       RedirectAttributes redirectAttributes,HttpServletRequest request) throws Exception {
+    public String love(@RequestParam("token") String token,  @RequestParam("rankId") Integer rankId, @RequestParam("category") Integer category,
+                       RedirectAttributes redirectAttributes, @RequestParam("pageNum") Integer pageNum, @RequestParam("pageSize") Integer pageSize) throws Exception {
         if (token == null || token.isEmpty()) {
-            redirectAttributes.addFlashAttribute("errormessage","token不能为空，请重新登录");
+            redirectAttributes.addFlashAttribute("errormessage", "token不能为空，请重新登录");
             return "redirect:/login.html";
         }
+        Integer userId=JwtUtils.getUserIdFromToken(token);
         if (userId == null) {
-            redirectAttributes.addFlashAttribute("errormessage","userId不能为空，请重新登录");
+            redirectAttributes.addFlashAttribute("errormessage", "userId不能为空，请重新登录");
             return "redirect:/login.html";
         }
-        String ip = request.getRemoteAddr();
-        boolean loveResult=userPublishService.insertLove(userId,ip,rankId);
+
+        boolean loveResult = userPublishService.insertLove(userId, null, rankId);
         if (loveResult) {
-            redirectAttributes.addFlashAttribute("success","收藏成功");
-            return "redirect:/music/api/rank/publish?token=" + token;
-        }else{
-            redirectAttributes.addFlashAttribute("errormessage","收藏失败，请稍后再试");
-            return "redirect:/music/api/rank/publish?token=" + token;
+            redirectAttributes.addFlashAttribute("success", "收藏成功");
+            return "redirect:/api/rank/publish?token=" + token + "&userId=" + userId + "&rankId=" + rankId + "&category=" + category + "&pageNum=" + pageNum + "&pageSize=" + pageSize;
+        } else{
+                redirectAttributes.addFlashAttribute("errormessage", "收藏失败，请稍后再试");
+                return "redirect:/api/rank/publish?token=" + token + "&userId=" + userId + "&rankId=" + rankId + "&category=" + category + "&pageNum=" + pageNum + "&pageSize=" + pageSize;
+            }
         }
     }
 
 
-}
+

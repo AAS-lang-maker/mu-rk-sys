@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,6 +12,7 @@
             padding: 0;
             box-sizing: border-box;
         }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background-color: #1E293B;
@@ -18,24 +20,29 @@
             position: relative;
             color: #f7fafc;
         }
+
         .container {
             padding: 40px;
             max-width: 1200px;
             margin: 0 auto;
         }
+
         .header {
             text-align: center;
             margin-bottom: 60px;
         }
+
         .header h1 {
             font-size: 36px;
             color: #fffa9c;
             margin-bottom: 20px;
         }
+
         .header p {
             font-size: 18px;
             color: rgba(247, 250, 252, 0.7);
         }
+
         .content {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
@@ -43,16 +50,19 @@
             padding: 40px;
             margin-bottom: 100px;
         }
+
         .content h2 {
             font-size: 24px;
             color: #fffa9c;
             margin-bottom: 30px;
         }
+
         .content p {
             font-size: 16px;
             line-height: 1.6;
             margin-bottom: 20px;
         }
+
         /* 修改加号按钮定位：固定在视口底部中央 */
         .add-button-container {
             position: fixed;
@@ -61,6 +71,7 @@
             transform: translateX(-50%);
             z-index: 100;
         }
+
         .add-button {
             width: 80px;
             height: 80px;
@@ -77,16 +88,20 @@
             align-items: center;
             justify-content: center;
         }
+
         .add-button:hover {
             transform: scale(1.1);
             box-shadow: 0 6px 20px rgba(255, 250, 205, 0.6);
         }
+
         .add-button:active {
             transform: scale(0.95);
         }
+
         .rankings-list {
             margin-bottom: 30px;
         }
+
         .ranking-item {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 8px;
@@ -95,34 +110,40 @@
             transition: all 0.3s ease;
             border-left: 4px solid transparent;
         }
+
         .ranking-item:hover {
             background: rgba(255, 255, 255, 0.1);
             transform: translateX(10px);
             border-left-color: #fffa9c;
         }
+
         .ranking-item h3 {
             color: #fffa9c;
             font-size: 18px;
             margin-bottom: 10px;
         }
+
         .ranking-item p {
             color: rgba(247, 250, 252, 0.7);
             font-size: 14px;
             line-height: 1.5;
             margin-bottom: 8px;
         }
+
         .ranking-meta {
             display: flex;
             gap: 20px;
             font-size: 13px;
             color: rgba(255, 250, 156, 0.8);
         }
+
         .pagination {
             display: flex;
             justify-content: center;
             align-items: center;
             margin-top: 40px;
         }
+
         .pagination button {
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 250, 156, 0.3);
@@ -133,30 +154,36 @@
             cursor: pointer;
             transition: all 0.3s ease;
         }
+
         .pagination button:hover:not(:disabled) {
             background-color: #fffa9c;
             color: #1a202c;
             transform: translateY(-2px);
         }
+
         .pagination button.active {
             background-color: #fffa9c;
             color: #1a202c;
             font-weight: bold;
         }
+
         .pagination button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
+
         .song-list {
             margin-top: 15px;
             padding-left: 0;
         }
+
         .song-list h4 {
             color: #fffa9c;
             font-size: 16px;
             margin-bottom: 12px;
             font-weight: 500;
         }
+
         .song-list ul {
             list-style: none;
             padding: 0;
@@ -164,6 +191,7 @@
             border-radius: 6px;
             padding: 10px;
         }
+
         .song-list li {
             margin: 8px 0;
             padding: 10px 15px;
@@ -173,17 +201,21 @@
             align-items: center;
             transition: all 0.2s ease;
         }
+
         .song-list li:last-child {
             border-bottom: none;
         }
+
         .song-list li:hover {
             background: rgba(255, 250, 156, 0.05);
         }
+
         .song-name {
             color: #f7fafc;
             font-size: 15px;
             flex: 1;
         }
+
         .song-rank {
             color: #fffa9c;
             font-size: 15px;
@@ -193,12 +225,14 @@
             background: rgba(255, 250, 156, 0.1);
             border-radius: 4px;
         }
+
         .interaction-section {
             margin-top: 15px;
             padding-left: 15px;
             display: flex;
             gap: 15px;
         }
+
         .vote-btn,
         .collect-btn {
             background: transparent;
@@ -210,65 +244,81 @@
             padding: 8px 15px;
             border-radius: 20px;
         }
+
         .vote-btn:hover {
             background: rgba(255, 182, 193, 0.2);
         }
+
         .collect-btn:hover {
             background: rgba(192, 192, 192, 0.2);
         }
+
         .heart-icon {
             color: #ffb6c1;
             font-size: 18px;
             margin-right: 5px;
             transition: all 0.3s ease;
         }
+
         .vote-btn:hover .heart-icon {
             color: #ff69b4;
             transform: scale(1.1);
         }
+
         .vote-btn.voted .heart-icon {
             color: #ff69b4;
         }
+
         .star-icon {
             color: #e68181;
             font-size: 18px;
             margin-right: 5px;
             transition: all 0.3s ease;
         }
+
         .collect-btn:hover .star-icon {
             color: #ffffff;
             transform: scale(1.1);
         }
+
         .collect-btn.collected .star-icon {
             color: #ffffff;
         }
+
         .vote-count,
         .collect-count {
             font-size: 14px;
             font-weight: bold;
         }
+
         .vote-count {
             color: rgba(255, 182, 193, 0.9);
         }
+
         .collect-count {
             color: rgba(192, 192, 192, 0.9);
         }
+
         @media (max-width: 768px) {
             .container {
                 padding: 20px;
             }
+
             .header h1 {
                 font-size: 28px;
             }
+
             .content {
                 padding: 30px;
             }
+
             .add-button {
                 width: 70px;
                 height: 70px;
                 font-size: 36px;
             }
         }
+
         /* 新增提示框样式 */
         #errorAlert {
             display: none;
@@ -282,6 +332,7 @@
             border-radius: 4px;
             z-index: 9999;
         }
+
         #successAlert {
             display: none;
             position: fixed;
@@ -294,6 +345,7 @@
             border-radius: 4px;
             z-index: 9999;
         }
+
         /* 我的榜单按钮样式 */
         .slide-btn-container {
             position: fixed;
@@ -304,6 +356,7 @@
             display: flex;
             align-items: center;
         }
+
         .slide-btn-toggle {
             width: 120px;
             height: 50px;
@@ -320,22 +373,27 @@
             font-weight: bold;
             box-shadow: -2px 0 10px rgba(255, 250, 156, 0.3);
         }
+
         .slide-btn-toggle:hover {
             background: #fff780;
             box-shadow: -2px 0 15px rgba(255, 250, 156, 0.5);
         }
+
         .slide-btn-toggle.collapsed {
             width: 50px;
             background: rgba(255, 250, 156, 0.8);
         }
+
         .slide-btn-toggle.collapsed .toggle-icon {
             display: none;
         }
+
         .toggle-icon {
             display: inline;
             font-size: 14px;
             margin-left: 5px;
         }
+
         .slide-btn-content {
             height: 50px;
             padding: 0 20px;
@@ -351,13 +409,85 @@
             font-size: 14px;
             font-weight: bold;
         }
+
         .slide-btn-content.show {
             transform: translateX(0);
             opacity: 1;
         }
+
         .slide-btn-content:hover {
             background: #fff780;
         }
+
+        /* 返回登录按钮样式 */
+        .login-btn-container {
+            position: fixed;
+            left: 0;
+            top: 70%;
+            transform: translateY(-50%);
+            z-index: 999;
+            display: flex;
+            align-items: center;
+        }
+
+        .login-btn-toggle {
+            width: 120px;
+            height: 50px;
+            border-radius: 0 25px 25px 0;
+            background: #fffa9c;
+            color: #1a202c;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 2px 0 10px rgba(255, 250, 156, 0.3);
+        }
+
+        .login-btn-toggle:hover {
+            background: #fff780;
+            box-shadow: 2px 0 15px rgba(255, 250, 156, 0.5);
+        }
+
+        .login-btn-toggle.collapsed {
+            width: 50px;
+            height: 50px;
+            border-radius: 0 25px 25px 0;
+            background: #fffa9c; /* 保持淡黄色，与展开状态一致 */
+        }
+
+        .login-btn-toggle.collapsed .toggle-icon {
+            display: none;
+        }
+
+        .login-btn-content {
+            height: 50px;
+            padding: 0 20px;
+            background: #fffa9c;
+            color: #1a202c;
+            border: none;
+            cursor: pointer;
+            border-radius: 25px 0 0 25px;
+            margin-right: -1px;
+            transform: translateX(-100%);
+            opacity: 0;
+            transition: all 0.3s;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .login-btn-content.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .login-btn-content:hover {
+            background: #fff780;
+        }
+
         /* 新增：暂无数据样式 */
         .empty-state {
             text-align: center;
@@ -365,6 +495,7 @@
             color: rgba(247, 250, 252, 0.6);
             font-size: 18px;
         }
+
         .pagination {
             display: flex;
             justify-content: center;
@@ -401,6 +532,7 @@
         }
     </style>
 </head>
+
 <body>
 <div class="container">
     <!-- 新增提示框（后端重定向的提示会显示在这里） -->
@@ -433,12 +565,13 @@
                     </ul>
                 </div>
                 <!-- 投票和收藏按钮 -->
+                <!-- 投票和收藏按钮 -->
                 <div class="interaction-section">
-                    <button class="vote-btn" th:onclick="voteForRanking(${ranking.rankId})">
+                    <button class="vote-btn" th:onclick="|voteForRanking(${ranking.rankId})|">
                         <span class="heart-icon">♥</span>
                         <span class="vote-count" th:text="${ranking.voteCount}">0</span>
                     </button>
-                    <button class="collect-btn" th:onclick="collectRanking(${ranking.rankId})">
+                    <button class="collect-btn" th:onclick="|collectRanking(${ranking.rankId})|">
                         <span class="star-icon">★</span>
                         <span class="collect-count" th:text="${ranking.loveCount}">0</span>
                     </button>
@@ -474,6 +607,14 @@
             <span class="toggle-icon">我的榜单</span>
         </button>
         <button class="slide-btn-content show" id="myRankBtn">进入我的榜单</button>
+    </div>
+
+    <!-- 返回登录按钮 -->
+    <div class="login-btn-container">
+        <button class="login-btn-toggle expanded" id="loginBtnToggle">
+            <span class="toggle-icon">登录</span>
+        </button>
+        <button class="login-btn-content show" id="loginBtn">返回登录页面</button>
     </div>
 </div>
 
@@ -522,6 +663,7 @@
     }
 
 
+
     // 5. 页面加载完成后，再绑定所有事件（核心！）
     window.onload = function () {
         console.log("DOM加载完成，开始绑定事件");
@@ -529,6 +671,8 @@
         // 先获取所有按钮（只在这里获取一次）
         const slideBtnToggle = document.getElementById('slideBtnToggle');
         const myRankBtn = document.getElementById('myRankBtn');
+        const loginBtnToggle = document.getElementById('loginBtnToggle');
+        const loginBtn = document.getElementById('loginBtn');
         const addBtn = document.getElementById("addBtn");
 
         // 我的榜单展开/收起
@@ -575,10 +719,34 @@
             return false;
         };
 
+        // 返回登录展开/收起（修复核心逻辑）
+        let isLoginExpanded = true;
+        loginBtnToggle.onclick = function () {
+            isLoginExpanded = !isLoginExpanded;
+            if (isLoginExpanded) {
+                loginBtnToggle.classList.remove('collapsed');
+                loginBtnToggle.classList.add('expanded');
+                loginBtn.classList.add('show');
+            } else {
+                loginBtnToggle.classList.remove('expanded');
+                loginBtnToggle.classList.add('collapsed');
+                loginBtn.classList.remove('show');
+            }
+            // 阻止事件冒泡和默认行为，避免触发跳转
+            return false;
+        };
+
+        // 返回登录页面（仅点击这个按钮才跳转）
+        loginBtn.onclick = function () {
+            console.log("【返回登录】按钮被点击");
+            window.location.href = "/music/login.html";
+            return false;
+        };
+
         // 页面加载校验
         if (!token || token.trim() === '' || !userId || isNaN(userId)) {
             showErrorTip("登录信息失效，请重新登录！");
-            setTimeout(() => window.location.href = "/login.html", 1500);
+            setTimeout(() => window.location.href = "/music//login.html", 1500);
             return;
         }
         console.log("页面加载成功，参数：", { token, userId, category, pageNum, pageSize });
@@ -594,30 +762,44 @@
 
     // 7. 投票
     function voteForRanking(rankId) {
+        console.log('投票按钮点击，rankId:', rankId);
         if (!token) {
             showErrorTip("请先登录后再投票！");
             return;
         }
-        const votePath = getTargetVotePath(category);
-        const voteUrl = `${votePath}?token=${encodeURIComponent(token)}&rankId=${rankId}&category=${category}&pageNum=${pageNum}&pageSize=${pageSize}`;
-        fetch(voteUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
-            .then(res => res.ok ? res.text() : Promise.reject('投票失败'))
-            .then(() => { showSuccessTip("投票成功！"); window.location.reload(); })
-            .catch(err => { console.error(err); showErrorTip("网络错误，请稍后重试"); });
+        // 直接使用完整的绝对路径，确保与分页功能使用相同的格式
+        const voteUrl = window.location.origin + '/music/api/rank/vote?token=' + encodeURIComponent(token) + '&rankId=' + rankId + '&category=' + category + '&pageNum=' + pageNum + '&pageSize=' + pageSize;
+        console.log('投票请求URL:', voteUrl);
+        // 创建临时表单
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = voteUrl;
+
+        // 添加到页面并提交
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
     }
 
     // 8. 收藏
     function collectRanking(rankId) {
+        console.log('收藏按钮点击，rankId:', rankId);
         if (!token || !userId || isNaN(userId)) {
             showErrorTip("请先登录后再收藏！");
             return;
         }
-        const lovePath = getTargetLovePath(category);
-        const collectUrl = `${lovePath}?token=${encodeURIComponent(token)}&userId=${userId}&rankId=${rankId}&category=${category}&pageNum=${pageNum}&pageSize=${pageSize}`;
-        fetch(collectUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
-            .then(res => res.ok ? res.text() : Promise.reject('收藏失败'))
-            .then(() => { showSuccessTip("收藏成功！"); window.location.reload(); })
-            .catch(err => { console.error(err); showErrorTip("网络错误，请稍后重试"); });
+        // 直接使用完整的绝对路径，确保与分页功能使用相同的格式
+        const collectUrl = window.location.origin + '/music/api/rank/love?token=' + encodeURIComponent(token) + '&userId=' + userId + '&rankId=' + rankId + '&category=' + category + '&pageNum=' + pageNum + '&pageSize=' + pageSize;
+        console.log('收藏请求URL:', collectUrl);
+        // 创建临时表单
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = collectUrl;
+
+        // 添加到页面并提交
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
     }
 </script>
 

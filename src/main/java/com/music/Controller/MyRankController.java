@@ -58,22 +58,21 @@ System.out.println("========/my接口被调用了========" );
        Integer offset = (pageNum-1)*pageSize;
         PageInfo<MyRankWithSong> personalRanks=myRankService.selectMyrank(pageNum,pageSize,offset,userId);
         // 新增：打印PageInfo的所有关键字段
-        System.out.println("当前页pageNum：" + personalRanks.getPageNum());
-        System.out.println("总页数pages：" + personalRanks.getPages());
-        System.out.println("总条数total：" + personalRanks.getTotal());
-        System.out.println("每页条数pageSize：" + personalRanks.getPageSize());
        System.out.println(personalRanks.getList());
         model.addAttribute("personalRanks",personalRanks);//把这两个必要数据传进URL而不是一次性的Flash，重定向的时候数据也进去了
         model.addAttribute("userId", userId);
         return "myrank-page";
     }
     @GetMapping("/edit/{rankId}")
-    public Result<MyRankWithSong> edit(@PathVariable("rankId") Integer rankId, @RequestParam("token")String token){
+    public String edit(@PathVariable("rankId") Integer rankId, @RequestParam("token")String token, RedirectAttributes redirectAttributes){
         MyRankWithSong newRank=myRankService.getRank(rankId);
         if(!(newRank==null)){
-        return Result.success(newRank);}
+         redirectAttributes.addAttribute("newRank",newRank);
+         redirectAttributes.addAttribute("rankId",rankId);
+         return  "redirect:edit-page";}
         else{
-            return Result.error("errormessage");
+            redirectAttributes.addFlashAttribute("errormessage","编辑失败，请稍后再试");
+            return "myrank-page";
         }
     }
     @GetMapping("/singer")

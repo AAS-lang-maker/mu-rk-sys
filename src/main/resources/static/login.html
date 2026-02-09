@@ -392,7 +392,27 @@
             successAlert.style.display = 'none';
         }, 1500);
     }
+    // 假设这是你登录成功后的回调
+    function loginSuccess(response) {
+        const { token, user_id, category } = response.data;
 
+        // 1. 先存 localStorage（这部分保留）
+        localStorage.setItem('token', token);
+        localStorage.setItem('user_id', user_id);
+        localStorage.setItem('category', category || 'all');
+
+        // 2. 再构建带参 URL，强制把参数拼进去
+        const params = new URLSearchParams({
+            token: token,
+            user_id: user_id,
+            category: category || 'all'
+        });
+
+        // 3. 强制跳转，确保 URL 里有参数
+        const targetUrl = `/music/myrank-page.html?${params.toString()}`;
+        console.log('🚀 登录成功，跳转到榜单页：', targetUrl); // 关键：打印跳转地址
+        window.location.href = targetUrl;
+    }
 
     // 【核心改造】登录按钮异步点击事件（Axios请求，替代原生表单提交）
     document.getElementById('loginBtn').addEventListener('click', async function() {

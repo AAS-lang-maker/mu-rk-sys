@@ -23,11 +23,11 @@
 
     <insert id="insertVote">
         insert into vote_record  (ip,vote_status,vote,rank_id,vote_time)
-            values (#{ip},1,1,#{rank_id},now())
+            values (#{ip},1,1,#{rankId},now())
     </insert>
     <insert id="insertLove">
-        insert into love_record(ip,love_status,love,rank_id,user_id,love_time)
-        values (#{ip},1,1,#{rankId},#{userId},now())
+        insert into love_record(user_id,ip,love_status,love,rank_id,love_time)
+        values (#{userId},#{ip},1,1,#{rankId},now())
     </insert>
     <select id="selectSinger" resultType="com.music.pojo.Singer">
         select singer_id,singer_name from singer where category_id=#{categoryId} and singer_status=1
@@ -37,6 +37,9 @@
     </select>
     <select id="checkip" resultType="java.lang.Integer">
         select count(*) from vote_record where ip=#{ip} and rank_id=#{rankId}
+    </select>
+    <select id="checkLoveip" resultType="java.lang.Integer">
+        select count(*) from love_record where ip=#{ip} and rank_id=#{rankId}
     </select>
     <select id="selectPublishRank" resultMap="MyRankWithSongResultMap">
         select a.rank_id,a.rank_name,a.total_vote as vote_count,a.total_love as love_count,a.publish_time,
@@ -53,6 +56,7 @@
                  left join song as c on c.song_id=b.song_id
         order by b.rank_update_time asc, b.ranking asc
     </select>
+
     <resultMap id="MyRankWithSongResultMap" type="com.music.dto.MyRankWithSong">
         <id property="rankId" column="rank_id"/>
         <result property="rankName" column="rank_name"/>
