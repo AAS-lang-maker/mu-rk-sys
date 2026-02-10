@@ -28,4 +28,9 @@ public interface MyRankMapper {
     void deleteOldRankname(Integer rankId);
 
     void insertNewRank(List<RankSong> newSongs);
+
+    List<MyRankWithSong> selectLoveSong(Integer userId, Integer pageSize, Integer offset, Integer pageNum);
+
+    @Select("select count(*) from love_record where user_id=#{userId}")
+    Integer selectloveTotal(Integer userId);
 }

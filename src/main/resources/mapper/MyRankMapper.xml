@@ -65,6 +65,27 @@
     <select id="selectSong" resultType="com.music.pojo.Song">
         select song_id,song.song_name from song where singer_id=#{singerId} and song_status=1
     </select>
+    <select id="selectLoveSong" resultType="com.music.dto.MyRankWithSong">
+    select r.rs_id,r.ranking,r.rank_update_time,s.song_name,p.publish_time,p.rank_id,p.rank_name from love_record as l
+    left join personal_rank as p on l.user_id=p.user_id
+    left join rank_song as r on l.rank_id = r.rank_id
+    left join song as s on s.song_id=r.song_id
+    where l.user_id=#{userId}
+    order by p.publish_time
+    limit #{pageSize} offset #{offset}
+    </select>
+    <resultMap id="MyRankWithSongssResultMap" type="com.music.dto.MyRankWithSong">
+        <id property="rankId" column="rank_id"/>
+        <result property="rankName" column="rank_name"/>
+        <result property="publishTime" column="publish_time"/>
+        <collection property="rankSongList" ofType="com.music.pojo.RankSong">
+            <id property="rsId" column="rs_id"/>
+            <result property="songId" column="song_id"/>
+            <result property="songName" column="song_name"/>
+            <result property="ranking" column="ranking"/>
+            <result property="rankUpdateTime" column="rank_update_time"/>
+        </collection>
+    </resultMap>
     <insert id="insertNewRank">
         insert into rank_song(rank_id,song_id,ranking,rank_update_time)
         values

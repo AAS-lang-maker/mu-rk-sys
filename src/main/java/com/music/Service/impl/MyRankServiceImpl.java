@@ -30,6 +30,9 @@ private MyRankMapper myRankMapper;
     //查询personl_rank主表
     @Override
     public PageInfo<MyRankWithSong> selectMyrank(Integer pageNum,Integer pageSize,Integer offset,Integer userId) {
+        //逻辑：从Mapper到Service，最后到Controller
+        //Mapper层查询，将所有相关数据返回给MyRankWithSong这个集合中，Service层把这些数据由get->set传给Controller的PageInfo
+        //pageInfo再传给前端代码
       List<MyRankWithSong> list =myRankMapper.selectMyRank(userId,pageSize,offset);
       System.out.println("Mapper查询到的榜单数："+list.size());
       Integer total = myRankMapper.selectMyRankTotal(userId);
@@ -82,4 +85,20 @@ private MyRankMapper myRankMapper;
          myRankMapper.insertNewRank(newSongs);
        }
     }
+
+    @Override
+    public PageInfo<MyRankWithSong> selectMyLoverank(Integer pageNum, Integer pageSize, Integer offset, Integer userId) {
+        List<MyRankWithSong> myLoveSong=myRankMapper.selectLoveSong(pageNum,pageSize,offset,userId);
+        PageInfo<MyRankWithSong> pageInfo=new PageInfo<>();
+        Integer total=myRankMapper.selectloveTotal(userId);
+        Integer pages=(total+pageSize-1)/pageSize;
+        pageInfo.setList(myLoveSong);
+        pageInfo.setPageNum(pageNum);
+        pageInfo.setPageSize(pageSize);
+        pageInfo.setTotal(total);
+        pageInfo.setPages(pages);
+        return pageInfo;
+    }
+
+
 }

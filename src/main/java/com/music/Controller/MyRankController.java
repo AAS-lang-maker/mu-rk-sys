@@ -28,7 +28,7 @@ public class MyRankController {
     @GetMapping("/my")//没有调用Service，只负责页面跳转，没有要操作数据库的逻辑
     public String myRank(@RequestParam(value = "token",required = true)String token,@RequestParam(value = "userId",required = true)Integer userId,
                          RedirectAttributes redirectAttributes){
-System.out.println("========/my接口被调用了========" );
+    System.out.println("========/my接口被调用了========" );
     Integer paramuserId=validateToken(token,redirectAttributes);
     if(userId==null||!userId.equals(paramuserId)){
         return "redirect:/login";
@@ -63,24 +63,48 @@ System.out.println("========/my接口被调用了========" );
         model.addAttribute("userId", userId);
         return "myrank-page";
     }
-    @GetMapping("/edit/{rankId}")
-    public String edit(@PathVariable("rankId") Integer rankId, @RequestParam("token")String token, RedirectAttributes redirectAttributes){
-        MyRankWithSong newRank=myRankService.getRank(rankId);
-        if(!(newRank==null)){
-         redirectAttributes.addAttribute("newRank",newRank);
-         redirectAttributes.addAttribute("rankId",rankId);
-         return  "redirect:edit-page";}
-        else{
-            redirectAttributes.addFlashAttribute("errormessage","编辑失败，请稍后再试");
-            return "myrank-page";
+
+    //编辑功能种重定向和查询回显用的视图需要分开写两个@Getmapping，model在重定向时会消失
+    //编辑功能继续阴我，已经修改了10次前后端联调失败就又来改Controller层。
+    @GetMapping("/edit/{rankId}")//负责重定向
+    public String edit(@PathVariable("rankId") Integer rankId, @RequestParam("token")String token, RedirectAttributes redirectAttributes
+                       ) throws Exception {
+        Integer paramuserId=validateToken(token,redirectAttributes);
+        if(paramuserId==null){
+            return "redirect:/login.html";
         }
+        return "redirect:/edit.html?token="+token+"&rankId="+rankId;
     }
+    //负责前端数据渲染的视图
+    @GetMapping("/edit-page")
+    public String editPage(@RequestParam("token")String token,Model model,@RequestParam("rankId")Integer rankId) throws Exception {
+        //看不懂思密达，全都看不懂啥意思，豆包屎个角色
+        if(token==null||token.isEmpty()){
+            return "redirect:/login.html";
+        }
+        Integer userId=JwtUtils.getUserIdFromToken(token);
+        if(model.containsAttribute("newRank")){
+         MyRankWithSong newRank=(MyRankWithSong) model.asMap().get("newRank");
+        model.addAttribute("newRank",newRank);
+        model.addAttribute("rankId",rankId);}
+      return  "redirect:/edit.html?token="+token+"&rankId="+rankId+"&userId="+userId;
+    }
+    @GetMapping("/getRank/{rankId}")
+    @ResponseBody
+    public MyRankWithSong getRank(@RequestParam("token")String token,@PathVariable("rankId")Integer rankId,
+                                  RedirectAttributes redirectAttributes)throws Exception{
+        Integer paramuserId=validateToken(token,redirectAttributes);
+        if(paramuserId==null){
+            throw new RuntimeException("token不能为空");
+        }
+        return myRankService.getRank(rankId);
+    }
+
     @GetMapping("/singer")
     @ResponseBody
     //点击添加歌曲的按钮不涉及重定向，URL没有变化，页面也没有刷新
-    public List<Singer> singer(@RequestParam("token") String token, // 接收前端的token
-                               @RequestParam("userId") Integer userId, // 接收前端的userId
-                               @RequestParam("categoryId") Integer categoryId){
+    public List<Singer> singer(@RequestParam("token") String token, @RequestParam("userId")Integer userId,// 接收前端的token
+                               @RequestParam("categoryId") Integer categoryId,RedirectAttributes redirectAttributes){
         List<Singer> singers=myRankService.selectSinger(categoryId);
         return singers;
     }
@@ -114,10 +138,39 @@ System.out.println("========/my接口被调用了========" );
     @PostMapping("/save")
     @ResponseBody
     //和前端配合，不用重定向，实现弹窗关闭
-    public Result<String> save(@RequestBody EditRank dto,RedirectAttributes redirectAttributes){
+    public Result<String> save(@RequestBody EditRank dto,RedirectAttributes redirectAttributes,@RequestParam("token")
+                              String token ){
+        Integer userId=validateToken(token,redirectAttributes);
+        if(userId==null){
+            return Result.error("userId不能为空");
+        }
         myRankService.insertNewRank(dto);
         redirectAttributes.addFlashAttribute("success","榜单重新编辑成功，已经保存");
         return Result.success("榜单编辑成功");
+    }
+    @PostMapping("/lv")
+    public String lv(@RequestParam("userId")Integer userId,@RequestParam("token")String token, RedirectAttributes redirectAttributes){
+        userId=validateToken(token,redirectAttributes);
+        if(userId==null){
+            return "redirect:/login.html";
+        }
+        redirectAttributes.addFlashAttribute("userId", userId);
+        redirectAttributes.addFlashAttribute("token", token);
+        return "redirect:/api/mine/mylove?token="+token+"&userId="+userId;
+    }
+    @GetMapping("/mylove")
+    public String mylove(@RequestParam("token")String token,@RequestParam("userId")Integer userId,
+                         RedirectAttributes redirectAttributes,@RequestParam(value = "pageNum",defaultValue = "1")Integer pageNum,
+                         @RequestParam(value = "pageSize",defaultValue = "3")Integer pageSize){
+        Integer paramuserId=validateToken(token,redirectAttributes);
+        if(userId.equals(paramuserId)){
+            redirectAttributes.addFlashAttribute("errormessage","userId怎么能不一致");
+        }
+        Integer offset = (pageNum-1)*pageSize;
+        PageInfo<MyRankWithSong> myloveSongs=myRankService.selectMyLoverank(pageNum,pageSize,offset,userId);
+        redirectAttributes.addFlashAttribute("myloveSongs",myloveSongs);
+        redirectAttributes.addFlashAttribute("userId", userId);
+        return "mylove-page";
     }
 }
 

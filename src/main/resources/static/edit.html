@@ -39,7 +39,8 @@
             background-image:
                     linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
                     linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
-            background-size: 80px 80px; /* 网格大小，可调整 */
+            background-size: 80px 80px;
+            /* 网格大小，可调整 */
             background-position: center;
         }
 
@@ -323,6 +324,7 @@
 </head>
 
 <body>
+
 <!-- 编辑弹窗 -->
 <div class="edit-modal">
     <div class="modal-content">
@@ -334,7 +336,7 @@
             <label for="rankingTitle">榜单标题</label>
             <input type="text" id="rankingTitle" placeholder="请输入榜单标题">
         </div>
-
+        <input type="hidden" id="rankId" th:value="${rankId}">
         <div class="button-group">
             <button class="btn btn-primary" id="selectSingerBtn" disabled>选择歌手</button>
             <button class="btn btn-primary" id="addSongBtn">新增歌曲排名行</button>
@@ -342,29 +344,7 @@
 
         <p class="hint-text">提示：请先选择要编辑的歌曲行</p>
 
-        <div class="song-list" id="songList">
-            <div class="song-item">
-                <div class="song-info">
-                    <span class="song-name">歌曲1</span>
-                    <span class="song-rank">1</span>
-                </div>
-                <button class="delete-btn">×</button>
-            </div>
-            <div class="song-item">
-                <div class="song-info">
-                    <span class="song-name">歌曲2</span>
-                    <span class="song-rank">2</span>
-                </div>
-                <button class="delete-btn">×</button>
-            </div>
-            <div class="song-item">
-                <div class="song-info">
-                    <span class="song-name">歌曲3</span>
-                    <span class="song-rank">3</span>
-                </div>
-                <button class="delete-btn">×</button>
-            </div>
-        </div>
+        <div class="song-list" id="songList"></div>
 
         <div class="modal-footer">
             <button class="btn btn-secondary" id="cancelBtn">取消</button>
@@ -380,16 +360,7 @@
             <h3>选择歌手</h3>
         </div>
 
-        <div class="singer-list" id="singerList">
-            <div class="singer-item">周杰伦</div>
-            <div class="singer-item">林俊杰</div>
-            <div class="singer-item">陈奕迅</div>
-            <div class="singer-item">邓紫棋</div>
-            <div class="singer-item">薛之谦</div>
-            <div class="singer-item">李荣浩</div>
-            <div class="singer-item">毛不易</div>
-            <div class="singer-item">华晨宇</div>
-        </div>
+        <div class="singer-list" id="singerList"></div>
 
         <div class="singer-footer">
             <button class="btn btn-secondary" id="closeSingerModalBtn">关闭</button>
@@ -400,27 +371,134 @@
 <script>
     let selectedSongIndex = -1;
 
-    // 选择歌曲行
-    const songItems = document.querySelectorAll('.song-item');
-    songItems.forEach((item, index) => {
+    // 辅助函数：从本地存储获取token
+    function getToken() {
+        return localStorage.getItem('token') || '';
+    }
+
+    // 辅助函数：从本地存储获取userId
+    function getUserId() {
+        // 1. 首先从localStorage中获取userId
+        const userId = localStorage.getItem('userId');
+        if (userId) {
+            return userId;
+        }
+
+        // 2. 如果localStorage中没有userId，尝试从URL中获取
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlUserId = urlParams.get('userId');
+        if (urlUserId) {
+            localStorage.setItem('userId', urlUserId);
+            return urlUserId;
+        }
+
+        // 3. 如果URL中也没有userId，尝试从token中获取
+        const token = getToken();
+        if (token) {
+            try {
+                // 解析token获取userId
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                const tokenUserId = payload.userId || payload.user_id || payload.id;
+                if (tokenUserId) {
+                    localStorage.setItem('userId', tokenUserId.toString());
+                    return tokenUserId.toString();
+                }
+            } catch (error) {
+                console.error('解析token获取userId失败:', error);
+            }
+        }
+
+        return null;
+    }
+
+    // 辅助函数：绑定歌曲项事件
+    function bindSongItemEvents(item, index) {
         item.addEventListener('click', function () {
-            songItems.forEach(i => i.classList.remove('selected'));
+            document.querySelectorAll('.song-item').forEach(i => i.classList.remove('selected'));
             this.classList.add('selected');
             selectedSongIndex = index;
             document.getElementById('selectSingerBtn').disabled = false;
         });
-    });
 
-    // 删除歌曲
-    const deleteBtns = document.querySelectorAll('.delete-btn');
-    deleteBtns.forEach((btn, index) => {
-        btn.addEventListener('click', function (e) {
+        const deleteBtn = item.querySelector('.delete-btn');
+        deleteBtn.addEventListener('click', function (e) {
             e.stopPropagation();
-            const songItem = this.closest('.song-item');
-            songItem.remove();
+            item.remove();
             selectedSongIndex = -1;
             document.getElementById('selectSingerBtn').disabled = true;
         });
+    }
+
+    // 页面加载时自动回显榜单数据
+    document.addEventListener('DOMContentLoaded', function () {
+        // 1. 从URL中获取参数
+        const urlParams = new URLSearchParams(window.location.search);
+        const rankId = urlParams.get('rankId');
+        const token = urlParams.get('token') || getToken();
+        const userId = urlParams.get('userId');
+
+        // 存储token和userId到localStorage
+        if (token) {
+            localStorage.setItem('token', token);
+        }
+        if (userId) {
+            localStorage.setItem('userId', userId);
+        }
+
+        if (!rankId || !token) {
+            console.log('缺少参数，不进行回显');
+            return;
+        }
+
+        // 2. 调用后端接口获取数据
+        fetch(`/music/api/mine/getRank/${rankId}?token=${token}`)
+            .then(response => {
+                if (!response.ok) throw new Error('网络响应不正常');
+                return response.json();
+            })
+            .then(data => {
+                console.log('获取到的榜单数据:', data);
+
+                // 3. 回显榜单标题
+                const rankingTitleInput = document.getElementById('rankingTitle');
+                if (rankingTitleInput) {
+                    rankingTitleInput.value = data.rankName || '';
+                }
+
+                const rankIdInput = document.getElementById('rankId');
+                if (rankIdInput) {
+                    rankIdInput.value = data.rankId || '';
+                }
+
+                // 4. 回显歌曲列表
+                const songListDiv = document.getElementById('songList');
+                if (songListDiv && data.rankSongList) {
+                    // 清空原有内容，然后重新渲染
+                    songListDiv.innerHTML = '';
+
+                    data.rankSongList.forEach((song, index) => {
+                        const songItem = document.createElement('div');
+                        songItem.className = 'song-item';
+                        songItem.innerHTML = `
+                        <div class="song-info">
+                            <span class="song-name">${song.songName}</span>
+                            <input type="number" class="song-rank-input" value="${index + 1}" min="1" style="width: 50px; text-align: center; background: transparent; border: 1px solid #fff; color: #fff; border-radius: 4px; font-size: 18px; font-weight: bold; outline: none;">
+                        </div>
+                        <button class="delete-btn">×</button>
+                    `;
+                        // 存储歌曲ID到元素属性中
+                        if (song.songId) {
+                            songItem.setAttribute('data-song-id', song.songId);
+                        }
+                        // 绑定事件，让新生成的歌曲项也能被选中和删除
+                        bindSongItemEvents(songItem, index);
+                        songListDiv.appendChild(songItem);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('获取榜单数据失败:', error);
+            });
     });
 
     // 选择歌手按钮
@@ -429,8 +507,61 @@
             alert('请先选择要编辑的歌曲行');
             return;
         }
-        document.getElementById('singerModal').classList.add('show');
+
+        // 动态加载歌手列表
+        fetch('/music/api/mine/singer?token=' + getToken() + '&userId=' + getUserId() + '&categoryId=1')
+            .then(response => response.json())
+            .then(singers => {
+                const singerList = document.getElementById('singerList');
+                singerList.innerHTML = ''; // 清空
+
+                singers.forEach(singer => {
+                    const singerItem = document.createElement('div');
+                    singerItem.className = 'singer-item';
+                    singerItem.textContent = singer.singerName;
+                    singerItem.addEventListener('click', function () {
+                        // 选完歌手后，加载该歌手的歌曲
+                        loadSongsBySinger(singer.singerId);
+                    });
+                    singerList.appendChild(singerItem);
+                });
+
+                document.getElementById('singerModal').classList.add('show');
+            })
+            .catch(error => {
+                console.error('加载歌手列表失败:', error);
+            });
     });
+
+    // 辅助函数：根据歌手ID加载歌曲
+    function loadSongsBySinger(singerId) {
+        fetch('/music/api/mine/song?token=' + getToken() + '&userId=' + getUserId() + '&singerId=' + singerId)
+            .then(response => response.json())
+            .then(songs => {
+                const singerList = document.getElementById('singerList');
+                singerList.innerHTML = ''; // 清空，显示歌曲列表
+
+                songs.forEach(song => {
+                    const songItem = document.createElement('div');
+                    songItem.className = 'singer-item';
+                    songItem.textContent = song.songName;
+                    songItem.addEventListener('click', function () {
+                        if (selectedSongIndex !== -1) {
+                            const songItems = document.querySelectorAll('.song-item');
+                            const songNameElement = songItems[selectedSongIndex].querySelector('.song-name');
+                            songNameElement.textContent = song.songName;
+                            // 存储歌曲ID到元素属性中
+                            songItems[selectedSongIndex].setAttribute('data-song-id', song.songId);
+                        }
+                        document.getElementById('singerModal').classList.remove('show');
+                    });
+                    singerList.appendChild(songItem);
+                });
+            })
+            .catch(error => {
+                console.error('加载歌曲列表失败:', error);
+            });
+    }
 
     // 新增歌曲排名行
     document.getElementById('addSongBtn').addEventListener('click', function () {
@@ -442,7 +573,7 @@
         newSongItem.innerHTML = `
                 <div class="song-info">
                     <span class="song-name">新歌曲${currentCount + 1}</span>
-                    <span class="song-rank">${currentCount + 1}</span>
+                    <input type="number" class="song-rank-input" value="${currentCount + 1}" min="1" style="width: 50px; text-align: center; background: transparent; border: 1px solid #fff; color: #fff; border-radius: 4px; font-size: 18px; font-weight: bold; outline: none;">
                 </div>
                 <button class="delete-btn">×</button>
             `;
@@ -464,20 +595,6 @@
         songList.appendChild(newSongItem);
     });
 
-    // 歌手选择
-    const singerItems = document.querySelectorAll('.singer-item');
-    singerItems.forEach(item => {
-        item.addEventListener('click', function () {
-            const singerName = this.textContent;
-            if (selectedSongIndex !== -1) {
-                const songItems = document.querySelectorAll('.song-item');
-                const songNameElement = songItems[selectedSongIndex].querySelector('.song-name');
-                songNameElement.textContent = singerName;
-            }
-            document.getElementById('singerModal').classList.remove('show');
-        });
-    });
-
     // 关闭歌手选择弹窗
     document.getElementById('closeSingerModalBtn').addEventListener('click', function () {
         document.getElementById('singerModal').classList.remove('show');
@@ -490,13 +607,109 @@
             alert('请输入榜单标题');
             return;
         }
-        alert('榜单保存成功！');
+
+        // 从隐藏 input 获取 rankId
+        const rankId = document.getElementById('rankId').value;
+
+        // 收集歌曲数据
+        const songItems = document.querySelectorAll('.song-item');
+        const songs = [];
+        let hasEmptySong = false;
+
+        songItems.forEach((item, index) => {
+            const songId = item.getAttribute('data-song-id');
+            const rankInput = item.querySelector('.song-rank-input');
+            const ranking = rankInput ? parseInt(rankInput.value) : index + 1;
+            const songName = item.querySelector('.song-name').textContent;
+
+            // 检查是否有未选择歌曲的行
+            if (!songId && songName !== '新歌曲' + (index + 1)) {
+                hasEmptySong = true;
+            }
+
+            // 只添加有songId的歌曲
+            if (songId) {
+                songs.push({
+                    songId: parseInt(songId),
+                    ranking: ranking
+                });
+            }
+        });
+
+        // 检查是否有未选择歌曲的行
+        if (hasEmptySong) {
+            alert('请为所有歌曲行选择歌曲');
+            return;
+        }
+
+        // 检查是否有歌曲
+        if (songs.length === 0) {
+            alert('请至少添加一首歌曲');
+            return;
+        }
+
+        // 发送更新请求
+        fetch(`/music/api/mine/save?token=${getToken()}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                rankId: parseInt(rankId),
+                rankName: title,
+                songItems: songs
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                // 检查后端返回的数据结构
+                console.log('保存请求返回的数据:', data);
+
+                // 检查所有可能的成功情况
+                if (data.success === true || data.msg === 'success' || data.message === 'success' || data.data === '榜单编辑成功') {
+                    // 获取token
+                    const token = getToken();
+
+                    // 确保token存在
+                    if (token) {
+                        // 尝试从多个来源获取userId
+                        let userId = getUserId();
+                        if (!userId) {
+                            const urlParams = new URLSearchParams(window.location.search);
+                            userId = urlParams.get('userId');
+                        }
+
+                        // 构建跳转URL
+                        let redirectUrl = `/music/api/mine/myrank?token=${token}`;
+
+                        // 只要userId存在，就添加到URL中
+                        if (userId) {
+                            redirectUrl += `&userId=${userId}`;
+                        }
+
+                        // 直接跳转到我的榜单页面
+                        window.location.href = redirectUrl;
+                    } else {
+                        // 如果缺少token，显示警告并跳转到登录页面
+                        alert('缺少必要参数，请重新登录');
+                        window.location.href = '/music/login.html';
+                    }
+                } else {
+                    alert('保存失败：' + (data.msg || data.message || '未知错误'));
+                }
+            })
+            .catch(error => {
+                console.error('保存榜单失败:', error);
+                alert('保存失败，请稍后重试');
+            });
     });
 
     // 取消按钮
     document.getElementById('cancelBtn').addEventListener('click', function () {
-        alert('取消编辑');
+        // 返回上一页
+        window.history.back();
     });
+
 </script>
 </body>
 

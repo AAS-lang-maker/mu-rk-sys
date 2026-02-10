@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的收藏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+            background:
+                    linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+                    #1E293B;
+            background-size: 50px 50px, 50px 50px, 100% 100%;
+            background-attachment: fixed;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            color: #fffa9c;
+            font-size: 36px;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 18px;
+        }
+
+        .rankings-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .ranking-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .ranking-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            border-color: rgba(255, 235, 59, 0.5);
+        }
+
+        .ranking-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .ranking-title {
+            color: #fffa9c;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .ranking-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .song-list {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .song-list h3 {
+            color: #fffa9c;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .song-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .song-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .song-name {
+            color: #fff;
+            font-size: 16px;
+        }
+
+        .song-rank {
+            color: #fffa9c;
+            font-size: 18px;
+            font-weight: bold;
+            background: rgba(255, 250, 156, 0.2);
+            padding: 4px 12px;
+            border-radius: 15px;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 40px;
+            gap: 10px;
+        }
+
+        .page-btn {
+            background: rgba(255, 250, 156, 0.9);
+            color: #333333;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-decoration: none;
+        }
+
+        .page-btn:hover {
+            background: #fffa9c;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .page-btn:disabled {
+            background: rgba(255, 250, 156, 0.5);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .page-info {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 16px;
+            margin: 0 20px;
+        }
+
+        /* 侧边栏按钮样式 */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            padding: 10px;
+        }
+
+        .sidebar-btn {
+            background: rgba(255, 250, 156, 0.9);
+            color: #333333;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            white-space: nowrap;
+            transform: translateX(0);
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+        }
+
+        .sidebar-btn:hover {
+            background: #fffa9c;
+            transform: translateX(10px) translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 所有按钮的点击动画 */
+        .page-btn,
+        .sidebar-btn {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-btn:active,
+        .sidebar-btn:active {
+            animation: btnClick 0.3s ease;
+        }
+
+        @keyframes btnClick {
+            0% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-5px);
+            }
+
+            100% {
+                transform: translateY(0);
+            }
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .sidebar {
+                top: auto;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 10px;
+                padding: 10px;
+                background: rgba(0, 0, 0, 0.5);
+                border-radius: 30px;
+            }
+
+            .sidebar-btn {
+                padding: 10px 20px;
+                font-size: 14px;
+                border-radius: 20px;
+            }
+
+            .sidebar-btn:hover {
+                transform: translateX(5px) translateY(-2px);
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .empty-state h3 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            font-size: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 28px;
+            }
+
+            .ranking-card {
+                padding: 20px;
+            }
+
+            .ranking-title {
+                font-size: 20px;
+            }
+
+            .song-item {
+                padding: 8px 12px;
+            }
+
+            .song-name {
+                font-size: 14px;
+            }
+
+            .song-rank {
+                font-size: 16px;
+                padding: 3px 10px;
+            }
+
+            .page-btn {
+                padding: 8px 16px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<!-- 侧边栏按钮 -->
+<div class="sidebar">
+    <a href="/music/index.html" class="sidebar-btn">返回首页</a>
+    <a href="/music/api/mine/myrank" th:href="@{/music/api/mine/myrank(token=${token}, userId=${userId})}"
+       class="sidebar-btn">返回主页</a>
+    <a href="/music/login.html" class="sidebar-btn">返回登录</a>
+</div>
+
+<div class="container">
+    <div class="header">
+        <h1>我的收藏</h1>
+        <p>查看您收藏的歌单</p>
+    </div>
+
+    <div class="rankings-container"
+         th:if="${myLoveSongs != null and myLoveSongs.list != null and not myLoveSongs.list.isEmpty()}">
+        <div class="ranking-card" th:each="rank : ${myLoveSongs.list}">
+            <div class="ranking-header">
+                <div class="ranking-title" th:text="${rank.rankName}"></div>
+                <div class="ranking-info">
+                    <span>收藏数量: <span th:text="${rank.loveCount}"></span></span>
+                    <span th:text="${#temporals.format(rank.publishTime, 'yyyy-MM-dd HH:mm:ss')}"></span>
+                </div>
+            </div>
+            <div class="song-list">
+                <h3>歌曲列表</h3>
+                <div class="song-item" th:each="song : ${rank.rankSongList}">
+                    <div class="song-name" th:text="${song.songName}"></div>
+                    <div class="song-rank" th:text="${song.ranking}"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="pagination" th:if="${myLoveSongs != null}">
+            <a href="#" class="page-btn"
+               th:attr="href=@{/music/api/mine/myLove(token=${token}, userId=${userId}, pageNum=${myLoveSongs.pageNum - 1}, pageSize=${myLoveSongs.pageSize})}"
+               th:disabled="${myLoveSongs.pageNum == 1}">
+                上一页
+            </a>
+            <span class="page-info">
+                    第 <span th:text="${myLoveSongs.pageNum}"></span> 页，共 <span th:text="${myLoveSongs.pages}"></span> 页
+                </span>
+            <a href="#" class="page-btn"
+               th:attr="href=@{/music/api/mine/myLove(token=${token}, userId=${userId}, pageNum=${myLoveSongs.pageNum + 1}, pageSize=${myLoveSongs.pageSize})}"
+               th:disabled="${myLoveSongs.pageNum == myLoveSongs.pages}">
+                下一页
+            </a>
+        </div>
+    </div>
+
+    <div class="empty-state"
+         th:if="${myLoveSongs == null or myLoveSongs.list == null or myLoveSongs.list.isEmpty()}">
+        <h3>暂无收藏</h3>
+        <p>您还没有收藏任何歌单</p>
+    </div>
+</div>
+
+<script>
+    // 禁用状态的分页按钮点击事件
+    document.addEventListener('DOMContentLoaded', function () {
+        const pageBtns = document.querySelectorAll('.page-btn');
+        pageBtns.forEach(btn => {
+            if (btn.hasAttribute('disabled')) {
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                });
+            }
+        });
+    });
+</script>
+</body>
+
+</html>

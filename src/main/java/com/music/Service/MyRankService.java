@@ -19,4 +19,6 @@ public interface MyRankService {
     List<Song> selectSong(Integer singerId);
 
     void insertNewRank(EditRank dto);
+
+    PageInfo<MyRankWithSong> selectMyLoverank(Integer pageNum, Integer pageSize, Integer offset, Integer userId);
 }
