@@ -3,7 +3,8 @@ server:
   port: 8080 # 项目启动端口，浏览器访问http://localhost:8080/xxx
   servlet:
     context-path: /music # 项目访问前缀，接口路径会带/music，比如http://localhost:8080/music/song/list
-
+# application.yml
+debug: true
 # 数据库连接配置（MySQL8.0，5.7仅需改驱动类）
 spring:
   thymeleaf:

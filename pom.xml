@@ -23,12 +23,10 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
-
-
-        <java.version>1.8</java.version>
         <pagehelper.version>1.4.7</pagehelper.version>
     </properties>
+
+
 
     <dependencies>
         <!-- Druid连接池（Spring Boot集成版） -->
@@ -127,12 +125,12 @@
             <scope>runtime</scope>
         </dependency>
         <!-- 适用于 Spring Boot 2.x 及之前版本 -->
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>4.0.1</version>
-            <scope>provided</scope> <!-- provided 表示由容器（如Tomcat）提供，打包时不包含 -->
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>jakarta.servlet</groupId>-->
+<!--            <artifactId>jakarta.servlet-api</artifactId>-->
+<!--            <version>4.0.1</version>-->
+<!--            <scope>provided</scope> &lt;!&ndash; provided 表示由容器（如Tomcat）提供，打包时不包含 &ndash;&gt;-->
+<!--        </dependency>-->
         <!-- Thymeleaf核心依赖（Spring Boot 2.x/3.x通用） -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -146,11 +144,19 @@
         </dependency>
     </dependencies>
 
+
+    <!-- 确保 compiler 插件版本适配 Java 17 -->
     <build>
         <plugins>
             <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>17</source>
+                    <target>17</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
             </plugin>
         </plugins>
     </build>

@@ -57,6 +57,7 @@
         order by b.rank_update_time asc, b.ranking asc
     </select>
 
+
     <resultMap id="MyRankWithSongResultMap" type="com.music.dto.MyRankWithSong">
         <id property="rankId" column="rank_id"/>
         <result property="rankName" column="rank_name"/>
@@ -72,5 +73,31 @@
             <result property="rankUpdateTime" column="rank_update_time"/>
         </collection>
     </resultMap>
-
+    <!-- 模糊查询本质：like+concat和%占位符，keyword拼接 -->
+    <select id="selectSearch" resultType="com.music.dto.MyRankWithSong">
+        select p.rank_id,p.rank_name,p.total_vote as vote_count,p.total_love as love_count
+        ,p.publish_time,r.rs_id,r.ranking,r.rank_update_time,s.song_name,si.singer_name from
+        (select pe.rank_id,pe.rank_name,ifnull(sum(v.vote),0) as total_vote,ifnull(sum(l.love),0) as total_love,
+        pe.publish_time from personal_rank as pe left join vote_record as v
+        on pe.rank_id = v.rank_id left join love_record as l on pe.rank_id = l.rank_id
+        where pe.category_id=#{category}
+        order by pe.publish_time asc
+        limit #{pageSize} offset #{offset}) as p
+        left join rank_song as r on p.rank_id=r.rank_id
+        left join song as s on r.song_id = s.song_id
+        left join singer as si on s.singer_id = si.singer_id
+        where s.song_name like concat('%',#{keyword},'%') or p.rank_name like concat('%',#{keyword},'%')
+        or si.singer_name like concat('%',#{keyword},'%')
+        order by r.rank_update_time asc,r.ranking desc
+    </select>
+    <select id="selectSearchTotal" resultType="java.lang.Integer">
+        select p.rank_id,p.rank_name,p.publish_time,r.rs_id,r.ranking,r.rank_update_time
+        ,s.song_name,si.singer_name from personal_rank as p
+        left join rank_song as r on p.rank_id = r.rank_id
+        left join song as s on s.song_id=r.song_id
+        left join singer as si on s.singer_id = si.singer_id
+        where p.category_id=#{category} and (s.song_name like concat('%',#{keyword},'%') or si.singer_name
+            like concat('%',#{keyword},'%') or p.rank_name like concat('%',#{keyword},'%'))
+        order by p.publish_time asc,r.ranking desc
+    </select>
 </mapper>

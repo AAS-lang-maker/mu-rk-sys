@@ -18,7 +18,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @Controller
@@ -200,6 +200,34 @@ public class UserPublishController {
                 redirectAttributes.addFlashAttribute("errormessage", "收藏失败，请稍后再试");
                 return "redirect:/api/rank/publish?token=" + token + "&userId=" + userId + "&rankId=" + rankId + "&category=" + category + "&pageNum=" + pageNum + "&pageSize=" + pageSize;
             }
+        }
+        @GetMapping("/sou")
+    public String sou(@RequestParam("token")String token,@RequestParam("userId")Integer userId,@RequestParam("category")Integer category,
+                      RedirectAttributes redirectAttributes) throws Exception {
+        if (token == null || token.isEmpty()) {
+            return  "redirect:/login.html";
+        }
+         userId=JwtUtils.getUserIdFromToken(token);
+        if (userId==null) {
+            return  "redirect:/login.html";
+        }
+        redirectAttributes.addFlashAttribute("token", token);
+        redirectAttributes.addFlashAttribute("userId", userId);
+        redirectAttributes.addFlashAttribute("category", category);
+        return  "redirect:/api/rank/search?token=" + token + "&userId=" + userId+ "&category=" + category;
+        }
+        @GetMapping("/search")
+    public String search(@RequestParam("token")String token,@RequestParam("userId")Integer userId,
+                                           @RequestParam("category")Integer category,@RequestParam("pageNum")Integer pageNum,@RequestParam("pageSize")Integer pageSize
+                                           ,Model model,@RequestParam("keyword")String keyword ) throws Exception {
+        Integer offset=(pageNum-1)*pageSize;
+         PageInfo<MyRankWithSong> searchRank = userPublishService.selectSearch(category,pageNum,offset,pageSize,keyword);
+         model.addAttribute("searchRank", searchRank);
+         model.addAttribute("category",category);
+         model.addAttribute("pageNum",pageNum);
+         model.addAttribute("pageSize",pageSize);
+         model.addAttribute("offset",offset);
+         return "search-page";
         }
     }
 

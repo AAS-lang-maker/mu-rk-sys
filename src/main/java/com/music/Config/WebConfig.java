@@ -20,27 +20,27 @@ public class WebConfig implements WebMvcConfigurer {
                 .addResourceLocations("classpath:/static/"); // 静态资源所在目录
     }
     // 注入自定义的登录拦截器
-    @Autowired
-    private LoginInterceptor loginInterceptor;
+  //  @Autowired
+  //  private LoginInterceptor loginInterceptor;
 
-    /**
+    /*
      * 注册拦截器的核心方法
      */
     @Override
-    public void addInterceptors(InterceptorRegistry registry) {
+   public void addInterceptors(InterceptorRegistry registry) {
         // 注册登录拦截器
-        registry.addInterceptor(loginInterceptor)
+       // registry.addInterceptor(loginInterceptor)
                 // 拦截所有请求（/** 表示匹配所有层级的接口）
-                .addPathPatterns("/**")
+             //   .addPathPatterns("/**")
                 // 放行的接口（无需登录即可访问）
-                .excludePathPatterns(
-                        "/user/register", // 注册接口
-                        "/user/login",    // 登录接口
+               // .excludePathPatterns(
+                 //       "/user/register", // 注册接口
+                   //     "/user/login",    // 登录接口
                         // 放行静态资源（如果有前端页面，比如html/css/js，需要放行）
-                        "/**.html",
-                        "/**.css",
-                        "/**.js",
-                        "/images/**"
-                );
-    }
+                     //   "/js/**",
+                       // "/**.html",
+                        //"/**.css",
+                  //      "/images/**"
+                //);
+   }
 }

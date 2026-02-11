@@ -32,5 +32,10 @@ public interface UserPublishMapper {
 
     int checkLoveip(String ip, Integer rankId);
 
+    List<MyRankWithSong> selectSearch(Integer category, Integer pageNum, Integer offset, Integer pageSize, String keyword);
+
+
+    Integer selectSearchTotal(Integer category, String keyword);
+
     //@Param("list")注解，专门为Maybatis批量插入的需求的List集合起一个别名
 }

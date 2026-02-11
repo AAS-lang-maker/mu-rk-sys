@@ -23,4 +23,5 @@ public interface UserPublishService {
 
     boolean insertLove(Integer userId, String ip, Integer rankId);
 
+    PageInfo<MyRankWithSong> selectSearch(Integer category, Integer pageNum, Integer offset, Integer pageSize,String keyword);
 }
