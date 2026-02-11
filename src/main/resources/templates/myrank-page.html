@@ -14,23 +14,17 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background-color: #1E293B;
             min-height: 100vh;
             color: #f7fafc;
+            padding: 20px;
+            background:
+                    linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+                    #1E293B;
+            background-size: 50px 50px, 50px 50px, 100% 100%;
+            background-attachment: fixed;
             position: relative;
             overflow-x: hidden;
-        }
-
-        .body::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(26, 32, 44, 0.8);
-            backdrop-filter: blur(10px);
-            z-index: -1;
         }
 
         .sidebar {
@@ -364,6 +358,26 @@
         .collect-count {
             color: rgba(192, 192, 192, 0.9);
         }
+
+        /* 右侧侧边栏样式 */
+        .sidebar-right {
+            position: fixed;
+            right: -120px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 160px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px 0 0 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            z-index: 100;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar-right:hover {
+            right: 0;
+        }
     </style>
 </head>
 
@@ -372,6 +386,10 @@
     <button class="sidebar-btn" onclick="gotoPaging('/music/api/rank/publish')">返回主页</button>
     <button class="sidebar-btn" onclick="window.location.href='/music/login.html'">重新登录</button>
     <button class="sidebar-btn" onclick="goToHome()">返回首页</button>
+</div>
+<!-- 右侧侧边栏 -->
+<div class="sidebar-right">
+    <button class="sidebar-btn" onclick="goToMyLove()">我的收藏</button>
 </div>
 
 <div class="container">
@@ -437,11 +455,11 @@
 
     <script>
         // 我的榜单页 - script标签最开头，第一行代码就写这个！
-        (function() {
+        (function () {
             // 从URL解析参数
             const urlParams = new URLSearchParams(window.location.search);
             const urlToken = urlParams.get('token');
-            const urlUid = urlParams.get('user_id');
+            const urlUid = urlParams.get('user_id') || urlParams.get('userId');
             const urlCate = urlParams.get('category');
 
             // 强制把URL里的参数更新到localStorage
@@ -468,7 +486,7 @@
             if (!token) {
                 const urlParams = new URLSearchParams(window.location.search);
                 token = urlParams.get('token');
-                user_id = urlParams.get('user_id');
+                user_id = urlParams.get('user_id') || urlParams.get('userId');
                 category = urlParams.get('category');
 
                 console.log('从 URL 恢复的 token:', token);
@@ -498,12 +516,12 @@
         let userId = '';
 
         window.onload = function () {
-            token = getUrlParam('token');
-            userId = getUrlParam('userId');
+            token = localStorage.getItem('token') || getUrlParam('token');
+            userId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
 
             // 校验参数，缺失则跳转登录页
             if (!token || !userId || isNaN(userId)) {
-                showErrorTip('登录信息失效，请重新登录');
+                alert('登录信息失效，请重新登录');
                 setTimeout(() => window.location.href = '/music/login.html', 1500);
             }
         };
@@ -558,6 +576,24 @@
                 });
         }
 
+        // 跳转到我的收藏页面
+        function goToMyLove() {
+            const token = localStorage.getItem('token') || getUrlParam('token');
+            const userId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
+
+            if (token) {
+                let url = `/music/api/mine/lv?token=${encodeURIComponent(token)}`;
+                if (userId) {
+                    url += `&userId=${encodeURIComponent(userId)}`;
+                }
+                // 添加默认的分页参数
+                url += '&pageNum=1&pageSize=10';
+                window.location.href = url;
+            } else {
+                alert('登录信息失效，请重新登录！');
+                window.location.href = '/music/login.html';
+            }
+        }
         // 收藏方法
         function collectRanking(rankId) {
             if (!token || !userId || isNaN(userId)) {
@@ -597,9 +633,9 @@
 
         // 分页导航
         function goToPage(page) {
-            const currentToken = getUrlParam('token');
-            const currentUserId = getUrlParam('userId');
-            window.location.href = `/music/api/mine/myrank?pageNum=${page}&token=${encodeURIComponent(currentToken)}&userId=${currentUserId}`;
+            const currentToken = localStorage.getItem('token') || getUrlParam('token');
+            const currentUserId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
+            window.location.href = `/music/api/mine/myrank?pageNum=${page}&token=${encodeURIComponent(currentToken)}&userId=${encodeURIComponent(currentUserId)}`;
         }
     </script>
 

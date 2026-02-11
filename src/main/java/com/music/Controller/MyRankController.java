@@ -148,18 +148,18 @@ public class MyRankController {
         redirectAttributes.addFlashAttribute("success","榜单重新编辑成功，已经保存");
         return Result.success("榜单编辑成功");
     }
-    @PostMapping("/lv")
+    @GetMapping("/lv")
     public String lv(@RequestParam("userId")Integer userId,@RequestParam("token")String token, RedirectAttributes redirectAttributes){
-        userId=validateToken(token,redirectAttributes);
-        if(userId==null){
+        Integer paramuserId=validateToken(token,redirectAttributes);
+        if(paramuserId==null){
             return "redirect:/login.html";
         }
         redirectAttributes.addFlashAttribute("userId", userId);
         redirectAttributes.addFlashAttribute("token", token);
-        return "redirect:/api/mine/mylove?token="+token+"&userId="+userId;
+        return "redirect:/api/mine/mylove?token="+token+"&userId="+paramuserId;
     }
     @GetMapping("/mylove")
-    public String mylove(@RequestParam("token")String token,@RequestParam("userId")Integer userId,
+    public String mylove(@RequestParam("token")String token,@RequestParam("userId")Integer userId,Model model,
                          RedirectAttributes redirectAttributes,@RequestParam(value = "pageNum",defaultValue = "1")Integer pageNum,
                          @RequestParam(value = "pageSize",defaultValue = "3")Integer pageSize){
         Integer paramuserId=validateToken(token,redirectAttributes);
@@ -168,8 +168,9 @@ public class MyRankController {
         }
         Integer offset = (pageNum-1)*pageSize;
         PageInfo<MyRankWithSong> myloveSongs=myRankService.selectMyLoverank(pageNum,pageSize,offset,userId);
-        redirectAttributes.addFlashAttribute("myloveSongs",myloveSongs);
-        redirectAttributes.addFlashAttribute("userId", userId);
+        model.addAttribute("myloveSongs",myloveSongs);
+        model.addAttribute("token",token);
+        model.addAttribute("userId", userId);
         return "mylove-page";
     }
 }

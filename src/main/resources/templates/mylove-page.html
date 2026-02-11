@@ -59,7 +59,7 @@
             gap: 30px;
         }
 
-        .ranking-card {
+        .ranking-item {
             background: rgba(255, 255, 255, 0.1);
             border-radius: 10px;
             padding: 25px;
@@ -68,30 +68,23 @@
             transition: all 0.3s ease;
         }
 
-        .ranking-card:hover {
+        .ranking-item:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
             border-color: rgba(255, 235, 59, 0.5);
         }
 
-        .ranking-header {
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .ranking-title {
+        .ranking-content h3 {
             color: #fffa9c;
             font-size: 24px;
             font-weight: bold;
             margin-bottom: 10px;
         }
 
-        .ranking-info {
-            display: flex;
-            justify-content: space-between;
+        .ranking-content p {
             font-size: 14px;
             color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 20px;
         }
 
         .song-list {
@@ -100,41 +93,36 @@
             padding: 20px;
         }
 
-        .song-list h3 {
+        .song-list h4 {
             color: #fffa9c;
             font-size: 18px;
             margin-bottom: 15px;
         }
 
-        .song-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 15px;
-            margin-bottom: 10px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 6px;
-            transition: all 0.2s ease;
+        .song-list ul {
+            list-style: none;
         }
 
-        .song-item:hover {
-            background: rgba(255, 255, 255, 0.1);
+        .song-list li {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .song-list li:last-child {
+            border-bottom: none;
         }
 
         .song-name {
-            color: #fff;
+            color: rgba(255, 255, 255, 0.9);
             font-size: 16px;
         }
 
         .song-rank {
             color: #fffa9c;
-            font-size: 18px;
             font-weight: bold;
-            background: rgba(255, 250, 156, 0.2);
-            padding: 4px 12px;
-            border-radius: 15px;
-            min-width: 40px;
-            text-align: center;
+            font-size: 16px;
         }
 
         .pagination {
@@ -142,10 +130,14 @@
             justify-content: center;
             align-items: center;
             margin-top: 40px;
-            gap: 10px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        .page-btn {
+        .pagination button {
             background: rgba(255, 250, 156, 0.9);
             color: #333333;
             border: none;
@@ -156,20 +148,26 @@
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            text-decoration: none;
+            margin: 0 10px;
         }
 
-        .page-btn:hover {
+        .pagination button:hover {
             background: #fffa9c;
             transform: translateY(-2px);
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
         }
 
-        .page-btn:disabled {
+        .pagination button:disabled {
             background: rgba(255, 250, 156, 0.5);
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
+        }
+
+        .pagination button.active {
+            background: #fffa9c;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
         }
 
         .page-info {
@@ -216,13 +214,13 @@
         }
 
         /* 所有按钮的点击动画 */
-        .page-btn,
+        .pagination button,
         .sidebar-btn {
             position: relative;
             overflow: hidden;
         }
 
-        .page-btn:active,
+        .pagination button:active,
         .sidebar-btn:active {
             animation: btnClick 0.3s ease;
         }
@@ -282,51 +280,14 @@
         .empty-state p {
             font-size: 16px;
         }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
-
-            .header h1 {
-                font-size: 28px;
-            }
-
-            .ranking-card {
-                padding: 20px;
-            }
-
-            .ranking-title {
-                font-size: 20px;
-            }
-
-            .song-item {
-                padding: 8px 12px;
-            }
-
-            .song-name {
-                font-size: 14px;
-            }
-
-            .song-rank {
-                font-size: 16px;
-                padding: 3px 10px;
-            }
-
-            .page-btn {
-                padding: 8px 16px;
-                font-size: 14px;
-            }
-        }
     </style>
 </head>
 
 <body>
 <!-- 侧边栏按钮 -->
 <div class="sidebar">
-    <a href="/music/index.html" class="sidebar-btn">返回首页</a>
-    <a href="/music/api/mine/myrank" th:href="@{/music/api/mine/myrank(token=${token}, userId=${userId})}"
-       class="sidebar-btn">返回主页</a>
+    <a href="/music/api/mine/myrank" class="sidebar-btn">返回主页</a>
+    <a href="/music/api/mine/myrank" class="sidebar-btn">返回首页</a>
     <a href="/music/login.html" class="sidebar-btn">返回登录</a>
 </div>
 
@@ -336,53 +297,80 @@
         <p>查看您收藏的歌单</p>
     </div>
 
-    <div class="rankings-container"
-         th:if="${myLoveSongs != null and myLoveSongs.list != null and not myLoveSongs.list.isEmpty()}">
-        <div class="ranking-card" th:each="rank : ${myLoveSongs.list}">
-            <div class="ranking-header">
-                <div class="ranking-title" th:text="${rank.rankName}"></div>
-                <div class="ranking-info">
-                    <span>收藏数量: <span th:text="${rank.loveCount}"></span></span>
-                    <span th:text="${#temporals.format(rank.publishTime, 'yyyy-MM-dd HH:mm:ss')}"></span>
-                </div>
-            </div>
-            <div class="song-list">
-                <h3>歌曲列表</h3>
-                <div class="song-item" th:each="song : ${rank.rankSongList}">
-                    <div class="song-name" th:text="${song.songName}"></div>
-                    <div class="song-rank" th:text="${song.ranking}"></div>
+
+    <div class="rankings-container">
+        <div th:each="ranking, stat : ${myloveSongs.list}" class="ranking-item">
+            <div class="ranking-content">
+                <!-- 榜单基本信息 -->
+                <h3 th:text="${ranking.rankName}">榜单标题</h3>
+                <p th:text="|更新于: ${ranking.publishTime}|">最后更新时间</p>
+
+
+                <!-- 榜单下的歌曲列表 -->
+                <div class="song-list">
+                    <h4>歌曲列表</h4>
+                    <ul>
+                        <li th:each="song : ${ranking.rankSongList}">
+                            <span class="song-name" th:text="${song.songName}">歌曲名称</span>
+                            <span class="song-rank" th:text="${song.ranking}">排名</span>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>
 
-        <div class="pagination" th:if="${myLoveSongs != null}">
-            <a href="#" class="page-btn"
-               th:attr="href=@{/music/api/mine/myLove(token=${token}, userId=${userId}, pageNum=${myLoveSongs.pageNum - 1}, pageSize=${myLoveSongs.pageSize})}"
-               th:disabled="${myLoveSongs.pageNum == 1}">
-                上一页
-            </a>
-            <span class="page-info">
-                    第 <span th:text="${myLoveSongs.pageNum}"></span> 页，共 <span th:text="${myLoveSongs.pages}"></span> 页
-                </span>
-            <a href="#" class="page-btn"
-               th:attr="href=@{/music/api/mine/myLove(token=${token}, userId=${userId}, pageNum=${myLoveSongs.pageNum + 1}, pageSize=${myLoveSongs.pageSize})}"
-               th:disabled="${myLoveSongs.pageNum == myLoveSongs.pages}">
-                下一页
-            </a>
-        </div>
-    </div>
+        <!-- 总的分页控件 -->
+        <div class="pagination" th:if="${myloveSongs != null}">
+            <button th:disabled="${myloveSongs.pageNum == 1}"
+                    th:onclick="|goToPage(${myloveSongs.pageNum - 1})|">上一页</button>
 
-    <div class="empty-state"
-         th:if="${myLoveSongs == null or myLoveSongs.list == null or myLoveSongs.list.isEmpty()}">
-        <h3>暂无收藏</h3>
-        <p>您还没有收藏任何歌单</p>
+            <button th:each="i : ${#numbers.sequence(1, myloveSongs.pages)}"
+                    th:class="${myloveSongs.pageNum == i ? 'active' : ''}" th:onclick="|goToPage(${i})|"
+                    th:text="${i}">1</button>
+
+            <button th:disabled="${myloveSongs.pageNum == myloveSongs.pages}"
+                    th:onclick="|goToPage(${myloveSongs.pageNum + 1})|">下一页</button>
+        </div>
+
+        <div class="empty-state"
+             th:if="${myloveSongs == null or myloveSongs.list == null or myloveSongs.list.isEmpty()}">
+            <h3>暂无收藏</h3>
+            <p>您还没有收藏任何歌单</p>
+        </div>
     </div>
 </div>
 
 <script>
+    // 初始化代码，从 URL 中获取参数并存储到 localStorage
+    (function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlToken = urlParams.get('token');
+        const urlUid = urlParams.get('userId') || urlParams.get('user_id');
+
+        // 强制把 URL 里的参数更新到 localStorage
+        if (urlToken) localStorage.setItem('token', urlToken);
+        if (urlUid) localStorage.setItem('user_id', urlUid);
+
+        console.log('✅ 收藏页面初始化完成，参数已同步到 localStorage：', {
+            token: localStorage.getItem('token'),
+            user_id: localStorage.getItem('user_id')
+        });
+    })();
+    function goToPage(page) {
+        const currentToken = localStorage.getItem('token') || getUrlParam('token');
+        const currentUserId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
+        window.location.href = `/music/api/mine/mylove?pageNum=${page}&token=${encodeURIComponent(currentToken)}&userId=${encodeURIComponent(currentUserId)}`;
+    }
+
+    // 获取 URL 参数的函数
+    function getUrlParam(paramName) {
+        const searchParams = new URLSearchParams(window.location.search);
+        return searchParams.get(paramName);
+    }
+
     // 禁用状态的分页按钮点击事件
     document.addEventListener('DOMContentLoaded', function () {
-        const pageBtns = document.querySelectorAll('.page-btn');
+        const pageBtns = document.querySelectorAll('.pagination button');
         pageBtns.forEach(btn => {
             if (btn.hasAttribute('disabled')) {
                 btn.addEventListener('click', function (e) {

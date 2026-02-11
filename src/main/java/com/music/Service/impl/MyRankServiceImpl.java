@@ -88,7 +88,7 @@ private MyRankMapper myRankMapper;
 
     @Override
     public PageInfo<MyRankWithSong> selectMyLoverank(Integer pageNum, Integer pageSize, Integer offset, Integer userId) {
-        List<MyRankWithSong> myLoveSong=myRankMapper.selectLoveSong(pageNum,pageSize,offset,userId);
+        List<MyRankWithSong> myLoveSong=myRankMapper.selectLoveSong(userId,pageSize,offset,pageNum);
         PageInfo<MyRankWithSong> pageInfo=new PageInfo<>();
         Integer total=myRankMapper.selectloveTotal(userId);
         Integer pages=(total+pageSize-1)/pageSize;
