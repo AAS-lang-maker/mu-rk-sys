@@ -26,8 +26,8 @@ public class MyRankController {
 
 
     @GetMapping("/my")//没有调用Service，只负责页面跳转，没有要操作数据库的逻辑
-    public String myRank(@RequestParam(value = "token",required = true)String token,@RequestParam(value = "userId",required = true)Integer userId,
-                         RedirectAttributes redirectAttributes){
+    public String myRank(@RequestParam(value = "token",required = true)String token,@RequestParam(value = "userId",required = true)Integer userId
+                         ,@RequestParam("category")Integer category,@RequestParam(required = false)String success, RedirectAttributes redirectAttributes){
     System.out.println("========/my接口被调用了========" );
     Integer paramuserId=validateToken(token,redirectAttributes);
     if(userId==null||!userId.equals(paramuserId)){
@@ -36,7 +36,7 @@ public class MyRankController {
 
        redirectAttributes.addFlashAttribute("userId", userId);
        redirectAttributes.addFlashAttribute("token", token);
-        return "redirect:/api/mine/myrank?token="+token+"&userId="+userId;
+        return "redirect:/api/mine/myrank?token="+token+"&userId="+userId+"&category="+category+"&success="+success;
     }
 
     @GetMapping("/myrank")

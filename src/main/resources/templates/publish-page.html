@@ -22,7 +22,7 @@
             background:
                     linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
                     linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-                    #1E293B;
+                    #0f172a;
             background-size: 50px 50px, 50px 50px, 100% 100%;
             background-attachment: fixed;
             position: relative;
@@ -43,11 +43,50 @@
             font-size: 36px;
             color: #fffa9c;
             margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
         }
 
         .header p {
             font-size: 18px;
             color: rgba(247, 250, 252, 0.7);
+        }
+
+        /* 左上角搜索按钮样式 */
+        .top-right-search {
+            position: absolute;
+            top: 60px;
+            left: 60px;
+            z-index: 100;
+        }
+
+        .search-button {
+            width: 70px;
+            height: 70px;
+            background: #1E293B;
+            border: 2px solid #d1d5db;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .search-button:hover {
+            transform: scale(1.1);
+            background: rgba(255, 250, 156, 0.2);
+            border-color: #fffa9c;
+            box-shadow: 0 0 20px rgba(255, 250, 156, 0.5);
+        }
+
+        .search-button img {
+            width: 70%;
+            height: 70%;
+            object-fit: contain;
         }
 
         .content {
@@ -543,6 +582,15 @@
 
 <body>
 <div class="container">
+    <!-- 右上角搜索按钮 -->
+    <div class="top-right-search">
+        <button class="search-button" onclick="openSearch()">
+            <svg width="40" height="40" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="14" cy="14" r="10" stroke="#fffa9c" stroke-width="3" />
+                <line x1="21" y1="21" x2="28" y2="28" stroke="#fffa9c" stroke-width="3" stroke-linecap="round" />
+            </svg>
+        </button>
+    </div>
     <!-- 新增提示框（后端重定向的提示会显示在这里） -->
     <div id="errorAlert" th:text="${errormessage}"></div>
     <div id="successAlert" th:text="${success}"></div>
@@ -670,9 +718,27 @@
         setTimeout(() => el.style.display = 'none', 2000);
     }
 
+    function showSuccessTip(msg) {
+        let el = document.getElementById('successAlert');
+        if (!el) {
+            el = document.createElement('div');
+            el.id = 'successAlert';
+            el.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);padding:10px 20px;background:#00C851;color:#fff;border-radius:4px;z-index:9999;';
+            document.body.appendChild(el);
+        }
+        el.innerText = msg;
+        el.style.display = 'block';
+        setTimeout(() => el.style.display = 'none', 2000);
+    }
 
+    // 5. 搜索功能
+    function openSearch() {
+        // 直接跳转到搜索页面（通过sou接口重定向）
+        const searchUrl = `/music/api/rank/sou?token=${encodeURIComponent(token)}&category=${category}`;
+        window.location.href = searchUrl;
+    }
 
-    // 5. 页面加载完成后，再绑定所有事件（核心！）
+    // 6. 页面加载完成后，再绑定所有事件（核心！）
     window.onload = function () {
         console.log("DOM加载完成，开始绑定事件");
 
@@ -761,14 +827,14 @@
         showSuccessTip("页面加载成功！");
     };
 
-    // 6. 分页
+    // 7. 分页
     function goToPage(page) {
         const targetPath = getTargetPublishPath(category);
         const jumpUrl = `/music/api/rank/publish?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}&pageNum=${page}&pageSize=${pageSize}`;
         window.location.href = jumpUrl;
     }
 
-    // 7. 投票
+    // 8. 投票
     function voteForRanking(rankId) {
         console.log('投票按钮点击，rankId:', rankId);
         if (!token) {
@@ -789,7 +855,7 @@
         document.body.removeChild(form);
     }
 
-    // 8. 收藏
+    // 9. 收藏
     function collectRanking(rankId) {
         console.log('收藏按钮点击，rankId:', rankId);
         if (!token || !userId || isNaN(userId)) {

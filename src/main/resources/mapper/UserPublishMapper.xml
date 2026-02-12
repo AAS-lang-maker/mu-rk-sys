@@ -56,8 +56,6 @@
                  left join song as c on c.song_id=b.song_id
         order by b.rank_update_time asc, b.ranking asc
     </select>
-
-
     <resultMap id="MyRankWithSongResultMap" type="com.music.dto.MyRankWithSong">
         <id property="rankId" column="rank_id"/>
         <result property="rankName" column="rank_name"/>
@@ -74,30 +72,58 @@
         </collection>
     </resultMap>
     <!-- 模糊查询本质：like+concat和%占位符，keyword拼接 -->
-    <select id="selectSearch" resultType="com.music.dto.MyRankWithSong">
+    <select id="selectSearch" resultMap="MyRankWithSongResultMap">
         select p.rank_id,p.rank_name,p.total_vote as vote_count,p.total_love as love_count
         ,p.publish_time,r.rs_id,r.ranking,r.rank_update_time,s.song_name,si.singer_name from
         (select pe.rank_id,pe.rank_name,ifnull(sum(v.vote),0) as total_vote,ifnull(sum(l.love),0) as total_love,
         pe.publish_time from personal_rank as pe left join vote_record as v
         on pe.rank_id = v.rank_id left join love_record as l on pe.rank_id = l.rank_id
         where pe.category_id=#{category}
+        <!--必须使用group by分组.因为使用了聚合sum函数，如果不分组，求和的数据无法和榜单信息关联起来-->
+        <!--久违动态sql，if语句处理关键词为空的情况，防止用户空搜索而导致了空查询.注意if标签的位置，要在and之后，否则当if条件不成立时，直接
+        判断and后条件为空。并且标签中不需要有where，因为if标签自带where-->
+        <if test="keyword != null and keyword != &quot;&quot;">
+            AND (pe.rank_name like concat('%',#{keyword},'%') or exists(select 1 from rank_song as rs join  song as s on
+             s.song_id=rs.song_id join singer as si on si.singer_id=s.singer_id where rs.rank_id=pe.rank_id
+            and(si.singer_name like concat('%',#{keyword},'%') or s.song_name like concat('%',#{keyword},'%'))))
+        </if>
+        <!--if语句必须在分页操作之后，否则有可能搜索的目标信息在当前页面之后或者之前-->
+        <!--多多括号，分清and，or。多多(())-->
+        group by pe.rank_id,pe.rank_name,pe.publish_time
         order by pe.publish_time asc
         limit #{pageSize} offset #{offset}) as p
         left join rank_song as r on p.rank_id=r.rank_id
         left join song as s on r.song_id = s.song_id
         left join singer as si on s.singer_id = si.singer_id
-        where s.song_name like concat('%',#{keyword},'%') or p.rank_name like concat('%',#{keyword},'%')
-        or si.singer_name like concat('%',#{keyword},'%')
         order by r.rank_update_time asc,r.ranking desc
     </select>
+    <resultMap id="MyRankWithSongsResultMap" type="com.music.dto.MyRankWithSong">
+        <id property="rankId" column="rank_id"/>
+        <result property="rankName" column="rank_name"/>
+        <result property="voteCount" column="vote_count"/>
+        <result property="loveCount" column="love_count"/>
+        <result property="publishTime" column="publish_time"/>
+        <collection property="rankSongList" ofType="com.music.pojo.RankSong">
+            <id property="rsId" column="rs_id"/>
+            <result property="songId" column="song_id"/>
+            <result property="songName" column="song_name"/>
+            <result property="ranking" column="ranking"/>
+            <result property="singerName" column="singer_name"/>
+            <result property="rankUpdateTime" column="rank_update_time"/>
+        </collection>
+    </resultMap>
+
     <select id="selectSearchTotal" resultType="java.lang.Integer">
-        select p.rank_id,p.rank_name,p.publish_time,r.rs_id,r.ranking,r.rank_update_time
-        ,s.song_name,si.singer_name from personal_rank as p
+        <!--豆包说：注意去重，查询总行数时，由于有模糊查询，可能会有重复行数-->
+        select count(distinct p.rank_id) from personal_rank as p
         left join rank_song as r on p.rank_id = r.rank_id
         left join song as s on s.song_id=r.song_id
         left join singer as si on s.singer_id = si.singer_id
-        where p.category_id=#{category} and (s.song_name like concat('%',#{keyword},'%') or si.singer_name
-            like concat('%',#{keyword},'%') or p.rank_name like concat('%',#{keyword},'%'))
+        where p.category_id=#{category}
+        <if test="keyword != null and keyword != &quot;&quot; "> and
+            (s.song_name like concat('%',#{keyword},'%') or si.singer_name
+            like concat('%',#{keyword},'%') or p.rank_name like concat('%',#{keyword},'%'))</if>
         order by p.publish_time asc,r.ranking desc
     </select>
+    <!-- 使用count，只是进行一个计数，不用有group by，left join会产生重复的rank_id，所以要去重distinct-->
 </mapper>

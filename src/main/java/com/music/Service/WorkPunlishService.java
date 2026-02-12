@@ -21,4 +21,6 @@ public interface WorkPunlishService {
     boolean insertVote(Integer userId, Integer rankId, String ip);
 
     boolean insertLove(Integer userId, String ip, Integer rankId);
+
+    PageInfo<MyRankWithSong> selectSearch(Integer category, Integer pageNum, Integer offset, Integer pageSize, String keyword);
 }

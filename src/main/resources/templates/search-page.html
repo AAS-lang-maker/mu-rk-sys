@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>搜索结果 - 音乐排行榜</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #0f172a;
+            background-image:
+                    linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 60px 60px;
+            background-attachment: fixed;
+            color: #f1f5f9;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            position: relative;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            color: #fffa9c;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 18px;
+            color: rgba(247, 250, 252, 0.7);
+        }
+
+        /* 搜索框样式 */
+        .search-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 60px;
+            position: relative;
+        }
+
+        .search-box {
+            position: relative;
+            width: 500px;
+            max-width: 100%;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #d1d5db;
+            font-size: 24px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .search-icon svg {
+            fill: none;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 16px 120px 16px 60px;
+            font-size: 16px;
+            border: 2px solid #d1d5db;
+            border-radius: 50px;
+            background: rgba(30, 41, 59, 0.8);
+            color: #f1f5f9;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #fffa9c;
+            box-shadow: 0 0 20px rgba(255, 250, 156, 0.3);
+            background: rgba(30, 41, 59, 1);
+        }
+
+        .search-input::placeholder {
+            color: rgba(241, 245, 249, 0.5);
+        }
+
+        .search-button {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            padding: 12px 25px;
+            font-size: 14px;
+            background: #fffa9c;
+            color: #1e293b;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .search-button:hover {
+            transform: translateY(-50%) scale(1.05);
+            background: #fff76a;
+            box-shadow: 0 0 20px rgba(255, 250, 156, 0.4);
+        }
+
+        /* 搜索结果样式 */
+        .search-results {
+            background: rgba(30, 41, 59, 0.6);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 40px;
+            backdrop-filter: blur(10px);
+        }
+
+        .results-header {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .results-header h2 {
+            font-size: 24px;
+            color: #fffa9c;
+            margin-bottom: 10px;
+        }
+
+        .results-header p {
+            color: rgba(247, 250, 252, 0.7);
+        }
+
+        /* 榜单列表样式 */
+        .rankings-list {
+            margin-bottom: 30px;
+        }
+
+        .ranking-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .ranking-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(10px);
+            border-left-color: #fffa9c;
+        }
+
+        .ranking-item h3 {
+            color: #fffa9c;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .ranking-item p {
+            color: rgba(247, 250, 252, 0.7);
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+
+        .ranking-meta {
+            display: flex;
+            gap: 20px;
+            font-size: 13px;
+            color: rgba(255, 250, 156, 0.8);
+        }
+
+        .song-list {
+            margin-top: 15px;
+            padding-left: 0;
+        }
+
+        .song-list h4 {
+            color: #fffa9c;
+            font-size: 16px;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        .song-list ul {
+            list-style: none;
+            padding: 0;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 6px;
+            padding: 10px;
+        }
+
+        .song-list li {
+            margin: 8px 0;
+            padding: 10px 15px;
+            border-bottom: 1px solid rgba(255, 250, 156, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .song-list li:hover {
+            background: rgba(255, 250, 156, 0.05);
+        }
+
+        .song-name {
+            color: #f7fafc;
+            font-size: 15px;
+            flex: 1;
+        }
+
+        .song-rank {
+            color: #fffa9c;
+            font-size: 15px;
+            font-weight: 600;
+            margin-left: 20px;
+            padding: 4px 10px;
+            background: rgba(255, 250, 156, 0.1);
+            border-radius: 4px;
+        }
+
+        .interaction-section {
+            margin-top: 15px;
+            padding-left: 15px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .vote-btn,
+        .collect-btn {
+            background: transparent;
+            border: none;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 8px 15px;
+            border-radius: 20px;
+        }
+
+        .vote-btn:hover {
+            background: rgba(255, 182, 193, 0.2);
+        }
+
+        .collect-btn:hover {
+            background: rgba(192, 192, 192, 0.2);
+        }
+
+        .heart-icon {
+            color: #ffb6c1;
+            font-size: 18px;
+            margin-right: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .vote-btn:hover .heart-icon {
+            color: #ff69b4;
+            transform: scale(1.1);
+        }
+
+        .vote-btn.voted .heart-icon {
+            color: #ff69b4;
+        }
+
+        .star-icon {
+            color: #e68181;
+            font-size: 18px;
+            margin-right: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .collect-btn:hover .star-icon {
+            color: #ffffff;
+            transform: scale(1.1);
+        }
+
+        .collect-btn.collected .star-icon {
+            color: #ffffff;
+        }
+
+        .vote-count,
+        .collect-count {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .vote-count {
+            color: rgba(255, 182, 193, 0.9);
+        }
+
+        .collect-count {
+            color: rgba(192, 192, 192, 0.9);
+        }
+
+        /* 分页样式 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 40px;
+        }
+
+        .pagination button {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 250, 156, 0.3);
+            color: #f7fafc;
+            border-radius: 6px;
+            padding: 8px 16px;
+            margin: 0 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background-color: #fffa9c;
+            color: #1a202c;
+            transform: translateY(-2px);
+        }
+
+        .pagination button.active {
+            background-color: #fffa9c;
+            color: #1a202c;
+            font-weight: bold;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination button:disabled:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #f7fafc;
+            border: 1px solid rgba(255, 250, 156, 0.3);
+            transform: none;
+        }
+
+        /* 空结果样式 */
+        .empty-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(247, 250, 252, 0.7);
+        }
+
+        .empty-results h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: #fffa9c;
+        }
+
+        /* 返回按钮 */
+        .back-button {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 24px;
+            background: rgba(30, 41, 59, 0.8);
+            color: #f1f5f9;
+            border: 1px solid #d1d5db;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: rgba(30, 41, 59, 1);
+            border-color: #fffa9c;
+            color: #fffa9c;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 28px;
+            }
+
+            .search-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            .search-input {
+                padding: 16px 100px 16px 60px;
+            }
+
+            .search-button {
+                padding: 10px 20px;
+                font-size: 12px;
+            }
+
+            .rank-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .rank-stats {
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+
+        /* 侧边栏样式 */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 160px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 0 12px 12px 0;
+            padding: 20px;
+            transition: all 0.3s ease;
+            z-index: 100;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar-btn {
+            background-color: #fffa9c;
+            color: #1a202c;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 15px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .sidebar-btn:hover {
+            background-color: #fff780;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 250, 156, 0.4);
+        }
+
+        /* 右侧侧边栏样式 */
+        .sidebar-right {
+            position: fixed;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 160px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px 0 0 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            z-index: 100;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+
+</head>
+
+<body>
+<div class="sidebar">
+    <button class="sidebar-btn" onclick="goToPublish()">返回主页</button>
+    <button class="sidebar-btn" onclick="window.location.href='/music/login.html'">重新登录</button>
+    <button class="sidebar-btn" onclick="goToIndex()">返回首页</button>
+</div>
+<!-- 右侧侧边栏 -->
+<div class="sidebar-right">
+    <button class="sidebar-btn" onclick="window.location.href='/music/api/mine/lv'">我的收藏</button>
+</div>
+
+<div class="container">
+    <div class="header">
+        <h1>音乐搜索</h1>
+        <p>搜索您喜欢的音乐、歌手和榜单</p>
+    </div>
+
+    <!-- 搜索框 -->
+    <div class="search-container">
+        <form action="/music/api/rank/search" method="get">
+            <input type="hidden" name="token" id="token-input" th:value="${token}">
+            <input type="hidden" name="category" id="category-input" th:value="${category}">
+            <input type="hidden" name="pageNum" value="1">
+            <input type="hidden" name="pageSize" value="4">
+            <div class="search-box">
+          <span class="search-icon">
+            <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="14" cy="14" r="10" stroke="#d1d5db" stroke-width="2" />
+              <line x1="21" y1="21" x2="28" y2="28" stroke="#d1d5db" stroke-width="2" stroke-linecap="round" />
+            </svg>
+          </span>
+                <input type="text" class="search-input" name="keyword" th:value="${keyword}" placeholder="输入关键词搜索音乐、歌手或榜单...">
+                <button type="submit" class="search-button">搜索</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- 搜索结果 -->
+    <div class="search-results">
+        <div class="results-header">
+            <h2>搜索结果</h2>
+            <p th:if="${keyword}">为您找到与 "<span th:text="${keyword}"></span>" 相关的内容</p>
+            <p th:unless="${keyword}">请输入关键词进行搜索</p>
+        </div>
+
+        <!-- TOKEN和category校验 -->
+        <div th:if="${token == null or token == ''}" class="empty-results">
+            <h3>错误</h3>
+            <p>请先登录获取访问权限</p>
+            <a href="/login" class="back-button">去登录</a>
+        </div>
+
+        <div th:if="${category == null}" class="empty-results">
+            <h3>错误</h3>
+            <p>请选择正确的分类</p>
+            <a href="/publish-page" class="back-button">返回首页</a>
+        </div>
+
+        <!-- 搜索结果列表 -->
+        <div th:if="${token != null and token != '' and category != null}">
+            <!-- 有搜索结果时显示 -->
+            <div th:if="${searchRank != null and searchRank.list != null and not searchRank.list.isEmpty()}">
+                <div th:each="ranking, stat : ${ searchRank.list}" class="ranking-item">
+                    <h3 th:text="${ranking.rankName}">榜单标题</h3>
+                    <p class="ranking-meta">
+                        <span th:text="'更新时间：' + ${ranking.publishTime}">更新时间</span>
+                    </p>
+                    <!-- 歌曲列表 -->
+                    <div class="song-list">
+                        <h4>歌曲列表</h4>
+                        <ul>
+                            <li th:each="song : ${ranking.rankSongList}">
+                                <span class="song-name" th:text="${song.songName}">歌曲名称</span>
+                                <span class="song-rank" th:text="${song.ranking}">排名</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <!-- 投票和收藏按钮 -->
+                    <div class="interaction-section">
+                        <button class="vote-btn" th:onclick="|voteForRanking(${ranking.rankId})|">
+                            <span class="heart-icon">♥</span>
+                            <span class="vote-count" th:text="${ranking.voteCount}">0</span>
+                        </button>
+                        <button class="collect-btn" th:onclick="|collectRanking(${ranking.rankId})|">
+                            <span class="star-icon">★</span>
+                            <span class="collect-count" th:text="${ranking.loveCount}">0</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 无搜索结果时显示 -->
+            <div th:if="${(searchRank == null) or (searchRank.list == null) or searchRank.list.isEmpty()}"
+                 class="empty-results">
+                <h3>未找到相关内容</h3>
+                <p>请尝试使用其他关键词进行搜索</p>
+            </div>
+
+            <!-- 分页 - 无论是否有结果都显示，确保可以返回上一页 -->
+            <div class="pagination" th:if="${searchRank != null}">
+                <button th:disabled="${searchRank.pageNum == 1}"
+                        th:onclick="|goToPage(${ searchRank.pageNum - 1})|">上一页</button>
+
+                <button th:each="i : ${#numbers.sequence(1,  searchRank.pages)}"
+                        th:class="${ searchRank.pageNum == i ? 'active' : ''}" th:onclick="|goToPage(${i})|"
+                        th:text="${i}">1</button>
+
+                <button th:disabled="${ searchRank.pageNum == searchRank.pages}"
+                        th:onclick="|goToPage(${ searchRank.pageNum + 1})|">下一页</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 无结果 -->
+    <div
+            th:if="${token != null and token != '' and category != null and (searchRank == null or searchRank.list == null or searchRank.list.isEmpty())}"
+            class="empty-results">
+        <h3>未找到相关内容</h3>
+        <p>请尝试使用其他关键词进行搜索</p>
+    </div>
+</div>
+
+
+</div>
+
+<!-- 使用CDN引入Axios，避免404错误 -->
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+    // 1. 工具函数：获取URL参数
+    function getUrlParam(paramName) {
+        const reg = new RegExp("(^|&)" + paramName + "=([^&]*)(&|$)");
+        const paramMatch = window.location.search.substr(1).match(reg);
+        return paramMatch ? decodeURIComponent(paramMatch[2]) : null;
+    }
+
+    // 2. 全局变量（只声明一次）
+    let token = getUrlParam("token") || document.getElementById('token-input').value || localStorage.getItem('token');
+    let userId = getUrlParam("userId");
+    let category = parseInt(getUrlParam("category")) || parseInt(document.getElementById('category-input').value) || 1; // 兜底1
+    let pageNum = parseInt(getUrlParam("pageNum")) || 1;
+    let pageSize = parseInt(getUrlParam("pageSize")) || 4;
+    let keyword = getUrlParam("keyword") || "";
+
+    // 保存token到localStorage，以便后续使用
+    if (token) {
+        localStorage.setItem('token', token);
+    }
+
+    console.log("token:", token);
+    console.log("category:", category);
+    console.log("keyword:", keyword);
+
+    console.log("解析到的category：", getUrlParam("category"));
+    console.log("转成数字后：", category);
+
+    // 搜索框聚焦效果
+    document.querySelector('.search-input').addEventListener('focus', function () {
+        this.parentElement.style.transform = 'scale(1.02)';
+    });
+
+    document.querySelector('.search-input').addEventListener('blur', function () {
+        this.parentElement.style.transform = 'scale(1)';
+    });
+
+    // 平滑滚动
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            document.querySelector(this.getAttribute('href')).scrollIntoView({
+                behavior: 'smooth'
+            });
+        });
+    });
+    function goToPage(page) {
+        // 确保token不为空
+        if (!token) {
+            token = localStorage.getItem('token');
+        }
+        const jumpUrl = `/music/api/rank/search?token=${encodeURIComponent(token)}&keyword=${encodeURIComponent(keyword)}&category=${category}&pageNum=${page}&pageSize=${pageSize}`;
+        window.location.href = jumpUrl;
+    }
+
+    // 页面加载完成后，确保token被正确设置
+    window.onload = function () {
+        // 获取token的优先级：URL参数 > 隐藏字段 > localStorage
+        token = getUrlParam("token") || document.getElementById('token-input').value || localStorage.getItem('token');
+        category = parseInt(getUrlParam("category")) || parseInt(document.getElementById('category-input').value) || 1;
+        keyword = getUrlParam("keyword") || "";
+
+        // 保存token到localStorage
+        if (token) {
+            localStorage.setItem('token', token);
+            // 更新隐藏字段的值
+            const tokenInput = document.getElementById('token-input');
+            if (tokenInput) {
+                tokenInput.value = token;
+            }
+            const categoryInput = document.getElementById('category-input');
+            if (categoryInput) {
+                categoryInput.value = category;
+            }
+        }
+
+        console.log("页面加载完成，token:", token);
+        console.log("category:", category);
+        console.log("keyword:", keyword);
+        console.log("URL:", window.location.href);
+    }
+
+    // 返回首页按钮点击函数（原goToHome逻辑，仅改函数名为goToIndex）
+    function goToIndex() {
+        try {
+            // 1. 从localStorage读取参数（加默认值，避免undefined，改为userName）
+            let token = localStorage.getItem('token') || '';
+            let user_id = localStorage.getItem('user_id') || '';
+            let userName = localStorage.getItem('userName') || ''; // 改为userName
+
+            console.log('📌 跳转前读取的参数：', { token, user_id, userName }); // 改为userName
+
+            // 2. 如果localStorage为空，从URL恢复（兼容参数名，优先读userName）
+            if (!token) {
+                const urlParams = new URLSearchParams(window.location.search);
+                token = urlParams.get('token') || '';
+                user_id = urlParams.get('user_id') || urlParams.get('userId') || '';
+                userName = urlParams.get('userName') || urlParams.get('username') || ''; // 兼容原小写，改为userName
+
+                // 恢复后存回localStorage（统一存为userName）
+                if (token) localStorage.setItem('token', token);
+                if (user_id) localStorage.setItem('user_id', user_id);
+                if (userName) localStorage.setItem('userName', userName); // 改为userName
+
+                console.log('📌 从URL恢复参数：', { token, user_id, userName }); // 改为userName
+            }
+
+            // 3. 校验token（为空才跳登录，避免无意义跳转）
+            if (!token) {
+                alert('登录信息已失效，请重新登录');
+                window.location.href = '/music/login.html';
+                return;
+            }
+
+            // 4. 拼接URL（确保参数不为空，避免URL格式错误，参数名改为userName）
+            const params = new URLSearchParams();
+            if (token) params.append('token', token);
+            if (user_id) params.append('userId', user_id); // 统一用userId，和首页保持一致
+            if (userName) params.append('userName', userName); // 改为userName
+
+            const targetUrl = `/music/index.html?${params.toString()}`;
+            console.log('📌 最终跳转URL：', targetUrl);
+
+            // 5. 执行跳转（强制跳转，避免被其他逻辑拦截）
+            window.location.href = targetUrl;
+
+        } catch (err) {
+            // 捕获所有错误，打印出来，避免按钮无响应
+            console.error('❌ 跳转首页出错：', err);
+            alert('跳转失败，请刷新页面重试！');
+        }
+    }
+
+    // 修复后的返回主页函数（原goToPu逻辑，仅改函数名为goToPublish）
+    function goToPublish() {
+        try {
+            // 1. 双来源读取参数：优先URL，其次localStorage（确保不丢）
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token') || localStorage.getItem('token') || '';
+            const userId = urlParams.get('userId') || urlParams.get('user_id') || localStorage.getItem('user_id') || '';
+            const category = urlParams.get('category') || localStorage.getItem('category') || ''; // 读取category
+            const success = urlParams.get('success') || localStorage.getItem('success') || '';   // 读取success
+
+            console.log('📌 跳转前参数：', { token, userId, category, success });
+
+            // 2. 校验核心参数，缺失则提示
+            if (!token || !userId) {
+                alert('登录信息失效，请重新登录');
+                window.location.href = '/music/login.html';
+                return;
+            }
+
+            // 3. 拼接URL：和你正常主页路径一致，包含所有参数
+            const params = new URLSearchParams();
+            params.append('token', token);        // 必带
+            params.append('userId', userId);      // 必带
+            if (category) params.append('category', category); // 携带category
+            if (success) params.append('success', success);    // 携带success
+
+            // 替换成你实际的主页路径（和截图里的publish路径一致）
+            const targetUrl = `/music/api/rank/publish?${params.toString()}`;
+            console.log('📌 最终跳转URL：', targetUrl);
+
+            // 4. 强制跳转（确保执行）
+            window.location.href = targetUrl;
+
+        } catch (err) {
+            console.error('❌ 跳转出错：', err);
+            alert('跳转失败，请刷新重试！');
+        }
+    }
+</script>
+</body>
+
+</html>

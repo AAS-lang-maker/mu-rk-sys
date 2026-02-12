@@ -14,7 +14,7 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: #1E293B;
+            background: #0f172a;
             min-height: 100vh;
             position: relative;
             overflow-x: hidden;
@@ -288,7 +288,7 @@
 <body>
 <header class="header">
     <!-- 修正：添加span用于渲染用户名 -->
-    <div class="welcome-user">欢迎用户:<span id="userName" style="color: #fffa9c; margin-left: 8px;">未知用户</span></div>
+    <div class="welcome-user">欢迎用户<span id="userName" style="color: #fffa9c; margin-left: 8px;"></span></div>
     <div class="logo">MUSIC - RANK</div>
     <a href="/music/index.html" class="home-link">首页</a>
 </header>
@@ -325,7 +325,7 @@
     // ************************** 新增2：全局变量存储登录态参数（从URL解析，登录页跳转时拼接） **************************
     let token = getUrlParam("token");    // 登录令牌
     let userId = getUrlParam("userId");  // 用户ID
-    let userName = getUrlParam("userName") || "未知用户"; // 用户名，默认未知
+    let userName = getUrlParam("userName") || " "; // 用户名，默认未知
 
     // ************************** 新增3：页面加载时渲染用户名+校验登录态 **************************
     window.onload = function() {

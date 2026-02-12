@@ -173,5 +173,39 @@ public class WorkPublishController {
             return "redirect:/api/rank/publish?token=" + token + "&userId=" + userId + "&category=" + category+"&pageNum=" + pageNum + "&pageSize=" + pageSize;
         }
     }
+    @GetMapping("/sou")
+    public String sou(@RequestParam("token")String token,@RequestParam("category")Integer category,
+                      RedirectAttributes redirectAttributes) throws Exception {
+        if (token == null || token.isEmpty()) {
+            return  "redirect:/login.html";
+        }
+        Integer userId=JwtUtils.getUserIdFromToken(token);
+        if (userId==null) {
+            return  "redirect:/login.html";
+        }
+        if(category==null){
+            return "redirect:/index.html";
+        }
+        redirectAttributes.addFlashAttribute("token", token);
+        redirectAttributes.addFlashAttribute("category", category);
+        return  "redirect:/api/rank/search?token=" + token + "&category=" + category;
+    }
+    @GetMapping("/search")
+    public String search(@RequestParam("token")String token,@RequestParam("category")Integer category,
+                         @RequestParam(value = "pageNum",defaultValue = "1")Integer pageNum,
+                         @RequestParam(value = "pageSize",defaultValue = "3")Integer pageSize
+            ,Model model,@RequestParam(value = "keyword",defaultValue = " ")String keyword ) throws Exception {
+        //默认keyword为空，这样可以避免400
+        Integer offset=(pageNum-1)*pageSize;
+        keyword=(keyword!=null)?keyword.trim():null;//对关键词做处理
+        PageInfo<MyRankWithSong> searchRank = workPublishServiceImpl.selectSearch(category,pageNum,offset,pageSize,keyword);
+        model.addAttribute("searchRank", searchRank);
+        model.addAttribute("token", token);
+        model.addAttribute("category",category);
+        model.addAttribute("pageNum",pageNum);
+        model.addAttribute("pageSize",pageSize);
+        model.addAttribute("offset",offset);
+        return "search-page";
+    }
 }
 

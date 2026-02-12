@@ -119,6 +119,11 @@ public class userPublishServiceImpl implements UserPublishService {
     @Override
     public PageInfo<MyRankWithSong> selectSearch(Integer category, Integer pageNum,
                                                  Integer offset, Integer pageSize,String keyword) {
+        if(keyword!=null){
+            keyword=keyword.trim();
+        }else{
+            keyword=null;
+        }
         List<MyRankWithSong> list=userPublishMapper.selectSearch(category,pageNum,offset,pageSize,keyword);
         PageInfo<MyRankWithSong> searchRank=new PageInfo();
         Integer total=userPublishMapper.selectSearchTotal(category,keyword);

@@ -21,7 +21,7 @@
             background:
                     linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
                     linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-                    #1E293B;
+                    #0f172a;
             background-size: 50px 50px, 50px 50px, 100% 100%;
             background-attachment: fixed;
             position: relative;
@@ -30,7 +30,7 @@
 
         .sidebar {
             position: fixed;
-            left: -120px;
+            left: 0px;
             top: 50%;
             transform: translateY(-50%);
             width: 160px;
@@ -42,7 +42,9 @@
             z-index: 100;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
-
+        .sidebar.collapsed{
+            left: -120px;
+        }
         .sidebar:hover {
             left: 0;
         }
@@ -363,7 +365,7 @@
         /* 右侧侧边栏样式 */
         .sidebar-right {
             position: fixed;
-            right: -120px;
+            right: 0px;
             top: 50%;
             transform: translateY(-50%);
             width: 160px;
@@ -375,7 +377,9 @@
             z-index: 100;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
-
+        .sidebar.collapsed{
+            left: -120px;
+        }
         .sidebar-right:hover {
             right: 0;
         }
@@ -384,7 +388,7 @@
 
 <body>
 <div class="sidebar">
-    <button class="sidebar-btn" onclick="gotoPaging('/music/api/rank/publish')">返回主页</button>
+    <button class="sidebar-btn" onclick="goToPu()">返回主页</button>
     <button class="sidebar-btn" onclick="window.location.href='/music/login.html'">重新登录</button>
     <button class="sidebar-btn" onclick="goToHome()">返回首页</button>
 </div>
@@ -455,63 +459,124 @@
     </div>
 
     <script>
-        // 我的榜单页 - script标签最开头，第一行代码就写这个！
+        // 我的榜单页 - 初始化参数（修复script嵌套问题）
         (function () {
-            // 从URL解析参数
-            const urlParams = new URLSearchParams(window.location.search);
-            const urlToken = urlParams.get('token');
-            const urlUid = urlParams.get('user_id') || urlParams.get('userId');
-            const urlCate = urlParams.get('category');
-
-            // 强制把URL里的参数更新到localStorage
-            if (urlToken) localStorage.setItem('token', urlToken);
-            if (urlUid) localStorage.setItem('user_id', urlUid);
-            if (urlCate) localStorage.setItem('category', urlCate);
-
-            // 打印验证，确认参数已同步
-            console.log('✅ 榜单页初始化完成，参数已同步到localStorage：', {
-                token: localStorage.getItem('token'),
-                user_id: localStorage.getItem('user_id'),
-                category: localStorage.getItem('category')
-            });
-        })();
-        function goToHome() {
-            // 1. 先从 localStorage 读取
-            let token = localStorage.getItem('token');
-            let user_id = localStorage.getItem('user_id');
-            let category = localStorage.getItem('category');
-
-            console.log('从 localStorage 读取到的 token:', token);
-
-            // 2. 如果 localStorage 为空，强制从当前页面的 URL 恢复
-            if (!token) {
+            try {
                 const urlParams = new URLSearchParams(window.location.search);
-                token = urlParams.get('token');
-                user_id = urlParams.get('user_id') || urlParams.get('userId');
-                category = urlParams.get('category');
+                // 读取所有需要的参数：token、userId、userName、category、success
+                const urlToken = urlParams.get('token') || '';
+                const urlUid = urlParams.get('user_id') || urlParams.get('userId') || '';
+                const urlUserName = urlParams.get('userName') || urlParams.get('username') || '';
+                const urlCategory = urlParams.get('category') || ''; // 读取category
+                const urlSuccess = urlParams.get('success') || '';   // 读取success
 
-                console.log('从 URL 恢复的 token:', token);
+                // 同步到localStorage，确保参数不丢失
+                localStorage.setItem('token', urlToken);
+                localStorage.setItem('user_id', urlUid);
+                localStorage.setItem('userName', urlUserName);
+                localStorage.setItem('category', urlCategory); // 存储category
+                localStorage.setItem('success', urlSuccess);   // 存储success
 
-                // 3. 如果从 URL 恢复成功，立刻存回 localStorage
-                if (token) {
-                    localStorage.setItem('token', token);
-                    localStorage.setItem('user_id', user_id);
-                    localStorage.setItem('category', category);
-                    console.log('已将 token 存回 localStorage');
+                console.log('✅ 初始化完成，参数：', {
+                    token: urlToken,
+                    userId: urlUid,
+                    category: urlCategory,
+                    success: urlSuccess
+                });
+            } catch (err) {
+                console.error('❌ 初始化出错：', err);
+            }
+        })();
+
+        // 返回首页按钮点击函数
+        function goToHome() {
+            try {
+                // 1. 从localStorage读取参数（加默认值，避免undefined，改为userName）
+                let token = localStorage.getItem('token') || '';
+                let user_id = localStorage.getItem('user_id') || '';
+                let userName = localStorage.getItem('userName') || ''; // 改为userName
+
+                console.log('📌 跳转前读取的参数：', { token, user_id, userName }); // 改为userName
+
+                // 2. 如果localStorage为空，从URL恢复（兼容参数名，优先读userName）
+                if (!token) {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    token = urlParams.get('token') || '';
+                    user_id = urlParams.get('user_id') || urlParams.get('userId') || '';
+                    userName = urlParams.get('userName') || urlParams.get('username') || ''; // 兼容原小写，改为userName
+
+                    // 恢复后存回localStorage（统一存为userName）
+                    if (token) localStorage.setItem('token', token);
+                    if (user_id) localStorage.setItem('user_id', user_id);
+                    if (userName) localStorage.setItem('userName', userName); // 改为userName
+
+                    console.log('📌 从URL恢复参数：', { token, user_id, userName }); // 改为userName
                 }
-            }
 
-            // 4. 再次判断 token 是否存在
-            if (!token) {
-                alert('登录信息已失效，请重新登录');
-                window.location.href = '/music/login.html';
-                return;
-            }
+                // 3. 校验token（为空才跳登录，避免无意义跳转）
+                if (!token) {
+                    alert('登录信息已失效，请重新登录');
+                    window.location.href = '/music/login.html';
+                    return;
+                }
 
-            // 5. 带参跳转首页
-            const params = new URLSearchParams({ token, user_id, category });
-            window.location.href = `/music/index.html?${params.toString()}`;
+                // 4. 拼接URL（确保参数不为空，避免URL格式错误，参数名改为userName）
+                const params = new URLSearchParams();
+                if (token) params.append('token', token);
+                if (user_id) params.append('userId', user_id); // 统一用userId，和首页保持一致
+                if (userName) params.append('userName', userName); // 改为userName
+
+                const targetUrl = `/music/index.html?${params.toString()}`;
+                console.log('📌 最终跳转URL：', targetUrl);
+
+                // 5. 执行跳转（强制跳转，避免被其他逻辑拦截）
+                window.location.href = targetUrl;
+
+            } catch (err) {
+                // 捕获所有错误，打印出来，避免按钮无响应
+                console.error('❌ 跳转首页出错：', err);
+                alert('跳转失败，请刷新页面重试！');
+            }
         }
+        // 修复后的返回主页函数
+        function goToPu() {
+            try {
+                // 1. 双来源读取参数：优先URL，其次localStorage（确保不丢）
+                const urlParams = new URLSearchParams(window.location.search);
+                const token = urlParams.get('token') || localStorage.getItem('token') || '';
+                const userId = urlParams.get('userId') || urlParams.get('user_id') || localStorage.getItem('user_id') || '';
+                const category = urlParams.get('category') || localStorage.getItem('category') || ''; // 读取category
+                const success = urlParams.get('success') || localStorage.getItem('success') || '';   // 读取success
+
+                console.log('📌 跳转前参数：', { token, userId, category, success });
+
+                // 2. 校验核心参数，缺失则提示
+                if (!token || !userId) {
+                    alert('登录信息失效，请重新登录');
+                    window.location.href = '/music/login.html';
+                    return;
+                }
+
+                // 3. 拼接URL：和你正常主页路径一致，包含所有参数
+                const params = new URLSearchParams();
+                params.append('token', token);        // 必带
+                params.append('userId', userId);      // 必带
+                if (category) params.append('category', category); // 携带category
+                if (success) params.append('success', success);    // 携带success
+
+                // 替换成你实际的主页路径（和截图里的publish路径一致）
+                const targetUrl = `/music/api/rank/publish?${params.toString()}`;
+                console.log('📌 最终跳转URL：', targetUrl);
+
+                // 4. 强制跳转（确保执行）
+                window.location.href = targetUrl;
+
+            } catch (err) {
+                console.error('❌ 跳转出错：', err);
+                alert('跳转失败，请刷新重试！');
+            }
+        }
+
         // 页面加载时获取并保存token和userId
         let token = '';
         let userId = '';
@@ -532,6 +597,7 @@
             const searchParams = new URLSearchParams(window.location.search);
             return searchParams.get(paramName);
         }
+
         // 编辑榜单
         function editRanking(id) {
             const token = localStorage.getItem('token');
@@ -595,6 +661,7 @@
                 window.location.href = '/music/login.html';
             }
         }
+
         // 收藏方法
         function collectRanking(rankId) {
             if (!token || !userId || isNaN(userId)) {
@@ -640,6 +707,6 @@
         }
     </script>
 
-</body>
+ </body>
 
 </html>

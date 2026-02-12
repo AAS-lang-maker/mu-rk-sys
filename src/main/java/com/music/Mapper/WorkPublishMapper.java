@@ -31,4 +31,8 @@ public interface WorkPublishMapper {
     int insertVote(Integer rankId, String ip);
 
     int insertLove(Integer userId, String ip, Integer rankId);
+
+    List<MyRankWithSong> selectSearch(Integer category, Integer pageNum, Integer offset, Integer pageSize, String keyword);
+
+    Integer selectSearchTotal(Integer category, String keyword);
 }
