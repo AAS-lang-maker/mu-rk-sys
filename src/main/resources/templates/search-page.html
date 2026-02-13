@@ -221,18 +221,24 @@
         .song-list li:hover {
             background: rgba(255, 250, 156, 0.05);
         }
-
+        .song-info{
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
         .song-name {
             color: #f7fafc;
             font-size: 15px;
-            flex: 1;
+        }
+        .singer-name{
+            color: #d1d5db;
+            font-size: 15px;
         }
 
         .song-rank {
             color: #fffa9c;
             font-size: 15px;
             font-weight: 600;
-            margin-left: 20px;
             padding: 4px 10px;
             background: rgba(255, 250, 156, 0.1);
             border-radius: 4px;
@@ -479,7 +485,6 @@
     </style>
 
 </head>
-
 <body>
 <div class="sidebar">
     <button class="sidebar-btn" onclick="goToPublish()">返回主页</button>
@@ -488,7 +493,7 @@
 </div>
 <!-- 右侧侧边栏 -->
 <div class="sidebar-right">
-    <button class="sidebar-btn" onclick="window.location.href='/music/api/mine/lv'">我的收藏</button>
+    <button class="sidebar-btn" onclick="goToLv()">我的收藏</button>
 </div>
 
 <div class="container">
@@ -547,12 +552,14 @@
                     <p class="ranking-meta">
                         <span th:text="'更新时间：' + ${ranking.publishTime}">更新时间</span>
                     </p>
-                    <!-- 歌曲列表 -->
                     <div class="song-list">
                         <h4>歌曲列表</h4>
                         <ul>
                             <li th:each="song : ${ranking.rankSongList}">
-                                <span class="song-name" th:text="${song.songName}">歌曲名称</span>
+                                <div class="song-info">
+                                    <span class="song-name" th:text="${song.songName}">歌曲名称</span>
+                                    <span class="singer-name" th:text="${song.singerName}">歌手名称</span>
+                                </div>
                                 <span class="song-rank" th:text="${song.ranking}">排名</span>
                             </li>
                         </ul>
@@ -623,11 +630,17 @@
     let pageNum = parseInt(getUrlParam("pageNum")) || 1;
     let pageSize = parseInt(getUrlParam("pageSize")) || 4;
     let keyword = getUrlParam("keyword") || "";
+    let success = getUrlParam("success") || "";
 
     // 保存token到localStorage，以便后续使用
     if (token) {
         localStorage.setItem('token', token);
     }
+
+    // 修复：使用已定义的变量，而非未定义的urlUid/urlCategory/urlSuccess
+    localStorage.setItem('user_id', userId);
+    localStorage.setItem('category', category); // 存储category
+    localStorage.setItem('success', success);   // 存储success
 
     console.log("token:", token);
     console.log("category:", category);
@@ -654,6 +667,8 @@
             });
         });
     });
+
+    // 分页跳转函数
     function goToPage(page) {
         // 确保token不为空
         if (!token) {
@@ -682,13 +697,17 @@
             if (categoryInput) {
                 categoryInput.value = category;
             }
+            const successInput = document.getElementById('success-input');
+            if (successInput) {
+                successInput.value = success;
+            }
         }
 
         console.log("页面加载完成，token:", token);
         console.log("category:", category);
         console.log("keyword:", keyword);
         console.log("URL:", window.location.href);
-    }
+    }; // 修复：这里补上分号，并且闭合onload函数
 
     // 返回首页按钮点击函数（原goToHome逻辑，仅改函数名为goToIndex）
     function goToIndex() {
@@ -777,6 +796,23 @@
         } catch (err) {
             console.error('❌ 跳转出错：', err);
             alert('跳转失败，请刷新重试！');
+        }
+    }
+    function goToLv() {
+        const token = localStorage.getItem('token') || getUrlParam('token');
+        const userId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
+
+        if (token) {
+            let url = `/music/api/mine/lv?token=${encodeURIComponent(token)}`;
+            if (userId) {
+                url += `&userId=${encodeURIComponent(userId)}`;
+            }
+            // 添加默认的分页参数
+            url += '&pageNum=1&pageSize=10';
+            window.location.href = url;
+        } else {
+            alert('登录信息失效，请重新登录！');
+            window.location.href = '/music/login.html';
         }
     }
 </script>

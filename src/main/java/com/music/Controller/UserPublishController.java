@@ -2,8 +2,10 @@ package com.music.Controller;
 
 import com.github.pagehelper.PageInfo;
 import com.music.Service.UserPublishService;
+import com.music.dto.CommentVo;
 import com.music.dto.MyRankWithSong;
 import com.music.dto.RankAddRequest;
+import com.music.pojo.Comment;
 import com.music.pojo.Singer;
 import com.music.pojo.Song;
 import com.music.pojo.UserInfo;
@@ -150,34 +152,40 @@ public class UserPublishController {
     }
 
     @PostMapping("/vote")
-    public String vote(@RequestParam("token") String token, @RequestParam("rankId") Integer rankId,
-                       RedirectAttributes redirectAttributes,@RequestParam("category")Integer category
-                       ,@RequestParam("pageNum")Integer pageNum,
-                       @RequestParam("pageSize")Integer pageSize) throws Exception {
+    @ResponseBody
+    public Result<String> vote(@RequestParam("token") String token, @RequestParam("rankId") Integer rankId,
+                       HttpServletRequest request,@RequestParam("category")Integer category
+                       ,@RequestParam(value = "pageNum",required = false,defaultValue = "1")Integer pageNum,
+                       @RequestParam(value = "pageSize",required = false,defaultValue = "4")Integer pageSize) throws Exception {
         if (token == null || token.isEmpty()) {
-            redirectAttributes.addFlashAttribute("errormessage", "token不能为空，请重新登录");
-            return "redirect:/login.html";
+            return Result.error("errormessage");
         }
-        Integer userId=JwtUtils.getUserIdFromToken(token);
+        Integer userId = JwtUtils.getUserIdFromToken(token);
         try {
             userId = JwtUtils.getUserIdFromToken(token);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
         if (userId == null) {
-            redirectAttributes.addFlashAttribute("errormessage", "userId不能为空，请重新登录");
-            return "redirect:/login.html";
+            return Result.error("errormessage");
         }
-        boolean voteResult = userPublishService.insertVote(userId, rankId, null);
-        if (voteResult) {
-            redirectAttributes.addFlashAttribute("success", "投票成功");
-            return "redirect:/api/rank/publish?token=" + token + "&userId=" + userId + "&rankId=" + rankId + "&category=" + category + "&pageNum=" + pageNum + "&pageSize=" + pageSize;
-        } else {
-            redirectAttributes.addAttribute("errormessage", "投票失败，请稍后再试");
-            return "redirect:/api/rank/publish?token=" + token + "&userId=" + userId + "&rankId=" + rankId + "&category=" + category + "&pageNum=" + pageNum + "&pageSize=" + pageSize;
+        String ip = request.getRemoteAddr();
+        try {
+            boolean voteResult = userPublishService.insertVote(userId, rankId, null);
+            if (voteResult) {
+                System.out.println("插入的投票记录" + voteResult);
+                return Result.success();
+            } else {
+                System.out.println("投票失败");
+                return Result.error("errormessage");
+            }
+        } catch (Exception e) {
+            System.out.println("插入投票记录失败：" + e.getMessage());
+            throw new RuntimeException("您已投过票，不能重复投票");
         }
-
     }
+
+
 
     @PostMapping("/love")
     public String love(@RequestParam("token") String token,  @RequestParam("rankId") Integer rankId, @RequestParam("category") Integer category,
@@ -216,7 +224,7 @@ public class UserPublishController {
         }
         redirectAttributes.addFlashAttribute("token", token);
         redirectAttributes.addFlashAttribute("category", category);
-        return  "redirect:/api/rank/search?token=" + token + "&category=" + category;
+        return  "redirect:/api/rank/search?token=" + token + "&category=" + category+"&userId="+userId;
         }
         @GetMapping("/search")
     public String search(@RequestParam("token")String token,@RequestParam("category")Integer category,
@@ -225,16 +233,113 @@ public class UserPublishController {
                                            ,Model model,@RequestParam(value = "keyword",defaultValue = " ")String keyword ) throws Exception {
         //默认keyword为空，这样可以避免400
         Integer offset=(pageNum-1)*pageSize;
+        Integer userId = JwtUtils.getUserIdFromToken(token);
         keyword=(keyword!=null)?keyword.trim():null;//对关键词做处理
          PageInfo<MyRankWithSong> searchRank = userPublishService.selectSearch(category,pageNum,offset,pageSize,keyword);
          model.addAttribute("searchRank", searchRank);
          model.addAttribute("token", token);
+         model.addAttribute("userId",userId);
          model.addAttribute("category",category);
          model.addAttribute("pageNum",pageNum);
          model.addAttribute("pageSize",pageSize);
          model.addAttribute("offset",offset);
          return "search-page";
         }
+      @PostMapping("/pubcomment")
+    public Result<String> pubcomment(@RequestParam("token")String token,@RequestParam("rankId")Integer rankId,@RequestParam("userId")Integer userId,
+                                     @RequestParam("content")String content,@RequestParam(value = "parentId",required = false)Integer parentId){
+
+      if(token == null || token.isEmpty()) {
+      return Result.error("token不能为空，请重新登录");}
+      if(rankId==null){
+          return Result.error("rankId不能为空捏");
+      }
+      try{
+          if(userId==null){
+              return Result.error("当前用户不存在");
+          }
+          Comment comment=userPublishService.insertComment(rankId,userId,content,parentId);
+          return Result.success("评论发表成功"+comment);
+      }catch (Exception e){
+          return   Result.error("评论发表失败"+e.getMessage());
+      }
+      }
+      @DeleteMapping("/list")
+    public Result<String> list(@RequestParam("token")String token,@RequestParam("comId")Integer comId
+                               ,@RequestParam("rankId")Integer rankId){
+        if(token == null || token.isEmpty()) {
+            return Result.error("token不能为空捏");
+        }
+        try{
+            if(comId==null||rankId==null){
+                return Result.error("comId或rankId不能为空");
+            }
+            List<CommentVo> comment1=userPublishService.selectComment(rankId,comId);
+            return Result.success("评论展示成功"+comment1);
+        }catch (Exception e){
+            return Result.error("评论展示失败");
+        }
+      }
+      @DeleteMapping("deleteComment")
+    public Result<String> deleteComment(@RequestParam("token")String token,@RequestParam("comId")Integer comId){
+        if(token == null || token.isEmpty()) {
+            return Result.error("token不能为空捏");
+        }
+        try{
+            Integer userId = JwtUtils.getUserIdFromToken(token);
+            if(comId==null){
+                return Result.error("comId不能为空");
+            }
+            boolean result=userPublishService.deleteComment(comId,userId);
+            if(result==true){
+                return Result.success();
+            }else{
+                return Result.error("评论删除失败");
+            }
+        }catch (Exception e){
+            return Result.error("评论删除失败");
+        }
+      }
+      @PostMapping("/like")
+    public Result<String> like(@RequestParam("token")String token,@RequestParam("comId")Integer comId){
+        if(token == null || token.isEmpty()) {
+            return Result.error("token不能为空哦");
+        }
+        try{
+            Integer userId = JwtUtils.getUserIdFromToken(token);
+            if(comId==null){
+                return Result.error("likeId不能为空");
+            }
+            boolean result=userPublishService.insertLike(userId,comId);
+            if(result==true){
+                return Result.success();
+            }else {
+                return Result.error("点赞评论失败");
+            }
+        }catch (Exception e){
+            return Result.error("点赞该评论失败"+e.getMessage());
+        }
+      }
+      @PostMapping("deleteLike")
+    public Result<String> deleteLike(@RequestParam("token")String token,@RequestParam("comId")Integer comId){
+        if(token == null || token.isEmpty()) {
+            return Result.error("token不能为空哦");
+        }
+        try{
+            Integer userId = JwtUtils.getUserIdFromToken(token);
+            if(comId==null){
+                return Result.error("likeId不能为空");
+            }
+            boolean result=userPublishService.deleteLike(comId,userId);
+            if(result==true){
+                return Result.success("取消点赞成功");
+            }else{
+                return Result.error("取消点赞失败");
+            }
+        }catch (Exception e){
+            return Result.error("取消点赞失败"+e.getMessage());
+        }
+      }
     }
 
 

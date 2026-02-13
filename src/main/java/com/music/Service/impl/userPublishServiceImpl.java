@@ -3,6 +3,7 @@ package com.music.Service.impl;
 import com.github.pagehelper.PageInfo;
 import com.music.Mapper.UserPublishMapper;
 import com.music.Service.UserPublishService;
+import com.music.dto.CommentVo;
 import com.music.dto.MyRankWithSong;
 import com.music.dto.RankAddRequest;
 import com.music.pojo.*;
@@ -87,13 +88,14 @@ public class userPublishServiceImpl implements UserPublishService {
 
     @Override
     public boolean insertVote(Integer userId, Integer rankId, String ip) {
-        if (ip == null) {
-            ip = "127.0.0.1"; // 使用默认 IP
-        }
-        int record=userPublishMapper.checkip(ip,rankId);//防刷票，匿名投票，利用ip检查
-        if(record>0)
-        { return false;}
-        int rows=userPublishMapper.insertVote(rankId,ip);
+        //if(ip==null){
+          //  ip="127.0.0.1";
+        //}
+       // int record=userPublishMapper.checkip(ip,rankId);//防刷票，匿名投票，利用ip检查
+        //if(record>0)
+        //{ return false;}
+        int rows=userPublishMapper.insertVote(rankId);
+        userPublishMapper.updateVoteCount(rankId,rows);
         if(rows>0){
             return true;
         }else{
@@ -110,6 +112,7 @@ public class userPublishServiceImpl implements UserPublishService {
         if(record1>0)
         { return false;}
         int row1=userPublishMapper.insertLove(userId,ip,rankId);
+        userPublishMapper.updateLoveCount(userId,row1,rankId);
         if(row1>0){
             return true;
         }
@@ -136,4 +139,55 @@ public class userPublishServiceImpl implements UserPublishService {
         return searchRank;
     }
 
+    @Override
+    public Comment insertComment(Integer rankId, Integer userId, String content, Integer parentId) {
+        Comment comment=new Comment();
+        comment.setRankId(rankId);
+        comment.setUserId(userId);
+        comment.setCommentContent(content);
+        comment.setParentId(parentId);
+        userPublishMapper.insertComment(rankId,userId,content,parentId);
+        return  comment;
+    }
+
+    @Override
+    public List<CommentVo> selectComment(Integer rankId, Integer comId) {
+       return userPublishMapper.selectComment(rankId,comId);
+    }
+
+    @Override
+    @Transactional
+    public boolean deleteComment(Integer comId,Integer userId) {
+        Comment comment=userPublishMapper.selectCommentById(comId);
+        if(comment==null){
+            return false;
+        }
+        if(comment.getUserId()!=userId){
+            throw new RuntimeException("只能删除自己的评论");
+        }
+        int result= userPublishMapper.updateLike(comId,1);
+        return result>0;
+    }
+
+    @Override
+    @Transactional
+    public boolean insertLike(Integer userId,Integer comId) {
+       Comment comment=userPublishMapper.selectCommentById(comId);
+       if(comment==null||comment.getIdDelete()==1){
+           return false;
+       }
+       int result=userPublishMapper.insertLike(userId,comId);
+       return result>0;
+    }
+
+    @Override
+    @Transactional
+    public boolean deleteLike(Integer comId, Integer userId) {
+      Comment comment=userPublishMapper.selectCommentById(comId);
+      if(comment==null||comment.getIdDelete()==0){
+          return false;
+      }
+      int result=userPublishMapper.deleteLike(comId,userId);
+      return result>0;
+    }
 }

@@ -22,12 +22,18 @@
     </insert>
 
     <insert id="insertVote">
-        insert into vote_record  (ip,vote_status,vote,rank_id,vote_time)
-            values (#{ip},1,1,#{rankId},now())
+        insert into vote_record  (vote_status,vote,rank_id,vote_time)
+            values (1,1,#{rankId},now())
     </insert>
     <insert id="insertLove">
         insert into love_record(user_id,ip,love_status,love,rank_id,love_time)
         values (#{userId},#{ip},1,1,#{rankId},now())
+    </insert>
+    <insert id="insertComment">
+        insert into comment(rank_id, user_id, parent_id, comment_content) VALUES (#{rankId},#{userId},#{parentId},#{content})
+    </insert>
+    <insert id="insertLike">
+        insert into like_comment(user_id,com_id) values (#{userId},#{comId})
     </insert>
     <select id="selectSinger" resultType="com.music.pojo.Singer">
         select singer_id,singer_name from singer where category_id=#{categoryId} and singer_status=1
@@ -43,7 +49,7 @@
     </select>
     <select id="selectPublishRank" resultMap="MyRankWithSongResultMap">
         select a.rank_id,a.rank_name,a.total_vote as vote_count,a.total_love as love_count,a.publish_time,
-               b.rs_id,b.song_id,b.ranking,b.rank_update_time,c.song_name
+               b.rs_id,b.song_id,b.ranking,b.rank_update_time,c.song_name,d.singer_name
         from (select p.rank_id,p.rank_name,ifnull(sum(v.vote),0) as total_vote,p.publish_time,
                      ifnull(sum(l.love),0) as total_love from personal_rank as p
                                                                   left join vote_record as v on v.rank_id=p.rank_id
@@ -54,6 +60,7 @@
               limit #{pageSize} offset #{offset}) a
                  left join rank_song as b on a.rank_id = b.rank_id
                  left join song as c on c.song_id=b.song_id
+                 left join singer as d on c.singer_id = d.singer_id
         order by b.rank_update_time asc, b.ranking asc
     </select>
     <resultMap id="MyRankWithSongResultMap" type="com.music.dto.MyRankWithSong">
@@ -67,6 +74,7 @@
             <id property="rsId" column="rs_id"/>
             <result property="songId" column="song_id"/>
             <result property="songName" column="song_name"/>
+            <result property="singerName" column="singer_name"/>
             <result property="ranking" column="ranking"/>
             <result property="rankUpdateTime" column="rank_update_time"/>
         </collection>
@@ -107,6 +115,7 @@
             <id property="rsId" column="rs_id"/>
             <result property="songId" column="song_id"/>
             <result property="songName" column="song_name"/>
+            <result property="singerName" column="singer_name"/>
             <result property="ranking" column="ranking"/>
             <result property="singerName" column="singer_name"/>
             <result property="rankUpdateTime" column="rank_update_time"/>
@@ -126,4 +135,13 @@
         order by p.publish_time asc,r.ranking desc
     </select>
     <!-- 使用count，只是进行一个计数，不用有group by，left join会产生重复的rank_id，所以要去重distinct-->
+    <select id="selectComment" resultType="com.music.dto.CommentVo">
+        select com_id,comment_content,comment_time from comment
+        left join music_db.personal_rank pr on comment.rank_id = pr.rank_id
+        order by comment_time desc
+    </select>
+    <select id="selectCommentById" resultType="com.music.pojo.Comment">
+
+    </select>
+
 </mapper>

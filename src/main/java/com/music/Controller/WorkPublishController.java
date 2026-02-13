@@ -188,7 +188,7 @@ public class WorkPublishController {
         }
         redirectAttributes.addFlashAttribute("token", token);
         redirectAttributes.addFlashAttribute("category", category);
-        return  "redirect:/api/rank/search?token=" + token + "&category=" + category;
+        return  "redirect:/api/rank/search?token=" + token + "&category=" + category+"&userId="+userId;
     }
     @GetMapping("/search")
     public String search(@RequestParam("token")String token,@RequestParam("category")Integer category,
@@ -197,10 +197,12 @@ public class WorkPublishController {
             ,Model model,@RequestParam(value = "keyword",defaultValue = " ")String keyword ) throws Exception {
         //默认keyword为空，这样可以避免400
         Integer offset=(pageNum-1)*pageSize;
+        Integer userId = JwtUtils.getUserIdFromToken(token);
         keyword=(keyword!=null)?keyword.trim():null;//对关键词做处理
         PageInfo<MyRankWithSong> searchRank = workPublishServiceImpl.selectSearch(category,pageNum,offset,pageSize,keyword);
         model.addAttribute("searchRank", searchRank);
         model.addAttribute("token", token);
+        model.addAttribute("userId",userId);
         model.addAttribute("category",category);
         model.addAttribute("pageNum",pageNum);
         model.addAttribute("pageSize",pageSize);

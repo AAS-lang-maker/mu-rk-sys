@@ -114,16 +114,26 @@
         .song-list li:last-child {
             border-bottom: none;
         }
-
+         .song-info{
+           display: flex;
+           align-items: center;
+           gap: 15px;
+         }
         .song-name {
             color: rgba(255, 255, 255, 0.9);
             font-size: 16px;
         }
-
+        .singer-name{
+            color:#d1d5db;
+            font-size: 15px;
+        }
         .song-rank {
             color: #fffa9c;
-            font-weight: bold;
-            font-size: 16px;
+            font-size: 15px;
+            font-weight: 600;
+            padding: 4px 10px;
+            background: rgba(255, 250, 156, 0.1);
+            border-radius: 4px;
         }
 
         .pagination {
@@ -287,11 +297,10 @@
 <body>
 <!-- 侧边栏按钮 -->
 <div class="sidebar">
-    <a href="/music/api/mine/myrank" class="sidebar-btn">返回主页</a>
-    <a href="/music/api/mine/myrank" class="sidebar-btn">返回首页</a>
-    <a href="/music/login.html" class="sidebar-btn">返回登录</a>
+    <button class="sidebar-btn" onclick="goToPub()">返回主页</button>
+    <button class="sidebar-btn" onclick="window.location.href='/music/login.html'">重新登录</button>
+    <button class="sidebar-btn" onclick="goToInd()">返回首页</button>
 </div>
-
 <div class="container">
     <div class="header">
         <h1>我的收藏</h1>
@@ -312,7 +321,10 @@
                     <h4>歌曲列表</h4>
                     <ul>
                         <li th:each="song : ${ranking.rankSongList}">
-                            <span class="song-name" th:text="${song.songName}">歌曲名称</span>
+                            <div class="song-info">
+                                <span class="song-name" th:text="${song.songName}">歌曲名称</span>
+                                <span class="singer-name" th:text="${song.singerName}">歌手名称</span>
+                            </div>
                             <span class="song-rank" th:text="${song.ranking}">排名</span>
                         </li>
                     </ul>
@@ -380,6 +392,94 @@
             }
         });
     });
+    function goToInd() {
+        try {
+            // 1. 从localStorage读取参数（加默认值，避免undefined，改为userName）
+            let token = localStorage.getItem('token') || '';
+            let user_id = localStorage.getItem('user_id') || '';
+            let userName = localStorage.getItem('userName') || ''; // 改为userName
+
+            console.log('📌 跳转前读取的参数：', { token, user_id, userName }); // 改为userName
+
+            // 2. 如果localStorage为空，从URL恢复（兼容参数名，优先读userName）
+            if (!token) {
+                const urlParams = new URLSearchParams(window.location.search);
+                token = urlParams.get('token') || '';
+                user_id = urlParams.get('user_id') || urlParams.get('userId') || '';
+                userName = urlParams.get('userName') || urlParams.get('username') || ''; // 兼容原小写，改为userName
+
+                // 恢复后存回localStorage（统一存为userName）
+                if (token) localStorage.setItem('token', token);
+                if (user_id) localStorage.setItem('user_id', user_id);
+                if (userName) localStorage.setItem('userName', userName); // 改为userName
+
+                console.log('📌 从URL恢复参数：', { token, user_id, userName }); // 改为userName
+            }
+
+            // 3. 校验token（为空才跳登录，避免无意义跳转）
+            if (!token) {
+                alert('登录信息已失效，请重新登录');
+                window.location.href = '/music/login.html';
+                return;
+            }
+
+            // 4. 拼接URL（确保参数不为空，避免URL格式错误，参数名改为userName）
+            const params = new URLSearchParams();
+            if (token) params.append('token', token);
+            if (user_id) params.append('userId', user_id); // 统一用userId，和首页保持一致
+            if (userName) params.append('userName', userName); // 改为userName
+
+            const targetUrl = `/music/index.html?${params.toString()}`;
+            console.log('📌 最终跳转URL：', targetUrl);
+
+            // 5. 执行跳转（强制跳转，避免被其他逻辑拦截）
+            window.location.href = targetUrl;
+
+        } catch (err) {
+            // 捕获所有错误，打印出来，避免按钮无响应
+            console.error('❌ 跳转首页出错：', err);
+            alert('跳转失败，请刷新页面重试！');
+        }
+    }
+
+    // 修复后的返回主页函数（原goToPu逻辑，仅改函数名为goToPublish）
+    function goToPub() {
+        try {
+            // 1. 双来源读取参数：优先URL，其次localStorage（确保不丢）
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token') || localStorage.getItem('token') || '';
+            const userId = urlParams.get('userId') || urlParams.get('user_id') || localStorage.getItem('user_id') || '';
+            const category = urlParams.get('category') || localStorage.getItem('category') || ''; // 读取category
+            const success = urlParams.get('success') || localStorage.getItem('success') || '';   // 读取success
+
+            console.log('📌 跳转前参数：', { token, userId, category, success });
+
+            // 2. 校验核心参数，缺失则提示
+            if (!token || !userId) {
+                alert('登录信息失效，请重新登录');
+                window.location.href = '/music/login.html';
+                return;
+            }
+
+            // 3. 拼接URL：和你正常主页路径一致，包含所有参数
+            const params = new URLSearchParams();
+            params.append('token', token);        // 必带
+            params.append('userId', userId);      // 必带
+            if (category) params.append('category', category); // 携带category
+            if (success) params.append('success', success);    // 携带success
+
+            // 替换成你实际的主页路径（和截图里的publish路径一致）
+            const targetUrl = `/music/api/rank/publish?${params.toString()}`;
+            console.log('📌 最终跳转URL：', targetUrl);
+
+            // 4. 强制跳转（确保执行）
+            window.location.href = targetUrl;
+
+        } catch (err) {
+            console.error('❌ 跳转出错：', err);
+            alert('跳转失败，请刷新重试！');
+        }
+    }
 </script>
 </body>
 

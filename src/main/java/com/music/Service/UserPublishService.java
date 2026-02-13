@@ -1,8 +1,10 @@
 package com.music.Service;
 
 import com.github.pagehelper.PageInfo;
+import com.music.dto.CommentVo;
 import com.music.dto.MyRankWithSong;
 import com.music.dto.RankAddRequest;
+import com.music.pojo.Comment;
 import com.music.pojo.Singer;
 import com.music.pojo.Song;
 import com.music.utils.Result;
@@ -24,4 +26,14 @@ public interface UserPublishService {
     boolean insertLove(Integer userId, String ip, Integer rankId);
 
     PageInfo<MyRankWithSong> selectSearch(Integer category, Integer pageNum, Integer offset, Integer pageSize,String keyword);
+
+    Comment insertComment(Integer rankId, Integer userId, String content, Integer parentId);
+
+    List<CommentVo> selectComment(Integer rankId, Integer comId);
+
+    boolean deleteComment(Integer comId,Integer userId);
+
+    boolean insertLike(Integer userId,Integer comId);
+
+    boolean deleteLike(Integer comId,Integer userId);
 }

@@ -281,18 +281,24 @@
         .song-list li:hover {
             background: rgba(255, 250, 156, 0.05);
         }
-
+         .song-info{
+             display: flex;
+             align-items: center;
+             gap: 15px;
+         }
         .song-name {
             color: #f7fafc;
             font-size: 15px;
-            flex: 1;
+        }
+        .singer-name{
+            color: #d1d5db;
+            font-size: 15px;
         }
 
         .song-rank {
             color: #fffa9c;
             font-size: 15px;
             font-weight: 600;
-            margin-left: 20px;
             padding: 4px 10px;
             background: rgba(255, 250, 156, 0.1);
             border-radius: 4px;
@@ -423,7 +429,10 @@
                     <h4>歌曲列表</h4>
                     <ul>
                         <li th:each="song : ${ranking.rankSongList}">
-                            <span class="song-name" th:text="${song.songName}">歌曲名称</span>
+                            <div class="song-info">
+                                <span class="song-name" th:text="${song.songName}">歌曲名称</span>
+                                <span class="singer-name" th:text="${song.singerName}">歌手名称</span>
+                            </div>
                             <span class="song-rank" th:text="${song.ranking}">排名</span>
                         </li>
                     </ul>

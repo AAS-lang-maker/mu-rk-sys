@@ -8,7 +8,7 @@
 
     <select id="selectMyRank" resultMap="MyRankWithSongsResultMap">
         select a.rank_id,a.rank_name,a.total_vote as vote_count,a.total_love as love_count,a.publish_time,
-               b.rs_id,b.song_id,b.ranking,b.rank_update_time,c.song_name
+               b.rs_id,b.song_id,b.ranking,b.rank_update_time,c.song_name,d.singer_name
         from (select p.rank_id,p.rank_name,ifnull(sum(v.vote),0) as total_vote,p.publish_time,
               ifnull(sum(l.love),0) as total_love from personal_rank as p
         left join vote_record as v on v.rank_id=p.rank_id
@@ -19,6 +19,7 @@
         limit #{pageSize} offset #{offset}) a
         left join rank_song as b on a.rank_id = b.rank_id
         left join song as c on c.song_id=b.song_id
+        left join singer as d on c.singer_id = d.singer_id
         order by b.rank_update_time asc, b.ranking asc
     </select>
 
@@ -34,6 +35,7 @@
             <id property="rsId" column="rs_id"/>
             <result property="songId" column="song_id"/>
             <result property="songName" column="song_name"/>
+            <result property="singerName" column="singer_name"/>
             <result property="ranking" column="ranking"/>
             <result property="rankUpdateTime" column="rank_update_time"/>
         </collection>
@@ -68,12 +70,13 @@
     <!-- 下方l.rank_id或者pe.rank_id必须有一个取别名，也可以两个都取别名，子查询时相当于生成一个临时表，而sql只会识别出
     临时表中的字段属性，不会辨别此字段来自哪个表，如果不取别名，子表查询出两个相同的rank_id,影响后续外联-->
     <select id="selectLoveSong" resultMap="MyRankWithSongsResultMap">
-   select r.rs_id,r.ranking,r.rank_update_time,p.rank_id,p.rank_name,p.publish_time,s.song_name from
+   select r.rs_id,r.ranking,r.rank_update_time,p.rank_id,p.rank_name,p.publish_time,s.song_name,si.singer_name from
    (select l.rank_id as love_rank_id ,l.user_id ,l.love_id,pe.rank_id,pe.rank_name,pe.publish_time from love_record as l
     left join personal_rank as pe on l.rank_id = pe.rank_id
     where l.user_id=#{userId} order by pe.publish_time limit #{pageSize} offset #{offset}) as p
    left join rank_song as r on r.rank_id=p.rank_id
    left join song as s on r.song_id = s.song_id
+   left join singer as si on s.singer_id = si.singer_id
    order by r.rank_update_time asc,r.ranking asc
     </select>
     <resultMap id="MyRankWithSongssResultMap" type="com.music.dto.MyRankWithSong">
@@ -84,6 +87,7 @@
             <id property="rsId" column="rs_id"/>
             <result property="songId" column="song_id"/>
             <result property="songName" column="song_name"/>
+            <result property="singerName" column="singer_name"/>
             <result property="ranking" column="ranking"/>
             <result property="rankUpdateTime" column="rank_update_time"/>
         </collection>
