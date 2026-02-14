@@ -8,6 +8,7 @@ import com.music.pojo.Singer;
 import com.music.pojo.Song;
 import com.music.utils.JwtUtils;
 import com.music.utils.Result;
+import org.apache.ibatis.annotations.Delete;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -172,6 +173,31 @@ public class MyRankController {
         model.addAttribute("token",token);
         model.addAttribute("userId", userId);
         return "mylove-page";
+    }
+    @DeleteMapping("deleterank")
+    @ResponseBody
+    public Result<String> deleterank(@RequestParam("token")String token,@RequestParam("rankId")Integer rankId){
+        if(rankId==null){
+            return Result.error("token不能为空哦");
+        }
+        Integer userId=validateToken(token,null);
+        if(userId==null){
+            return Result.error("userId不能为空哦");
+        }
+        try {
+            if(rankId==null){
+                return Result.error("请选择榜单");
+            }
+            boolean result=myRankService.deleteRank(rankId);
+            if(result){
+                return  Result.success();
+            }else{
+                return Result.error("删除榜单失败");
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            return Result.error(e.getMessage()+"删除榜单失败");
+        }
     }
 }
 

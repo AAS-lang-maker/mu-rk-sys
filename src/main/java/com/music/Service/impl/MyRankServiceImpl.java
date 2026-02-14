@@ -100,5 +100,11 @@ private MyRankMapper myRankMapper;
         return pageInfo;
     }
 
+    @Override
+    @Transactional
+    public boolean deleteRank(Integer rankId) {
+        return myRankMapper.deleteRank(rankId);
+    }
+
 
 }

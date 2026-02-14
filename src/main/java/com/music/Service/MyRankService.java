@@ -21,4 +21,6 @@ public interface MyRankService {
     void insertNewRank(EditRank dto);
 
     PageInfo<MyRankWithSong> selectMyLoverank(Integer pageNum, Integer pageSize, Integer offset, Integer userId);
+
+    boolean deleteRank(Integer rankId);
 }

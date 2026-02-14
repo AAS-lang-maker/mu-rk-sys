@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <script th:src="@{/js/axios.min.js}"></script>
     <title>榜单页</title>
     <style>
         /* 保留你原来的所有样式，不修改 */
@@ -22,7 +22,7 @@
             background:
                     linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
                     linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-                    #0f172a;
+                    #1E293B;
             background-size: 50px 50px, 50px 50px, 100% 100%;
             background-attachment: fixed;
             position: relative;
@@ -255,25 +255,18 @@
         .song-list li:hover {
             background: rgba(255, 250, 156, 0.05);
         }
-        .song-info{
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
 
         .song-name {
             color: #f7fafc;
             font-size: 15px;
-        }
-        .singer-name {
-            color: #d1d5db;
-            font-size: 15px;
+            flex: 1;
         }
 
         .song-rank {
             color: #fffa9c;
             font-size: 15px;
             font-weight: 600;
+            margin-left: 20px;
             padding: 4px 10px;
             background: rgba(255, 250, 156, 0.1);
             border-radius: 4px;
@@ -584,8 +577,186 @@
             opacity: 0.5;
             cursor: not-allowed;
         }
+
+        /* 评论区样式 */
+        .comment-section {
+            margin-top: 20px;
+            border-top: 1px solid rgba(255, 250, 156, 0.1);
+            padding-top: 15px;
+        }
+
+        .comment-toggle {
+            background: rgba(255, 250, 156, 0.1);
+            border: 1px solid rgba(255, 250, 156, 0.3);
+            color: #fffa9c;
+            border-radius: 20px;
+            padding: 6px 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .comment-toggle:hover {
+            background: rgba(255, 250, 156, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .comment-container {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .comment-container.show {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .comment-input-area {
+            margin-bottom: 20px;
+        }
+
+        .comment-input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 250, 156, 0.3);
+            border-radius: 8px;
+            color: #f7fafc;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 80px;
+            transition: all 0.3s ease;
+        }
+
+        .comment-input:focus {
+            outline: none;
+            border-color: #fffa9c;
+            box-shadow: 0 0 10px rgba(255, 250, 156, 0.3);
+        }
+
+        .comment-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 10px;
+        }
+
+        .comment-submit {
+            background: #fffa9c;
+            color: #1a202c;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .comment-submit:hover {
+            background: #fff780;
+            transform: translateY(-2px);
+        }
+
+        .comment-list {
+            margin-top: 20px;
+        }
+
+        .comment-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .comment-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .comment-username {
+            color: #fffa9c;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .comment-time {
+            color: rgba(247, 250, 252, 0.5);
+            font-size: 12px;
+        }
+
+        .comment-content {
+            color: #f7fafc;
+            font-size: 14px;
+            line-height: 1.4;
+            margin-bottom: 10px;
+        }
+
+        .comment-actions-bar {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .comment-like-btn {
+            background: transparent;
+            border: none;
+            color: rgba(247, 250, 252, 0.7);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 13px;
+        }
+
+        .comment-like-btn:hover {
+            color: #ff69b4;
+        }
+
+        .comment-like-btn.liked {
+            color: #ff69b4;
+        }
+
+        .comment-like-btn:hover .comment-heart-icon {
+            transform: scale(1.1);
+        }
+
+        .comment-heart-icon {
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .comment-like-count {
+            font-size: 13px;
+        }
+
+        .comment-reply {
+            margin-left: 30px;
+            background: rgba(255, 255, 255, 0.02);
+            border-left: 2px solid rgba(255, 250, 156, 0.3);
+        }
     </style>
 </head>
+
 <body>
 <div class="container">
     <!-- 右上角搜索按钮 -->
@@ -598,8 +769,8 @@
         </button>
     </div>
     <!-- 新增提示框（后端重定向的提示会显示在这里） -->
-    <div id="errorAlert" th:text="${errormessage}" style="position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:10px 20px;background:#ff4444;color:#fff;border-radius:4px;z-index:9999;display:none;"></div>
-    <div id="successAlert" th:text="${success}" style="position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:10px 20px;background:#00C851;color:#fff;border-radius:4px;z-index:9999;display:none;"></div>
+    <div id="errorAlert" th:text="${errormessage}"></div>
+    <div id="successAlert" th:text="${success}"></div>
 
     <div class="header">
         <h1>音乐排行榜</h1>
@@ -611,7 +782,7 @@
         <!-- 动态榜单列表：适配后端传递的PageInfo对象 -->
         <div class="rankings-list">
             <!-- 有数据时显示榜单 -->
-            <div th:each="ranking, stat : ${publishRanks.list}" class="ranking-item" th:data-rank-id="${ranking.rankId}">
+            <div th:each="ranking, stat : ${publishRanks.list}" class="ranking-item">
                 <h3 th:text="${ranking.rankName}">榜单标题</h3>
                 <p class="ranking-meta">
                     <span th:text="'更新时间：' + ${ranking.publishTime}">更新时间</span>
@@ -621,24 +792,44 @@
                     <h4>歌曲列表</h4>
                     <ul>
                         <li th:each="song : ${ranking.rankSongList}">
-                            <div class="song-info">
-                                <span class="song-name" th:text="${song.songName}">歌曲名称</span>
-                                <span class="singer-name" th:text="${song.singerName}">歌手名称</span>
-                            </div>
+                            <span class="song-name" th:text="${song.songName}">歌曲名称</span>
                             <span class="song-rank" th:text="${song.ranking}">排名</span>
                         </li>
                     </ul>
                 </div>
                 <!-- 投票和收藏按钮 -->
+                <!-- 投票和收藏按钮 -->
                 <div class="interaction-section">
-                    <button class="vote-btn" th:onclick="|voteForRanking(${ranking.rankId})|" th:data-rank-id="${ranking.rankId}">
+                    <button class="vote-btn" th:onclick="|voteForRanking(${ranking.rankId})|">
                         <span class="heart-icon">♥</span>
                         <span class="vote-count" th:text="${ranking.voteCount}">0</span>
                     </button>
-                    <button class="collect-btn" th:onclick="|collectRanking(${ranking.rankId})|" th:data-rank-id="${ranking.rankId}">
+                    <button class="collect-btn" th:onclick="|collectRanking(${ranking.rankId})|">
                         <span class="star-icon">★</span>
                         <span class="collect-count" th:text="${ranking.loveCount}">0</span>
                     </button>
+                </div>
+                <!-- 评论区 -->
+                <div class="comment-section">
+                    <button class="comment-toggle" th:onclick="|toggleComments(${ranking.rankId})|">
+                        查看评论
+                    </button>
+                    <div class="comment-container" th:id="|comment-container-${ranking.rankId}|">
+                        <!-- 评论输入区 -->
+                        <div class="comment-input-area">
+                <textarea class="comment-input" th:id="|comment-input-${ranking.rankId}|"
+                          placeholder="写下你的评论..."></textarea>
+                            <div class="comment-actions">
+                                <button class="comment-submit" th:onclick="|submitComment(${ranking.rankId})|">
+                                    发表评论
+                                </button>
+                            </div>
+                        </div>
+                        <!-- 评论列表 -->
+                        <div class="comment-list" th:id="|comment-list-${ranking.rankId}|">
+                            <!-- 评论将通过JavaScript动态加载 -->
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="pagination">
@@ -682,13 +873,7 @@
     </div>
 </div>
 
-<!-- 修复：改用CDN引入Axios，避免404 -->
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
-    // 禁用Axios源码映射请求，防止404
-    window.axios = axios;
-    delete axios.defaults.headers.common['X-Requested-With'];
-
     // 1. 工具函数：获取URL参数
     function getUrlParam(paramName) {
         const reg = new RegExp("(^|&)" + paramName + "=([^&]*)(&|$)");
@@ -697,22 +882,19 @@
     }
 
     // 2. 全局变量（只声明一次）
-    let token = getUrlParam("token") || localStorage.getItem('token');
-    let userId = getUrlParam("userId") || localStorage.getItem('userId');
+    let token = getUrlParam("token");
+    let userId = getUrlParam("userId");
     let category = parseInt(getUrlParam("category")) || 1; // 兜底1
     let pageNum = parseInt(getUrlParam("pageNum")) || 1;
     let pageSize = parseInt(getUrlParam("pageSize")) || 4;
-
-    // 保存token到localStorage，防止丢失
-    if (token) localStorage.setItem('token', token);
-    if (userId) localStorage.setItem('userId', userId);
 
     console.log("解析到的category：", getUrlParam("category"));
     console.log("转成数字后：", category);
 
     // 3. 动态路径工具
     function getTargetPublishPath(category) {
-        return "/music/api/mine/my";
+        return "/music" +
+            "/api/mine/my";
     }
     function getTargetVotePath(category) {
         return category === 1 ? "/music/api/rank/vote" : "/music/api/workrank/vote";
@@ -721,29 +903,45 @@
         return category === 1 ? "/music/api/rank/love" : "/music/api/workrank/love";
     }
 
-    // 修复提示框：只接收字符串，避免[object Object]
-    function showTip(elId, msg, delay = 2000) {
-        let el = document.getElementById(elId);
-        if (typeof msg !== 'string') {
-            msg = JSON.stringify(msg); // 如果是对象，转成字符串显示
+    // 4. 提示框
+    function showErrorTip(msg) {
+        let el = document.getElementById('errorAlert');
+        if (!el) {
+            el = document.createElement('div');
+            el.id = 'errorAlert';
+            el.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:10px 20px;background:#ff4444;color:#fff;border-radius:4px;z-index:9999;';
+            document.body.appendChild(el);
         }
         el.innerText = msg;
         el.style.display = 'block';
-        setTimeout(() => el.style.display = 'none', delay);
+        setTimeout(() => el.style.display = 'none', 2000);
     }
-    function showErrorTip(msg) { showTip('errorAlert', msg); }
-    function showSuccessTip(msg) { showTip('successAlert', msg); }
+
+    function showSuccessTip(msg) {
+        let el = document.getElementById('successAlert');
+        if (!el) {
+            el = document.createElement('div');
+            el.id = 'successAlert';
+            el.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);padding:10px 20px;background:#00C851;color:#fff;border-radius:4px;z-index:9999;';
+            document.body.appendChild(el);
+        }
+        el.innerText = msg;
+        el.style.display = 'block';
+        setTimeout(() => el.style.display = 'none', 2000);
+    }
+
     // 5. 搜索功能
     function openSearch() {
+        // 直接跳转到搜索页面（通过sou接口重定向）
         const searchUrl = `/music/api/rank/sou?token=${encodeURIComponent(token)}&category=${category}`;
         window.location.href = searchUrl;
     }
 
-    // 6. 页面加载完成后绑定事件
+    // 6. 页面加载完成后，再绑定所有事件（核心！）
     window.onload = function () {
         console.log("DOM加载完成，开始绑定事件");
 
-        // 先获取所有按钮
+        // 先获取所有按钮（只在这里获取一次）
         const slideBtnToggle = document.getElementById('slideBtnToggle');
         const myRankBtn = document.getElementById('myRankBtn');
         const loginBtnToggle = document.getElementById('loginBtnToggle');
@@ -754,18 +952,23 @@
         let isExpanded = true;
         slideBtnToggle.onclick = function () {
             isExpanded = !isExpanded;
-            slideBtnToggle.classList.toggle('collapsed', !isExpanded);
-            slideBtnToggle.classList.toggle('expanded', isExpanded);
-            myRankBtn.classList.toggle('show', isExpanded);
-            return false;
+            if (isExpanded) {
+                slideBtnToggle.classList.remove('collapsed');
+                slideBtnToggle.classList.add('expanded');
+                myRankBtn.classList.add('show');
+            } else {
+                slideBtnToggle.classList.remove('expanded');
+                slideBtnToggle.classList.add('collapsed');
+                myRankBtn.classList.remove('show');
+            }
         };
 
-        // 进入我的榜单
+        // 进入我的榜单（核心跳转）
         myRankBtn.onclick = function () {
             console.log("【进入我的榜单】按钮被点击");
             if (!token || !userId || isNaN(userId)) {
                 showErrorTip("缺少登录信息，请重新登录！");
-                setTimeout(() => window.location.href = "/music/login.html", 1500);
+                setTimeout(() => window.location.href = "/login.html", 1500);
                 return false;
             }
             const targetPath = getTargetPublishPath(category);
@@ -789,17 +992,24 @@
             return false;
         };
 
-        // 返回登录展开/收起
+        // 返回登录展开/收起（修复核心逻辑）
         let isLoginExpanded = true;
         loginBtnToggle.onclick = function () {
             isLoginExpanded = !isLoginExpanded;
-            loginBtnToggle.classList.toggle('collapsed', !isLoginExpanded);
-            loginBtnToggle.classList.toggle('expanded', isLoginExpanded);
-            loginBtn.classList.toggle('show', isLoginExpanded);
+            if (isLoginExpanded) {
+                loginBtnToggle.classList.remove('collapsed');
+                loginBtnToggle.classList.add('expanded');
+                loginBtn.classList.add('show');
+            } else {
+                loginBtnToggle.classList.remove('expanded');
+                loginBtnToggle.classList.add('collapsed');
+                loginBtn.classList.remove('show');
+            }
+            // 阻止事件冒泡和默认行为，避免触发跳转
             return false;
         };
 
-        // 返回登录页面
+        // 返回登录页面（仅点击这个按钮才跳转）
         loginBtn.onclick = function () {
             console.log("【返回登录】按钮被点击");
             window.location.href = "/music/login.html";
@@ -809,7 +1019,7 @@
         // 页面加载校验
         if (!token || token.trim() === '' || !userId || isNaN(userId)) {
             showErrorTip("登录信息失效，请重新登录！");
-            setTimeout(() => window.location.href = "/music/login.html", 1500);
+            setTimeout(() => window.location.href = "/music//login.html", 1500);
             return;
         }
         console.log("页面加载成功，参数：", { token, userId, category, pageNum, pageSize });
@@ -818,58 +1028,333 @@
 
     // 7. 分页
     function goToPage(page) {
+        const targetPath = getTargetPublishPath(category);
         const jumpUrl = `/music/api/rank/publish?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}&pageNum=${page}&pageSize=${pageSize}`;
         window.location.href = jumpUrl;
     }
 
+    // 8. 投票
     function voteForRanking(rankId) {
-        axios.post('/music/api/rank/vote', null, {
-            params: { token, rankId, category, pageNum, pageSize }
-        }).then(res => {
-            const result = res.data;
-            if (result.success) {
-                const voteCountEl = document.querySelector(`.vote-btn[data-rank-id="${rankId}"] .vote-count`);
-                voteCountEl.innerText = parseInt(voteCountEl.innerText) + 1;
-                showSuccessTip(result.msg);
-            } else {
-                // 显示后端返回的具体错误（比如“您已投过票”“rankId不存在”）
-                showErrorTip(result.msg);
-            }
-        }).catch(error => {
-            const errMsg = error.response?.data?.msg || "服务器错误";
-            showErrorTip(errMsg);
-        });
+        console.log('投票按钮点击，rankId:', rankId);
+        if (!token) {
+            showErrorTip("请先登录后再投票！");
+            return;
+        }
+        // 直接使用完整的绝对路径，确保与分页功能使用相同的格式
+        const voteUrl = window.location.origin + '/music/api/rank/vote?token=' + encodeURIComponent(token) + '&rankId=' + rankId + '&category=' + category + '&pageNum=' + pageNum + '&pageSize=' + pageSize;
+        console.log('投票请求URL:', voteUrl);
+        // 创建临时表单
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = voteUrl;
+
+        // 添加到页面并提交
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
     }
-    // 9. 收藏（同样改用POST请求）
+
+    // 9. 收藏
     function collectRanking(rankId) {
         console.log('收藏按钮点击，rankId:', rankId);
-        if (!token || !userId || isNaN(userId) || !rankId || isNaN(rankId)) {
+        if (!token || !userId || isNaN(userId)) {
             showErrorTip("请先登录后再收藏！");
             return;
         }
+        // 直接使用完整的绝对路径，确保与分页功能使用相同的格式
+        const collectUrl = window.location.origin + '/music/api/rank/love?token=' + encodeURIComponent(token) + '&userId=' + userId + '&rankId=' + rankId + '&category=' + category + '&pageNum=' + pageNum + '&pageSize=' + pageSize;
+        console.log('收藏请求URL:', collectUrl);
+        // 创建临时表单
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = collectUrl;
 
-        axios.post('/music/api/rank/love', null, {
+        // 添加到页面并提交
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+    }
+    // 10. 评论功能
+    // 切换评论区显示/隐藏
+    function toggleComments(rankId) {
+        const container = document.getElementById(`comment-container-${rankId}`);
+        const toggleBtn = container.previousElementSibling;
+
+        if (container.classList.contains('show')) {
+            container.classList.remove('show');
+            toggleBtn.textContent = '查看评论';
+        } else {
+            container.classList.add('show');
+            toggleBtn.textContent = '收起评论';
+            // 加载评论列表
+            loadComments(rankId);
+        }
+    }
+
+    // 加载评论列表
+    function loadComments(rankId) {
+        console.log('加载评论列表，rankId:', rankId);
+        const commentList = document.getElementById(`comment-list-${rankId}`);
+
+        if (!token) {
+            commentList.innerHTML = '<p style="color: rgba(247, 250, 252, 0.7); text-align: center;">请先登录后查看评论</p>';
+            return;
+        }
+
+        // 显示加载中
+        commentList.innerHTML = '<p style="color: rgba(247, 250, 252, 0.7); text-align: center;">加载中...</p>';
+
+        // 调用后端API
+        axios.get(`/music/api/rank/list`, {
             params: {
                 token: token,
-                userId: userId,
-                rankId: rankId,
-                category: category
+                rankId: rankId
             }
-        }).then(response => {
-            const collectBtn = document.querySelector(`.collect-btn[data-rank-id="${rankId}"]`);
-            const collectCountEl = collectBtn ? collectBtn.querySelector('.collect-count') : null;
-            if (collectCountEl) {
-                const currentCount = parseInt(collectCountEl.innerText) || 0;
-                collectCountEl.innerText = currentCount + 1;
+        })
+            .then(response => {
+                console.log('加载评论响应:', response.data); // 新增：打印完整响应
+                if (response.data.code === 200 || response.data.success) {
+                    const comments = response.data.data || response.data;
+                    renderComments(commentList, comments);
+                } else {
+                    // 区分“真的没数据”和“查询失败”
+                    commentList.innerHTML = `<p style="color: rgba(247, 250, 252, 0.7); text-align: center;">查询评论失败：${response.data.msg || '未知错误'}</p>`;
+                    // 打印错误日志，方便排查
+                    console.error('评论查询失败:', response.data);
+                }
+            })
+            .catch(error => {
+                console.error('加载评论失败:', error);
+                console.error('加载评论失败详情:', error.response?.data || error.message);
+                commentList.innerHTML = `<p style="color: rgba(247, 250, 252, 0.7); text-align: center;">加载评论失败：${error.response?.data?.msg || error.message}</p>`;
+            });
+    }
+
+    // 渲染评论列表
+    function renderComments(container, comments) {
+        if (!comments || comments.length === 0) {
+            container.innerHTML = '<p style="color: rgba(247, 250, 252, 0.7); text-align: center;">暂无评论</p>';
+            return;
+        }
+
+        container.innerHTML = '';
+        comments.forEach(comment => {
+            const commentItem = document.createElement('div');
+            commentItem.className = 'comment-item';
+
+            // 统一使用CommentVo的字段名，减少歧义
+            commentItem.innerHTML = `
+      <div class="comment-header">
+        <span class="comment-username">${comment.username || '匿名用户'}</span>
+        <span class="comment-time">${formatTime(comment.comTime)}</span>
+      </div>
+      <div class="comment-content">${comment.comContent || ''}</div>
+      <div class="comment-actions-bar">
+        <button class="comment-like-btn ${comment.isLiked === 1 ? 'liked' : ''}" onclick="toggleCommentLike(${comment.comId}, event)">
+          <span class="comment-heart-icon">♥</span>
+          <span class="comment-like-count">${comment.likeCount || 0}</span>
+        </button>
+        ${comment.userId === parseInt(userId) ?
+                `<button class="comment-like-btn" onclick="deleteComment(${comment.comId}, event)" style="color: rgba(255, 99, 71, 0.7);">
+    删除
+</button>` : ''
             }
-            showSuccessTip("收藏成功！");
-        }).catch(error => {
-            console.error('收藏失败：', error);
-            const errMsg = error.response?.data || "收藏失败，您可能已收藏过";
-            showErrorTip(errMsg);
+      </div>
+    `;
+
+            container.appendChild(commentItem);
         });
     }
+
+    // 提交评论
+    function submitComment(rankId) {
+        console.log('提交评论,rankId:', rankId);
+        const input = document.getElementById(`comment-input-${rankId}`);
+        const content = input.value.trim();
+
+        if (!content) {
+            showErrorTip("评论内容不能为空！");
+            return;
+        }
+
+        if (!token || !userId || isNaN(userId)) {
+            showErrorTip("请先登录后再评论！");
+            return;
+        }
+
+        // 调用后端API
+        axios.post(`/music/api/rank/pubcomment`, {
+        }, {
+            params: {
+                token: token,
+                rankId: rankId,
+                userId: userId,
+                content: content,
+                parentId: null // 显式传递顶级评论的parentId为null
+            }
+        })
+            .then(response => {
+                console.log('提交评论成功:', response.data);
+                if (response.data.code === 200 || response.data.success) {
+                    showSuccessTip("评论发表成功！");
+                    input.value = '';
+                    // 重新加载评论列表
+                    loadComments(rankId);
+                } else {
+                    showErrorTip("评论发表失败：" + (response.data.msg || '未知错误'));
+                }
+            })
+            .catch(error => {
+                console.error('提交评论失败:', error);
+                console.error('提交评论失败详情:', error.response);
+                showErrorTip("评论发表失败：" + (error.response?.data?.msg || error.message));
+            });
+    }
+
+    // 切换评论点赞状态
+    function toggleCommentLike(commentId, e) { // 添加e参数
+        console.log('切换评论点赞状态，commentId:', commentId);
+
+        if (!token) {
+            showErrorTip("请先登录后再点赞！");
+            return;
+        }
+
+        const likeBtn = e.target.closest('.comment-like-btn'); // 使用传入的e
+        if (likeBtn.classList.contains('liked')) {
+            // 取消点赞
+            unlikeComment(commentId, likeBtn);
+        } else {
+            // 点赞
+            likeComment(commentId, likeBtn);
+        }
+    }
+
+    // 点赞评论
+    function likeComment(commentId, likeBtn) {
+        console.log('点赞评论，commentId:', commentId);
+
+        // 调用后端API
+        axios.post(`/music/api/rank/like`, {
+        }, {
+            params: {
+                token: token,
+                comId: commentId
+            }
+        })
+            .then(response => {
+                console.log('点赞成功:', response.data);
+                if (response.data.code === 200 || response.data.success) {
+                    likeBtn.classList.add('liked');
+                    const likeCount = likeBtn.querySelector('.comment-like-count');
+                    likeCount.textContent = parseInt(likeCount.textContent) + 1;
+                } else {
+                    showErrorTip("点赞失败：" + (response.data.msg || '未知错误'));
+                }
+            })
+            .catch(error => {
+                console.error('点赞失败:', error);
+                showErrorTip("点赞失败：" + error.message);
+            });
+    }
+
+    // 取消点赞
+    function unlikeComment(commentId, likeBtn) {
+        console.log('取消点赞，commentId:', commentId);
+
+        // 调用后端API
+        axios.post(`/music/api/rank/deleteLike`, {
+        }, {
+            params: {
+                token: token,
+                comId: commentId
+            }
+        })
+            .then(response => {
+                console.log('取消点赞完整响应:', response.data); // 打印完整响应，方便排查
+                if (response.data.code === 200 || response.data.success) {
+                    likeBtn.classList.remove('liked');
+                    const likeCount = likeBtn.querySelector('.comment-like-count');
+                    likeCount.textContent = Math.max(0, parseInt(likeCount.textContent) - 1);
+                } else {
+                    showErrorTip("取消点赞失败：" + (response.data.msg || '未知错误')); // 显示后端返回的具体错误信息
+                }
+            })
+            .catch(error => {
+                console.error('取消点赞失败:', error);
+                console.error('取消点赞失败详情:', error.response?.data || error.message); // 打印错误详情
+                showErrorTip("取消点赞失败：" + (error.response?.data?.msg || error.message));
+            });
+    }
+
+    // 删除评论（完整版，仅保留一个）
+    function deleteComment(commentId, e) {
+        console.log('删除评论，commentId:', commentId);
+
+        if (!confirm('确定要删除这条评论吗？')) {
+            return;
+        }
+
+        axios.delete(`/music/api/rank/deleteComment`, {
+            params: {
+                token: token,
+                comId: commentId
+            }
+        })
+            .then(response => {
+                console.log('删除评论成功:', response.data);
+                if (response.data.code === 200 || response.data.success) {
+                    showSuccessTip("删除评论成功！");
+                    const rankId = getRankIdFromCommentItem(e.target); // 这里使用传入的 e
+                    if (rankId) {
+                        loadComments(rankId);
+                    }
+                } else {
+                    showErrorTip("删除评论失败：" + (response.data.msg || '未知错误'));
+                }
+            })
+            .catch(error => {
+                console.error('删除评论失败:', error);
+                console.error('删除评论失败详情:', error.response?.data || error.message);
+                showErrorTip("删除评论失败：" + (error.response?.data?.msg || error.message));
+            });
+    }
+
+    // 辅助函数：从评论DOM中提取rankId（必须添加）
+    function getRankIdFromCommentItem(el) {
+        // 1. 向上查找评论容器（comment-container-{rankId}）
+        let commentContainer = el.closest('[id^="comment-container-"]');
+        if (commentContainer) {
+            // 提取rankId（比如从 "comment-container-15" 中提取 15）
+            const rankId = commentContainer.id.replace('comment-container-', '');
+            console.log('提取到的rankId:', rankId);
+            return rankId;
+        }
+
+        // 2. 降级方案：从评论列表容器提取
+        const commentList = el.closest('[id^="comment-list-"]');
+        if (commentList) {
+            const rankId = commentList.id.replace('comment-list-', '');
+            console.log('从评论列表提取rankId:', rankId);
+            return rankId;
+        }
+
+        // 3. 最终降级：从URL参数获取（兜底）
+        const urlRankId = getUrlParam('rankId');
+        console.log('从URL提取rankId:', urlRankId);
+        return urlRankId || 0;
+    }
+
+    // 格式化时间
+    function formatTime(time) {
+        if (!time) return '';
+        const date = new Date(time);
+        // 新增容错：避免时间解析失败
+        if (isNaN(date.getTime())) return '未知时间';
+        return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+    }
 </script>
+
 </body>
 
 </html>

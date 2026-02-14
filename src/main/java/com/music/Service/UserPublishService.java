@@ -29,7 +29,7 @@ public interface UserPublishService {
 
     Comment insertComment(Integer rankId, Integer userId, String content, Integer parentId);
 
-    List<CommentVo> selectComment(Integer rankId, Integer comId);
+    List<CommentVo> selectComment(Integer rankId, Integer userId);
 
     boolean deleteComment(Integer comId,Integer userId);
 

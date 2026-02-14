@@ -144,15 +144,17 @@ public class userPublishServiceImpl implements UserPublishService {
         Comment comment=new Comment();
         comment.setRankId(rankId);
         comment.setUserId(userId);
-        comment.setCommentContent(content);
+        comment.setComContent(content);
         comment.setParentId(parentId);
         userPublishMapper.insertComment(rankId,userId,content,parentId);
         return  comment;
     }
 
     @Override
-    public List<CommentVo> selectComment(Integer rankId, Integer comId) {
-       return userPublishMapper.selectComment(rankId,comId);
+    public List<CommentVo> selectComment(Integer rankId, Integer userId) {
+       List<CommentVo> list=userPublishMapper.selectComment(rankId,userId);
+       System.out.println("查询出的评论数："+list.size());
+       return list;
     }
 
     @Override
@@ -165,7 +167,7 @@ public class userPublishServiceImpl implements UserPublishService {
         if(comment.getUserId()!=userId){
             throw new RuntimeException("只能删除自己的评论");
         }
-        int result= userPublishMapper.updateLike(comId,1);
+        int result= userPublishMapper.updateComment(comId,1);
         return result>0;
     }
 
@@ -184,7 +186,7 @@ public class userPublishServiceImpl implements UserPublishService {
     @Transactional
     public boolean deleteLike(Integer comId, Integer userId) {
       Comment comment=userPublishMapper.selectCommentById(comId);
-      if(comment==null||comment.getIdDelete()==0){
+      if(comment==null||comment.getIdDelete()==1){
           return false;
       }
       int result=userPublishMapper.deleteLike(comId,userId);

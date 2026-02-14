@@ -1,12 +1,12 @@
 package com.music.Mapper;
 
+import com.music.dto.CommentVo;
 import com.music.dto.MyRankWithSong;
-import com.music.pojo.PersonalRank;
-import com.music.pojo.RankSong;
-import com.music.pojo.Song;
-import com.music.pojo.Work;
+import com.music.pojo.*;
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
 import java.util.List;
 
@@ -35,4 +35,18 @@ public interface WorkPublishMapper {
     List<MyRankWithSong> selectSearch(Integer category, Integer pageNum, Integer offset, Integer pageSize, String keyword);
 
     Integer selectSearchTotal(Integer category, String keyword);
+
+    void insertComment(Integer rankId, Integer userId, String content, Integer parentId);
+
+    List<CommentVo> selectComment(Integer rankId, Integer userId);
+
+    Comment selectCommentById(Integer comId);
+
+    @Update("update comment set id_delete=#{idDelete}  where com_id=#{comId}")
+    int updateComment(Integer comId, int i);
+
+    int insertLike(Integer userId, Integer comId);
+
+    @Delete("delete from like_comment where com_id=#{comId} and user_id=#{userId}")
+    int deleteLike(Integer comId, Integer userId);
 }

@@ -389,6 +389,24 @@
         .sidebar-right:hover {
             right: 0;
         }
+        .delete-btn{
+            background: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-left: 10px;
+            align-self: flex-start;
+        }
+        .delete-btn:hover {
+            background-color: #ff6666;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 68, 68, 0.4);
+        }
     </style>
 </head>
 
@@ -451,6 +469,10 @@
                 </div>
 
                 <button class="edit-btn" th:onclick="|editRanking(${ranking.rankId})|">编辑</button>
+                <!-- 新增删除按钮 -->
+                <button class="delete-btn" th:onclick="|deleteRanking(${ranking.rankId})|" style="background-color: #ff4444; color: white;">
+                    删除
+                </button>
             </div>
         </div>
 
@@ -704,6 +726,48 @@
                 })
                 .catch(error => {
                     console.error('收藏请求异常：', error);
+                    alert('网络错误，请稍后重试');
+                });
+        }
+        // 删除榜单
+        function deleteRanking(rankId) {
+            if (!confirm('确定要删除这个榜单吗？删除后无法恢复！')) {
+                return;
+            }
+
+            const token = localStorage.getItem('token') || getUrlParam('token');
+            if (!token) {
+                alert('登录信息失效，请重新登录');
+                window.location.href = '/music/login.html';
+                return;
+            }
+
+            // 构建请求URL，和你的Controller路径对应
+            const deleteUrl = `/music/api/mine/deleterank?token=${encodeURIComponent(token)}&rankId=${rankId}`;
+
+            fetch(deleteUrl, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('删除请求失败');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.code === 200 || data.success) {
+                        alert('榜单删除成功！');
+                        // 删除成功后刷新页面，更新榜单列表
+                        location.reload();
+                    } else {
+                        alert(data.msg || '删除失败，请重试');
+                    }
+                })
+                .catch(error => {
+                    console.error('删除请求异常：', error);
                     alert('网络错误，请稍后重试');
                 });
         }

@@ -44,14 +44,14 @@ public interface UserPublishMapper {
 
     void insertComment(Integer rankId, Integer userId, String content, Integer parentId);
 
-    List<CommentVo> selectComment(Integer rankId, Integer comId);
+    List<CommentVo> selectComment(@Param("rankId") Integer rankId,@Param("userId") Integer userId);
 
     Integer insertLike(Integer userId,Integer comId);
 
     Comment selectCommentById(Integer comId);
 
     @Update("update comment set id_delete=#{idDelete}  where com_id=#{comId}")
-    int updateLike(Integer comId, int idDelete);
+    int updateComment(Integer comId, int idDelete);
 
     @Delete("delete from like_comment where com_id=#{comId} and user_id=#{userId}")
     int deleteLike(Integer comId, Integer userId);

@@ -33,4 +33,7 @@ public interface MyRankMapper {
 
     @Select("select count(*) from love_record where user_id=#{userId}")
     Integer selectloveTotal(Integer userId);
+
+    @Delete("delete from personal_rank where rank_id=#{rankId}")
+    boolean deleteRank(Integer rankId);
 }

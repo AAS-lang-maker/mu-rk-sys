@@ -17,6 +17,17 @@
         insert into love_record(ip,love_status,love,rank_id,user_id,love_time)
         values (#{ip},1,1,#{rankId},#{userId},now())
     </insert>
+    <insert id="insertComment">
+        insert into comment(rank_id, user_id, parent_id, comment_content,comment_time,id_delete) VALUES
+        (#{rankId},#{userId},
+        <if test="parentId == null">NULL</if>
+        <if test="parentId != null">#{parentId}</if>
+        ,#{content},now(),0)
+        <!--用动态sql处理发表评论时无parent——id的情况-->
+    </insert>
+    <insert id="insertLike">
+        insert into like_comment(user_id,com_id) values (#{userId},#{comId})
+    </insert>
     <update id="sixInsert">
         insert into rank_song(rank_id, song_id, ranking)
         VALUES
@@ -113,4 +124,40 @@
         </if>
         order by r.ranking desc,r.rank_update_time asc
     </select>
+    <select id="selectComment" resultMap="CommentVoResultMap">
+        select distinct c.com_id,c.rank_id,c.user_id,c.parent_id,c.comment_content,c.comment_time,u.username,pu.username,ifnull(cl.like_count,0) as like_count,
+        case when cl2.user_id is not null then 1 else 0 end as is_liked from comment as c
+        left join user as u on c.user_id = u.user_id
+        left join personal_rank as p on c.rank_id = p.rank_id
+        left join (select com_id,count(*) as like_count from like_comment group by com_id) as cl on c.com_id=cl.com_id
+        left join like_comment cl2 on cl2.com_id=c.com_id and cl2.user_id=#{userId}
+        left join comment as pc on pc.parent_id=c.com_id
+        left join user as pu on pu.user_id=pc.user_id
+        where c.rank_id=#{rankId} and id_delete=0
+        order by c.comment_time desc
+        limit 50
+    </select>
+    <resultMap id="CommentVoResultMap" type="com.music.dto.CommentVo">
+        <id property="comId" column="com_id"/>
+        <result property="rankId" column="rank_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="username" column="username"/>
+        <result property="comContent" column="comment_content"/>
+        <result property="comTime" column="comment_time"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="likeCount" column="like_count"/>
+        <result property="isLiked" column="is_liked"/>
+        <result property="parentUsername" column="parent_username"/>
+    </resultMap>
+    <select id="selectCommentById" resultType="com.music.pojo.Comment">
+        select * from comment where com_id=#{comId}
+    </select>
+    <resultMap id="CommentResultMap" type="com.music.pojo.Comment">
+        <id property="comId" column="com_id"/>
+        <result property="rankId" column="rank_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="comContent" column="comment_content"/>
+        <result property="comTime" column="comment_time"/>
+        <result property="parentId" column="parent_id"/>
+    </resultMap>
 </mapper>

@@ -3,6 +3,7 @@ package com.music.Service.impl;
 import com.github.pagehelper.PageInfo;
 import com.music.Mapper.WorkPublishMapper;
 import com.music.Service.WorkPunlishService;
+import com.music.dto.CommentVo;
 import com.music.dto.MyRankWithSong;
 import com.music.dto.RankAddRequest;
 import com.music.pojo.*;
@@ -130,6 +131,61 @@ public class WorkPublishServiceImpl implements WorkPunlishService {
         searchRank.setTotal(total);
         searchRank.setPages(pages);
         return searchRank;
+    }
+
+
+    @Override
+    public Comment insertComment(Integer rankId, Integer userId, String content, Integer parentId) {
+        Comment comment=new Comment();
+        comment.setRankId(rankId);
+        comment.setUserId(userId);
+        comment.setComContent(content);
+        comment.setParentId(parentId);
+        workPublishMapper.insertComment(rankId,userId,content,parentId);
+        return  comment;
+    }
+
+    @Override
+    public List<CommentVo> selectComment(Integer rankId, Integer userId) {
+        List<CommentVo> list=workPublishMapper.selectComment(rankId,userId);
+        System.out.println("查询出的评论数："+list.size());
+        return list;
+    }
+
+    @Override
+    @Transactional
+    public boolean deleteComment(Integer comId,Integer userId) {
+        Comment comment=workPublishMapper.selectCommentById(comId);
+        if(comment==null){
+            return false;
+        }
+        if(comment.getUserId()!=userId){
+            throw new RuntimeException("只能删除自己的评论");
+        }
+        int result= workPublishMapper.updateComment(comId,1);
+        return result>0;
+    }
+
+    @Override
+    @Transactional
+    public boolean insertLike(Integer userId,Integer comId) {
+        Comment comment=workPublishMapper.selectCommentById(comId);
+        if(comment==null||comment.getIdDelete()==1){
+            return false;
+        }
+        int result=workPublishMapper.insertLike(userId,comId);
+        return result>0;
+    }
+
+    @Override
+    @Transactional
+    public boolean deleteLike(Integer comId, Integer userId) {
+        Comment comment=workPublishMapper.selectCommentById(comId);
+        if(comment==null||comment.getIdDelete()==1){
+            return false;
+        }
+        int result=workPublishMapper.deleteLike(comId,userId);
+        return result>0;
     }
 
 }

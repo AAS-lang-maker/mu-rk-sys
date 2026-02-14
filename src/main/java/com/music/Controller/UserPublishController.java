@@ -8,24 +8,24 @@ import com.music.dto.RankAddRequest;
 import com.music.pojo.Comment;
 import com.music.pojo.Singer;
 import com.music.pojo.Song;
-import com.music.pojo.UserInfo;
 import com.music.utils.JwtUtils;
 import com.music.utils.Result;
 import jakarta.annotation.Resource;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 
+
 @Controller
 @RequestMapping("/api/rank")
 public class UserPublishController {
+    private static final Logger log = LoggerFactory.getLogger(UserPublishController.class);
     @Resource
     private UserPublishService userPublishService;
 
@@ -246,6 +246,7 @@ public class UserPublishController {
          return "search-page";
         }
       @PostMapping("/pubcomment")
+      @ResponseBody
     public Result<String> pubcomment(@RequestParam("token")String token,@RequestParam("rankId")Integer rankId,@RequestParam("userId")Integer userId,
                                      @RequestParam("content")String content,@RequestParam(value = "parentId",required = false)Integer parentId){
 
@@ -264,23 +265,24 @@ public class UserPublishController {
           return   Result.error("评论发表失败"+e.getMessage());
       }
       }
-      @DeleteMapping("/list")
-    public Result<String> list(@RequestParam("token")String token,@RequestParam("comId")Integer comId
-                               ,@RequestParam("rankId")Integer rankId){
+      @GetMapping("/list")
+      @ResponseBody
+    public Result<List<CommentVo>> list(@RequestParam("token")String token
+                               , @RequestParam("rankId")Integer rankId){
         if(token == null || token.isEmpty()) {
             return Result.error("token不能为空捏");
         }
         try{
-            if(comId==null||rankId==null){
-                return Result.error("comId或rankId不能为空");
-            }
-            List<CommentVo> comment1=userPublishService.selectComment(rankId,comId);
-            return Result.success("评论展示成功"+comment1);
+            Integer userId = JwtUtils.getUserIdFromToken(token);
+            List<CommentVo> comment=userPublishService.selectComment(rankId,userId);
+            return Result.success(comment);
         }catch (Exception e){
+            e.printStackTrace();
             return Result.error("评论展示失败");
         }
       }
       @DeleteMapping("deleteComment")
+      @ResponseBody
     public Result<String> deleteComment(@RequestParam("token")String token,@RequestParam("comId")Integer comId){
         if(token == null || token.isEmpty()) {
             return Result.error("token不能为空捏");
@@ -301,6 +303,7 @@ public class UserPublishController {
         }
       }
       @PostMapping("/like")
+      @ResponseBody
     public Result<String> like(@RequestParam("token")String token,@RequestParam("comId")Integer comId){
         if(token == null || token.isEmpty()) {
             return Result.error("token不能为空哦");
@@ -321,22 +324,26 @@ public class UserPublishController {
         }
       }
       @PostMapping("deleteLike")
+      @ResponseBody
     public Result<String> deleteLike(@RequestParam("token")String token,@RequestParam("comId")Integer comId){
+
         if(token == null || token.isEmpty()) {
             return Result.error("token不能为空哦");
         }
         try{
             Integer userId = JwtUtils.getUserIdFromToken(token);
             if(comId==null){
-                return Result.error("likeId不能为空");
+                log.warn("【取消点赞】失败：comId为空");
+                return Result.error("comId不能为空");
             }
             boolean result=userPublishService.deleteLike(comId,userId);
             if(result==true){
-                return Result.success("取消点赞成功");
+                return Result.success("success");
             }else{
                 return Result.error("取消点赞失败");
             }
         }catch (Exception e){
+            e.printStackTrace();
             return Result.error("取消点赞失败"+e.getMessage());
         }
       }
