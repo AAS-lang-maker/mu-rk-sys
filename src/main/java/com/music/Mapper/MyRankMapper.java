@@ -4,6 +4,7 @@ import com.music.dto.MyRankWithSong;
 import com.music.pojo.RankSong;
 import com.music.pojo.Singer;
 import com.music.pojo.Song;
+import com.music.pojo.UserInfo;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
@@ -36,4 +37,6 @@ public interface MyRankMapper {
 
     @Delete("delete from personal_rank where rank_id=#{rankId}")
     boolean deleteRank(Integer rankId);
+
+    UserInfo selectByUserId(Integer userId);
 }

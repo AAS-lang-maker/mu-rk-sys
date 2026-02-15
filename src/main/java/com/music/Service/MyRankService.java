@@ -5,6 +5,7 @@ import com.music.dto.EditRank;
 import com.music.dto.MyRankWithSong;
 import com.music.pojo.Singer;
 import com.music.pojo.Song;
+import com.music.pojo.UserInfo;
 
 import java.util.List;
 
@@ -23,4 +24,6 @@ public interface MyRankService {
     PageInfo<MyRankWithSong> selectMyLoverank(Integer pageNum, Integer pageSize, Integer offset, Integer userId);
 
     boolean deleteRank(Integer rankId);
+
+    UserInfo selectByuserId(Integer userId);
 }

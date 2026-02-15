@@ -8,9 +8,7 @@ import java.time.LocalDateTime;
 public class VoteRecord {
     private Integer voteId;
     private Integer userId;
-    private Integer vote;
     private String ip;
-    private Integer voteStatus;
     private Integer rankId;
     private LocalDateTime voteTime;
 }

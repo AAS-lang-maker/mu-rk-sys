@@ -21,9 +21,9 @@ public interface UserPublishService {
 
     PageInfo<MyRankWithSong> selectPublishRank(Integer category, Integer pageNum, Integer pageSize, Integer offset);
 
-    boolean insertVote(Integer userId, Integer rankId, String ip);
+    boolean insertVote(Integer userId, Integer rankId);
 
-    boolean insertLove(Integer userId, String ip, Integer rankId);
+    boolean insertLove(Integer userId, Integer rankId);
 
     PageInfo<MyRankWithSong> selectSearch(Integer category, Integer pageNum, Integer offset, Integer pageSize,String keyword);
 
@@ -36,4 +36,8 @@ public interface UserPublishService {
     boolean insertLike(Integer userId,Integer comId);
 
     boolean deleteLike(Integer comId,Integer userId);
+
+    boolean deleteVote(Integer rankId, Integer userId);
+
+    boolean deleteLove(Integer rankId, Integer userId);
 }

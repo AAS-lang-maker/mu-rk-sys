@@ -8,9 +8,7 @@ import java.time.LocalDateTime;
 public class LoveRecord {
     private Integer loveId;
     private Integer userId;
-    private Integer love;
     private String ip;
-    private Integer loveStatus;
     private Integer rankId;
     private LocalDateTime loveTime;
 }

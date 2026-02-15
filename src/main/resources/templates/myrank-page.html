@@ -390,7 +390,7 @@
             right: 0;
         }
         .delete-btn{
-            background: #ff4444;
+            background: #f68d8d;
             color: white;
             border: none;
             border-radius: 6px;
@@ -405,7 +405,7 @@
         .delete-btn:hover {
             background-color: #d87474;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(255, 68, 68, 0.4);
+            box-shadow: 0 4px 12px rgba(241, 166, 166, 0.99);
         }
     </style>
 </head>
@@ -428,7 +428,7 @@
                     src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=user%20avatar%20profile%20picture%20friendly%20face&image_size=square"
                     alt="用户头像" class="avatar">
             <div class="user-details">
-                <h2 th:text="${userName}">用户名</h2>
+                <h2 th:text="${username}">用户名</h2>
                 <p>个人榜单管理</p>
             </div>
         </div>
@@ -470,7 +470,7 @@
 
                 <button class="edit-btn" th:onclick="|editRanking(${ranking.rankId})|">编辑</button>
                 <!-- 新增删除按钮 -->
-                <button class="delete-btn" th:onclick="|deleteRanking(${ranking.rankId})|" style="background-color: #ff4444; color: white;">
+                <button class="delete-btn" th:onclick="|deleteRanking(${ranking.rankId})|" style="background-color: #f68d8d; color: black;">
                     删除
                 </button>
             </div>

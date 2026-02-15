@@ -7,6 +7,8 @@ import com.music.dto.CommentVo;
 import com.music.dto.MyRankWithSong;
 import com.music.dto.RankAddRequest;
 import com.music.pojo.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -19,6 +21,7 @@ import java.util.List;
 @Service
 
 public class userPublishServiceImpl implements UserPublishService {
+    private static final Logger log = LoggerFactory.getLogger(userPublishServiceImpl.class);
     @Autowired
     private UserPublishMapper userPublishMapper;
 
@@ -87,36 +90,37 @@ public class userPublishServiceImpl implements UserPublishService {
     }
 
     @Override
-    public boolean insertVote(Integer userId, Integer rankId, String ip) {
+    @Transactional
+    public boolean insertVote(Integer userId, Integer rankId) {
         //if(ip==null){
           //  ip="127.0.0.1";
         //}
        // int record=userPublishMapper.checkip(ip,rankId);//防刷票，匿名投票，利用ip检查
         //if(record>0)
         //{ return false;}
-        int rows=userPublishMapper.insertVote(rankId);
-        userPublishMapper.updateVoteCount(rankId,rows);
-        if(rows>0){
-            return true;
-        }else{
+        PersonalRank v=userPublishMapper.selectRankById(rankId);
+        if(v==null){
             return false;
         }
+        int rows=userPublishMapper.insertVote(rankId,userId);
+        return rows>0;
     }
 
     @Override
-    public boolean insertLove(Integer userId, String ip, Integer rankId) {
-        if (ip == null) {
-            ip = "127.0.0.1"; // 使用默认 IP
-        }
-        int record1=userPublishMapper.checkLoveip(ip,rankId);
-        if(record1>0)
-        { return false;}
-        int row1=userPublishMapper.insertLove(userId,ip,rankId);
-        userPublishMapper.updateLoveCount(userId,row1,rankId);
-        if(row1>0){
-            return true;
-        }
-        return false;
+    @Transactional
+    public boolean insertLove(Integer userId,  Integer rankId) {
+      //  if (ip == null) {
+        //    ip = "127.0.0.1"; // 使用默认 IP
+        //}
+        //int record1=userPublishMapper.checkLoveip(ip,rankId);
+        //if(record1>0)
+        //{ return false;}
+       PersonalRank l=userPublishMapper.selectRankById(rankId);
+       if(l==null){
+           return false;
+       }
+        int row1=userPublishMapper.insertLove(userId,rankId);
+         return row1>0;
     }
 
     @Override
@@ -191,5 +195,43 @@ public class userPublishServiceImpl implements UserPublishService {
       }
       int result=userPublishMapper.deleteLike(comId,userId);
       return result>0;
+    }
+
+    @Override
+    @Transactional
+    public boolean deleteVote(Integer rankId, Integer userId) {
+        // 原有逻辑
+        PersonalRank personalRank = userPublishMapper.selectRankById(rankId);
+        if (personalRank == null) {
+            // 新增日志：打印榜单不存在的提示
+            log.warn("【取消点赞】榜单不存在！rankId={}, userId={}", rankId, userId);
+            return false;
+        }
+
+        // 新增日志：打印要删除的条件
+        log.info("【取消点赞】准备删除点赞记录：rankId={}, userId={}", rankId, userId);
+        int result = userPublishMapper.deleteVote(rankId, userId);
+
+        // 新增日志：打印删除结果（核心！看删了多少行）
+        log.info("【取消点赞】删除操作完成，影响行数：{}", result);
+
+        return result > 0;
+    }
+
+    // 你的deleteLove方法（同理加日志）
+    @Override
+    @Transactional
+    public boolean deleteLove(Integer rankId, Integer userId) {
+        PersonalRank personalRank = userPublishMapper.selectRankById(rankId);
+        if (personalRank == null) {
+            log.warn("【取消收藏】榜单不存在！rankId={}, userId={}", rankId, userId);
+            return false;
+        }
+
+        log.info("【取消收藏】准备删除收藏记录：rankId={}, userId={}", rankId, userId);
+        int result = userPublishMapper.deleteLove(rankId, userId);
+        log.info("【取消收藏】删除操作完成，影响行数：{}", result);
+
+        return result > 0;
     }
 }

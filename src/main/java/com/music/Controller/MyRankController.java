@@ -6,6 +6,7 @@ import com.music.dto.EditRank;
 import com.music.dto.MyRankWithSong;
 import com.music.pojo.Singer;
 import com.music.pojo.Song;
+import com.music.pojo.UserInfo;
 import com.music.utils.JwtUtils;
 import com.music.utils.Result;
 import org.apache.ibatis.annotations.Delete;
@@ -56,12 +57,17 @@ public class MyRankController {
            redirectAttributes.addFlashAttribute("errormessage","无权访问他人数据");
            return "redirect:/login.html";
        }
+        UserInfo userInfo=myRankService.selectByuserId(userId);
+       if(userInfo==null){
+           return "redirect:/login.html";
+       }
        Integer offset = (pageNum-1)*pageSize;
         PageInfo<MyRankWithSong> personalRanks=myRankService.selectMyrank(pageNum,pageSize,offset,userId);
         // 新增：打印PageInfo的所有关键字段
        System.out.println(personalRanks.getList());
         model.addAttribute("personalRanks",personalRanks);//把这两个必要数据传进URL而不是一次性的Flash，重定向的时候数据也进去了
         model.addAttribute("userId", userId);
+        model.addAttribute("username",userInfo.getUsername());
         return "myrank-page";
     }
 

@@ -23,13 +23,8 @@ public interface UserPublishMapper {
     @Select("select count(*) from personal_rank where category_id=#{category}")
     Integer selectTotal(@Param("category") Integer category);
 
-    Integer insertVote(Integer rankId);
-
    // int checkip(String ip, Integer rankId);
-
-    int insertLove(Integer userId,String ip, Integer rankId);
-
-    int checkLoveip(String ip, Integer rankId);
+    //int checkLoveip(String ip, Integer rankId);
 
     List<MyRankWithSong> selectSearch(Integer category, Integer pageNum, Integer offset, Integer pageSize, String keyword);
 
@@ -55,6 +50,19 @@ public interface UserPublishMapper {
 
     @Delete("delete from like_comment where com_id=#{comId} and user_id=#{userId}")
     int deleteLike(Integer comId, Integer userId);
+
+    @Select("select * from personal_rank where rank_id=#{rankId} ")
+    PersonalRank selectRankById(Integer rankId);
+
+    int insertVote(Integer rankId, Integer userId);
+
+    int insertLove(Integer userId, Integer rankId);
+
+    @Delete("delete from vote_record where rank_id=#{rankId} and user_id=#{userId}")
+    int deleteVote(Integer rankId, Integer userId);
+
+    @Delete("delete from love_record where rank_id=#{rankId} and user_id=#{userId};")
+    int deleteLove(Integer rankId, Integer userId);
     //?应该可以不用@Param，对于update操作
     //@Param("list")注解，专门为Maybatis批量插入的需求的List集合起一个别名
 }

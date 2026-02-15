@@ -79,6 +79,7 @@
    left join singer as si on s.singer_id = si.singer_id
    order by r.rank_update_time asc,r.ranking asc
     </select>
+
     <resultMap id="MyRankWithSongssResultMap" type="com.music.dto.MyRankWithSong">
         <id property="rankId" column="rank_id"/>
         <result property="rankName" column="rank_name"/>
@@ -92,6 +93,9 @@
             <result property="rankUpdateTime" column="rank_update_time"/>
         </collection>
     </resultMap>
+    <select id="selectByUserId" resultType="com.music.pojo.UserInfo">
+        select username from user where user_id=#{userId}
+     </select>
     <insert id="insertNewRank">
         insert into rank_song(rank_id,song_id,ranking,rank_update_time)
         values

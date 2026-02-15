@@ -7,10 +7,7 @@ import com.music.Service.MyRankService;
 import com.music.dto.EditRank;
 import com.music.dto.MyRankWithSong;
 import com.music.dto.RankAddRequest;
-import com.music.pojo.PersonalRank;
-import com.music.pojo.RankSong;
-import com.music.pojo.Singer;
-import com.music.pojo.Song;
+import com.music.pojo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -106,5 +103,9 @@ private MyRankMapper myRankMapper;
         return myRankMapper.deleteRank(rankId);
     }
 
-
+    @Override
+    public UserInfo selectByuserId(Integer userId) {
+        UserInfo userInfo=myRankMapper.selectByUserId(userId);
+        return userInfo;
+    }
 }

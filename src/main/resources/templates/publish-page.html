@@ -143,7 +143,29 @@
         .add-button:active {
             transform: scale(0.95);
         }
+        .ranking-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
 
+        .publisher-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 250, 156, 0.3);
+            color: #f7fafc;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 14px;
+            cursor: default; /* 因为它只是展示，不是可点击按钮 */
+            transition: all 0.3s ease;
+        }
+
+        .publisher-btn:hover {
+            background-color: #fffa9c;
+            color: #1a202c;
+            transform: translateY(-2px);
+        }
         .rankings-list {
             margin-bottom: 30px;
         }
@@ -783,7 +805,10 @@
         <div class="rankings-list">
             <!-- 有数据时显示榜单 -->
             <div th:each="ranking, stat : ${publishRanks.list}" class="ranking-item">
-                <h3 th:text="${ranking.rankName}">榜单标题</h3>
+                <div class="ranking-header">
+                    <h3 th:text="${ranking.rankName}">榜单标题</h3>
+                    <button class="publisher-btn" th:text="'发布人：' + ${ranking.username}">发布人：用户名</button>
+                </div>
                 <p class="ranking-meta">
                     <span th:text="'更新时间：' + ${ranking.publishTime}">更新时间</span>
                 </p>
@@ -800,11 +825,16 @@
                 <!-- 投票和收藏按钮 -->
                 <!-- 投票和收藏按钮 -->
                 <div class="interaction-section">
-                    <button class="vote-btn" th:onclick="|voteForRanking(${ranking.rankId})|">
-                        <span class="heart-icon">♥</span>
+                    <!-- 投票按钮：给按钮加 data-rank-id 属性，同时把 rankId 传给函数时带 this -->
+                    <button class="vote-btn" th:data-rank-id="${ranking.rankId}"
+                            th:onclick="|voteForRanking(${ranking.rankId}, this)|">
+                        <span class="heart-icon">♡</span>
                         <span class="vote-count" th:text="${ranking.voteCount}">0</span>
                     </button>
-                    <button class="collect-btn" th:onclick="|collectRanking(${ranking.rankId})|">
+
+                    <!-- 收藏按钮：同理 -->
+                    <button class="collect-btn" th:data-rank-id="${ranking.rankId}"
+                            th:onclick="|collectRanking(${ranking.rankId}, this)|">
                         <span class="star-icon">★</span>
                         <span class="collect-count" th:text="${ranking.loveCount}">0</span>
                     </button>
@@ -1032,47 +1062,141 @@
         const jumpUrl = `/music/api/rank/publish?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}&pageNum=${page}&pageSize=${pageSize}`;
         window.location.href = jumpUrl;
     }
-
-    // 8. 投票
-    function voteForRanking(rankId) {
-        console.log('投票按钮点击，rankId:', rankId);
+    // ===================== 榜单点赞（和后端数据库联动版）=====================
+    function voteForRanking(rankId, btn) { // 函数名改为voteForRanking（匹配HTML调用）
+        console.log('切换榜单投票状态，rankId:', rankId);
         if (!token) {
             showErrorTip("请先登录后再投票！");
             return;
         }
-        // 直接使用完整的绝对路径，确保与分页功能使用相同的格式
-        const voteUrl = window.location.origin + '/music/api/rank/vote?token=' + encodeURIComponent(token) + '&rankId=' + rankId + '&category=' + category + '&pageNum=' + pageNum + '&pageSize=' + pageSize;
-        console.log('投票请求URL:', voteUrl);
-        // 创建临时表单
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = voteUrl;
 
-        // 添加到页面并提交
-        document.body.appendChild(form);
-        form.submit();
-        document.body.removeChild(form);
+        // 先记录当前数字（防止后端失败时回滚）
+        const voteCountEl = btn.querySelector('.vote-count');
+        const originalCount = Number(voteCountEl.textContent) || 0;
+
+
+        if (btn.classList.contains('voted')) {
+            // 已点赞 → 取消点赞（先锁按钮，防止重复点击）
+            btn.disabled = true;
+            // 修复：取消点赞接口适配分类
+            const deleteVotePath = category === 1 ? "/music/api/rank/deleteVote" : "/music/api/workrank/deleteVote";
+            axios.post(deleteVotePath, {}, {
+                params: { token: token, rankId: rankId }
+            })
+                .then(response => {
+                    btn.disabled = false;
+                    // 必须校验后端真正的成功状态
+                    if (response.data.code === 200 || response.data.success) {
+                        // 后端真删了 → 前端才减数字、改样式
+                        btn.classList.remove('voted');
+                        voteCountEl.textContent = Math.max(0, originalCount - 1);
+                        // 可选：图标改回空心
+                        btn.querySelector('.heart-icon').textContent = '♡';
+                        showSuccessTip("取消点赞成功！");
+                    } else {
+                        // 后端没删成功 → 数字回滚，提示失败
+                        voteCountEl.textContent = originalCount;
+                        showErrorTip("取消点赞失败：" + (response.data.msg || "后端未删除数据"));
+                    }
+                })
+                .catch(error => {
+                    btn.disabled = false;
+                    voteCountEl.textContent = originalCount; // 数字回滚
+                    showErrorTip("取消点赞失败：" + (error.response?.data?.msg || "接口异常"));
+                });
+        } else {
+            // 未点赞 → 点赞（同样锁按钮）
+            btn.disabled = true;
+            axios.post(getTargetVotePath(category), {}, {
+                params: { token: token, rankId: rankId }
+            })
+                .then(response => {
+                    btn.disabled = false;
+                    if (response.data.code === 200 || response.data.success) {
+                        // 后端真加了 → 前端才加数字、改样式
+                        btn.classList.add('voted');
+                        voteCountEl.textContent = originalCount + 1;
+                        // 可选：图标改成实心
+                        btn.querySelector('.heart-icon').textContent = '♥';
+                        showSuccessTip("点赞成功！");
+                    } else {
+                        voteCountEl.textContent = originalCount; // 回滚
+                        showErrorTip("点赞失败：" + (response.data.msg || "后端未添加数据"));
+                    }
+                })
+                .catch(error => {
+                    btn.disabled = false;
+                    voteCountEl.textContent = originalCount; // 回滚
+                    showErrorTip("点赞失败：" + (error.response?.data?.msg || "接口异常"));
+                });
+        }
     }
 
-    // 9. 收藏
-    function collectRanking(rankId) {
-        console.log('收藏按钮点击，rankId:', rankId);
-        if (!token || !userId || isNaN(userId)) {
+    // ===================== 榜单收藏（和后端数据库联动版）=====================
+    function collectRanking(rankId, btn) { // 函数名改为collectRanking（匹配HTML调用）
+        console.log('切换榜单收藏状态，rankId:', rankId);
+        if (!token) {
             showErrorTip("请先登录后再收藏！");
             return;
         }
-        // 直接使用完整的绝对路径，确保与分页功能使用相同的格式
-        const collectUrl = window.location.origin + '/music/api/rank/love?token=' + encodeURIComponent(token) + '&userId=' + userId + '&rankId=' + rankId + '&category=' + category + '&pageNum=' + pageNum + '&pageSize=' + pageSize;
-        console.log('收藏请求URL:', collectUrl);
-        // 创建临时表单
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = collectUrl;
 
-        // 添加到页面并提交
-        document.body.appendChild(form);
-        form.submit();
-        document.body.removeChild(form);
+        // 记录原始数字，用于失败回滚
+        const collectCountEl = btn.querySelector('.collect-count');
+        const originalCount = Number(collectCountEl.textContent) || 0;
+
+        if (btn.classList.contains('collected')) {
+            // 已收藏 → 取消收藏（锁按钮）
+            btn.disabled = true;
+            // 修复：取消收藏接口适配分类
+            const deleteLovePath = category === 1 ? "/music/api/rank/deleteLove" : "/music/api/workrank/deleteLove";
+            axios.post(deleteLovePath, {}, {
+                params: { token: token, rankId: rankId }
+            })
+                .then(response => {
+                    btn.disabled = false;
+                    if (response.data.code === 200 || response.data.success) {
+                        // 后端真删了收藏记录 → 前端才改
+                        btn.classList.remove('collected');
+                        collectCountEl.textContent = Math.max(0, originalCount - 1);
+                        // 可选：图标恢复默认样式
+                        btn.querySelector('.star-icon').style.color = '';
+                        showSuccessTip("取消收藏成功！");
+                    } else {
+                        collectCountEl.textContent = originalCount; // 回滚
+                        showErrorTip("取消收藏失败：" + (response.data.msg || "后端未删除数据"));
+                    }
+                })
+                .catch(error => {
+                    btn.disabled = false;
+                    collectCountEl.textContent = originalCount; // 回滚
+                    showErrorTip("取消收藏失败：" + (error.response?.data?.msg || "接口异常"));
+                });
+        } else {
+            // 未收藏 → 收藏（锁按钮）
+            btn.disabled = true;
+            axios.post(getTargetLovePath(category), {}, {
+                params: { token: token, rankId: rankId }
+            })
+                .then(response => {
+                    btn.disabled = false;
+                    if (response.data.code === 200 || response.data.success) {
+                        // 后端真加了收藏记录 → 前端才改
+                        btn.classList.add('collected');
+                        collectCountEl.textContent = originalCount + 1;
+                        // 可选：图标变色
+                        btn.querySelector('.star-icon').style.color = '#fffa9c';
+                        showSuccessTip("收藏成功！");
+                    } else {
+                        collectCountEl.textContent = originalCount; // 回滚
+                        showErrorTip("收藏失败：" + (response.data.msg || "后端未添加数据"));
+                    }
+                })
+                .catch(error => {
+                    btn.disabled = false;
+                    collectCountEl.textContent = originalCount; // 回滚
+                    showErrorTip("收藏失败：" + (error.response?.data?.msg || "接口异常"));
+                });
+        }
     }
     // 10. 评论功能
     // 切换评论区显示/隐藏
