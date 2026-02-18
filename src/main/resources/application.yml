@@ -31,3 +31,12 @@ pagehelper:
   helper-dialect: mysql
   support-methods-arguments: false
   reasonable: false
+
+  redis:
+    host: 172.17.211.108
+    port: 6379
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
