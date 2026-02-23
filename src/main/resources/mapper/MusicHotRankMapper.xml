@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.music.Mapper.MusicHotRankMapper">
+
+    <select id="listByIds" resultType="com.music.dto.MyRankWithSong">
+<!--创建该查询榜单方法时，传入的对象是主键id——rankId组成的集合，所以采用foreach循环实时更新id去查询回显热门榜单-->
+        select * from personal_rank where rank_id in
+        <foreach collection="rankId" item="id" open="(" separator="," close=")">
+             #{rankId}
+        </foreach>
+    </select>
+    <select id="CountVote" resultType="java.lang.Long">
+        select count(*) from vote_record where rank_id=#{rankId} group by rank_id;
+    </select>
+    <select id="CountLove" resultType="java.lang.Long">
+        select count(*) from love_record where rank_id=#{rankId} group by rank_id;
+    </select>
+</mapper>
