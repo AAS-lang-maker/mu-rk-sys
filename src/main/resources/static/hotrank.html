@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <title>热门榜单</title>
+    <style>
+        /* 完全复用你提供的样式，保证视觉统一 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            min-height: 100vh;
+            color: #f7fafc;
+            padding: 20px;
+            background:
+                    linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+                    #0f172a;
+            background-size: 50px 50px, 50px 50px, 100% 100%;
+            background-attachment: fixed;
+            position: relative;
+        }
+
+        .container {
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            color: #fffa9c;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .header p {
+            font-size: 18px;
+            color: rgba(247, 250, 252, 0.7);
+        }
+
+        /* 左上角搜索按钮样式 */
+        .top-right-search {
+            position: absolute;
+            top: 60px;
+            left: 60px;
+            z-index: 100;
+        }
+
+        .search-button {
+            width: 70px;
+            height: 70px;
+            background: #1E293B;
+            border: 2px solid #d1d5db;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .search-button:hover {
+            transform: scale(1.1);
+            background: rgba(255, 250, 156, 0.2);
+            border-color: #fffa9c;
+            box-shadow: 0 0 20px rgba(255, 250, 156, 0.5);
+        }
+
+        .search-button img {
+            width: 70%;
+            height: 70%;
+            object-fit: contain;
+        }
+
+        .content {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 40px;
+            margin-bottom: 100px;
+        }
+
+        .content h2 {
+            font-size: 24px;
+            color: #fffa9c;
+            margin-bottom: 30px;
+        }
+
+        .content p {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        /* 修改加号按钮定位：固定在视口底部中央 */
+        .add-button-container {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+        }
+
+        .add-button {
+            width: 80px;
+            height: 80px;
+            background-color: #fffa9c;
+            color: #1a202c;
+            border: none;
+            border-radius: 50%;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(255, 250, 205, 0.4);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .add-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(255, 250, 205, 0.6);
+        }
+
+        .add-button:active {
+            transform: scale(0.95);
+        }
+
+        .ranking-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .publisher-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 250, 156, 0.3);
+            color: #f7fafc;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 14px;
+            cursor: default;
+            /* 因为它只是展示，不是可点击按钮 */
+            transition: all 0.3s ease;
+        }
+
+        .publisher-btn:hover {
+            background-color: #fffa9c;
+            color: #1a202c;
+            transform: translateY(-2px);
+        }
+
+        .rankings-list {
+            margin-bottom: 30px;
+        }
+
+        .ranking-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .ranking-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(10px);
+            border-left-color: #fffa9c;
+        }
+
+        .ranking-item h3 {
+            color: #fffa9c;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .ranking-item p {
+            color: rgba(247, 250, 252, 0.7);
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+
+        .ranking-meta {
+            display: flex;
+            gap: 20px;
+            font-size: 13px;
+            color: rgba(255, 250, 156, 0.8);
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 40px;
+        }
+
+        .pagination button {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 250, 156, 0.3);
+            color: #f7fafc;
+            border-radius: 6px;
+            padding: 8px 16px;
+            margin: 0 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background-color: #fffa9c;
+            color: #1a202c;
+            transform: translateY(-2px);
+        }
+
+        .pagination button.active {
+            background-color: #fffa9c;
+            color: #1a202c;
+            font-weight: bold;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .song-list {
+            margin-top: 15px;
+            padding-left: 0;
+        }
+
+        .song-list h4 {
+            color: #fffa9c;
+            font-size: 16px;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        .song-list ul {
+            list-style: none;
+            padding: 0;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 6px;
+            padding: 10px;
+        }
+
+        .song-list li {
+            margin: 8px 0;
+            padding: 10px 15px;
+            border-bottom: 1px solid rgba(255, 250, 156, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .song-list li:last-child {
+            border-bottom: none;
+        }
+
+        .song-list li:hover {
+            background: rgba(255, 250, 156, 0.05);
+        }
+
+        .song-name {
+            color: #f7fafc;
+            font-size: 15px;
+            flex: 1;
+        }
+
+        .song-singer {
+            color: rgba(247, 250, 252, 0.7);
+            font-size: 13px;
+            margin-left: 10px;
+            padding: 4px 10px;
+            background: rgba(255, 250, 156, 0.1);
+            border-radius: 4px;
+        }
+
+        .song-rank {
+            color: #fffa9c;
+            font-size: 15px;
+            font-weight: 600;
+            margin-left: 20px;
+            padding: 4px 10px;
+            background: rgba(255, 250, 156, 0.1);
+            border-radius: 4px;
+        }
+
+        .interaction-section {
+            margin-top: 15px;
+            padding-left: 15px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .vote-btn,
+        .collect-btn {
+            background: transparent;
+            border: none;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 8px 15px;
+            border-radius: 20px;
+        }
+
+        .vote-btn:hover {
+            background: rgba(255, 182, 193, 0.2);
+        }
+
+        .collect-btn:hover {
+            background: rgba(192, 192, 192, 0.2);
+        }
+
+        .heart-icon {
+            color: #ffb6c1;
+            font-size: 18px;
+            margin-right: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .vote-btn:hover .heart-icon {
+            color: #ff69b4;
+            transform: scale(1.1);
+        }
+
+        .vote-btn.voted .heart-icon {
+            color: #ff69b4;
+        }
+
+        .star-icon {
+            color: #e68181;
+            font-size: 18px;
+            margin-right: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .collect-btn:hover .star-icon {
+            color: #ffffff;
+            transform: scale(1.1);
+        }
+
+        .collect-btn.collected .star-icon {
+            color: #ffffff;
+        }
+
+        .vote-count,
+        .collect-count {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .vote-count {
+            color: rgba(255, 182, 193, 0.9);
+        }
+
+        .collect-count {
+            color: rgba(192, 192, 192, 0.9);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 28px;
+            }
+
+            .content {
+                padding: 30px;
+            }
+
+            .add-button {
+                width: 70px;
+                height: 70px;
+                font-size: 36px;
+            }
+        }
+
+        /* 新增提示框样式 */
+        #errorAlert {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            background: #ff4444;
+            color: #fff;
+            border-radius: 4px;
+            z-index: 9999;
+        }
+
+        #successAlert {
+            display: none;
+            position: fixed;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            background: #00C851;
+            color: #fff;
+            border-radius: 4px;
+            z-index: 9999;
+        }
+
+        /* 我的榜单按钮样式 */
+        .slide-btn-container {
+            position: fixed;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 999;
+            display: flex;
+            align-items: center;
+        }
+
+        .slide-btn-toggle {
+            width: 120px;
+            height: 50px;
+            border-radius: 25px 0 0 25px;
+            background: #fffa9c;
+            color: #1a202c;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: -2px 0 10px rgba(255, 250, 156, 0.3);
+        }
+
+        .slide-btn-toggle:hover {
+            background: #fff780;
+            box-shadow: -2px 0 15px rgba(255, 250, 156, 0.5);
+        }
+
+        .slide-btn-toggle.collapsed {
+            width: 50px;
+            background: rgba(255, 250, 156, 0.8);
+        }
+
+        .slide-btn-toggle.collapsed .toggle-icon {
+            display: none;
+        }
+
+        .toggle-icon {
+            display: inline;
+            font-size: 14px;
+            margin-left: 5px;
+        }
+
+        .slide-btn-content {
+            height: 50px;
+            padding: 0 20px;
+            background: #fffa9c;
+            color: #1a202c;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px 0 0 4px;
+            margin-right: -1px;
+            transform: translateX(100%);
+            opacity: 0;
+            transition: all 0.3s;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .slide-btn-content.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .slide-btn-content:hover {
+            background: #fff780;
+        }
+
+        /* 返回登录按钮样式 */
+        .login-btn-container {
+            position: fixed;
+            left: 0;
+            top: 70%;
+            transform: translateY(-50%);
+            z-index: 999;
+            display: flex;
+            align-items: center;
+        }
+
+        .login-btn-toggle {
+            width: 120px;
+            height: 50px;
+            border-radius: 0 25px 25px 0;
+            background: #fffa9c;
+            color: #1a202c;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 2px 0 10px rgba(255, 250, 156, 0.3);
+        }
+
+        .login-btn-toggle:hover {
+            background: #fff780;
+            box-shadow: 2px 0 15px rgba(255, 250, 156, 0.5);
+        }
+
+        .login-btn-toggle.collapsed {
+            width: 50px;
+            height: 50px;
+            border-radius: 0 25px 25px 0;
+            background: #fffa9c;
+        }
+
+        .login-btn-toggle.collapsed .toggle-icon {
+            display: none;
+        }
+
+        .login-btn-content {
+            height: 50px;
+            padding: 0 20px;
+            background: #fffa9c;
+            color: #1a202c;
+            border: none;
+            cursor: pointer;
+            border-radius: 25px 0 0 25px;
+            margin-right: -1px;
+            transform: translateX(-100%);
+            opacity: 0;
+            transition: all 0.3s;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .login-btn-content.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .login-btn-content:hover {
+            background: #fff780;
+        }
+
+        /* 新增：暂无数据样式 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(247, 250, 252, 0.6);
+            font-size: 18px;
+        }
+
+        /* 加载和无更多数据样式 */
+        .loading,
+        .no-more {
+            text-align: center;
+            padding: 20px;
+            color: rgba(255, 250, 156, 0.8);
+            display: none;
+        }
+
+        /* 榜单排名数字样式（整合后统一） */
+        .rank-num {
+            width: 32px;
+            height: 32px;
+            line-height: 32px;
+            text-align: center;
+            background: #d8705e;
+            color: white;
+            border-radius: 50%;
+            margin-right: 12px;
+            font-weight: bold;
+        }
+
+        /* 榜单头部样式（整合后） */
+        .rank-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        /* 排名信息样式 */
+        .rank-info {
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        /* 榜单标题样式 */
+        .rank-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #fffa9c;
+        }
+
+        /* 榜单列表样式 */
+        .rank-list {
+            list-style: none;
+            padding: 0;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+    <!-- 右上角搜索按钮 -->
+    <div class="top-right-search">
+        <button class="search-button" onclick="openSearch()">
+            <svg width="40" height="40" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="14" cy="14" r="10" stroke="#fffa9c" stroke-width="3" />
+                <line x1="21" y1="21" x2="28" y2="28" stroke="#fffa9c" stroke-width="3" stroke-linecap="round" />
+            </svg>
+        </button>
+    </div>
+
+    <div class="header">
+        <h1>热门榜单</h1>
+        <p>探索最受欢迎的音乐榜单</p>
+    </div>
+
+    <div class="content">
+        <h2 class="rank-title">🔥 热门榜单</h2>
+        <ul class="rank-list" id="rankList"></ul>
+        <!-- 暂无数据占位 -->
+        <div class="empty-state" id="emptyState" style="display: none;">暂无热门榜单数据</div>
+        <div class="loading" id="loading">加载中...</div>
+        <div class="no-more" id="noMore">没有更多榜单啦~</div>
+    </div>
+
+    <!-- 我的榜单按钮 -->
+    <div class="slide-btn-container">
+        <button class="slide-btn-toggle expanded" id="slideBtnToggle">
+            <span class="toggle-icon">我的榜单</span>
+        </button>
+        <button class="slide-btn-content show" id="myRankBtn">进入我的榜单</button>
+        <button class="slide-btn-content show" id="hotRankBtn">热门榜单</button>
+    </div>
+
+    <!-- 返回登录按钮 -->
+    <div class="login-btn-container">
+        <button class="login-btn-toggle expanded" id="loginBtnToggle">
+            <span class="toggle-icon">登录</span>
+        </button>
+        <button class="login-btn-content show" id="loginBtn">返回登录页面</button>
+    </div>
+</div>
+
+<script>
+    // 1. 工具函数：获取URL参数
+    function getUrlParam(paramName) {
+        const reg = new RegExp("(^|&)" + paramName + "=([^&]*)(&|$)");
+        const paramMatch = window.location.search.substr(1).match(reg);
+        return paramMatch ? decodeURIComponent(paramMatch[2]) : null;
+    }
+
+    // 2. 全局变量
+    let token = getUrlParam("token");
+    let userId = getUrlParam("userId");
+    let category = parseInt(getUrlParam("category")) || 1;
+
+    // 核心配置
+    const config = {
+        baseUrl: "/music",
+        hotRankApi: "/api/hot/hotrank",
+        loginUrl: "/music/login.html",
+        publishPageUrl: "/music/api/rank/publish",
+        pageSize: 5,
+        currentStart: 0,
+        isLoading: false,
+        hasMore: true,
+        totalRankCount: 0
+    };
+
+    // 3. 初始化
+    window.onload = function () {
+        // Token校验
+        if (!token || token.trim() === "") {
+            alert("登录状态失效，请重新登录");
+            window.location.href = `${config.loginUrl}?redirect=${encodeURIComponent(window.location.href)}`;
+            return;
+        }
+        if (!userId) {
+            alert("缺少用户信息，请重新登录");
+            window.location.href = config.loginUrl;
+            return;
+        }
+
+        // 初始化Axios
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        axios.defaults.headers.common['userId'] = userId;
+
+        // 加载数据 + 监听滚动
+        loadRankData();
+        window.addEventListener("scroll", handleScroll);
+
+        // 绑定按钮事件
+        bindButtonEvents();
+    };
+
+    // 4. 绑定按钮事件
+    function bindButtonEvents() {
+        const slideBtnToggle = document.getElementById('slideBtnToggle');
+        const myRankBtn = document.getElementById('myRankBtn');
+        const hotRankBtn = document.getElementById('hotRankBtn');
+        const loginBtnToggle = document.getElementById('loginBtnToggle');
+        const loginBtn = document.getElementById('loginBtn');
+
+        // 我的榜单展开/收起
+        let isExpanded = true;
+        slideBtnToggle.onclick = function () {
+            isExpanded = !isExpanded;
+            if (isExpanded) {
+                slideBtnToggle.classList.remove('collapsed');
+                slideBtnToggle.classList.add('expanded');
+                myRankBtn.classList.add('show');
+                hotRankBtn.classList.add('show');
+            } else {
+                slideBtnToggle.classList.remove('expanded');
+                slideBtnToggle.classList.add('collapsed');
+                myRankBtn.classList.remove('show');
+                hotRankBtn.classList.remove('show');
+            }
+        };
+
+        // 进入我的榜单
+        myRankBtn.onclick = function () {
+            if (!token || !userId || isNaN(userId)) {
+                alert("缺少登录信息，请重新登录！");
+                setTimeout(() => window.location.href = "/login.html", 1500);
+                return false;
+            }
+            const jumpUrl = `/music/api/mine/my?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}&pageNum=1&pageSize=10`;
+            window.location.href = jumpUrl;
+            return false;
+        };
+
+        // 热门榜单（当前页面）
+        hotRankBtn.onclick = function () {
+            return false;
+        };
+
+        // 返回登录展开/收起
+        let isLoginExpanded = true;
+        loginBtnToggle.onclick = function () {
+            isLoginExpanded = !isLoginExpanded;
+            if (isLoginExpanded) {
+                loginBtnToggle.classList.remove('collapsed');
+                loginBtnToggle.classList.add('expanded');
+                loginBtn.classList.add('show');
+            } else {
+                loginBtnToggle.classList.remove('expanded');
+                loginBtnToggle.classList.add('collapsed');
+                loginBtn.classList.remove('show');
+            }
+            return false;
+        };
+
+        // 返回登录页面
+        loginBtn.onclick = function () {
+            window.location.href = "/music/login.html";
+            return false;
+        };
+    }
+
+    // 5. 搜索功能
+    function openSearch() {
+        const searchUrl = `/music/api/rank/sou?token=${encodeURIComponent(token)}&category=${category}`;
+        window.location.href = searchUrl;
+    }
+
+    // 6. 加载榜单数据（核心：修复排序+补充歌曲排名）
+    async function loadRankData() {
+        if (config.isLoading || !config.hasMore) return;
+
+        config.isLoading = true;
+        document.getElementById("loading").style.display = "block";
+        document.getElementById("emptyState").style.display = "none";
+
+        try {
+            const end = config.currentStart + config.pageSize - 1;
+            const response = await axios.get(`${config.baseUrl}${config.hotRankApi}`, {
+                params: {
+                    start: config.currentStart,
+                    end: end,
+                    token: token,
+                    userId: userId
+                },
+                timeout: 10000
+            });
+
+            const resData = response.data;
+            if (resData.code !== 200 && resData.code !== 0) {
+                if (resData.code === 401) {
+                    alert("登录已过期，请重新登录");
+                    window.location.href = config.loginUrl;
+                    return;
+                }
+                alert(`加载失败：${resData.msg || "未知错误"}`);
+                return;
+            }
+
+            const rawList = resData.data || [];
+            if (rawList.length === 0 && config.currentStart === 0) {
+                config.hasMore = false;
+                document.getElementById("emptyState").style.display = "block";
+                document.getElementById("noMore").style.display = "none";
+                return;
+            } else if (rawList.length === 0) {
+                config.hasMore = false;
+                document.getElementById("noMore").style.display = "block";
+                return;
+            }
+
+            // 按rankId分组，聚合歌曲
+            const rankMap = {};
+            rawList.forEach(item => {
+                const rankId = item.rankId || item.rank_id;
+                if (!rankId) return;
+
+                if (!rankMap[rankId]) {
+                    rankMap[rankId] = {
+                        rankId: rankId,
+                        rankName: item.rankName || item.rank_name || "未命名榜单",
+                        username: item.username || item.userName || item.user_name || "未知用户",
+                        voteCount: Number(item.voteCount || item.vote_count || 0),
+                        loveCount: Number(item.loveCount || item.love_count || 0),
+                        publishTime: item.publishTime || item.publish_time || "",
+                        songs: []
+                    };
+                }
+                // 补充歌曲排名、歌手信息
+                if (item.songName || item.song_name) {
+                    rankMap[rankId].songs.push({
+                        songName: item.songName || item.song_name,
+                        singerName: item.singerName || item.singer_name ,
+                        ranking: Number(item.ranking || item.ranking || 0) // 歌曲在榜单内的排名
+                    });
+                }
+            });
+
+            // 核心修复：按热度（投票+收藏）降序排序（热度高的排前面）
+            let rankList = Object.values(rankMap);
+            rankList = rankList.sort((a, b) => {
+                const hotA = a.voteCount + a.loveCount;
+                const hotB = b.voteCount + b.loveCount;
+                return hotB - hotA; // 降序：热度高的在前
+            });
+
+            // 渲染榜单
+            renderRankList(rankList);
+
+            // 更新加载状态
+            config.totalRankCount += rankList.length;
+            config.currentStart += config.pageSize;
+
+            if (rawList.length < config.pageSize) {
+                config.hasMore = false;
+                document.getElementById("noMore").style.display = "block";
+            }
+        } catch (error) {
+            config.isLoading = false;
+            document.getElementById("loading").style.display = "none";
+
+            if (config.currentStart === 0) {
+                document.getElementById("emptyState").style.display = "block";
+            }
+
+            if (error.response) {
+                if (error.response.status === 401) {
+                    alert("Token已失效，请重新登录");
+                    window.location.href = config.loginUrl;
+                    return;
+                }
+                alert(`接口请求失败：${error.response.status} - ${error.response.data?.msg || "服务器错误"}`);
+            } else if (error.request) {
+                alert("网络异常，请检查网络连接");
+            } else {
+                alert(`加载失败：${error.message}`);
+            }
+            console.error("榜单加载失败详情：", error);
+        } finally {
+            config.isLoading = false;
+            document.getElementById("loading").style.display = "none";
+        }
+    }
+
+    // 7. 渲染榜单（核心：样式统一+显示歌曲排名/歌手）
+    function renderRankList(rankList) {
+        const rankListDom = document.getElementById("rankList");
+        if (!rankList || rankList.length === 0) return;
+
+        rankList.forEach((rank, index) => {
+            // 计算榜单排名（从1开始递增）
+            const rankNum = config.totalRankCount + index + 1;
+            const li = document.createElement("li");
+            li.className = "ranking-item"; // 使用统一的样式类
+
+            // 计算榜单热度
+            const hotValue = rank.voteCount + rank.loveCount;
+
+            // 拼接歌曲列表HTML（显示歌曲排名+歌手）
+            let songsHtml = '';
+            if (rank.songs.length === 0) {
+                songsHtml = '<div class="song-item"><span class="song-name">暂无歌曲</span></div>';
+            } else {
+                const showSongs = rank.songs.slice(0, 5);
+                songsHtml += '<h4>歌曲列表</h4><ul>';
+                showSongs.forEach(song => {
+                    songsHtml += `
+                            <li>
+                                <span class="song-name">${song.songName}</span>
+                                <span class="song-singer">${song.singerName}</span>
+                                <span class="song-rank">${song.ranking || "无排名"}</span>
+                            </li>
+                        `;
+                });
+                songsHtml += '</ul>';
+                // 超过5首显示更多提示
+                if (rank.songs.length > 5) {
+                    songsHtml += `<div style="margin-top:8px;color:rgba(247,250,252,0.7);font-size:13px;">还有 ${rank.songs.length - 5} 首歌曲</div>`;
+                }
+            }
+
+            // 渲染榜单内容（样式和现有页面统一）
+            li.innerHTML = `
+                    <div class="rank-header">
+                        <div class="rank-info">
+                            <div class="rank-num">${rankNum}</div>
+                            <div>
+                                <h3>${rank.rankName}</h3>
+                                <div class="ranking-meta">
+                                    <span>创建人：${rank.username}</span>
+                                    <span>热度：${hotValue}</span>
+                                    ${rank.publishTime ? `<span>更新时间：${rank.publishTime}</span>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        <button class="publisher-btn">发布人：${rank.username}</button>
+                    </div>
+                    <div class="song-list">${songsHtml}</div>
+                `;
+            rankListDom.appendChild(li);
+        });
+    }
+
+    // 8. 监听滚动加载更多
+    function handleScroll() {
+        if (config.isLoading) return;
+
+        const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+        const windowHeight = window.innerHeight;
+        const scrollHeight = document.documentElement.scrollHeight || document.body.scrollHeight;
+        const isBottom = scrollTop + windowHeight >= scrollHeight - 200;
+
+        if (isBottom && config.hasMore) {
+            loadRankData();
+        }
+    }
+</script>
+</body>
+
+</html>

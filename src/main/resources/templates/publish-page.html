@@ -143,6 +143,7 @@
         .add-button:active {
             transform: scale(0.95);
         }
+
         .ranking-header {
             display: flex;
             justify-content: space-between;
@@ -157,7 +158,8 @@
             border-radius: 6px;
             padding: 6px 12px;
             font-size: 14px;
-            cursor: default; /* 因为它只是展示，不是可点击按钮 */
+            cursor: default;
+            /* 因为它只是展示，不是可点击按钮 */
             transition: all 0.3s ease;
         }
 
@@ -166,6 +168,7 @@
             color: #1a202c;
             transform: translateY(-2px);
         }
+
         .rankings-list {
             margin-bottom: 30px;
         }
@@ -847,8 +850,8 @@
                     <div class="comment-container" th:id="|comment-container-${ranking.rankId}|">
                         <!-- 评论输入区 -->
                         <div class="comment-input-area">
-                <textarea class="comment-input" th:id="|comment-input-${ranking.rankId}|"
-                          placeholder="写下你的评论..."></textarea>
+                                <textarea class="comment-input" th:id="|comment-input-${ranking.rankId}|"
+                                          placeholder="写下你的评论..."></textarea>
                             <div class="comment-actions">
                                 <button class="comment-submit" th:onclick="|submitComment(${ranking.rankId})|">
                                     发表评论
@@ -892,6 +895,7 @@
             <span class="toggle-icon">我的榜单</span>
         </button>
         <button class="slide-btn-content show" id="myRankBtn">进入我的榜单</button>
+        <button class="slide-btn-content show" id="hotRankBtn">热门榜单</button>
     </div>
 
     <!-- 返回登录按钮 -->
@@ -974,6 +978,7 @@
         // 先获取所有按钮（只在这里获取一次）
         const slideBtnToggle = document.getElementById('slideBtnToggle');
         const myRankBtn = document.getElementById('myRankBtn');
+        const hotRankBtn = document.getElementById('hotRankBtn');
         const loginBtnToggle = document.getElementById('loginBtnToggle');
         const loginBtn = document.getElementById('loginBtn');
         const addBtn = document.getElementById("addBtn");
@@ -1005,6 +1010,21 @@
             const jumpUrl = `${targetPath}?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}&pageNum=1&pageSize=10`;
             console.log("跳转URL：", jumpUrl);
             window.location.href = jumpUrl;
+            return false;
+        };
+
+        // 热门榜单跳转
+        hotRankBtn.onclick = function () {
+            console.log("【热门榜单】按钮被点击");
+            if (!token || !userId || isNaN(userId)) {
+                showErrorTip("缺少登录信息，请重新登录！");
+                setTimeout(() => window.location.href = "/login.html", 1500);
+                return false;
+            }
+            // 跳转到热门榜单页面，使用后端重定向接口
+            const hotRankUrl = `/music/hotrank.html?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}`;
+            console.log("热门榜单跳转URL：", hotRankUrl);
+            window.location.href = hotRankUrl;
             return false;
         };
 

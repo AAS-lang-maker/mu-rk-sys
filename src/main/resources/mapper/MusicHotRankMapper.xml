@@ -6,11 +6,48 @@
 
     <select id="listByIds" resultType="com.music.dto.MyRankWithSong">
 <!--创建该查询榜单方法时，传入的对象是主键id——rankId组成的集合，所以采用foreach循环实时更新id去查询回显热门榜单-->
-        select * from personal_rank where rank_id in
+        select a.rank_name,a.rank_id,a.publish_time,a.user_id,u.username,a.love_count,a.vote_count,
+               b.rs_id,b.song_id,b.ranking,b.rank_update_time,s.song_name,si.singer_name from (select p.rank_id,
+               p.rank_name,p.publish_time,p.user_id,coalesce(v.total_vote,0) as vote_count,coalesce(l.total_love,0) as love_count
+               from personal_rank as p
+              left join (select rank_id,count(*)  total_vote from vote_record group by rank_id) as v  on p.rank_id = v.rank_id
+               left join (select rank_id,count(*) total_love from love_record group by rank_id) as l on l.rank_id=p.rank_id
+                where p.rank_id in
         <foreach collection="rankId" item="id" open="(" separator="," close=")">
-             #{rankId}
+            #{id}
         </foreach>
+         <!--上方foreach循环指定rankId范围，是redis中用resever方法查询的start和end索引区间内的rankId
+         下方让mysql按照索引范围内的由热度高低顺序进行排序-->
+         <!--豆包又教我学新知识····，field（）函数作用：返回指定字段在列表中的索引，比如列表（2，1，3，5），则1的索引就是2-->
+           order by field(p.rank_id,
+        <foreach collection="rankId" item="id"  separator=",">
+            #{id}
+        </foreach>)) as a
+        <!--不用加上order by语句，redis的Zset已经通过分数进行合理排序-->
+        <!--一个榜单对应了多个歌曲，导致love_count和vote_count会产生那个笛卡尔积？何意味？-->
+               left join rank_song as b on b.rank_id=a.rank_id
+               left join user as u on u.user_id=a.user_id
+               left join song as s on s.song_id=b.song_id
+               left join singer as si on si.singer_id=s.singer_id
+               order by b.ranking asc
+        <!--最后不要忘记是按照歌曲排名组成的榜单-->
     </select>
+    <resultMap id="MyRankWithSongsResultMap" type="com.music.dto.MyRankWithSong">
+        <id property="rankId" column="rank_id"/>
+        <result property="rankName" column="rank_name"/>
+        <result property="voteCount" column="vote_count"/>
+        <result property="loveCount" column="love_count"/>
+        <result property="username" column="username"/>
+        <result property="publishTime" column="publish_time"/>
+        <collection property="rankSongList" ofType="com.music.pojo.RankSong">
+            <id property="rsId" column="rs_id"/>
+            <result property="songId" column="song_id"/>
+            <result property="songName" column="song_name"/>
+            <result property="singerName" column="singer_name"/>
+            <result property="ranking" column="ranking"/>
+            <result property="rankUpdateTime" column="rank_update_time"/>
+        </collection>
+    </resultMap>
     <select id="CountVote" resultType="java.lang.Long">
         select count(*) from vote_record where rank_id=#{rankId} group by rank_id;
     </select>
