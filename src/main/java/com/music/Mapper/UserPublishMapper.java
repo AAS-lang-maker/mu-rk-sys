@@ -63,6 +63,11 @@ public interface UserPublishMapper {
 
     @Delete("delete from love_record where rank_id=#{rankId} and user_id=#{userId};")
     int deleteLove(Integer rankId, Integer userId);
-    //?应该可以不用@Param，对于update操作
+
+    @Select("select count(*) from vote_record where user_id=#{userId} and rank_id=#{rankId}")
+    int countVote(@Param("rankId") Integer rankId,@Param("userId") Integer userId);
+
+    @Select("select count(*) from love_record where user_id=#{userId} and rank_id=#{rankId}")
+    int countLove(Integer rankId, Integer userId);
     //@Param("list")注解，专门为Maybatis批量插入的需求的List集合起一个别名
 }

@@ -7,19 +7,20 @@
 <mapper namespace="com.music.Mapper.MyRankMapper">
 
     <select id="selectMyRank" resultMap="MyRankWithSongsResultMap">
-        select a.rank_id,a.rank_name,a.total_vote as vote_count,a.total_love as love_count,a.publish_time,
-               b.rs_id,b.song_id,b.ranking,b.rank_update_time,c.song_name,d.singer_name
-        from (select p.rank_id,p.rank_name,ifnull(sum(v.vote),0) as total_vote,p.publish_time,
-              ifnull(sum(l.love),0) as total_love from personal_rank as p
-        left join vote_record as v on v.rank_id=p.rank_id
-        left join  love_record as l on l.rank_id=p.rank_id
-        where p.user_id=#{userId}
+        select a.rank_id,a.rank_name,a.vote_count,a.love_count,a.publish_time,
+               b.rs_id,b.song_id,b.ranking,b.rank_update_time,c.song_name,d.singer_name,u.username
+        from (select p.rank_id,p.rank_name,p.publish_time,p.user_id,coalesce(v.total_vote,0) as vote_count,coalesce(l.total_love,0) as love_count
+              from personal_rank as p
+             left join (select rank_id,count(*) as total_vote from vote_record group by rank_id) as v on v.rank_id=p.rank_id
+             left join  (select rank_id,count(*) as total_love from love_record group by rank_id) as l on l.rank_id=p.rank_id
+             where p.user_id=#{userId}
         group by p.rank_id, p.rank_name, p.publish_time
         order by publish_time asc
         limit #{pageSize} offset #{offset}) a
         left join rank_song as b on a.rank_id = b.rank_id
         left join song as c on c.song_id=b.song_id
         left join singer as d on c.singer_id = d.singer_id
+        left join user u on u.user_id=a.user_id
         order by b.rank_update_time asc, b.ranking asc
     </select>
 

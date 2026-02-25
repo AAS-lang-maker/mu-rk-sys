@@ -779,6 +779,45 @@
             background: rgba(255, 255, 255, 0.02);
             border-left: 2px solid rgba(255, 250, 156, 0.3);
         }
+        /* 评论删除按钮核心样式 */
+        .comment-delete-btn {
+            /* 重置按钮默认样式 */
+            background: transparent;
+            border: none;
+            outline: none;
+            /* 基础样式 */
+            color: rgba(255, 99, 71, 0.7);
+            font-size: 13px;
+            font-weight: 500;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            /* 弹性布局，方便后续加图标 */
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            /* 过渡动画，使交互更丝滑 */
+            transition: all 0.2s ease;
+        }
+
+        /* 鼠标悬浮状态 - 加深颜色+轻微背景 */
+        .comment-delete-btn:hover {
+            color: #ff6347; /* 纯番茄红，更醒目 */
+            background-color: rgba(255, 99, 71, 0.1);
+            transform: translateY(-1px); /* 轻微上浮，增加立体感 */
+        }
+
+        /* 点击激活状态 - 按下效果 */
+        .comment-delete-btn:active {
+            transform: translateY(0);
+            opacity: 0.8;
+        }
+
+        /* 可选：如果想加个垃圾桶图标（使用文字图标） */
+        .comment-delete-btn::before {
+            content: "🗑️";
+            font-size: 12px;
+        }
     </style>
 </head>
 
@@ -915,15 +954,34 @@
         return paramMatch ? decodeURIComponent(paramMatch[2]) : null;
     }
 
+    // 新增：从JWT Token解析userId（解决URL无userId的核心）
+    function getUserIdFromToken(token) {
+        if (!token) return null;
+        try {
+            // JWT格式：header.payload.signature，解析第二部分
+            const payload = token.split('.')[1];
+            // Base64解码（兼容浏览器）
+            const decodedPayload = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
+            const payloadObj = JSON.parse(decodedPayload);
+            // 返回userId（根据你的Token payload字段名调整，比如uid/userId）
+            return payloadObj.userId || payloadObj.uid || null;
+        } catch (error) {
+            console.error("解析Token失败:", error);
+            return null;
+        }
+    }
+
     // 2. 全局变量（只声明一次）
     let token = getUrlParam("token");
-    let userId = getUrlParam("userId");
+    // 优先从URL获取userId，没有则从Token解析
+    let userId = getUrlParam("userId") || getUserIdFromToken(token);
     let category = parseInt(getUrlParam("category")) || 1; // 兜底1
     let pageNum = parseInt(getUrlParam("pageNum")) || 1;
     let pageSize = parseInt(getUrlParam("pageSize")) || 4;
 
     console.log("解析到的category：", getUrlParam("category"));
     console.log("转成数字后：", category);
+    console.log("最终获取的userId：", userId, "类型：", typeof userId); // 新增调试日志
 
     // 3. 动态路径工具
     function getTargetPublishPath(category) {
@@ -967,7 +1025,7 @@
     // 5. 搜索功能
     function openSearch() {
         // 直接跳转到搜索页面（通过sou接口重定向）
-        const searchUrl = `/music/api/rank/sou?token=${encodeURIComponent(token)}&category=${category}`;
+        const searchUrl = `/music/api/rank/sou?token=${encodeURIComponent(token)}&category=${category}&userId=${userId}`; // 新增userId
         window.location.href = searchUrl;
     }
 
@@ -1083,7 +1141,7 @@
         window.location.href = jumpUrl;
     }
     // ===================== 榜单点赞（和后端数据库联动版）=====================
-    function voteForRanking(rankId, btn) { // 函数名改为voteForRanking（匹配HTML调用）
+    function voteForRanking(rankId, btn) {
         console.log('切换榜单投票状态，rankId:', rankId);
         if (!token) {
             showErrorTip("请先登录后再投票！");
@@ -1094,66 +1152,43 @@
         const voteCountEl = btn.querySelector('.vote-count');
         const originalCount = Number(voteCountEl.textContent) || 0;
 
+        // 锁按钮，防止重复点击
+        btn.disabled = true;
 
-        if (btn.classList.contains('voted')) {
-            // 已点赞 → 取消点赞（先锁按钮，防止重复点击）
-            btn.disabled = true;
-            // 修复：取消点赞接口适配分类
-            const deleteVotePath = category === 1 ? "/music/api/rank/deleteVote" : "/music/api/workrank/deleteVote";
-            axios.post(deleteVotePath, {}, {
-                params: { token: token, rankId: rankId }
-            })
-                .then(response => {
-                    btn.disabled = false;
-                    // 必须校验后端真正的成功状态
-                    if (response.data.code === 200 || response.data.success) {
-                        // 后端真删了 → 前端才减数字、改样式
+        // 统一调用vote接口，由后端判断点赞/取消点赞（删掉了deleteVote接口）
+        axios.post(getTargetVotePath(category), {}, {
+            params: { token: token, rankId: rankId, userId: userId }
+        })
+            .then(response => {
+                btn.disabled = false;
+                if (response.data.code === 200 || response.data.success) {
+                    // 根据按钮当前状态，切换样式和数字
+                    if (btn.classList.contains('voted')) {
+                        // 取消点赞成功
                         btn.classList.remove('voted');
                         voteCountEl.textContent = Math.max(0, originalCount - 1);
-                        // 可选：图标改回空心
                         btn.querySelector('.heart-icon').textContent = '♡';
                         showSuccessTip("取消点赞成功！");
                     } else {
-                        // 后端没删成功 → 数字回滚，提示失败
-                        voteCountEl.textContent = originalCount;
-                        showErrorTip("取消点赞失败：" + (response.data.msg || "后端未删除数据"));
-                    }
-                })
-                .catch(error => {
-                    btn.disabled = false;
-                    voteCountEl.textContent = originalCount; // 数字回滚
-                    showErrorTip("取消点赞失败：" + (error.response?.data?.msg || "接口异常"));
-                });
-        } else {
-            // 未点赞 → 点赞（同样锁按钮）
-            btn.disabled = true;
-            axios.post(getTargetVotePath(category), {}, {
-                params: { token: token, rankId: rankId }
-            })
-                .then(response => {
-                    btn.disabled = false;
-                    if (response.data.code === 200 || response.data.success) {
-                        // 后端真加了 → 前端才加数字、改样式
+                        // 点赞成功
                         btn.classList.add('voted');
                         voteCountEl.textContent = originalCount + 1;
-                        // 可选：图标改成实心
                         btn.querySelector('.heart-icon').textContent = '♥';
                         showSuccessTip("点赞成功！");
-                    } else {
-                        voteCountEl.textContent = originalCount; // 回滚
-                        showErrorTip("点赞失败：" + (response.data.msg || "后端未添加数据"));
                     }
-                })
-                .catch(error => {
-                    btn.disabled = false;
+                } else {
                     voteCountEl.textContent = originalCount; // 回滚
-                    showErrorTip("点赞失败：" + (error.response?.data?.msg || "接口异常"));
-                });
-        }
+                    showErrorTip("操作失败：" + (response.data.msg || "后端处理失败"));
+                }
+            })
+            .catch(error => {
+                btn.disabled = false;
+                voteCountEl.textContent = originalCount; // 回滚
+                showErrorTip("操作失败：" + (error.response?.data?.msg || "接口异常"));
+            });
     }
-
     // ===================== 榜单收藏（和后端数据库联动版）=====================
-    function collectRanking(rankId, btn) { // 函数名改为collectRanking（匹配HTML调用）
+    function collectRanking(rankId, btn) {
         console.log('切换榜单收藏状态，rankId:', rankId);
         if (!token) {
             showErrorTip("请先登录后再收藏！");
@@ -1164,59 +1199,40 @@
         const collectCountEl = btn.querySelector('.collect-count');
         const originalCount = Number(collectCountEl.textContent) || 0;
 
-        if (btn.classList.contains('collected')) {
-            // 已收藏 → 取消收藏（锁按钮）
-            btn.disabled = true;
-            // 修复：取消收藏接口适配分类
-            const deleteLovePath = category === 1 ? "/music/api/rank/deleteLove" : "/music/api/workrank/deleteLove";
-            axios.post(deleteLovePath, {}, {
-                params: { token: token, rankId: rankId }
-            })
-                .then(response => {
-                    btn.disabled = false;
-                    if (response.data.code === 200 || response.data.success) {
-                        // 后端真删了收藏记录 → 前端才改
+        // 锁按钮，防止重复点击
+        btn.disabled = true;
+
+        // 统一调用love接口，由后端判断收藏/取消收藏（删掉了deleteLove接口）
+        axios.post(getTargetLovePath(category), {}, {
+            params: { token: token, rankId: rankId, userId: userId }
+        })
+            .then(response => {
+                btn.disabled = false;
+                if (response.data.code === 200 || response.data.success) {
+                    // 根据按钮当前状态，切换样式和数字
+                    if (btn.classList.contains('collected')) {
+                        // 取消收藏成功
                         btn.classList.remove('collected');
                         collectCountEl.textContent = Math.max(0, originalCount - 1);
-                        // 可选：图标恢复默认样式
                         btn.querySelector('.star-icon').style.color = '';
                         showSuccessTip("取消收藏成功！");
                     } else {
-                        collectCountEl.textContent = originalCount; // 回滚
-                        showErrorTip("取消收藏失败：" + (response.data.msg || "后端未删除数据"));
-                    }
-                })
-                .catch(error => {
-                    btn.disabled = false;
-                    collectCountEl.textContent = originalCount; // 回滚
-                    showErrorTip("取消收藏失败：" + (error.response?.data?.msg || "接口异常"));
-                });
-        } else {
-            // 未收藏 → 收藏（锁按钮）
-            btn.disabled = true;
-            axios.post(getTargetLovePath(category), {}, {
-                params: { token: token, rankId: rankId }
-            })
-                .then(response => {
-                    btn.disabled = false;
-                    if (response.data.code === 200 || response.data.success) {
-                        // 后端真加了收藏记录 → 前端才改
+                        // 收藏成功
                         btn.classList.add('collected');
                         collectCountEl.textContent = originalCount + 1;
-                        // 可选：图标变色
                         btn.querySelector('.star-icon').style.color = '#fffa9c';
                         showSuccessTip("收藏成功！");
-                    } else {
-                        collectCountEl.textContent = originalCount; // 回滚
-                        showErrorTip("收藏失败：" + (response.data.msg || "后端未添加数据"));
                     }
-                })
-                .catch(error => {
-                    btn.disabled = false;
+                } else {
                     collectCountEl.textContent = originalCount; // 回滚
-                    showErrorTip("收藏失败：" + (error.response?.data?.msg || "接口异常"));
-                });
-        }
+                    showErrorTip("操作失败：" + (response.data.msg || "后端处理失败"));
+                }
+            })
+            .catch(error => {
+                btn.disabled = false;
+                collectCountEl.textContent = originalCount; // 回滚
+                showErrorTip("操作失败：" + (error.response?.data?.msg || "接口异常"));
+            });
     }
     // 10. 评论功能
     // 切换评论区显示/隐藏
@@ -1252,7 +1268,8 @@
         axios.get(`/music/api/rank/list`, {
             params: {
                 token: token,
-                rankId: rankId
+                rankId: rankId,
+                userId: userId // 新增userId，匹配后端@RequestParam
             }
         })
             .then(response => {
@@ -1297,9 +1314,9 @@
         <button class="comment-like-btn ${comment.isLiked === 1 ? 'liked' : ''}" onclick="toggleCommentLike(${comment.comId}, event)">
           <span class="comment-heart-icon">♥</span>
           <span class="comment-like-count">${comment.likeCount || 0}</span>
-        </button>
+       </button>
         ${comment.userId === parseInt(userId) ?
-                `<button class="comment-like-btn" onclick="deleteComment(${comment.comId}, event)" style="color: rgba(255, 99, 71, 0.7);">
+                `<button class="comment-delete-btn" onclick="deleteComment(${comment.comId}, event)" >
     删除
 </button>` : ''
             }
@@ -1310,7 +1327,7 @@
         });
     }
 
-    // 提交评论
+    // 提交评论（新增userId参数，匹配后端@RequestParam）
     function submitComment(rankId) {
         console.log('提交评论,rankId:', rankId);
         const input = document.getElementById(`comment-input-${rankId}`);
@@ -1332,7 +1349,7 @@
             params: {
                 token: token,
                 rankId: rankId,
-                userId: userId,
+                userId: userId, // 必传，匹配后端@RequestParam
                 content: content,
                 parentId: null // 显式传递顶级评论的parentId为null
             }
@@ -1355,7 +1372,7 @@
             });
     }
 
-    // 切换评论点赞状态
+    // 切换评论点赞状态（新增userId参数）
     function toggleCommentLike(commentId, e) { // 添加e参数
         console.log('切换评论点赞状态，commentId:', commentId);
 
@@ -1374,7 +1391,7 @@
         }
     }
 
-    // 点赞评论
+    // 点赞评论（新增userId参数）
     function likeComment(commentId, likeBtn) {
         console.log('点赞评论，commentId:', commentId);
 
@@ -1383,7 +1400,8 @@
         }, {
             params: {
                 token: token,
-                comId: commentId
+                comId: commentId,
+                userId: userId // 新增userId，匹配后端@RequestParam
             }
         })
             .then(response => {
@@ -1402,7 +1420,7 @@
             });
     }
 
-    // 取消点赞
+    // 取消点赞（新增userId参数）
     function unlikeComment(commentId, likeBtn) {
         console.log('取消点赞，commentId:', commentId);
 
@@ -1411,7 +1429,8 @@
         }, {
             params: {
                 token: token,
-                comId: commentId
+                comId: commentId,
+                userId: userId // 新增userId，匹配后端@RequestParam
             }
         })
             .then(response => {
@@ -1442,7 +1461,8 @@
         axios.delete(`/music/api/rank/deleteComment`, {
             params: {
                 token: token,
-                comId: commentId
+                comId: commentId,
+                userId: userId
             }
         })
             .then(response => {
@@ -1463,7 +1483,6 @@
                 showErrorTip("删除评论失败：" + (error.response?.data?.msg || error.message));
             });
     }
-
     // 辅助函数：从评论DOM中提取rankId（必须添加）
     function getRankIdFromCommentItem(el) {
         // 1. 向上查找评论容器（comment-container-{rankId}）

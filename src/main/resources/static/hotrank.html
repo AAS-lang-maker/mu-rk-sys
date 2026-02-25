@@ -591,7 +591,7 @@
             height: 32px;
             line-height: 32px;
             text-align: center;
-            background: #d8705e;
+            background: #f89159;
             color: white;
             border-radius: 50%;
             margin-right: 12px;
@@ -796,7 +796,7 @@
         window.location.href = searchUrl;
     }
 
-    // 6. 加载榜单数据（核心：修复排序+补充歌曲排名）
+    // 6. 加载榜单数据（核心修改：直接使用后端返回的rankSongList）
     async function loadRankData() {
         if (config.isLoading || !config.hasMore) return;
 
@@ -828,6 +828,8 @@
             }
 
             const rawList = resData.data || [];
+            console.log("后端返回原始数据：", rawList); // 调试用，可保留
+
             if (rawList.length === 0 && config.currentStart === 0) {
                 config.hasMore = false;
                 document.getElementById("emptyState").style.display = "block";
@@ -839,38 +841,11 @@
                 return;
             }
 
-            // 按rankId分组，聚合歌曲
-            const rankMap = {};
-            rawList.forEach(item => {
-                const rankId = item.rankId || item.rank_id;
-                if (!rankId) return;
-
-                if (!rankMap[rankId]) {
-                    rankMap[rankId] = {
-                        rankId: rankId,
-                        rankName: item.rankName || item.rank_name || "未命名榜单",
-                        username: item.username || item.userName || item.user_name || "未知用户",
-                        voteCount: Number(item.voteCount || item.vote_count || 0),
-                        loveCount: Number(item.loveCount || item.love_count || 0),
-                        publishTime: item.publishTime || item.publish_time || "",
-                        songs: []
-                    };
-                }
-                // 补充歌曲排名、歌手信息
-                if (item.songName || item.song_name) {
-                    rankMap[rankId].songs.push({
-                        songName: item.songName || item.song_name,
-                        singerName: item.singerName || item.singer_name ,
-                        ranking: Number(item.ranking || item.ranking || 0) // 歌曲在榜单内的排名
-                    });
-                }
-            });
-
-            // 核心修复：按热度（投票+收藏）降序排序（热度高的排前面）
-            let rankList = Object.values(rankMap);
-            rankList = rankList.sort((a, b) => {
-                const hotA = a.voteCount + a.loveCount;
-                const hotB = b.voteCount + b.loveCount;
+            // 核心修改：直接使用后端返回的rankSongList，无需手动分组
+            // 按热度排序（投票+收藏）
+            let rankList = rawList.sort((a, b) => {
+                const hotA = (a.voteCount || a.vote_count || 0) + (a.loveCount || a.love_count || 0);
+                const hotB = (b.voteCount || b.vote_count || 0) + (b.loveCount || b.love_count || 0);
                 return hotB - hotA; // 降序：热度高的在前
             });
 
@@ -912,61 +887,78 @@
         }
     }
 
-    // 7. 渲染榜单（核心：样式统一+显示歌曲排名/歌手）
+    // 7. 渲染榜单（核心修改：直接渲染rankSongList）
     function renderRankList(rankList) {
         const rankListDom = document.getElementById("rankList");
         if (!rankList || rankList.length === 0) return;
 
         rankList.forEach((rank, index) => {
             // 计算榜单排名（从1开始递增）
-            const rankNum = config.totalRankCount + index + 1;
+            const rankNum = config.totalRankCount  + index + 1;
             const li = document.createElement("li");
             li.className = "ranking-item"; // 使用统一的样式类
 
             // 计算榜单热度
-            const hotValue = rank.voteCount + rank.loveCount;
+            const voteCount = Number(rank.voteCount || rank.vote_count || 0);
+            const loveCount = Number(rank.loveCount || rank.love_count || 0);
+            const hotValue = voteCount + loveCount;
 
-            // 拼接歌曲列表HTML（显示歌曲排名+歌手）
+            // 处理榜单基础信息
+            const rankId = rank.rankId || rank.rank_id;
+            const rankName = rank.rankName || rank.rank_name || "未命名榜单";
+            const username = rank.username || rank.userName || rank.user_name || "未知用户";
+            const publishTime = rank.publishTime || rank.publish_time || "";
+
+            // 核心：直接使用后端返回的rankSongList
+            const songList = rank.rankSongList || rank.rank_song_list || [];
+            console.log(`榜单${rankId}的歌曲列表：`, songList); // 调试用
+
+            // 拼接歌曲列表HTML
             let songsHtml = '';
-            if (rank.songs.length === 0) {
+            if (!songList || songList.length === 0) {
                 songsHtml = '<div class="song-item"><span class="song-name">暂无歌曲</span></div>';
             } else {
-                const showSongs = rank.songs.slice(0, 5);
+                const showSongs = songList.slice(0, 5);
                 songsHtml += '<h4>歌曲列表</h4><ul>';
                 showSongs.forEach(song => {
+                    // 兼容驼峰/下划线字段名
+                    const songName = song.songName || song.song_name || "未知歌曲";
+                    const singerName = song.singerName || song.singer_name || "未知歌手";
+                    const ranking = Number(song.ranking || song.rank || 0);
+
                     songsHtml += `
-                            <li>
-                                <span class="song-name">${song.songName}</span>
-                                <span class="song-singer">${song.singerName}</span>
-                                <span class="song-rank">${song.ranking || "无排名"}</span>
-                            </li>
-                        `;
+                        <li>
+                            <span class="song-name">${songName}</span>
+                            <span class="song-singer">${singerName}</span>
+                            <span class="song-rank">${ranking > 0 ? ranking : "无排名"}</span>
+                        </li>
+                    `;
                 });
                 songsHtml += '</ul>';
                 // 超过5首显示更多提示
-                if (rank.songs.length > 5) {
-                    songsHtml += `<div style="margin-top:8px;color:rgba(247,250,252,0.7);font-size:13px;">还有 ${rank.songs.length - 5} 首歌曲</div>`;
+                if (songList.length > 5) {
+                    songsHtml += `<div style="margin-top:8px;color:rgba(247,250,252,0.7);font-size:13px;">还有 ${songList.length - 5} 首歌曲</div>`;
                 }
             }
 
-            // 渲染榜单内容（样式和现有页面统一）
+            // 渲染榜单内容
             li.innerHTML = `
-                    <div class="rank-header">
-                        <div class="rank-info">
-                            <div class="rank-num">${rankNum}</div>
-                            <div>
-                                <h3>${rank.rankName}</h3>
-                                <div class="ranking-meta">
-                                    <span>创建人：${rank.username}</span>
-                                    <span>热度：${hotValue}</span>
-                                    ${rank.publishTime ? `<span>更新时间：${rank.publishTime}</span>` : ''}
-                                </div>
+                <div class="rank-header">
+                    <div class="rank-info">
+                        <div class="rank-num">${rankNum}</div>
+                        <div>
+                            <h3>${rankName}</h3>
+                            <div class="ranking-meta">
+                                <span>创建人：${username}</span>
+                                <span>热度：${hotValue}</span>
+                                ${publishTime ? `<span>更新时间：${publishTime}</span>` : ''}
                             </div>
                         </div>
-                        <button class="publisher-btn">发布人：${rank.username}</button>
                     </div>
-                    <div class="song-list">${songsHtml}</div>
-                `;
+                    <button class="publisher-btn">发布人：${username}</button>
+                </div>
+                <div class="song-list">${songsHtml}</div>
+            `;
             rankListDom.appendChild(li);
         });
     }

@@ -11,7 +11,7 @@ public class MyRankWithSong {
    private Integer rankId;
    private String rankName;
    private Integer voteCount;
-   private String songName;
+   //private String songName;
    private String username;
    private Integer loveCount;
    private LocalDateTime publishTime;//数据库中的datetime对应java类中的localdateTime

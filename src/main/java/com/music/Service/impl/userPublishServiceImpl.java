@@ -10,13 +10,16 @@ import com.music.pojo.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 
@@ -24,6 +27,11 @@ public class userPublishServiceImpl implements UserPublishService {
     private static final Logger log = LoggerFactory.getLogger(userPublishServiceImpl.class);
     @Autowired
     private UserPublishMapper userPublishMapper;
+    @Autowired
+    StringRedisTemplate stringRedisTemplate;
+
+    private static final String Love_Key="love:user:%d:rank:%d";
+    private static final String Vote_Key="vote:user:%d:rank:%d";
 
     @Override
     @Transactional(rollbackFor = Exception.class,propagation = Propagation.REQUIRED)//事务注解:主表和子表的Service层操作必须同时成功，否则就是失败
@@ -92,35 +100,64 @@ public class userPublishServiceImpl implements UserPublishService {
     @Override
     @Transactional
     public boolean insertVote(Integer userId, Integer rankId) {
-        //if(ip==null){
-          //  ip="127.0.0.1";
-        //}
-       // int record=userPublishMapper.checkip(ip,rankId);//防刷票，匿名投票，利用ip检查
-        //if(record>0)
-        //{ return false;}
+        String votekey=String.format(Vote_Key,userId,rankId);
+        log.info("【点赞操作】开始，userId={}, rankId={}, RedisKey={}", userId, rankId, votekey);
+        Boolean result=stringRedisTemplate.hasKey(votekey);
+        if(Boolean.TRUE.equals(result)){
+            log.info("【取消点赞】Redis已存在记录，准备删除数据库记录");
+            boolean deleteSuccess=stringRedisTemplate.delete(votekey);
+            if (!deleteSuccess) {
+                log.warn("【取消投票】第一次删除Redis Key失败，重试一次！Key={}", votekey);
+                deleteSuccess = stringRedisTemplate.delete(votekey);
+            }
+
+            // 打印删除结果（关键：看日志就能知道删没删成）
+            log.info("【取消投票】Redis Key删除结果：{}（true=成功，false=失败），Key={}", deleteSuccess, votekey);
+
+            int deleteresult=userPublishMapper.deleteVote(userId,rankId);
+            log.info("【取消投票】数据库影响行数：{}", deleteresult);
+                return deleteresult>0;
+
+        }
         PersonalRank v=userPublishMapper.selectRankById(rankId);
         if(v==null){
             return false;
         }
         int rows=userPublishMapper.insertVote(rankId,userId);
+        stringRedisTemplate.opsForValue().set(votekey,"1");
+        log.info("【投票成功】Redis已记录，userId={}, rankId={}", userId, rankId);
         return rows>0;
     }
 
     @Override
     @Transactional
     public boolean insertLove(Integer userId,  Integer rankId) {
-      //  if (ip == null) {
-        //    ip = "127.0.0.1"; // 使用默认 IP
-        //}
-        //int record1=userPublishMapper.checkLoveip(ip,rankId);
-        //if(record1>0)
-        //{ return false;}
-       PersonalRank l=userPublishMapper.selectRankById(rankId);
+         //拼接Redis的key值
+        String lovekey=String.format(Love_Key,userId,rankId);
+        log.info("【收藏操作】开始，userId={}, rankId={}, RedisKey={}", userId, rankId, lovekey);
+       //看看Redis中是否有key，如果有，就不能再点赞，从而达到防刷票
+        Boolean hasLove=stringRedisTemplate.hasKey(lovekey);
+        if(Boolean.TRUE.equals(hasLove)){
+            log.info("【取消收藏】Redis已存在记录，准备删除数据库记录");
+            int result=userPublishMapper.deleteLove(userId,rankId);
+            log.info("【取消收藏】Redis记录已删除，userId={}, rankId={}", userId, rankId);
+                stringRedisTemplate.delete(lovekey);
+            log.info("【取消收藏】mysql记录已删除，userId={}, rankId={}", userId, rankId);
+                return result>0;
+        }
+        PersonalRank l=userPublishMapper.selectRankById(rankId);
        if(l==null){
            return false;
        }
         int row1=userPublishMapper.insertLove(userId,rankId);
-         return row1>0;
+        if(row1>0){
+         stringRedisTemplate.opsForValue().set(lovekey,"1");//1??"1"?
+        log.info("【收藏成功】Redis已记录，userId={}, rankId={}", userId, rankId);
+        return row1>0;}
+        else{
+            log.error("【收藏成功】Redis记录失败或者数据库操作失败，userId={}, rankId={}", userId, rankId);
+            return false;
+        }
     }
 
     @Override
@@ -233,5 +270,33 @@ public class userPublishServiceImpl implements UserPublishService {
         log.info("【取消收藏】删除操作完成，影响行数：{}", result);
 
         return result > 0;
+    }
+
+    //豆包更新之后变权威了
+    //下方方法目的：刷新页面之后不会让统统一用户能重复投票，使用redis达到记录用户投票状态的目的
+    private void sychorVoteToRedis(Integer rankId,Integer userId,String votekey){
+        //sychronise翻译为同步，有点像锁但不是，这里本质是一个方法，将redis和mysql同步
+        int x=userPublishMapper.countVote(rankId,userId);
+        boolean flag=stringRedisTemplate.hasKey(votekey);
+        if(x>0||flag==false){
+           stringRedisTemplate.opsForValue().set(votekey,"1");
+            log.info("【状态同步】数据库有投票记录，Redis补写Key：{}", votekey);
+        }
+        if(x<=0||flag==true){
+            stringRedisTemplate.delete(votekey);
+            log.info("【状态同步】数据库无投票记录，Redis删除Key：{}", votekey);
+        }
+    }
+    private void sychorLoveToRedis(Integer rankId,Integer userId,String lovekey){
+        int y=userPublishMapper.countLove(rankId,userId);
+        boolean flag=stringRedisTemplate.hasKey(lovekey);
+        if(y>0||flag==false){
+            stringRedisTemplate.opsForValue().set(lovekey,"1");
+            log.info("【状态同步】数据库有投票记录，Redis补写Key：{}", lovekey);
+        }
+        if(y<=0||flag==true){
+            stringRedisTemplate.delete(lovekey);
+            log.info("【状态同步】数据库无投票记录，Redis删除Key：{}", lovekey);
+        }
     }
 }

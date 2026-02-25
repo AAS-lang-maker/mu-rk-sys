@@ -196,6 +196,7 @@ public class UserPublishController {
             return Result.error("点赞该榜单失败"+e.getMessage());
         }
     }
+    @Deprecated
     @PostMapping("deleteVote")
     @ResponseBody
     public Result<String> deleteVote(@RequestParam("token")String token,@RequestParam("rankId")Integer rankId){
@@ -304,12 +305,11 @@ public class UserPublishController {
       @GetMapping("/list")
       @ResponseBody
     public Result<List<CommentVo>> list(@RequestParam("token")String token
-                               , @RequestParam("rankId")Integer rankId){
+                               , @RequestParam("rankId")Integer rankId,@RequestParam("userId")Integer userId){
         if(token == null || token.isEmpty()) {
             return Result.error("token不能为空捏");
         }
         try{
-            Integer userId = JwtUtils.getUserIdFromToken(token);
             List<CommentVo> comment=userPublishService.selectComment(rankId,userId);
             return Result.success(comment);
         }catch (Exception e){
@@ -319,12 +319,12 @@ public class UserPublishController {
       }
       @DeleteMapping("deleteComment")
       @ResponseBody
-    public Result<String> deleteComment(@RequestParam("token")String token,@RequestParam("comId")Integer comId){
+    public Result<String> deleteComment(@RequestParam("token")String token,@RequestParam("comId")Integer comId,
+                                        @RequestParam("userId")Integer userId){
         if(token == null || token.isEmpty()) {
             return Result.error("token不能为空捏");
         }
         try{
-            Integer userId = JwtUtils.getUserIdFromToken(token);
             if(comId==null){
                 return Result.error("comId不能为空");
             }
