@@ -40,3 +40,7 @@ pagehelper:
         max-active: 8
         max-idle: 8
         min-idle: 0
+
+        music:
+          file:
+            path: D:/music/music_files/

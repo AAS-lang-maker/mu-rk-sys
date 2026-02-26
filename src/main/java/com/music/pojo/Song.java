@@ -13,4 +13,6 @@ public class Song {
     private Integer songStatus;
     private Integer singerId;
     private Integer workId;
+    private Integer duration;
+    private String songurl;
 }

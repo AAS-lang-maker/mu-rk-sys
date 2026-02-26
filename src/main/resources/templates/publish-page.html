@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script th:src="@{/js/axios.min.js}"></script>
     <title>榜单页</title>
+    <link rel="stylesheet" th:href="@{/player/music-player.css}">
     <style>
         /* 保留你原来的所有样式，不修改 */
         * {
@@ -818,9 +819,49 @@
             content: "🗑️";
             font-size: 12px;
         }
-    </style>
-</head>
 
+        .play-btn {
+            background: rgba(255, 250, 156, 0.2);
+            border: 1px solid #fffa9c;
+            color: #fffa9c;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 12px;
+            padding-left: 2px; /* 调整三角形位置 */
+        }
+        .play-btn:hover {
+            background: #fffa9c;
+            color: #1a202c;
+            transform: scale(1.1);
+        }
+        /* 原有样式全部保留 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            min-height: 100vh;
+            color: #f7fafc;
+            padding: 20px;
+            background:
+                    linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+                    #0f172a;
+            background-size: 50px 50px, 50px 50px, 100% 100%;
+            background-attachment: fixed;
+            position: relative;
+        }
+    </style>
+ <script th:src="@{/player/music-player.js}"></script>
+</head>
 <body>
 <div class="container">
     <!-- 右上角搜索按钮 -->
@@ -846,7 +887,7 @@
         <!-- 动态榜单列表：适配后端传递的PageInfo对象 -->
         <div class="rankings-list">
             <!-- 有数据时显示榜单 -->
-            <div th:each="ranking, stat : ${publishRanks.list}" class="ranking-item">
+            <div th:each="ranking, stat : ${publishRanks?.list}" class="ranking-item">
                 <div class="ranking-header">
                     <h3 th:text="${ranking.rankName}">榜单标题</h3>
                     <button class="publisher-btn" th:text="'发布人：' + ${ranking.username}">发布人：用户名</button>
@@ -859,22 +900,26 @@
                     <h4>歌曲列表</h4>
                     <ul>
                         <li th:each="song : ${ranking.rankSongList}">
-                            <span class="song-name" th:text="${song.songName}">歌曲名称</span>
-                            <span class="song-rank" th:text="${song.ranking}">排名</span>
+                            <span class="song-name" th:text="${song?.songName}">歌曲名称</span>
+                            <span class="singer-name" th:text="${song.singerName}">歌手名称</span>
+                            <span class="song-rank" th:text="${song?.ranking}">排名</span>
+                            <!-- 播放按钮：修复onclick调用全局函数 -->
+                            <button class="play-btn"
+                                    th:data-song-id="${song.songId}"
+                                    th:data-song-name="${song.songName}"
+                                    th:data-singer-name="${song.singerName}">
+                                &#9658;
+                            </button>
                         </li>
                     </ul>
                 </div>
                 <!-- 投票和收藏按钮 -->
-                <!-- 投票和收藏按钮 -->
                 <div class="interaction-section">
-                    <!-- 投票按钮：给按钮加 data-rank-id 属性，同时把 rankId 传给函数时带 this -->
                     <button class="vote-btn" th:data-rank-id="${ranking.rankId}"
                             th:onclick="|voteForRanking(${ranking.rankId}, this)|">
                         <span class="heart-icon">♡</span>
                         <span class="vote-count" th:text="${ranking.voteCount}">0</span>
                     </button>
-
-                    <!-- 收藏按钮：同理 -->
                     <button class="collect-btn" th:data-rank-id="${ranking.rankId}"
                             th:onclick="|collectRanking(${ranking.rankId}, this)|">
                         <span class="star-icon">★</span>
@@ -889,8 +934,8 @@
                     <div class="comment-container" th:id="|comment-container-${ranking.rankId}|">
                         <!-- 评论输入区 -->
                         <div class="comment-input-area">
-                                <textarea class="comment-input" th:id="|comment-input-${ranking.rankId}|"
-                                          placeholder="写下你的评论..."></textarea>
+                            <textarea class="comment-input" th:id="|comment-input-${ranking.rankId}|"
+                                      placeholder="写下你的评论..."></textarea>
                             <div class="comment-actions">
                                 <button class="comment-submit" th:onclick="|submitComment(${ranking.rankId})|">
                                     发表评论
@@ -904,11 +949,13 @@
                     </div>
                 </div>
             </div>
-            <div class="pagination">
+
+            <!-- 分页：增加 publishRanks 非空判断 -->
+            <div class="pagination" th:if="${publishRanks != null}">
                 <button th:disabled="${publishRanks.pageNum == 1}"
                         th:onclick="|goToPage(${publishRanks.pageNum - 1})|">上一页</button>
 
-                <button th:each="i : ${#numbers.sequence(1, publishRanks.pages)}"
+                <button th:each="i : ${#numbers.sequence(1, publishRanks?.pages ?: 1)}"
                         th:class="${publishRanks.pageNum == i ? 'active' : ''}" th:onclick="|goToPage(${i})|"
                         th:text="${i}">1</button>
 
@@ -916,37 +963,42 @@
                         th:onclick="|goToPage(${publishRanks.pageNum + 1})|">下一页</button>
             </div>
 
-            <!-- 无数据时显示暂无数据 -->
-            <div th:if="${publishRanks.list == null or publishRanks.list.size() == 0}" class="empty-state">
+            <!-- 无数据时显示暂无数据：简化空值判断 -->
+            <div th:if="${#lists.isEmpty(publishRanks?.list)}" class="empty-state">
                 暂无榜单数据
             </div>
         </div>
     </div>
-
-    <!-- 加号发布榜单按钮 -->
-    <div class="add-button-container">
-        <button class="add-button" id="addBtn">+</button>
-    </div>
-
-    <!-- 我的榜单按钮 -->
-    <div class="slide-btn-container">
-        <button class="slide-btn-toggle expanded" id="slideBtnToggle">
-            <span class="toggle-icon">我的榜单</span>
-        </button>
-        <button class="slide-btn-content show" id="myRankBtn">进入我的榜单</button>
-        <button class="slide-btn-content show" id="hotRankBtn">热门榜单</button>
-    </div>
-
-    <!-- 返回登录按钮 -->
-    <div class="login-btn-container">
-        <button class="login-btn-toggle expanded" id="loginBtnToggle">
-            <span class="toggle-icon">登录</span>
-        </button>
-        <button class="login-btn-content show" id="loginBtn">返回登录页面</button>
-    </div>
 </div>
 
+
+<!-- 加号发布榜单按钮 -->
+<div class="add-button-container">
+    <button class="add-button" id="addBtn">+</button>
+</div>
+
+<!-- 我的榜单按钮 -->
+<div class="slide-btn-container">
+    <button class="slide-btn-toggle expanded" id="slideBtnToggle">
+        <span class="toggle-icon">我的榜单</span>
+    </button>
+    <button class="slide-btn-content show" id="myRankBtn">进入我的榜单</button>
+    <button class="slide-btn-content show" id="hotRankBtn">热门榜单</button>
+</div>
+
+<!-- 返回登录按钮 -->
+<div class="login-btn-container">
+    <button class="login-btn-toggle expanded" id="loginBtnToggle">
+        <span class="toggle-icon">登录</span>
+    </button>
+    <button class="login-btn-content show" id="loginBtn">返回登录页面</button>
+</div>
+
+<!-- 播放器容器 -->
+<div id="music-player-container" style="position: fixed; bottom: 20px; right: 20px; width: 300px; z-index: 1000;"></div>
+
 <script>
+    // ===================== 全局核心配置（统一初始化）=====================
     // 1. 工具函数：获取URL参数
     function getUrlParam(paramName) {
         const reg = new RegExp("(^|&)" + paramName + "=([^&]*)(&|$)");
@@ -958,12 +1010,9 @@
     function getUserIdFromToken(token) {
         if (!token) return null;
         try {
-            // JWT格式：header.payload.signature，解析第二部分
             const payload = token.split('.')[1];
-            // Base64解码（兼容浏览器）
             const decodedPayload = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
             const payloadObj = JSON.parse(decodedPayload);
-            // 返回userId（根据你的Token payload字段名调整，比如uid/userId）
             return payloadObj.userId || payloadObj.uid || null;
         } catch (error) {
             console.error("解析Token失败:", error);
@@ -971,22 +1020,19 @@
         }
     }
 
-    // 2. 全局变量（只声明一次）
+    // 2. 全局变量（补充缺失的 musicPlayer 声明）
     let token = getUrlParam("token");
-    // 优先从URL获取userId，没有则从Token解析
     let userId = getUrlParam("userId") || getUserIdFromToken(token);
-    let category = parseInt(getUrlParam("category")) || 1; // 兜底1
+    let category = parseInt(getUrlParam("category")) || 1;
     let pageNum = parseInt(getUrlParam("pageNum")) || 1;
     let pageSize = parseInt(getUrlParam("pageSize")) || 4;
 
-    console.log("解析到的category：", getUrlParam("category"));
-    console.log("转成数字后：", category);
-    console.log("最终获取的userId：", userId, "类型：", typeof userId); // 新增调试日志
+
+    console.log("初始化参数：", { token, userId, category, pageNum, pageSize });
 
     // 3. 动态路径工具
     function getTargetPublishPath(category) {
-        return "/music" +
-            "/api/mine/my";
+        return "/music/api/mine/my";
     }
     function getTargetVotePath(category) {
         return category === 1 ? "/music/api/rank/vote" : "/music/api/workrank/vote";
@@ -995,7 +1041,7 @@
         return category === 1 ? "/music/api/rank/love" : "/music/api/workrank/love";
     }
 
-    // 4. 提示框
+    // 4. 提示框工具
     function showErrorTip(msg) {
         let el = document.getElementById('errorAlert');
         if (!el) {
@@ -1022,125 +1068,83 @@
         setTimeout(() => el.style.display = 'none', 2000);
     }
 
+    // ===================== 兼容工具函数（修复 padStart 兼容问题）=====================
+    function padStartCompat(str, length, padChar) {
+        str = str.toString();
+        while (str.length < length) {
+            str = padChar + str;
+        }
+        return str;
+    }
+
+    // ===================== 播放器核心逻辑（全局可访问）=====================
+    // 初始化播放器（全局函数）
+    function initMusicPlayer() {
+        if (musicPlayer) return; // ✅ 现在变量已声明
+        try {
+            musicPlayer = new MusicPlayer({
+                container: 'music-player-container',
+                token: token,
+                userId: userId
+            });
+            console.log("播放器初始化成功");
+        } catch (e) {
+            console.error("播放器初始化失败:", e);
+            showErrorTip("播放器加载失败：" + e.message);
+        }
+    }
+
+    // 播放歌曲（全局函数）
+    function playSong(song) {
+        if (!song) {
+            showErrorTip("歌曲信息为空！");
+            return;
+        }
+        if (!musicPlayer) {
+            initMusicPlayer();
+        }
+        try {
+            musicPlayer.playSong(song);
+            showSuccessTip(`开始播放：${song.songName}`);
+        } catch (e) {
+            console.error("播放歌曲失败:", e);
+            showErrorTip("播放失败：" + e.message);
+        }
+    }
+
+    // 播放按钮点击处理（全局函数）
+    function playSongFromData(btn) {
+        const songId = btn.dataset.songId;
+        const songName = btn.dataset.songName;
+        const singerName = btn.dataset.singerName;
+
+        if (!songId) {
+            showErrorTip("歌曲ID为空，无法播放！");
+            return;
+        }
+
+        playSong({
+            songId: songId,
+            songName: songName || "未知歌曲",
+            singerName: singerName || "未知歌手"
+        });
+    }
+
+    // ===================== 页面交互逻辑 =====================
     // 5. 搜索功能
     function openSearch() {
-        // 直接跳转到搜索页面（通过sou接口重定向）
-        const searchUrl = `/music/api/rank/sou?token=${encodeURIComponent(token)}&category=${category}&userId=${userId}`; // 新增userId
+        const searchUrl = `/music/api/rank/sou?token=${encodeURIComponent(token)}&category=${category}&userId=${userId}`;
         window.location.href = searchUrl;
     }
 
-    // 6. 页面加载完成后，再绑定所有事件（核心！）
-    window.onload = function () {
-        console.log("DOM加载完成，开始绑定事件");
-
-        // 先获取所有按钮（只在这里获取一次）
-        const slideBtnToggle = document.getElementById('slideBtnToggle');
-        const myRankBtn = document.getElementById('myRankBtn');
-        const hotRankBtn = document.getElementById('hotRankBtn');
-        const loginBtnToggle = document.getElementById('loginBtnToggle');
-        const loginBtn = document.getElementById('loginBtn');
-        const addBtn = document.getElementById("addBtn");
-
-        // 我的榜单展开/收起
-        let isExpanded = true;
-        slideBtnToggle.onclick = function () {
-            isExpanded = !isExpanded;
-            if (isExpanded) {
-                slideBtnToggle.classList.remove('collapsed');
-                slideBtnToggle.classList.add('expanded');
-                myRankBtn.classList.add('show');
-            } else {
-                slideBtnToggle.classList.remove('expanded');
-                slideBtnToggle.classList.add('collapsed');
-                myRankBtn.classList.remove('show');
-            }
-        };
-
-        // 进入我的榜单（核心跳转）
-        myRankBtn.onclick = function () {
-            console.log("【进入我的榜单】按钮被点击");
-            if (!token || !userId || isNaN(userId)) {
-                showErrorTip("缺少登录信息，请重新登录！");
-                setTimeout(() => window.location.href = "/login.html", 1500);
-                return false;
-            }
-            const targetPath = getTargetPublishPath(category);
-            const jumpUrl = `${targetPath}?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}&pageNum=1&pageSize=10`;
-            console.log("跳转URL：", jumpUrl);
-            window.location.href = jumpUrl;
-            return false;
-        };
-
-        // 热门榜单跳转
-        hotRankBtn.onclick = function () {
-            console.log("【热门榜单】按钮被点击");
-            if (!token || !userId || isNaN(userId)) {
-                showErrorTip("缺少登录信息，请重新登录！");
-                setTimeout(() => window.location.href = "/login.html", 1500);
-                return false;
-            }
-            // 跳转到热门榜单页面，使用后端重定向接口
-            const hotRankUrl = `/music/hotrank.html?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}`;
-            console.log("热门榜单跳转URL：", hotRankUrl);
-            window.location.href = hotRankUrl;
-            return false;
-        };
-
-        // 加号发布榜单
-        addBtn.onclick = function () {
-            console.log("【加号发布】按钮被点击");
-            if (!token || !userId || !category || isNaN(userId) || isNaN(category)) {
-                showErrorTip("参数缺失，请刷新页面重试！");
-                return false;
-            }
-            let addPagePath = category === 1 ? "/music/rank.html" : "/music/workrank.html";
-            const jumpUrl = `${addPagePath}?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}`;
-            console.log("发布跳转URL：", jumpUrl);
-            window.location.href = jumpUrl;
-            return false;
-        };
-
-        // 返回登录展开/收起（修复核心逻辑）
-        let isLoginExpanded = true;
-        loginBtnToggle.onclick = function () {
-            isLoginExpanded = !isLoginExpanded;
-            if (isLoginExpanded) {
-                loginBtnToggle.classList.remove('collapsed');
-                loginBtnToggle.classList.add('expanded');
-                loginBtn.classList.add('show');
-            } else {
-                loginBtnToggle.classList.remove('expanded');
-                loginBtnToggle.classList.add('collapsed');
-                loginBtn.classList.remove('show');
-            }
-            // 阻止事件冒泡和默认行为，避免触发跳转
-            return false;
-        };
-
-        // 返回登录页面（仅点击这个按钮才跳转）
-        loginBtn.onclick = function () {
-            console.log("【返回登录】按钮被点击");
-            window.location.href = "/music/login.html";
-            return false;
-        };
-
-        // 页面加载校验
-        if (!token || token.trim() === '' || !userId || isNaN(userId)) {
-            showErrorTip("登录信息失效，请重新登录！");
-            setTimeout(() => window.location.href = "/music//login.html", 1500);
-            return;
-        }
-        console.log("页面加载成功，参数：", { token, userId, category, pageNum, pageSize });
-        showSuccessTip("页面加载成功！");
-    };
-
-    // 7. 分页
+    // 6. 分页
     function goToPage(page) {
         const targetPath = getTargetPublishPath(category);
         const jumpUrl = `/music/api/rank/publish?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}&pageNum=${page}&pageSize=${pageSize}`;
         window.location.href = jumpUrl;
     }
-    // ===================== 榜单点赞（和后端数据库联动版）=====================
+
+    // ===================== 榜单点赞/收藏（修复 POST 参数格式）=====================
     function voteForRanking(rankId, btn) {
         console.log('切换榜单投票状态，rankId:', rankId);
         if (!token) {
@@ -1148,46 +1152,43 @@
             return;
         }
 
-        // 先记录当前数字（防止后端失败时回滚）
         const voteCountEl = btn.querySelector('.vote-count');
         const originalCount = Number(voteCountEl.textContent) || 0;
-
-        // 锁按钮，防止重复点击
         btn.disabled = true;
 
-        // 统一调用vote接口，由后端判断点赞/取消点赞（删掉了deleteVote接口）
-        axios.post(getTargetVotePath(category), {}, {
-            params: { token: token, rankId: rankId, userId: userId }
+        // ✅ 修复：POST 参数放在 data 中，params 只传通用参数
+        axios.post(getTargetVotePath(category), {
+            rankId: rankId,
+            userId: userId
+        }, {
+            params: { token: token }
         })
             .then(response => {
                 btn.disabled = false;
                 if (response.data.code === 200 || response.data.success) {
-                    // 根据按钮当前状态，切换样式和数字
                     if (btn.classList.contains('voted')) {
-                        // 取消点赞成功
                         btn.classList.remove('voted');
                         voteCountEl.textContent = Math.max(0, originalCount - 1);
                         btn.querySelector('.heart-icon').textContent = '♡';
                         showSuccessTip("取消点赞成功！");
                     } else {
-                        // 点赞成功
                         btn.classList.add('voted');
                         voteCountEl.textContent = originalCount + 1;
                         btn.querySelector('.heart-icon').textContent = '♥';
                         showSuccessTip("点赞成功！");
                     }
                 } else {
-                    voteCountEl.textContent = originalCount; // 回滚
+                    voteCountEl.textContent = originalCount;
                     showErrorTip("操作失败：" + (response.data.msg || "后端处理失败"));
                 }
             })
             .catch(error => {
                 btn.disabled = false;
-                voteCountEl.textContent = originalCount; // 回滚
+                voteCountEl.textContent = originalCount;
                 showErrorTip("操作失败：" + (error.response?.data?.msg || "接口异常"));
             });
     }
-    // ===================== 榜单收藏（和后端数据库联动版）=====================
+
     function collectRanking(rankId, btn) {
         console.log('切换榜单收藏状态，rankId:', rankId);
         if (!token) {
@@ -1195,49 +1196,50 @@
             return;
         }
 
-        // 记录原始数字，用于失败回滚
         const collectCountEl = btn.querySelector('.collect-count');
         const originalCount = Number(collectCountEl.textContent) || 0;
-
-        // 锁按钮，防止重复点击
         btn.disabled = true;
 
-        // 统一调用love接口，由后端判断收藏/取消收藏（删掉了deleteLove接口）
-        axios.post(getTargetLovePath(category), {}, {
-            params: { token: token, rankId: rankId, userId: userId }
+        // ✅ 修复：POST 参数放在 data 中
+        axios.post(getTargetLovePath(category), {
+            rankId: rankId,
+            userId: userId
+        }, {
+            params: { token: token }
         })
             .then(response => {
                 btn.disabled = false;
                 if (response.data.code === 200 || response.data.success) {
-                    // 根据按钮当前状态，切换样式和数字
                     if (btn.classList.contains('collected')) {
-                        // 取消收藏成功
                         btn.classList.remove('collected');
                         collectCountEl.textContent = Math.max(0, originalCount - 1);
                         btn.querySelector('.star-icon').style.color = '';
                         showSuccessTip("取消收藏成功！");
                     } else {
-                        // 收藏成功
                         btn.classList.add('collected');
                         collectCountEl.textContent = originalCount + 1;
                         btn.querySelector('.star-icon').style.color = '#fffa9c';
                         showSuccessTip("收藏成功！");
                     }
                 } else {
-                    collectCountEl.textContent = originalCount; // 回滚
+                    collectCountEl.textContent = originalCount;
                     showErrorTip("操作失败：" + (response.data.msg || "后端处理失败"));
                 }
             })
             .catch(error => {
                 btn.disabled = false;
-                collectCountEl.textContent = originalCount; // 回滚
+                collectCountEl.textContent = originalCount;
                 showErrorTip("操作失败：" + (error.response?.data?.msg || "接口异常"));
             });
     }
-    // 10. 评论功能
-    // 切换评论区显示/隐藏
+
+    // ===================== 评论功能（修复时间格式化兼容）=====================
     function toggleComments(rankId) {
         const container = document.getElementById(`comment-container-${rankId}`);
+        if (!container) { // ✅ 新增：防止元素不存在报错
+            showErrorTip("评论容器未找到！");
+            return;
+        }
         const toggleBtn = container.previousElementSibling;
 
         if (container.classList.contains('show')) {
@@ -1246,52 +1248,45 @@
         } else {
             container.classList.add('show');
             toggleBtn.textContent = '收起评论';
-            // 加载评论列表
             loadComments(rankId);
         }
     }
 
-    // 加载评论列表
     function loadComments(rankId) {
         console.log('加载评论列表，rankId:', rankId);
         const commentList = document.getElementById(`comment-list-${rankId}`);
+        if (!commentList) return;
 
         if (!token) {
             commentList.innerHTML = '<p style="color: rgba(247, 250, 252, 0.7); text-align: center;">请先登录后查看评论</p>';
             return;
         }
 
-        // 显示加载中
         commentList.innerHTML = '<p style="color: rgba(247, 250, 252, 0.7); text-align: center;">加载中...</p>';
 
-        // 调用后端API
         axios.get(`/music/api/rank/list`, {
             params: {
                 token: token,
                 rankId: rankId,
-                userId: userId // 新增userId，匹配后端@RequestParam
+                userId: userId
             }
         })
             .then(response => {
-                console.log('加载评论响应:', response.data); // 新增：打印完整响应
+                console.log('加载评论响应:', response.data);
                 if (response.data.code === 200 || response.data.success) {
                     const comments = response.data.data || response.data;
                     renderComments(commentList, comments);
                 } else {
-                    // 区分“真的没数据”和“查询失败”
                     commentList.innerHTML = `<p style="color: rgba(247, 250, 252, 0.7); text-align: center;">查询评论失败：${response.data.msg || '未知错误'}</p>`;
-                    // 打印错误日志，方便排查
                     console.error('评论查询失败:', response.data);
                 }
             })
             .catch(error => {
                 console.error('加载评论失败:', error);
-                console.error('加载评论失败详情:', error.response?.data || error.message);
                 commentList.innerHTML = `<p style="color: rgba(247, 250, 252, 0.7); text-align: center;">加载评论失败：${error.response?.data?.msg || error.message}</p>`;
             });
     }
 
-    // 渲染评论列表
     function renderComments(container, comments) {
         if (!comments || comments.length === 0) {
             container.innerHTML = '<p style="color: rgba(247, 250, 252, 0.7); text-align: center;">暂无评论</p>';
@@ -1303,34 +1298,34 @@
             const commentItem = document.createElement('div');
             commentItem.className = 'comment-item';
 
-            // 统一使用CommentVo的字段名，减少歧义
             commentItem.innerHTML = `
-      <div class="comment-header">
-        <span class="comment-username">${comment.username || '匿名用户'}</span>
-        <span class="comment-time">${formatTime(comment.comTime)}</span>
-      </div>
-      <div class="comment-content">${comment.comContent || ''}</div>
-      <div class="comment-actions-bar">
-        <button class="comment-like-btn ${comment.isLiked === 1 ? 'liked' : ''}" onclick="toggleCommentLike(${comment.comId}, event)">
-          <span class="comment-heart-icon">♥</span>
-          <span class="comment-like-count">${comment.likeCount || 0}</span>
-       </button>
-        ${comment.userId === parseInt(userId) ?
-                `<button class="comment-delete-btn" onclick="deleteComment(${comment.comId}, event)" >
-    删除
-</button>` : ''
+                <div class="comment-header">
+                    <span class="comment-username">${comment.username || '匿名用户'}</span>
+                    <span class="comment-time">${formatTime(comment.comTime)}</span>
+                </div>
+                <div class="comment-content">${comment.comContent || ''}</div>
+                <div class="comment-actions-bar">
+                    <button class="comment-like-btn ${comment.isLiked === 1 ? 'liked' : ''}" onclick="toggleCommentLike(${comment.comId}, event)">
+                        <span class="comment-heart-icon">♥</span>
+                        <span class="comment-like-count">${comment.likeCount || 0}</span>
+                    </button>
+                    ${comment.userId === parseInt(userId) ?
+                `<button class="comment-delete-btn" onclick="deleteComment(${comment.comId}, event)" >删除</button>` : ''
             }
-      </div>
-    `;
+                </div>
+            `;
 
             container.appendChild(commentItem);
         });
     }
 
-    // 提交评论（新增userId参数，匹配后端@RequestParam）
     function submitComment(rankId) {
         console.log('提交评论,rankId:', rankId);
         const input = document.getElementById(`comment-input-${rankId}`);
+        if (!input) { // ✅ 新增：防止输入框不存在报错
+            showErrorTip("评论输入框未找到！");
+            return;
+        }
         const content = input.value.trim();
 
         if (!content) {
@@ -1343,23 +1338,20 @@
             return;
         }
 
-        // 调用后端API
+        // ✅ 修复：POST 参数放在 data 中
         axios.post(`/music/api/rank/pubcomment`, {
+            rankId: rankId,
+            userId: userId,
+            content: content,
+            parentId: null
         }, {
-            params: {
-                token: token,
-                rankId: rankId,
-                userId: userId, // 必传，匹配后端@RequestParam
-                content: content,
-                parentId: null // 显式传递顶级评论的parentId为null
-            }
+            params: { token: token }
         })
             .then(response => {
                 console.log('提交评论成功:', response.data);
                 if (response.data.code === 200 || response.data.success) {
                     showSuccessTip("评论发表成功！");
                     input.value = '';
-                    // 重新加载评论列表
                     loadComments(rankId);
                 } else {
                     showErrorTip("评论发表失败：" + (response.data.msg || '未知错误'));
@@ -1367,13 +1359,11 @@
             })
             .catch(error => {
                 console.error('提交评论失败:', error);
-                console.error('提交评论失败详情:', error.response);
                 showErrorTip("评论发表失败：" + (error.response?.data?.msg || error.message));
             });
     }
 
-    // 切换评论点赞状态（新增userId参数）
-    function toggleCommentLike(commentId, e) { // 添加e参数
+    function toggleCommentLike(commentId, e) {
         console.log('切换评论点赞状态，commentId:', commentId);
 
         if (!token) {
@@ -1381,28 +1371,24 @@
             return;
         }
 
-        const likeBtn = e.target.closest('.comment-like-btn'); // 使用传入的e
+        const likeBtn = e.target.closest('.comment-like-btn');
+        if (!likeBtn) return; // ✅ 新增：防止按钮不存在报错
         if (likeBtn.classList.contains('liked')) {
-            // 取消点赞
             unlikeComment(commentId, likeBtn);
         } else {
-            // 点赞
             likeComment(commentId, likeBtn);
         }
     }
 
-    // 点赞评论（新增userId参数）
     function likeComment(commentId, likeBtn) {
         console.log('点赞评论，commentId:', commentId);
 
-        // 调用后端API
+        // ✅ 修复：POST 参数放在 data 中
         axios.post(`/music/api/rank/like`, {
+            comId: commentId,
+            userId: userId
         }, {
-            params: {
-                token: token,
-                comId: commentId,
-                userId: userId // 新增userId，匹配后端@RequestParam
-            }
+            params: { token: token }
         })
             .then(response => {
                 console.log('点赞成功:', response.data);
@@ -1420,37 +1406,32 @@
             });
     }
 
-    // 取消点赞（新增userId参数）
     function unlikeComment(commentId, likeBtn) {
         console.log('取消点赞，commentId:', commentId);
 
-        // 调用后端API
+        // ✅ 修复：POST 参数放在 data 中
         axios.post(`/music/api/rank/deleteLike`, {
+            comId: commentId,
+            userId: userId
         }, {
-            params: {
-                token: token,
-                comId: commentId,
-                userId: userId // 新增userId，匹配后端@RequestParam
-            }
+            params: { token: token }
         })
             .then(response => {
-                console.log('取消点赞完整响应:', response.data); // 打印完整响应，方便排查
+                console.log('取消点赞完整响应:', response.data);
                 if (response.data.code === 200 || response.data.success) {
                     likeBtn.classList.remove('liked');
                     const likeCount = likeBtn.querySelector('.comment-like-count');
                     likeCount.textContent = Math.max(0, parseInt(likeCount.textContent) - 1);
                 } else {
-                    showErrorTip("取消点赞失败：" + (response.data.msg || '未知错误')); // 显示后端返回的具体错误信息
+                    showErrorTip("取消点赞失败：" + (response.data.msg || '未知错误'));
                 }
             })
             .catch(error => {
                 console.error('取消点赞失败:', error);
-                console.error('取消点赞失败详情:', error.response?.data || error.message); // 打印错误详情
                 showErrorTip("取消点赞失败：" + (error.response?.data?.msg || error.message));
             });
     }
 
-    // 删除评论（完整版，仅保留一个）
     function deleteComment(commentId, e) {
         console.log('删除评论，commentId:', commentId);
 
@@ -1469,7 +1450,7 @@
                 console.log('删除评论成功:', response.data);
                 if (response.data.code === 200 || response.data.success) {
                     showSuccessTip("删除评论成功！");
-                    const rankId = getRankIdFromCommentItem(e.target); // 这里使用传入的 e
+                    const rankId = getRankIdFromCommentItem(e.target);
                     if (rankId) {
                         loadComments(rankId);
                     }
@@ -1479,22 +1460,18 @@
             })
             .catch(error => {
                 console.error('删除评论失败:', error);
-                console.error('删除评论失败详情:', error.response?.data || error.message);
                 showErrorTip("删除评论失败：" + (error.response?.data?.msg || error.message));
             });
     }
-    // 辅助函数：从评论DOM中提取rankId（必须添加）
+
     function getRankIdFromCommentItem(el) {
-        // 1. 向上查找评论容器（comment-container-{rankId}）
         let commentContainer = el.closest('[id^="comment-container-"]');
         if (commentContainer) {
-            // 提取rankId（比如从 "comment-container-15" 中提取 15）
             const rankId = commentContainer.id.replace('comment-container-', '');
             console.log('提取到的rankId:', rankId);
             return rankId;
         }
 
-        // 2. 降级方案：从评论列表容器提取
         const commentList = el.closest('[id^="comment-list-"]');
         if (commentList) {
             const rankId = commentList.id.replace('comment-list-', '');
@@ -1502,22 +1479,149 @@
             return rankId;
         }
 
-        // 3. 最终降级：从URL参数获取（兜底）
         const urlRankId = getUrlParam('rankId');
         console.log('从URL提取rankId:', urlRankId);
         return urlRankId || 0;
     }
 
-    // 格式化时间
+    // ✅ 修复：时间格式化兼容低版本浏览器
     function formatTime(time) {
         if (!time) return '';
         const date = new Date(time);
-        // 新增容错：避免时间解析失败
         if (isNaN(date.getTime())) return '未知时间';
-        return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+        const year = date.getFullYear();
+        const month = padStartCompat(date.getMonth() + 1, 2, '0');
+        const day = padStartCompat(date.getDate(), 2, '0');
+        const hour = padStartCompat(date.getHours(), 2, '0');
+        const minute = padStartCompat(date.getMinutes(), 2, '0');
+        return `${year}-${month}-${day} ${hour}:${minute}`;
     }
+
+    // ===================== 页面加载完成后初始化（修复元素不存在报错）=====================
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("DOM加载完成，开始初始化页面");
+
+        // 1. 初始化播放器
+        initMusicPlayer();
+
+        // 2. 绑定播放按钮点击事件（事件委托，解决动态元素问题）
+        document.addEventListener('click', function(e) {
+            const playBtn = e.target.closest('.play-btn');
+            if (playBtn) {
+                playSongFromData(playBtn);
+            }
+        });
+
+        // 3. 绑定按钮事件（新增：判断元素是否存在，避免报错）
+        const slideBtnToggle = document.getElementById('slideBtnToggle');
+        const myRankBtn = document.getElementById('myRankBtn');
+        const hotRankBtn = document.getElementById('hotRankBtn');
+        const loginBtnToggle = document.getElementById('loginBtnToggle');
+        const loginBtn = document.getElementById('loginBtn');
+        const addBtn = document.getElementById("addBtn");
+
+        // 我的榜单展开/收起
+        let isExpanded = true;
+        if (slideBtnToggle && myRankBtn) { // ✅ 新增：判断元素存在
+            slideBtnToggle.onclick = function () {
+                isExpanded = !isExpanded;
+                if (isExpanded) {
+                    slideBtnToggle.classList.remove('collapsed');
+                    slideBtnToggle.classList.add('expanded');
+                    myRankBtn.classList.add('show');
+                } else {
+                    slideBtnToggle.classList.remove('expanded');
+                    slideBtnToggle.classList.add('collapsed');
+                    myRankBtn.classList.remove('show');
+                }
+            };
+        }
+
+        // 进入我的榜单
+        if (myRankBtn) { // ✅ 新增：判断元素存在
+            myRankBtn.onclick = function () {
+                console.log("【进入我的榜单】按钮被点击");
+                if (!token || !userId || isNaN(userId)) {
+                    showErrorTip("缺少登录信息，请重新登录！");
+                    setTimeout(() => window.location.href = "/login.html", 1500);
+                    return false;
+                }
+                const targetPath = getTargetPublishPath(category);
+                const jumpUrl = `${targetPath}?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}&pageNum=1&pageSize=10`;
+                console.log("跳转URL：", jumpUrl);
+                window.location.href = jumpUrl;
+                return false;
+            };
+        }
+
+        // 热门榜单跳转
+        if (hotRankBtn) { // ✅ 新增：判断元素存在
+            hotRankBtn.onclick = function () {
+                console.log("【热门榜单】按钮被点击");
+                if (!token || !userId || isNaN(userId)) {
+                    showErrorTip("缺少登录信息，请重新登录！");
+                    setTimeout(() => window.location.href = "/login.html", 1500);
+                    return false;
+                }
+                const hotRankUrl = `/music/hotrank.html?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}`;
+                console.log("热门榜单跳转URL：", hotRankUrl);
+                window.location.href = hotRankUrl;
+                return false;
+            };
+        }
+
+        // 加号发布榜单
+        if (addBtn) { // ✅ 新增：判断元素存在
+            addBtn.onclick = function () {
+                console.log("【加号发布】按钮被点击");
+                if (!token || !userId || !category || isNaN(userId) || isNaN(category)) {
+                    showErrorTip("参数缺失，请刷新页面重试！");
+                    return false;
+                }
+                let addPagePath = category === 1 ? "/music/rank.html" : "/music/workrank.html";
+                const jumpUrl = `${addPagePath}?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}`;
+                console.log("发布跳转URL：", jumpUrl);
+                window.location.href = jumpUrl;
+                return false;
+            };
+        }
+
+        // 返回登录展开/收起
+        let isLoginExpanded = true;
+        if (loginBtnToggle && loginBtn) { // ✅ 新增：判断元素存在
+            loginBtnToggle.onclick = function () {
+                isLoginExpanded = !isLoginExpanded;
+                if (isLoginExpanded) {
+                    loginBtnToggle.classList.remove('collapsed');
+                    loginBtnToggle.classList.add('expanded');
+                    loginBtn.classList.add('show');
+                } else {
+                    loginBtnToggle.classList.remove('expanded');
+                    loginBtnToggle.classList.add('collapsed');
+                    loginBtn.classList.remove('show');
+                }
+                return false;
+            };
+        }
+
+        // 返回登录页面
+        if (loginBtn) { // ✅ 新增：判断元素存在
+            loginBtn.onclick = function () {
+                console.log("【返回登录】按钮被点击");
+                window.location.href = "/music/login.html";
+                return false;
+            };
+        }
+
+        // 页面加载校验
+        if (!token || token.trim() === '' || !userId || isNaN(userId)) {
+            showErrorTip("登录信息失效，请重新登录！");
+            setTimeout(() => window.location.href = "/music/login.html", 1500);
+            return;
+        }
+        console.log("页面加载成功");
+        // ✅ 移除：冗余的页面加载成功提示
+    });
 </script>
-
 </body>
-
 </html>

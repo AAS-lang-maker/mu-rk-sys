@@ -49,8 +49,11 @@ public class UserPublishController {
         }
         Integer offset = (pageNum - 1) * pageSize;
         PageInfo<MyRankWithSong> publishRanks = userPublishService.selectPublishRank(category, pageNum, pageSize, offset);
-        model.addAllAttributes(publishRanks.getList());
-        model.addAttribute("publishRanks", publishRanks);
+       model.addAttribute("rankList", publishRanks.getList());
+       model.addAttribute("publishRanks", publishRanks);
+       Song song=new Song();
+       song.getSongId();
+       model.addAttribute("song", song);
         model.addAttribute("category", category);
         model.addAttribute("pageNum", pageNum);
         model.addAttribute("pageSize", pageSize);
