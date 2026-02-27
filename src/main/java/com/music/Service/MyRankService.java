@@ -1,6 +1,7 @@
 package com.music.Service;
 
 import com.github.pagehelper.PageInfo;
+import com.music.dto.CommentVo;
 import com.music.dto.EditRank;
 import com.music.dto.MyRankWithSong;
 import com.music.pojo.Singer;
@@ -26,4 +27,8 @@ public interface MyRankService {
     boolean deleteRank(Integer rankId);
 
     UserInfo selectByuserId(Integer userId);
+
+    List<CommentVo> selectComment(Integer rankId, Integer userId);
+
+    boolean deleteComment(Integer comId, Integer userId);
 }

@@ -5,6 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <!-- 补充添加播放器样式和脚本引用 -->
+    <link rel="stylesheet" th:href="@{/player/music-player.css}">
+    <script th:src="@{/player/music-player.js}"></script>
     <title>热门榜单</title>
     <style>
         /* 完全复用你提供的样式，保证视觉统一 */
@@ -626,6 +629,37 @@
             list-style: none;
             padding: 0;
         }
+
+        /* 播放按钮样式 */
+        .play-btn {
+            background: rgba(255, 250, 156, 0.2);
+            border: 1px solid #fffa9c;
+            color: #fffa9c;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 12px;
+            padding-left: 2px; /* 调整三角形位置 */
+        }
+        .play-btn:hover {
+            background: #fffa9c;
+            color: #1a202c;
+            transform: scale(1.1);
+        }
+
+        /* 播放器容器样式 */
+        #music-player-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 300px;
+            z-index: 1000;
+        }
     </style>
 </head>
 
@@ -673,7 +707,16 @@
     </div>
 </div>
 
+<!-- 加号发布榜单按钮 -->
+<div class="add-button-container">
+    <button class="add-button" id="addBtn">+</button>
+</div>
+
+<!-- 播放器容器 -->
+<div id="music-player-container"></div>
+
 <script>
+    // ===================== 全局核心配置 =====================
     // 1. 工具函数：获取URL参数
     function getUrlParam(paramName) {
         const reg = new RegExp("(^|&)" + paramName + "=([^&]*)(&|$)");
@@ -681,10 +724,25 @@
         return paramMatch ? decodeURIComponent(paramMatch[2]) : null;
     }
 
+    // 新增：从JWT Token解析userId
+    function getUserIdFromToken(token) {
+        if (!token) return null;
+        try {
+            const payload = token.split('.')[1];
+            const decodedPayload = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
+            const payloadObj = JSON.parse(decodedPayload);
+            return payloadObj.userId || payloadObj.uid || null;
+        } catch (error) {
+            console.error("解析Token失败:", error);
+            return null;
+        }
+    }
+
     // 2. 全局变量
     let token = getUrlParam("token");
-    let userId = getUrlParam("userId");
+    let userId = getUrlParam("userId") || getUserIdFromToken(token);
     let category = parseInt(getUrlParam("category")) || 1;
+    let musicPlayer = null; // 播放器实例
 
     // 核心配置
     const config = {
@@ -717,14 +775,114 @@
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         axios.defaults.headers.common['userId'] = userId;
 
+        // 初始化播放器（使用实际的MusicPlayer类）
+        initMusicPlayer();
+
         // 加载数据 + 监听滚动
         loadRankData();
         window.addEventListener("scroll", handleScroll);
 
         // 绑定按钮事件
         bindButtonEvents();
+
+        // 绑定播放按钮点击事件（事件委托）
+        document.addEventListener('click', function(e) {
+            const playBtn = e.target.closest('.play-btn');
+            if (playBtn) {
+                playSongFromData(playBtn);
+            }
+        });
     };
 
+    // ===================== 播放器相关功能（适配实际的music-player.js） =====================
+    // 初始化播放器（使用你实际的MusicPlayer类）
+    function initMusicPlayer() {
+        if (musicPlayer) return;
+        try {
+            // 使用从music-player.js加载的真实MusicPlayer类初始化
+            musicPlayer = new MusicPlayer({
+                container: 'music-player-container',
+                token: token,
+                userId: userId
+            });
+            console.log("播放器初始化成功（使用实际的music-player.js）");
+        } catch (e) {
+            console.error("播放器初始化失败:", e);
+            showErrorTip("播放器加载失败：" + e.message);
+            // 降级处理：使用模拟播放器
+            musicPlayer = {
+                playSong: function(song) {
+                    console.log("模拟播放歌曲：", song);
+                    showSuccessTip(`开始播放：${song.songName}`);
+                }
+            };
+        }
+    }
+
+    // 播放歌曲（调用实际播放器的播放方法）
+    function playSong(song) {
+        if (!song) {
+            showErrorTip("歌曲信息为空！");
+            return;
+        }
+        if (!musicPlayer) {
+            initMusicPlayer();
+        }
+        try {
+            musicPlayer.playSong(song);
+            showSuccessTip(`开始播放：${song.songName}`);
+        } catch (e) {
+            console.error("播放歌曲失败:", e);
+            showErrorTip("播放失败：" + e.message);
+        }
+    }
+
+    // 从播放按钮的data属性播放歌曲
+    function playSongFromData(btn) {
+        const songId = btn.dataset.songId;
+        const songName = btn.dataset.songName;
+        const singerName = btn.dataset.singerName;
+
+        if (!songId) {
+            showErrorTip("歌曲ID为空，无法播放！");
+            return;
+        }
+
+        playSong({
+            songId: songId,
+            songName: songName || "未知歌曲",
+            singerName: singerName || "未知歌手"
+        });
+    }
+
+    // ===================== 提示框工具函数 =====================
+    function showErrorTip(msg) {
+        let el = document.getElementById('errorAlert');
+        if (!el) {
+            el = document.createElement('div');
+            el.id = 'errorAlert';
+            el.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:10px 20px;background:#ff4444;color:#fff;border-radius:4px;z-index:9999;';
+            document.body.appendChild(el);
+        }
+        el.innerText = msg;
+        el.style.display = 'block';
+        setTimeout(() => el.style.display = 'none', 2000);
+    }
+
+    function showSuccessTip(msg) {
+        let el = document.getElementById('successAlert');
+        if (!el) {
+            el = document.createElement('div');
+            el.id = 'successAlert';
+            el.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);padding:10px 20px;background:#00C851;color:#fff;border-radius:4px;z-index:9999;';
+            document.body.appendChild(el);
+        }
+        el.innerText = msg;
+        el.style.display = 'block';
+        setTimeout(() => el.style.display = 'none', 2000);
+    }
+
+    // ===================== 原有功能逻辑 =====================
     // 4. 绑定按钮事件
     function bindButtonEvents() {
         const slideBtnToggle = document.getElementById('slideBtnToggle');
@@ -732,6 +890,7 @@
         const hotRankBtn = document.getElementById('hotRankBtn');
         const loginBtnToggle = document.getElementById('loginBtnToggle');
         const loginBtn = document.getElementById('loginBtn');
+        const addBtn = document.getElementById("addBtn");
 
         // 我的榜单展开/收起
         let isExpanded = true;
@@ -753,7 +912,7 @@
         // 进入我的榜单
         myRankBtn.onclick = function () {
             if (!token || !userId || isNaN(userId)) {
-                alert("缺少登录信息，请重新登录！");
+                showErrorTip("缺少登录信息，请重新登录！");
                 setTimeout(() => window.location.href = "/login.html", 1500);
                 return false;
             }
@@ -788,15 +947,31 @@
             window.location.href = "/music/login.html";
             return false;
         };
+
+        // 加号发布榜单按钮
+        if (addBtn) {
+            addBtn.onclick = function () {
+                console.log("【加号发布】按钮被点击");
+                if (!token || !userId || !category || isNaN(userId) || isNaN(category)) {
+                    showErrorTip("参数缺失，请刷新页面重试！");
+                    return false;
+                }
+                let addPagePath = category === 1 ? "/music/rank.html" : "/music/workrank.html";
+                const jumpUrl = `${addPagePath}?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}`;
+                console.log("发布跳转URL：", jumpUrl);
+                window.location.href = jumpUrl;
+                return false;
+            };
+        }
     }
 
     // 5. 搜索功能
     function openSearch() {
-        const searchUrl = `/music/api/rank/sou?token=${encodeURIComponent(token)}&category=${category}`;
+        const searchUrl = `/music/api/rank/sou?token=${encodeURIComponent(token)}&category=${category}&userId=${userId}`;
         window.location.href = searchUrl;
     }
 
-    // 6. 加载榜单数据（核心修改：直接使用后端返回的rankSongList）
+    // 6. 加载榜单数据
     async function loadRankData() {
         if (config.isLoading || !config.hasMore) return;
 
@@ -828,7 +1003,7 @@
             }
 
             const rawList = resData.data || [];
-            console.log("后端返回原始数据：", rawList); // 调试用，可保留
+            console.log("后端返回原始数据：", rawList);
 
             if (rawList.length === 0 && config.currentStart === 0) {
                 config.hasMore = false;
@@ -841,7 +1016,6 @@
                 return;
             }
 
-            // 核心修改：直接使用后端返回的rankSongList，无需手动分组
             // 按热度排序（投票+收藏）
             let rankList = rawList.sort((a, b) => {
                 const hotA = (a.voteCount || a.vote_count || 0) + (a.loveCount || a.love_count || 0);
@@ -887,7 +1061,7 @@
         }
     }
 
-    // 7. 渲染榜单（核心修改：直接渲染rankSongList）
+    // 7. 渲染榜单（添加播放按钮）
     function renderRankList(rankList) {
         const rankListDom = document.getElementById("rankList");
         if (!rankList || rankList.length === 0) return;
@@ -896,7 +1070,7 @@
             // 计算榜单排名（从1开始递增）
             const rankNum = config.totalRankCount  + index + 1;
             const li = document.createElement("li");
-            li.className = "ranking-item"; // 使用统一的样式类
+            li.className = "ranking-item";
 
             // 计算榜单热度
             const voteCount = Number(rank.voteCount || rank.vote_count || 0);
@@ -911,9 +1085,9 @@
 
             // 核心：直接使用后端返回的rankSongList
             const songList = rank.rankSongList || rank.rank_song_list || [];
-            console.log(`榜单${rankId}的歌曲列表：`, songList); // 调试用
+            console.log(`榜单${rankId}的歌曲列表：`, songList);
 
-            // 拼接歌曲列表HTML
+            // 拼接歌曲列表HTML（添加播放按钮）
             let songsHtml = '';
             if (!songList || songList.length === 0) {
                 songsHtml = '<div class="song-item"><span class="song-name">暂无歌曲</span></div>';
@@ -922,6 +1096,7 @@
                 songsHtml += '<h4>歌曲列表</h4><ul>';
                 showSongs.forEach(song => {
                     // 兼容驼峰/下划线字段名
+                    const songId = song.songId || song.song_id || "";
                     const songName = song.songName || song.song_name || "未知歌曲";
                     const singerName = song.singerName || song.singer_name || "未知歌手";
                     const ranking = Number(song.ranking || song.rank || 0);
@@ -931,6 +1106,12 @@
                             <span class="song-name">${songName}</span>
                             <span class="song-singer">${singerName}</span>
                             <span class="song-rank">${ranking > 0 ? ranking : "无排名"}</span>
+                            <button class="play-btn"
+                                    data-song-id="${songId}"
+                                    data-song-name="${songName}"
+                                    data-singer-name="${singerName}">
+                                &#9658;
+                            </button>
                         </li>
                     `;
                 });
@@ -978,5 +1159,4 @@
     }
 </script>
 </body>
-
 </html>

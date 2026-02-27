@@ -4,8 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <script th:scr="@{/js/axios.min.js}"></script>
+    <script th:src="@{/js/axios.min.js}"></script> <!-- 修复拼写错误 scr → src -->
     <title>个人榜单</title>
+    <link rel="stylesheet" th:href="@{/player/music-player.css}">
     <style>
         * {
             margin: 0;
@@ -407,10 +408,76 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(241, 166, 166, 0.99);
         }
+
+        /* 播放按钮样式（和主页保持一致） */
+        .play-btn {
+            background: rgba(255, 250, 156, 0.2);
+            border: 1px solid #fffa9c;
+            color: #fffa9c;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 12px;
+            padding-left: 2px; /* 调整三角形位置 */
+        }
+        .play-btn:hover {
+            background: #fffa9c;
+            color: #1a202c;
+            transform: scale(1.1);
+        }
+
+        /* 提示框样式（复用主页） */
+        #errorAlert {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            background: #ff4444;
+            color: #fff;
+            border-radius: 4px;
+            z-index: 9999;
+        }
+
+        #successAlert {
+            display: none;
+            position: fixed;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            background: #00C851;
+            color: #fff;
+            border-radius: 4px;
+            z-index: 9999;
+        }
+
+        /* 播放器容器样式（和主页保持一致） */
+        #music-player-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 300px;
+            z-index: 1000;
+        }
     </style>
+    <script th:src="@{/player/music-player.js}"></script> <!-- 修复拼写错误 scr → src -->
 </head>
 
 <body>
+<!-- 新增提示框（和主页一致） -->
+<div id="errorAlert"></div>
+<div id="successAlert"></div>
+
+<!-- 播放器容器（和主页一致） -->
+<div id="music-player-container"></div>
+
 <div class="sidebar">
     <button class="sidebar-btn" onclick="goToPu()">返回主页</button>
     <button class="sidebar-btn" onclick="window.location.href='/music/login.html'">重新登录</button>
@@ -435,7 +502,7 @@
     </div>
 
     <div class="rankings-container">
-        <div th:each="ranking, stat : ${personalRanks.list}" class="ranking-item">
+        <div th:each="ranking, stat : ${personalRanks?.list}" class="ranking-item">
             <div class="ranking-content">
                 <!-- 榜单基本信息 -->
                 <h3 th:text="${ranking.rankName}">榜单标题</h3>
@@ -448,10 +515,17 @@
                     <ul>
                         <li th:each="song : ${ranking.rankSongList}">
                             <div class="song-info">
-                                <span class="song-name" th:text="${song.songName}">歌曲名称</span>
+                                <span class="song-name" th:text="${song?.songName}">歌曲名称</span>
                                 <span class="singer-name" th:text="${song.singerName}">歌手名称</span>
                             </div>
-                            <span class="song-rank" th:text="${song.ranking}">排名</span>
+                            <span class="song-rank" th:text="${song?.ranking}">排名</span>
+                            <!-- 播放按钮：保持原有data属性，样式和主页一致 -->
+                            <button class="play-btn"
+                                    th:data-song-id="${song.songId}"
+                                    th:data-song-name="${song.songName}"
+                                    th:data-singer-name="${song.singerName}">
+                                &#9658;
+                            </button>
                         </li>
                     </ul>
 
@@ -476,21 +550,143 @@
             </div>
         </div>
 
-        <div class="pagination">
+        <div class="pagination" th:if="${personalRanks !=null}">
             <button th:disabled="${personalRanks.pageNum == 1}"
                     th:onclick="|goToPage(${personalRanks.pageNum - 1})|">上一页</button>
 
-            <button th:each="i : ${#numbers.sequence(1, personalRanks.pages)}"
+            <button th:each="i : ${#numbers.sequence(1, personalRanks?.pages)}"
                     th:class="${personalRanks.pageNum == i ? 'active' : ''}" th:onclick="|goToPage(${i})|"
                     th:text="${i}">1</button>
 
             <button th:disabled="${personalRanks.pageNum == personalRanks.pages}"
                     th:onclick="|goToPage(${personalRanks.pageNum + 1})|">下一页</button>
         </div>
+        <div th:if="${#lists.isEmpty(publishRanks?.list)}" class="empty-state">
+            暂无榜单数据
+        </div>
     </div>
 
+
     <script>
-        // 我的榜单页 - 初始化参数（修复script嵌套问题）
+        // ===================== 全局核心配置（复用主页）=====================
+        // 1. 工具函数：获取URL参数
+        function getUrlParam(paramName) {
+            const reg = new RegExp("(^|&)" + paramName + "=([^&]*)(&|$)");
+            const paramMatch = window.location.search.substr(1).match(reg);
+            return paramMatch ? decodeURIComponent(paramMatch[2]) : null;
+        }
+
+        // 新增：从JWT Token解析userId（和主页一致）
+        function getUserIdFromToken(token) {
+            if (!token) return null;
+            try {
+                const payload = token.split('.')[1];
+                const decodedPayload = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
+                const payloadObj = JSON.parse(decodedPayload);
+                return payloadObj.userId || payloadObj.uid || null;
+            } catch (error) {
+                console.error("解析Token失败:", error);
+                return null;
+            }
+        }
+
+        // 2. 全局变量初始化（和主页一致）
+        let token = getUrlParam("token") || localStorage.getItem('token') || '';
+        let userId = getUrlParam("userId") || getUrlParam("user_id") || getUserIdFromToken(token) || localStorage.getItem('user_id') || '';
+        let category = parseInt(getUrlParam("category")) || 1;
+        let musicPlayer = null; // 播放器实例
+
+        // 3. 提示框工具（和主页一致）
+        function showErrorTip(msg) {
+            let el = document.getElementById('errorAlert');
+            if (!el) {
+                el = document.createElement('div');
+                el.id = 'errorAlert';
+                el.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:10px 20px;background:#ff4444;color:#fff;border-radius:4px;z-index:9999;';
+                document.body.appendChild(el);
+            }
+            el.innerText = msg;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 2000);
+        }
+
+        function showSuccessTip(msg) {
+            let el = document.getElementById('successAlert');
+            if (!el) {
+                el = document.createElement('div');
+                el.id = 'successAlert';
+                el.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);padding:10px 20px;background:#00C851;color:#fff;border-radius:4px;z-index:9999;';
+                document.body.appendChild(el);
+            }
+            el.innerText = msg;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 2000);
+        }
+
+        // 4. 兼容工具函数（和主页一致）
+        function padStartCompat(str, length, padChar) {
+            str = str.toString();
+            while (str.length < length) {
+                str = padChar + str;
+            }
+            return str;
+        }
+
+        // ===================== 播放器核心逻辑（完全复用主页）=====================
+        // 初始化播放器（全局函数）
+        function initMusicPlayer() {
+            if (musicPlayer) return;
+            try {
+                musicPlayer = new MusicPlayer({
+                    container: 'music-player-container',
+                    token: token,
+                    userId: userId
+                });
+                console.log("播放器初始化成功");
+            } catch (e) {
+                console.error("播放器初始化失败:", e);
+                showErrorTip("播放器加载失败：" + e.message);
+            }
+        }
+
+        // 播放歌曲（全局函数）
+        function playSong(song) {
+            if (!song) {
+                showErrorTip("歌曲信息为空！");
+                return;
+            }
+            if (!musicPlayer) {
+                initMusicPlayer();
+            }
+            try {
+                musicPlayer.playSong(song);
+                showSuccessTip(`开始播放：${song.songName}`);
+            } catch (e) {
+                console.error("播放歌曲失败:", e);
+                showErrorTip("播放失败：" + e.message);
+            }
+        }
+
+        // 播放按钮点击处理（全局函数）
+        function playSongFromData(btn) {
+            const songId = btn.dataset.songId;
+            const songName = btn.dataset.songName;
+            const singerName = btn.dataset.singerName;
+
+            if (!songId) {
+                showErrorTip("歌曲ID为空，无法播放！");
+                return;
+            }
+
+            playSong({
+                songId: songId,
+                songName: songName || "未知歌曲",
+                singerName: singerName || "未知歌手"
+            });
+        }
+
+        // ===================== 原有业务逻辑（保留不变）=====================
+        // 我的榜单页 - 初始化参数
         (function () {
             try {
                 const urlParams = new URLSearchParams(window.location.search);
@@ -569,6 +765,7 @@
                 alert('跳转失败，请刷新页面重试！');
             }
         }
+
         // 修复后的返回主页函数
         function goToPu() {
             try {
@@ -609,25 +806,27 @@
         }
 
         // 页面加载时获取并保存token和userId
-        let token = '';
-        let userId = '';
-
         window.onload = function () {
             token = localStorage.getItem('token') || getUrlParam('token');
             userId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
 
+            // 初始化播放器（新增）
+            initMusicPlayer();
+
+            // 绑定播放按钮点击事件（新增：事件委托）
+            document.addEventListener('click', function(e) {
+                const playBtn = e.target.closest('.play-btn');
+                if (playBtn) {
+                    playSongFromData(playBtn);
+                }
+            });
+
             // 校验参数，缺失则跳转登录页
             if (!token || !userId || isNaN(userId)) {
-                alert('登录信息失效，请重新登录');
+                showErrorTip('登录信息失效，请重新登录'); // 改用统一的提示框
                 setTimeout(() => window.location.href = '/music/login.html', 1500);
             }
         };
-
-        // 复用你之前的getUrlParam函数（如果页面里没有，要加上）
-        function getUrlParam(paramName) {
-            const searchParams = new URLSearchParams(window.location.search);
-            return searchParams.get(paramName);
-        }
 
         // 编辑榜单
         function editRanking(id) {
@@ -640,7 +839,7 @@
         // 投票方法
         function voteForRanking(rankId) {
             if (!token || !userId || isNaN(userId)) {
-                alert('请先登录后再投票！');
+                showErrorTip('请先登录后再投票！'); // 改用统一的提示框
                 return;
             }
 
@@ -661,16 +860,16 @@
                 })
                 .then(data => {
                     if (data.success) {
-                        alert('投票成功！');
+                        showSuccessTip('投票成功！'); // 改用统一的提示框
                         // 刷新页面或更新投票数
                         location.reload();
                     } else {
-                        alert(data.message || '投票失败，请重试');
+                        showErrorTip(data.message || '投票失败，请重试'); // 改用统一的提示框
                     }
                 })
                 .catch(error => {
                     console.error('投票请求异常：', error);
-                    alert('网络错误，请稍后重试');
+                    showErrorTip('网络错误，请稍后重试'); // 改用统一的提示框
                 });
         }
 
@@ -688,7 +887,7 @@
                 url += '&pageNum=1&pageSize=10';
                 window.location.href = url;
             } else {
-                alert('登录信息失效，请重新登录！');
+                showErrorTip('登录信息失效，请重新登录！'); // 改用统一的提示框
                 window.location.href = '/music/login.html';
             }
         }
@@ -696,7 +895,7 @@
         // 收藏方法
         function collectRanking(rankId) {
             if (!token || !userId || isNaN(userId)) {
-                alert('请先登录后再收藏！');
+                showErrorTip('请先登录后再收藏！'); // 改用统一的提示框
                 return;
             }
 
@@ -717,18 +916,19 @@
                 })
                 .then(data => {
                     if (data.success) {
-                        alert('收藏成功！');
+                        showSuccessTip('收藏成功！'); // 改用统一的提示框
                         // 刷新页面或更新收藏数
                         location.reload();
                     } else {
-                        alert(data.message || '收藏失败，请重试');
+                        showErrorTip(data.message || '收藏失败，请重试'); // 改用统一的提示框
                     }
                 })
                 .catch(error => {
                     console.error('收藏请求异常：', error);
-                    alert('网络错误，请稍后重试');
+                    showErrorTip('网络错误，请稍后重试'); // 改用统一的提示框
                 });
         }
+
         // 删除榜单
         function deleteRanking(rankId) {
             if (!confirm('确定要删除这个榜单吗？删除后无法恢复！')) {
@@ -737,7 +937,7 @@
 
             const token = localStorage.getItem('token') || getUrlParam('token');
             if (!token) {
-                alert('登录信息失效，请重新登录');
+                showErrorTip('登录信息失效，请重新登录'); // 改用统一的提示框
                 window.location.href = '/music/login.html';
                 return;
             }
@@ -759,16 +959,16 @@
                 })
                 .then(data => {
                     if (data.code === 200 || data.success) {
-                        alert('榜单删除成功！');
+                        showSuccessTip('榜单删除成功！'); // 改用统一的提示框
                         // 删除成功后刷新页面，更新榜单列表
                         location.reload();
                     } else {
-                        alert(data.msg || '删除失败，请重试');
+                        showErrorTip(data.msg || '删除失败，请重试'); // 改用统一的提示框
                     }
                 })
                 .catch(error => {
                     console.error('删除请求异常：', error);
-                    alert('网络错误，请稍后重试');
+                    showErrorTip('网络错误，请稍后重试'); // 改用统一的提示框
                 });
         }
 
@@ -779,7 +979,5 @@
             window.location.href = `/music/api/mine/myrank?pageNum=${page}&token=${encodeURIComponent(currentToken)}&userId=${encodeURIComponent(currentUserId)}`;
         }
     </script>
-
  </body>
-
 </html>

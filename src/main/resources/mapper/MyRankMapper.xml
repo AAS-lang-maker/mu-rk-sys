@@ -97,6 +97,37 @@
     <select id="selectByUserId" resultType="com.music.pojo.UserInfo">
         select username from user where user_id=#{userId}
      </select>
+    <select id="selectCommentById" resultType="com.music.pojo.Comment">
+        select * from comment where com_id=#{comId}
+    </select>
+    <select id="selectComment" resultMap="CommentVoResultMap">
+       select c.com_id,c.rank_id,c.user_id,c.parent_id,c.comment_content,c.comment_time,
+       ifnull(cl.like_count,0) as like_count,u.username,pu.username,
+       case when cl2.user_id is not null then 1 else 0 end as is_liked
+       from comment as c left join
+       (select com_id,count(*) as like_count from like_comment as l group by com_id) as cl
+       on cl.com_id=c.com_id
+       left join like_comment cl2 on cl2.com_id=c.com_id and c.user_id=#{usesrId}
+       left join personal_rank p on p.rank_id=c.rank_id
+       left join user as u on u.user_id=c.user_id
+       left join comment pc on pc.parent_id=c.user_id
+       left join user pu on pc.user_id=pu.user_id
+       where c.rank_id=#{rankId} and c.id_delete=0
+       order by c.comment_time asc
+       limit 50
+    </select>
+    <resultMap id="CommentVoResultMap" type="com.music.dto.CommentVo">
+        <id property="comId" column="com_id"/>
+        <result property="rankId" column="rank_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="username" column="username"/>
+        <result property="comContent" column="comment_content"/>
+        <result property="comTime" column="comment_time"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="likeCount" column="like_count"/>
+        <result property="isLiked" column="is_liked"/>
+        <result property="parentUsername" column="parent_username"/>
+    </resultMap>
     <insert id="insertNewRank">
         insert into rank_song(rank_id,song_id,ranking,rank_update_time)
         values

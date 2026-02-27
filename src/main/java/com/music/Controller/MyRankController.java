@@ -2,6 +2,7 @@ package com.music.Controller;
 
 import com.github.pagehelper.PageInfo;
 import com.music.Service.MyRankService;
+import com.music.dto.CommentVo;
 import com.music.dto.EditRank;
 import com.music.dto.MyRankWithSong;
 import com.music.pojo.Singer;
@@ -64,8 +65,12 @@ public class MyRankController {
        Integer offset = (pageNum-1)*pageSize;
         PageInfo<MyRankWithSong> personalRanks=myRankService.selectMyrank(pageNum,pageSize,offset,userId);
         // 新增：打印PageInfo的所有关键字段
-       System.out.println(personalRanks.getList());
+       Song song=new Song();
+       song.getSongId();
+        System.out.println(personalRanks.getList());
+        model.addAttribute("rankList", personalRanks.getList());
         model.addAttribute("personalRanks",personalRanks);//把这两个必要数据传进URL而不是一次性的Flash，重定向的时候数据也进去了
+        model.addAttribute("song", song);
         model.addAttribute("userId", userId);
         model.addAttribute("username",userInfo.getUsername());
         return "myrank-page";
@@ -203,6 +208,42 @@ public class MyRankController {
         }catch (Exception e){
             e.printStackTrace();
             return Result.error(e.getMessage()+"删除榜单失败");
+        }
+    }
+    @GetMapping("/list")
+    @ResponseBody
+    public Result<List<CommentVo>> list(@RequestParam("token")String token
+            , @RequestParam("rankId")Integer rankId, @RequestParam("userId")Integer userId){
+        if(token == null || token.isEmpty()) {
+            return Result.error("token不能为空捏");
+        }
+        try{
+            List<CommentVo> comment=myRankService.selectComment(rankId,userId);
+            return Result.success(comment);
+        }catch (Exception e){
+            e.printStackTrace();
+            return Result.error("评论展示失败");
+        }
+    }
+    @DeleteMapping("deleteComment")
+    @ResponseBody
+    public Result<String> deleteComment(@RequestParam("token")String token,@RequestParam("comId")Integer comId,
+                                        @RequestParam("userId")Integer userId){
+        if(token == null || token.isEmpty()) {
+            return Result.error("token不能为空捏");
+        }
+        try{
+            if(comId==null){
+                return Result.error("comId不能为空");
+            }
+            boolean result=myRankService.deleteComment(comId,userId);
+            if(result==true){
+                return Result.success();
+            }else{
+                return Result.error("评论删除失败");
+            }
+        }catch (Exception e){
+            return Result.error("评论删除失败");
         }
     }
 }

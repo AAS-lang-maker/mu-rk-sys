@@ -1,10 +1,8 @@
 package com.music.Mapper;
 
+import com.music.dto.CommentVo;
 import com.music.dto.MyRankWithSong;
-import com.music.pojo.RankSong;
-import com.music.pojo.Singer;
-import com.music.pojo.Song;
-import com.music.pojo.UserInfo;
+import com.music.pojo.*;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
@@ -39,4 +37,12 @@ public interface MyRankMapper {
     boolean deleteRank(Integer rankId);
 
     UserInfo selectByUserId(Integer userId);
+
+    List<CommentVo> selectComment(Integer rankId, Integer userId);
+
+    Comment selectCommentById(Integer comId);
+
+    @Update("update comment set id_delete=#{idDelete}  where com_id=#{comId}")
+    int updateComment(Integer comId, int idDelete);
+
 }

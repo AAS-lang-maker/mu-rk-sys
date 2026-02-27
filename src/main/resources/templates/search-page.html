@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>搜索结果 - 音乐排行榜</title>
+    <!-- 新增：引入播放器样式文件（和主页一致） -->
+    <link rel="stylesheet" th:href="@{/player/music-player.css}">
     <style>* {
         margin: 0;
         padding: 0;
@@ -21,6 +23,7 @@
         background-attachment: fixed;
         color: #f1f5f9;
         min-height: 100vh;
+        padding-bottom: 120px; /* 为播放器预留底部空间 */
     }
 
     .container {
@@ -465,6 +468,13 @@
             overflow-x: auto; /* 极端情况横向滚动，不换行 */
             padding-bottom: 5px;
         }
+
+        /* 移动端播放器适配（沿用主页的适配逻辑） */
+        #music-player-container {
+            width: 100% !important;
+            right: 0 !important;
+            bottom: 0 !important;
+        }
     }
 
     /* 评论区样式 */
@@ -686,7 +696,12 @@
         transition: all 0.3s ease;
         z-index: 100;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    }</style>
+    }
+
+    /* 移除原有静态播放器样式（不再需要） */
+    </style>
+    <!-- 新增：引入播放器脚本文件（和主页一致） -->
+    <script th:src="@{/player/music-player.js}"></script>
 </head>
 <body>
 <div class="sidebar">
@@ -767,6 +782,13 @@
                                     <span class="singer-name" th:text="${song.singerName}">歌手名称</span>
                                 </div>
                                 <span class="song-rank" th:text="${song.ranking}">排名</span>
+                                <!-- 新增：播放按钮（和主页一致的结构） -->
+                                <button class="play-btn"
+                                        th:data-song-id="${song.songId}"
+                                        th:data-song-name="${song.songName}"
+                                        th:data-singer-name="${song.singerName}">
+                                    &#9658;
+                                </button>
                             </li>
                         </ul>
                     </div>
@@ -844,8 +866,8 @@
     </div>
 </div>
 
-
-</div>
+<!-- 替换：删除原有静态播放器，添加和主页一致的播放器容器 -->
+<div id="music-player-container" style="position: fixed; bottom: 20px; right: 20px; width: 300px; z-index: 1000;"></div>
 
 <!-- 使用CDN引入Axios，避免404错误 -->
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
@@ -865,6 +887,8 @@
     let pageSize = parseInt(getUrlParam("pageSize")) || 4;
     let keyword = getUrlParam("keyword") || "";
     let success = getUrlParam("success") || "";
+    // 新增：声明musicPlayer全局变量（和主页一致）
+    let musicPlayer = null;
 
     // 保存token到localStorage（仅备份，不影响核心逻辑）
     if (token) {
@@ -1420,6 +1444,59 @@
         return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
     }
 
+    // 新增：播放器核心函数（和主页完全一致）
+    // 初始化播放器（全局函数）
+    function initMusicPlayer() {
+        if (musicPlayer) return;
+        try {
+            musicPlayer = new MusicPlayer({
+                container: 'music-player-container',
+                token: token,
+                userId: userId
+            });
+            console.log("播放器初始化成功");
+        } catch (e) {
+            console.error("播放器初始化失败:", e);
+            showErrorTip("播放器加载失败：" + e.message);
+        }
+    }
+
+    // 播放歌曲（全局函数）
+    function playSong(song) {
+        if (!song) {
+            showErrorTip("歌曲信息为空！");
+            return;
+        }
+        if (!musicPlayer) {
+            initMusicPlayer();
+        }
+        try {
+            musicPlayer.playSong(song);
+            showSuccessTip(`开始播放：${song.songName}`);
+        } catch (e) {
+            console.error("播放歌曲失败:", e);
+            showErrorTip("播放失败：" + e.message);
+        }
+    }
+
+    // 播放按钮点击处理（全局函数）
+    function playSongFromData(btn) {
+        const songId = btn.dataset.songId;
+        const songName = btn.dataset.songName;
+        const singerName = btn.dataset.singerName;
+
+        if (!songId) {
+            showErrorTip("歌曲ID为空，无法播放！");
+            return;
+        }
+
+        playSong({
+            songId: songId,
+            songName: songName || "未知歌曲",
+            singerName: singerName || "未知歌手"
+        });
+    }
+
     // 14. 页面加载完成后初始化（和主页一致，确保所有变量/事件生效）
     window.onload = function () {
         // 重新确认核心参数
@@ -1436,6 +1513,17 @@
         // 初始化页面样式和事件
         initSearchStyle();
         initSmoothScroll();
+
+        // 初始化播放器（和主页一致）
+        initMusicPlayer();
+
+        // 绑定播放按钮点击事件（事件委托，解决动态元素问题）
+        document.addEventListener('click', function(e) {
+            const playBtn = e.target.closest('.play-btn');
+            if (playBtn) {
+                playSongFromData(playBtn);
+            }
+        });
 
         // 校验登录状态（和主页一致）
         if (!token || token.trim() === '' || !userId || isNaN(userId)) {

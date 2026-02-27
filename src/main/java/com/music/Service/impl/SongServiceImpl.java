@@ -33,13 +33,13 @@ public class SongServiceImpl implements SongService {
         }
         String songUrl=song.getSongurl();
         String fullurl=musicFilePath+ songUrl.trim();
-        System.out.println("===== 拼接后的完整文件路径 =====");
+        /*System.out.println("===== 拼接后的完整文件路径 =====");
         System.out.println(fullurl);
-        System.out.println("==================================");
+        System.out.println("==================================");*/
         File mp3file=new File(fullurl);
-        System.out.println("文件是否存在：" + mp3file.exists());
+        /*System.out.println("文件是否存在：" + mp3file.exists());
         System.out.println("是否是文件：" + mp3file.isFile());
-        System.out.println("文件绝对路径：" + mp3file.getAbsolutePath());
+        System.out.println("文件绝对路径：" + mp3file.getAbsolutePath());*/
         if(!mp3file.exists()){
             throw new RuntimeException();
         }

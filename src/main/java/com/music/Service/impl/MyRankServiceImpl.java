@@ -4,6 +4,7 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.music.Mapper.MyRankMapper;
 import com.music.Service.MyRankService;
+import com.music.dto.CommentVo;
 import com.music.dto.EditRank;
 import com.music.dto.MyRankWithSong;
 import com.music.dto.RankAddRequest;
@@ -107,5 +108,26 @@ private MyRankMapper myRankMapper;
     public UserInfo selectByuserId(Integer userId) {
         UserInfo userInfo=myRankMapper.selectByUserId(userId);
         return userInfo;
+    }
+
+    @Override
+    public List<CommentVo> selectComment(Integer rankId, Integer userId) {
+        List<CommentVo> list=myRankMapper.selectComment(rankId,userId);
+        System.out.println("查询出的评论数："+list.size());
+        return list;
+    }
+
+    @Override
+    @Transactional
+    public boolean deleteComment(Integer comId,Integer userId) {
+        Comment comment=myRankMapper.selectCommentById(comId);
+        if(comment==null){
+            return false;
+        }
+        if(comment.getUserId()!=userId){
+            throw new RuntimeException("只能删除自己的评论");
+        }
+        int result=myRankMapper.updateComment(comId,1);
+        return result>0;
     }
 }
