@@ -201,6 +201,27 @@ public class HotRankServiceImpl implements HotRankService {
         return result>0;
     }
 
+    @Override
+    @Transactional
+    public boolean insertLike(Integer userId,Integer comId) {
+        Comment comment=musicHotRankMapper.selectCommentById(comId);
+        if(comment==null||comment.getIdDelete()==1){
+            return false;
+        }
+        int result=musicHotRankMapper.insertLike(userId,comId);
+        return result>0;
+    }
+
+    @Override
+    @Transactional
+    public boolean deleteLike(Integer comId, Integer userId) {
+        Comment comment=musicHotRankMapper.selectCommentById(comId);
+        if(comment==null||comment.getIdDelete()==1){
+            return false;
+        }
+        int result=musicHotRankMapper.deleteLike(comId,userId);
+        return result>0;
+    }
     //豆包更新之后变权威了
     //下方方法目的：刷新页面之后不会让统统一用户能重复投票，使用redis达到记录用户投票状态的目的
     private void sychorVoteToRedis(Integer rankId,Integer userId,String votekey){

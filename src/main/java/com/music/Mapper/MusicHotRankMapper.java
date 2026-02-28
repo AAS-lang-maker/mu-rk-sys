@@ -39,4 +39,9 @@ public interface MusicHotRankMapper {
 
     @Update("update comment set id_delete=#{idDelete}  where com_id=#{comId}")
     int updateComment(Integer comId, int i);
+
+    int insertLike(Integer userId, Integer comId);
+
+    @Delete("delete from like_comment where com_id=#{comId} and user_id=#{userId}")
+    int deleteLike(Integer comId, Integer userId);
 }

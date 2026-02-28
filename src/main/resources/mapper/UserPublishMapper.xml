@@ -88,7 +88,7 @@
     <!-- 模糊查询本质：like+concat和%占位符，keyword拼接 -->
     <select id="selectSearch" resultMap="MyRankWithSongResultMap">
         select p.rank_id,p.rank_name,p.total_vote as vote_count,p.total_love as love_count
-        ,p.publish_time,r.rs_id,r.ranking,r.rank_update_time,s.song_name,si.singer_name,u.username from
+        ,p.publish_time,r.rs_id,r.ranking,r.rank_update_time,r.song_id,s.song_name,si.singer_name,u.username from
         (select pe.rank_id,pe.rank_name,pe.publish_time,pe.user_id,coalesce(v.total_vote,0) as total_vote,coalesce(l.total_love,0) as total_love
         from personal_rank as pe
         left join (select rank_id,count(*) as total_vote from vote_record group by rank_id) as v

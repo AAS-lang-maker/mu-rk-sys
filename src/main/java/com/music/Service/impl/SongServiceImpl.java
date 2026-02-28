@@ -54,7 +54,9 @@ public class SongServiceImpl implements SongService {
         // 设置响应头，返回音频流
         response.setContentType("audio/mpeg");
         response.setHeader("Content-Length", String.valueOf(mp3file.length()));
-        response.setHeader("Content-Disposition", "inline; filename=\"" + mp3file.getName() + "\"");
+        // 使用 URLEncoder.encode 对文件名进行编码
+        String encodedFileName = URLEncoder.encode(String.valueOf(mp3file), "UTF-8").replace("+", "%20");
+        response.setHeader("Content-Disposition", "inline; filename*=UTF-8''" + encodedFileName);
 //利用文件流让前端网络能够读取音频文件
         try (
             FileInputStream in =new FileInputStream(mp3file);//从内存中读出文件

@@ -277,6 +277,10 @@ public class UserPublishController {
         keyword=(keyword!=null)?keyword.trim():null;//对关键词做处理
          PageInfo<MyRankWithSong> searchRank = userPublishService.selectSearch(category,pageNum,offset,pageSize,keyword);
          model.addAttribute("searchRank", searchRank);
+         model.addAttribute("ranklist", searchRank.getList());
+            Song song=new Song();
+            song.getSongId();
+            model.addAttribute("song", song);
          model.addAttribute("token", token);
          model.addAttribute("userId",userId);
          model.addAttribute("category",category);

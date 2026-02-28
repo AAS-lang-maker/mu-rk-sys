@@ -466,6 +466,176 @@
             width: 300px;
             z-index: 1000;
         }
+
+        /* 评论区样式（和主页保持一致） */
+        .comment-section {
+            margin-top: 20px;
+            border-top: 1px solid rgba(255, 250, 156, 0.1);
+            padding-top: 15px;
+        }
+
+        .comment-toggle {
+            background: rgba(255, 250, 156, 0.1);
+            border: 1px solid rgba(255, 250, 156, 0.3);
+            color: #fffa9c;
+            border-radius: 20px;
+            padding: 6px 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .comment-toggle:hover {
+            background: rgba(255, 250, 156, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .comment-container {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .comment-container.show {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .comment-input-area {
+            margin-bottom: 20px;
+        }
+
+        .comment-input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 250, 156, 0.3);
+            border-radius: 8px;
+            color: #f7fafc;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 80px;
+            transition: all 0.3s ease;
+        }
+
+        .comment-input:focus {
+            outline: none;
+            border-color: #fffa9c;
+            box-shadow: 0 0 10px rgba(255, 250, 156, 0.3);
+        }
+
+        .comment-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 10px;
+        }
+
+        .comment-submit {
+            background: #fffa9c;
+            color: #1a202c;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .comment-submit:hover {
+            background: #fff780;
+            transform: translateY(-2px);
+        }
+
+        .comment-list {
+            margin-top: 20px;
+        }
+
+        .comment-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .comment-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .comment-username {
+            color: #fffa9c;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .comment-time {
+            color: rgba(247, 250, 252, 0.5);
+            font-size: 12px;
+        }
+
+        .comment-content {
+            color: #f7fafc;
+            font-size: 14px;
+            line-height: 1.4;
+            margin-bottom: 10px;
+        }
+
+        .comment-actions-bar {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* 评论删除按钮核心样式 */
+        .comment-delete-btn {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: rgba(255, 99, 71, 0.7);
+            font-size: 13px;
+            font-weight: 500;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .comment-delete-btn:hover {
+            color: #ff6347;
+            background-color: rgba(255, 99, 71, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .comment-delete-btn:active {
+            transform: translateY(0);
+            opacity: 0.8;
+        }
+
+        .comment-delete-btn::before {
+            content: "🗑️";
+            font-size: 12px;
+        }
     </style>
     <script th:src="@{/player/music-player.js}"></script> <!-- 修复拼写错误 scr → src -->
 </head>
@@ -542,6 +712,29 @@
                     </div>
                 </div>
 
+                <!-- 评论区（新增，和主页一致） -->
+                <div class="comment-section">
+                    <button class="comment-toggle" th:onclick="|toggleComments(${ranking.rankId})|">
+                        查看评论
+                    </button>
+                    <div class="comment-container" th:id="|comment-container-${ranking.rankId}|">
+                        <!-- 评论输入区 -->
+                        <div class="comment-input-area">
+                            <textarea class="comment-input" th:id="|comment-input-${ranking.rankId}|"
+                                      placeholder="写下你的评论..."></textarea>
+                            <div class="comment-actions">
+                                <button class="comment-submit" th:onclick="|submitComment(${ranking.rankId})|">
+                                    发表评论
+                                </button>
+                            </div>
+                        </div>
+                        <!-- 评论列表 -->
+                        <div class="comment-list" th:id="|comment-list-${ranking.rankId}|">
+                            <!-- 评论将通过JavaScript动态加载 -->
+                        </div>
+                    </div>
+                </div>
+
                 <button class="edit-btn" th:onclick="|editRanking(${ranking.rankId})|">编辑</button>
                 <!-- 新增删除按钮 -->
                 <button class="delete-btn" th:onclick="|deleteRanking(${ranking.rankId})|" style="background-color: #f68d8d; color: black;">
@@ -594,7 +787,7 @@
         let token = getUrlParam("token") || localStorage.getItem('token') || '';
         let userId = getUrlParam("userId") || getUrlParam("user_id") || getUserIdFromToken(token) || localStorage.getItem('user_id') || '';
         let category = parseInt(getUrlParam("category")) || 1;
-        let musicPlayer = null; // 播放器实例
+
 
         // 3. 提示框工具（和主页一致）
         function showErrorTip(msg) {
@@ -683,6 +876,196 @@
                 songName: songName || "未知歌曲",
                 singerName: singerName || "未知歌手"
             });
+        }
+
+        // ===================== 评论区功能（新增，和主页一致，不含评论点赞）=====================
+        function toggleComments(rankId) {
+            const container = document.getElementById(`comment-container-${rankId}`);
+            if (!container) {
+                showErrorTip("评论容器未找到！");
+                return;
+            }
+            const toggleBtn = container.previousElementSibling;
+
+            if (container.classList.contains('show')) {
+                container.classList.remove('show');
+                toggleBtn.textContent = '查看评论';
+            } else {
+                container.classList.add('show');
+                toggleBtn.textContent = '收起评论';
+                loadComments(rankId);
+            }
+        }
+
+        function loadComments(rankId) {
+            console.log('加载评论列表，rankId:', rankId);
+            const commentList = document.getElementById(`comment-list-${rankId}`);
+            if (!commentList) return;
+
+            if (!token) {
+                commentList.innerHTML = '<p style="color: rgba(247, 250, 252, 0.7); text-align: center;">请先登录后查看评论</p>';
+                return;
+            }
+
+            commentList.innerHTML = '<p style="color: rgba(247, 250, 252, 0.7); text-align: center;">加载中...</p>';
+
+            axios.get(`/music/api/rank/list`, {
+                params: {
+                    token: token,
+                    rankId: rankId,
+                    userId: userId
+                }
+            })
+                .then(response => {
+                    console.log('加载评论响应:', response.data);
+                    if (response.data.code === 200 || response.data.success) {
+                        const comments = response.data.data || response.data;
+                        renderComments(commentList, comments);
+                    } else {
+                        commentList.innerHTML = `<p style="color: rgba(247, 250, 252, 0.7); text-align: center;">查询评论失败：${response.data.msg || '未知错误'}</p>`;
+                        console.error('评论查询失败:', response.data);
+                    }
+                })
+                .catch(error => {
+                    console.error('加载评论失败:', error);
+                    commentList.innerHTML = `<p style="color: rgba(247, 250, 252, 0.7); text-align: center;">加载评论失败：${error.response?.data?.msg || error.message}</p>`;
+                });
+        }
+
+        function renderComments(container, comments) {
+            if (!comments || comments.length === 0) {
+                container.innerHTML = '<p style="color: rgba(247, 250, 252, 0.7); text-align: center;">暂无评论</p>';
+                return;
+            }
+
+            container.innerHTML = '';
+            comments.forEach(comment => {
+                const commentItem = document.createElement('div');
+                commentItem.className = 'comment-item';
+
+                commentItem.innerHTML = `
+                <div class="comment-header">
+                    <span class="comment-username">${comment.username || '匿名用户'}</span>
+                    <span class="comment-time">${formatTime(comment.comTime)}</span>
+                </div>
+                <div class="comment-content">${comment.comContent || ''}</div>
+                <div class="comment-actions-bar">
+                    ${comment.userId === parseInt(userId) ?
+                        `<button class="comment-delete-btn" onclick="deleteComment(${comment.comId}, event)" >删除</button>` : ''
+                    }
+                </div>
+            `;
+
+                container.appendChild(commentItem);
+            });
+        }
+
+        function submitComment(rankId) {
+            console.log('提交评论,rankId:', rankId);
+            const input = document.getElementById(`comment-input-${rankId}`);
+            if (!input) {
+                showErrorTip("评论输入框未找到！");
+                return;
+            }
+            const content = input.value.trim();
+
+            if (!content) {
+                showErrorTip("评论内容不能为空！");
+                return;
+            }
+
+            if (!token || !userId || isNaN(userId)) {
+                showErrorTip("请先登录后再评论！");
+                return;
+            }
+
+            axios.post(`/music/api/rank/pubcomment`, {
+                rankId: rankId,
+                userId: userId,
+                content: content,
+                parentId: null
+            }, {
+                params: { token: token }
+            })
+                .then(response => {
+                    console.log('提交评论成功:', response.data);
+                    if (response.data.code === 200 || response.data.success) {
+                        showSuccessTip("评论发表成功！");
+                        input.value = '';
+                        loadComments(rankId);
+                    } else {
+                        showErrorTip("评论发表失败：" + (response.data.msg || '未知错误'));
+                    }
+                })
+                .catch(error => {
+                    console.error('提交评论失败:', error);
+                    showErrorTip("评论发表失败：" + (error.response?.data?.msg || error.message));
+                });
+        }
+
+        function deleteComment(commentId, e) {
+            console.log('删除评论，commentId:', commentId);
+
+            if (!confirm('确定要删除这条评论吗？')) {
+                return;
+            }
+
+            axios.delete(`/music/api/rank/deleteComment`, {
+                params: {
+                    token: token,
+                    comId: commentId,
+                    userId: userId
+                }
+            })
+                .then(response => {
+                    console.log('删除评论成功:', response.data);
+                    if (response.data.code === 200 || response.data.success) {
+                        showSuccessTip("删除评论成功！");
+                        const rankId = getRankIdFromCommentItem(e.target);
+                        if (rankId) {
+                            loadComments(rankId);
+                        }
+                    } else {
+                        showErrorTip("删除评论失败：" + (response.data.msg || '未知错误'));
+                    }
+                })
+                .catch(error => {
+                    console.error('删除评论失败:', error);
+                    showErrorTip("删除评论失败：" + (error.response?.data?.msg || error.message));
+                });
+        }
+
+        function getRankIdFromCommentItem(el) {
+            let commentContainer = el.closest('[id^="comment-container-"]');
+            if (commentContainer) {
+                const rankId = commentContainer.id.replace('comment-container-', '');
+                console.log('提取到的rankId:', rankId);
+                return rankId;
+            }
+
+            const commentList = el.closest('[id^="comment-list-"]');
+            if (commentList) {
+                const rankId = commentList.id.replace('comment-list-', '');
+                console.log('从评论列表提取rankId:', rankId);
+                return rankId;
+            }
+
+            const urlRankId = getUrlParam('rankId');
+            console.log('从URL提取rankId:', urlRankId);
+            return urlRankId || 0;
+        }
+
+        // 时间格式化兼容低版本浏览器
+        function formatTime(time) {
+            if (!time) return '';
+            const date = new Date(time);
+            if (isNaN(date.getTime())) return '未知时间';
+            const year = date.getFullYear();
+            const month = padStartCompat(date.getMonth() + 1, 2, '0');
+            const day = padStartCompat(date.getDate(), 2, '0');
+            const hour = padStartCompat(date.getHours(), 2, '0');
+            const minute = padStartCompat(date.getMinutes(), 2, '0');
+            return `${year}-${month}-${day} ${hour}:${minute}`;
         }
 
         // ===================== 原有业务逻辑（保留不变）=====================
@@ -978,6 +1361,22 @@
             const currentUserId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
             window.location.href = `/music/api/mine/myrank?pageNum=${page}&token=${encodeURIComponent(currentToken)}&userId=${encodeURIComponent(currentUserId)}`;
         }
+        document.addEventListener('DOMContentLoaded', function() {
+            // 确保播放器初始化后
+            setTimeout(() => {
+                const player = document.querySelector('.music-player');
+                if (player) {
+                    // 找到控制按钮区域
+                    const controlButtons = player.querySelector('.control-buttons');
+                    if (controlButtons) {
+                        // 直接替换HTML，只保留播放按钮
+                        controlButtons.innerHTML = `
+                    <button class="control-btn play-btn" id="player-play-btn">▶</button>
+                    `;
+                    }
+                }
+            }, 1000); // 延迟1秒执行，确保播放器已渲染
+        });
     </script>
  </body>
 </html>

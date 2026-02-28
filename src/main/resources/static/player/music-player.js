@@ -10,7 +10,7 @@ class MusicPlayer {
 
         this.audioElement = null;
         this.isPlaying = false;
-        this.currentSong = null;
+        this.currentSong = null; // 核心：全程保留当前歌曲信息
         this.progressInterval = null;
         this.container = document.getElementById(this.options.container);
 
@@ -57,10 +57,9 @@ class MusicPlayer {
                             </div>
                         </div>
                         
+                        <!-- 只保留播放/暂停按钮 -->
                         <div class="control-buttons">
-                            <button class="control-btn" id="player-volume-btn">🔊</button>
                             <button class="control-btn play-btn" id="player-play-btn">▶</button>
-                            <button class="control-btn" id="player-next-btn">⏭</button>
                         </div>
                     </div>
                 </div>
@@ -76,51 +75,87 @@ class MusicPlayer {
     }
 
     bindEvents() {
-        // 播放/暂停按钮
-        document.getElementById('player-play-btn').addEventListener('click', () => {
+        const playBtn = document.getElementById('player-play-btn');
+        if (!playBtn) return;
+
+        // 播放/暂停按钮（核心修复：加固逻辑）
+        playBtn.addEventListener('click', () => {
+            // 1. 没有歌曲时，直接提示，不执行任何操作
+            console.log("播放/暂停按钮被点击了！");
+            console.log("当前 this.isPlaying:", this.isPlaying);
+            if (!this.currentSong || !this.currentSong.songId) {
+                console.log('暂无播放中的歌曲，请先在列表中选择一首歌曲播放');
+                return;
+            }
+            // 2. 有歌曲时，正常切换播放/暂停
             if (this.isPlaying) {
+                console.log("调用 this.pause()");
                 this.pause();
             } else {
+                console.log("调用 this.play()");
                 this.play();
             }
         });
 
         // 进度条点击
-        document.getElementById('player-progress-track').addEventListener('click', (e) => {
-            const track = e.currentTarget;
-            const rect = track.getBoundingClientRect();
-            const pos = (e.clientX - rect.left) / rect.width;
-            const seekTime = pos * this.audioElement.duration;
-            this.audioElement.currentTime = seekTime;
-        });
+        const progressTrack = document.getElementById('player-progress-track');
+        if (progressTrack) {
+            progressTrack.addEventListener('click', (e) => {
+                if (!this.currentSong || !this.audioElement) return;
 
-        // 音频元素事件
+                const track = e.currentTarget;
+                const rect = track.getBoundingClientRect();
+                const pos = (e.clientX - rect.left) / rect.width;
+                const seekTime = pos * this.audioElement.duration;
+                this.audioElement.currentTime = seekTime;
+            });
+        }
+
+        // 音频元素事件（加固：防止currentSong丢失）
         this.audioElement.addEventListener('timeupdate', () => {
             this.updateProgress();
         });
 
         this.audioElement.addEventListener('ended', () => {
+            // 歌曲播放完，只改状态，不重置currentSong
             this.isPlaying = false;
-            document.getElementById('player-play-btn').textContent = '▶';
+            if (playBtn) playBtn.textContent = '▶';
         });
 
         this.audioElement.addEventListener('loadedmetadata', () => {
             this.updateDuration();
         });
+
+        // 防止音频出错导致currentSong丢失
+        this.audioElement.addEventListener('error', (e) => {
+            console.error('音频播放出错:', e);
+            this.isPlaying = false;
+            if (playBtn) playBtn.textContent = '▶';
+            alert('歌曲播放出错，请换一首试试');
+        });
     }
 
+    // 播放歌曲（核心：全程保留currentSong）
     playSong(song) {
         if (!song || !song.songId) {
             console.error('无效的歌曲信息');
+            alert('歌曲信息错误，无法播放');
             return;
         }
 
-        this.currentSong = song;
+        // 关键：赋值后全程不重置，直到播放下一首
+        this.currentSong = { ...song }; // 深拷贝，防止原对象被修改
 
         // 更新UI
-        document.getElementById('player-song-name').textContent = song.songName || '未知歌曲';
-        document.getElementById('player-singer-name').textContent = song.singerName || '未知歌手';
-        document.getElementById('player-song-img').src = song.songImg || 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=music%20album%20cover%20placeholder&image_size=square';
+        const songNameEl = document.getElementById('player-song-name');
+        const singerNameEl = document.getElementById('player-singer-name');
+        const songImgEl = document.getElementById('player-song-img');
+
+        if (songNameEl) songNameEl.textContent = song.songName || '未知歌曲';
+        if (singerNameEl) singerNameEl.textContent = song.singerName || '未知歌手';
+        if (songImgEl) {
+            songImgEl.src = song.songImg || 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=music%20album%20cover%20placeholder&image_size=square';
+        }
 
         // 创建音频源URL
         const audioUrl = `/music/api/songGo/play/${song.songId}?token=${encodeURIComponent(this.options.token)}`;
@@ -129,29 +164,42 @@ class MusicPlayer {
         // 播放
         this.audioElement.play().then(() => {
             this.isPlaying = true;
-            document.getElementById('player-play-btn').textContent = '⏸';
+            const playBtn = document.getElementById('player-play-btn');
+            if (playBtn) playBtn.textContent = '⏸';
         }).catch(error => {
             console.error('播放失败:', error);
-            alert('播放失败，请检查网络连接或歌曲文件是否存在');
+            alert('播放失败：' + (error.message || '网络异常或歌曲不存在'));
         });
     }
 
+    // 播放（加固：只操作状态，不依赖重新赋值）
     play() {
-        if (this.audioElement && this.currentSong) {
-            this.audioElement.play().then(() => {
-                this.isPlaying = true;
-                document.getElementById('player-play-btn').textContent = '⏸';
-            }).catch(error => {
-                console.error('播放失败:', error);
-            });
-        }
+        if (!this.currentSong || !this.audioElement) return;
+
+        this.audioElement.play().then(() => {
+            this.isPlaying = true;
+            const playBtn = document.getElementById('player-play-btn');
+            if (playBtn) playBtn.textContent = '⏸';
+        }).catch(error => {
+            console.error('播放失败:', error);
+            alert('继续播放失败：' + error.message);
+        });
     }
 
+    // 暂停（核心修复：只改状态，不重置currentSong）
     pause() {
-        if (this.audioElement) {
-            this.audioElement.pause();
-            this.isPlaying = false;
-            document.getElementById('player-play-btn').textContent = '▶';
+        console.log("pause() 方法被调用了！");
+        console.log("当前 this.currentSong:", this.currentSong);
+        console.log("当前 this.isPlaying:", this.isPlaying);
+        console.log("当前 this.audioElement:", this.audioElement);
+        if (!this.currentSong || !this.audioElement || !this.isPlaying) return;
+        console.log("执行 this.audioElement.pause()");
+        this.audioElement.pause();
+        this.isPlaying = false;
+        const playBtn = document.getElementById('player-play-btn');
+        if (playBtn) {
+            playBtn.textContent = '▶';
+            console.log("按钮文字已改为 ▶");
         }
     }
 
@@ -162,15 +210,20 @@ class MusicPlayer {
         const duration = this.audioElement.duration;
         const progress = (currentTime / duration) * 100;
 
-        document.getElementById('player-progress-fill').style.width = `${progress}%`;
-        document.getElementById('player-progress-handle').style.left = `${progress}%`;
-        document.getElementById('player-current-time').textContent = this.formatTime(currentTime);
+        const progressFill = document.getElementById('player-progress-fill');
+        const progressHandle = document.getElementById('player-progress-handle');
+        const currentTimeEl = document.getElementById('player-current-time');
+
+        if (progressFill) progressFill.style.width = `${progress}%`;
+        if (progressHandle) progressHandle.style.left = `${progress}%`;
+        if (currentTimeEl) currentTimeEl.textContent = this.formatTime(currentTime);
     }
 
     updateDuration() {
-        if (this.audioElement && this.audioElement.duration) {
-            document.getElementById('player-duration').textContent = this.formatTime(this.audioElement.duration);
-        }
+        if (!this.audioElement || !this.audioElement.duration) return;
+
+        const durationEl = document.getElementById('player-duration');
+        if (durationEl) durationEl.textContent = this.formatTime(this.audioElement.duration);
     }
 
     formatTime(seconds) {
@@ -188,29 +241,25 @@ class MusicPlayer {
         this.options.userId = userId;
     }
 }
-// ========== 核心修改点 ==========
-// 1. 全局变量名改为和HTML一致的 musicPlayer（原globalMusicPlayer）
+
+// 全局变量和初始化函数（保持不变）
 let musicPlayer = null;
 
-// 2. 初始化函数适配HTML的调用逻辑（无参数也能初始化）
 function initMusicPlayer(options) {
-    // 如果HTML不传参数，用默认值（token和userId从HTML的全局变量取）
     const defaultOptions = {
         container: 'music-player-container',
-        token: window.token || '',  // 取HTML里的全局token
-        userId: window.userId || '' // 取HTML里的全局userId
+        token: window.token || '',
+        userId: window.userId || ''
     };
     const finalOptions = { ...defaultOptions, ...options };
 
     if (!musicPlayer) {
         musicPlayer = new MusicPlayer(finalOptions);
-        // 在这里更新 window.musicPlayer，确保它指向新创建的实例
         window.musicPlayer = musicPlayer;
     }
     return musicPlayer;
 }
 
-// 3. 保留原playSong函数，同时兼容HTML的调用
 function playSong(song, options = {}) {
     if (!musicPlayer) {
         musicPlayer = initMusicPlayer(options);
@@ -218,10 +267,7 @@ function playSong(song, options = {}) {
     musicPlayer.playSong(song);
 }
 
-// 4. 移除export（避免浏览器环境报错，同时把方法挂载到window，确保HTML能访问）
-// 把核心方法挂载到window，确保HTML能全局访问
+// 挂载到window，确保全局可访问
 window.MusicPlayer = MusicPlayer;
 window.initMusicPlayer = initMusicPlayer;
 window.playSong = playSong;
-// 这里不再直接赋值 null，而是在 initMusicPlayer 中动态更新
-// window.musicPlayer = musicPlayer;

@@ -23,4 +23,8 @@ public interface HotRankService {
     List<CommentVo> selectComment(Integer rankId, Integer userId);
 
     boolean deleteComment(Integer comId, Integer userId);
+
+    boolean insertLike(Integer userId, Integer comId);
+
+    boolean deleteLike(Integer comId, Integer userId);
 }

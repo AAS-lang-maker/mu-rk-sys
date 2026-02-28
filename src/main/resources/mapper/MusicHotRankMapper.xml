@@ -11,6 +11,9 @@
         insert into love_record(user_id,rank_id,love_time)
         values (#{userId},#{rankId},now())
     </insert>
+    <insert id="insertLike">
+        insert into like_comment(user_id,com_id) values (#{userId},#{comId})
+    </insert>
 
     <select id="listByIds" resultMap="MyRankWithSongResultMap">
 <!--创建该查询榜单方法时，传入的对象是主键id——rankId组成的集合，所以采用foreach循环实时更新id去查询回显热门榜单-->

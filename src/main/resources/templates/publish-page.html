@@ -8,7 +8,7 @@
     <title>榜单页</title>
     <link rel="stylesheet" th:href="@{/player/music-player.css}">
     <style>
-        /* 保留你原来的所有样式，不修改 */
+        /* 全局样式统一 - 与搜索页保持一致 */
         * {
             margin: 0;
             padding: 0;
@@ -55,7 +55,7 @@
             color: rgba(247, 250, 252, 0.7);
         }
 
-        /* 左上角搜索按钮样式 */
+        /* 左上角搜索按钮样式 - 统一视觉 */
         .top-right-search {
             position: absolute;
             top: 60px;
@@ -110,7 +110,7 @@
             margin-bottom: 20px;
         }
 
-        /* 修改加号按钮定位：固定在视口底部中央 */
+        /* 加号按钮样式统一 - 固定底部中央 */
         .add-button-container {
             position: fixed;
             bottom: 40px;
@@ -160,7 +160,6 @@
             padding: 6px 12px;
             font-size: 14px;
             cursor: default;
-            /* 因为它只是展示，不是可点击按钮 */
             transition: all 0.3s ease;
         }
 
@@ -209,6 +208,7 @@
             color: rgba(255, 250, 156, 0.8);
         }
 
+        /* 分页样式统一 */
         .pagination {
             display: flex;
             justify-content: center;
@@ -244,6 +244,7 @@
             cursor: not-allowed;
         }
 
+        /* 歌曲列表样式统一 */
         .song-list {
             margin-top: 15px;
             padding-left: 0;
@@ -288,6 +289,12 @@
             flex: 1;
         }
 
+        .singer-name {
+            color: rgba(247, 250, 252, 0.7);
+            font-size: 14px;
+            margin: 0 15px;
+        }
+
         .song-rank {
             color: #fffa9c;
             font-size: 15px;
@@ -298,6 +305,7 @@
             border-radius: 4px;
         }
 
+        /* 交互按钮样式统一 */
         .interaction-section {
             margin-top: 15px;
             padding-left: 15px;
@@ -371,6 +379,7 @@
             color: rgba(192, 192, 192, 0.9);
         }
 
+        /* 响应式样式统一 */
         @media (max-width: 768px) {
             .container {
                 padding: 20px;
@@ -391,7 +400,7 @@
             }
         }
 
-        /* 新增提示框样式 */
+        /* 提示框样式统一 */
         #errorAlert {
             display: none;
             position: fixed;
@@ -418,7 +427,7 @@
             z-index: 9999;
         }
 
-        /* 我的榜单按钮样式 */
+        /* 侧边按钮样式统一 */
         .slide-btn-container {
             position: fixed;
             right: 0;
@@ -491,7 +500,7 @@
             background: #fff780;
         }
 
-        /* 返回登录按钮样式 */
+        /* 登录按钮样式统一 */
         .login-btn-container {
             position: fixed;
             left: 0;
@@ -529,7 +538,6 @@
             height: 50px;
             border-radius: 0 25px 25px 0;
             background: #fffa9c;
-            /* 保持淡黄色，与展开状态一致 */
         }
 
         .login-btn-toggle.collapsed .toggle-icon {
@@ -561,7 +569,7 @@
             background: #fff780;
         }
 
-        /* 新增：暂无数据样式 */
+        /* 暂无数据样式统一 */
         .empty-state {
             text-align: center;
             padding: 60px 20px;
@@ -569,42 +577,7 @@
             font-size: 18px;
         }
 
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-top: 40px;
-        }
-
-        .pagination button {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 250, 156, 0.3);
-            color: #f7fafc;
-            border-radius: 6px;
-            padding: 8px 16px;
-            margin: 0 5px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .pagination button:hover:not(:disabled) {
-            background-color: #fffa9c;
-            color: #1a202c;
-            transform: translateY(-2px);
-        }
-
-        .pagination button.active {
-            background-color: #fffa9c;
-            color: #1a202c;
-            font-weight: bold;
-        }
-
-        .pagination button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        /* 评论区样式 */
+        /* 评论区样式统一 */
         .comment-section {
             margin-top: 20px;
             border-top: 1px solid rgba(255, 250, 156, 0.1);
@@ -780,46 +753,41 @@
             background: rgba(255, 255, 255, 0.02);
             border-left: 2px solid rgba(255, 250, 156, 0.3);
         }
-        /* 评论删除按钮核心样式 */
+
+        /* 评论删除按钮样式统一 */
         .comment-delete-btn {
-            /* 重置按钮默认样式 */
             background: transparent;
             border: none;
             outline: none;
-            /* 基础样式 */
             color: rgba(255, 99, 71, 0.7);
             font-size: 13px;
             font-weight: 500;
             padding: 4px 8px;
             border-radius: 4px;
             cursor: pointer;
-            /* 弹性布局，方便后续加图标 */
             display: flex;
             align-items: center;
             gap: 4px;
-            /* 过渡动画，使交互更丝滑 */
             transition: all 0.2s ease;
         }
 
-        /* 鼠标悬浮状态 - 加深颜色+轻微背景 */
         .comment-delete-btn:hover {
-            color: #ff6347; /* 纯番茄红，更醒目 */
+            color: #ff6347;
             background-color: rgba(255, 99, 71, 0.1);
-            transform: translateY(-1px); /* 轻微上浮，增加立体感 */
+            transform: translateY(-1px);
         }
 
-        /* 点击激活状态 - 按下效果 */
         .comment-delete-btn:active {
             transform: translateY(0);
             opacity: 0.8;
         }
 
-        /* 可选：如果想加个垃圾桶图标（使用文字图标） */
         .comment-delete-btn::before {
             content: "🗑️";
             font-size: 12px;
         }
 
+        /* 播放按钮样式统一 */
         .play-btn {
             background: rgba(255, 250, 156, 0.2);
             border: 1px solid #fffa9c;
@@ -833,34 +801,19 @@
             cursor: pointer;
             transition: all 0.3s ease;
             font-size: 12px;
-            padding-left: 2px; /* 调整三角形位置 */
+            z-index: 2;
+            pointer-events: auto;
+            flex-shrink: 0;
         }
+
         .play-btn:hover {
             background: #fffa9c;
             color: #1a202c;
             transform: scale(1.1);
-        }
-        /* 原有样式全部保留 */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            min-height: 100vh;
-            color: #f7fafc;
-            padding: 20px;
-            background:
-                    linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-                    linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-                    #0f172a;
-            background-size: 50px 50px, 50px 50px, 100% 100%;
-            background-attachment: fixed;
-            position: relative;
+            box-shadow: 0 0 8px rgba(241, 166, 156, 0.5);
         }
     </style>
- <script th:src="@{/player/music-player.js}"></script>
+    <script th:src="@{/player/music-player.js}"></script>
 </head>
 <body>
 <div class="container">
@@ -1157,11 +1110,12 @@
         btn.disabled = true;
 
         // ✅ 修复：POST 参数放在 data 中，params 只传通用参数
-        axios.post(getTargetVotePath(category), {
-            rankId: rankId,
-            userId: userId
-        }, {
-            params: { token: token }
+        axios.post(getTargetVotePath(category), null, { // 将 data 设为 null
+            params: {
+                token: token,
+                rankId: rankId, // 将 rankId 也移到 params 中
+                userId: userId
+            }
         })
             .then(response => {
                 btn.disabled = false;
@@ -1621,6 +1575,22 @@
         }
         console.log("页面加载成功");
         // ✅ 移除：冗余的页面加载成功提示
+    });
+    document.addEventListener('DOMContentLoaded', function() {
+        // 确保播放器初始化后
+        setTimeout(() => {
+            const player = document.querySelector('.music-player');
+            if (player) {
+                // 找到控制按钮区域
+                const controlButtons = player.querySelector('.control-buttons');
+                if (controlButtons) {
+                    // 直接替换HTML，只保留播放按钮
+                    controlButtons.innerHTML = `
+                    <button class="control-btn play-btn" id="player-play-btn">▶</button>
+                    `;
+                }
+            }
+        }, 1000); // 延迟1秒执行，确保播放器已渲染
     });
 </script>
 </body>
