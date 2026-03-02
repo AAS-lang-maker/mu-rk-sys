@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- 先引Axios，再引播放器JS（和搜索页加载顺序完全一致） -->
 
-
+     <link rel="icon" href="data:;base64,iVBORw0KGgo">
     <link rel="stylesheet" href="/music/player/music-player.css">
     <title>热门榜单</title>
     <style>
@@ -1582,22 +1582,7 @@
             rankListDom.appendChild(li);
         });
     }
-    document.addEventListener('DOMContentLoaded', function() {
-    // 确保播放器初始化后
-    setTimeout(() => {
-        const player = document.querySelector('.music-player');
-        if (player) {
-            // 找到控制按钮区域
-            const controlButtons = player.querySelector('.control-buttons');
-            if (controlButtons) {
-                // 直接替换HTML，只保留播放按钮
-                controlButtons.innerHTML = `
-                    <button class="control-btn play-btn" id="player-play-btn">▶</button>
-                    `;
-            }
-        }
-    }, 1000); // 延迟1秒执行，确保播放器已渲染
-});
+
 </script>
 </body>
 </html>

@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>搜索结果 - 音乐排行榜</title>
+    <link rel="icon" href="data:;base64,iVBORw0KGgo">
     <link rel="stylesheet" th:href="@{/player/music-player.css}">
     <style>
         /* 全局样式重置 - 与主页保持一致 */
@@ -1551,9 +1552,10 @@
         // 1. 播放按钮点击事件
         document.addEventListener('click', function(e) {
             if (e.target.closest('.play-btn')) {
+                e.preventDefault(); // 新增：彻底阻止默认行为，避免任何潜在冲突
+                e.stopPropagation(); // 保留：阻止事件冒泡，避免触发评论/点赞等父级事件
                 const playBtn = e.target.closest('.play-btn');
-                playSongFromData(playBtn); // 调用专门的处理函数
-                e.stopPropagation(); // 阻止事件冒泡
+                playSongFromData(playBtn); // 保留你原本的调用逻辑
             }
         });
 
@@ -1630,22 +1632,7 @@
 
         console.log("页面加载成功，所有按钮事件已绑定");
     });
-    document.addEventListener('DOMContentLoaded', function() {
-        // 确保播放器初始化后
-        setTimeout(() => {
-            const player = document.querySelector('.music-player');
-            if (player) {
-                // 找到控制按钮区域
-                const controlButtons = player.querySelector('.control-buttons');
-                if (controlButtons) {
-                    // 直接替换HTML，只保留播放按钮
-                    controlButtons.innerHTML = `
-                    <button class="control-btn play-btn" id="player-play-btn">▶</button>
-                    `;
-                }
-            }
-        }, 1000); // 延迟1秒执行，确保播放器已渲染
-    });
+
 </script>
 </body>
 </html>

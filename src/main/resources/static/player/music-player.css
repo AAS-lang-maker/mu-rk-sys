@@ -1,17 +1,24 @@
-/* 音乐播放器样式 */
+/* 音乐播放器样式 - 完整版（修复显示问题+只保留播放按钮） */
 .music-player-container {
-    position: relative;
-    z-index: 1000;
+    position: fixed; /* 固定在页面右下角 */
+    bottom: 20px;
+    right: 20px;
+    width: 300px;    /* 播放器宽度 */
+    z-index: 1000;   /* 置顶不被遮挡 */
+    min-height: 220px; /* 确保容器有高度，不会消失 */
+    box-sizing: border-box;
 }
 
 .music-player {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.1); /* 半透明白色背景 */
+    backdrop-filter: blur(10px); /* 毛玻璃效果 */
     border-radius: 12px;
     padding: 20px;
-    color: #f7fafc;
+    color: #f7fafc; /* 浅白色文字 */
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.2);
+    width: 100%; /* 填满容器 */
+    box-sizing: border-box;
 }
 
 .player-header {
@@ -20,7 +27,7 @@
 }
 
 .player-header h3 {
-    color: #fffa9c;
+    color: #fffa9c; /* 浅黄色标题 */
     margin: 0;
     font-size: 18px;
     font-weight: bold;
@@ -123,40 +130,45 @@
     color: rgba(247, 250, 252, 0.7);
 }
 
-/* 核心修改：控制按钮区域只保留播放按钮，居中显示 */
+/* 核心：只保留播放按钮，隐藏其他所有控制按钮 */
 .control-buttons {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 0; /* 去掉间隙，只有一个按钮 */
+    gap: 0; /* 无间隙，仅显示播放按钮 */
 }
 
 .control-btn {
-    /* 隐藏音量、下一首等其他按钮 */
-    display: none;
+    display: none !important; /* 强制隐藏所有控制按钮 */
 }
 
-/* 仅保留播放/暂停按钮，放大并居中 */
+/* 仅显示播放/暂停按钮，样式优化 */
 .play-btn {
     display: block !important; /* 强制显示播放按钮 */
-    background: #fffa9c;
-    color: #1a202c;
+    background: #fffa9c; /* 浅黄色按钮 */
+    color: #1a202c; /* 深色文字 */
     font-weight: bold;
-    padding: 15px 25px; /* 放大按钮尺寸 */
-    font-size: 20px;
-    border-radius: 50px; /* 圆角更圆润 */
+    padding: 12px 20px;
+    font-size: 18px;
+    border-radius: 8px;
     border: none;
-    box-shadow: 0 4px 15px rgba(255, 250, 156, 0.5);
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
 
 .play-btn:hover {
-    background: #fff780;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(255, 250, 156, 0.6);
+    background: #fff780; /* hover时更亮的黄色 */
+    transform: translateY(-2px); /* 轻微上移 */
 }
 
-/* 响应式设计 */
+/* 响应式设计 - 移动端适配 */
 @media (max-width: 768px) {
+    .music-player-container {
+        width: 90%; /* 移动端占90%宽度 */
+        bottom: 10px;
+        right: 5%;
+    }
+
     .music-player {
         padding: 15px;
     }
@@ -172,13 +184,9 @@
         height: 80px;
     }
 
-    .control-buttons {
-        gap: 0;
-    }
-
     .play-btn {
-        padding: 12px 20px;
-        font-size: 18px;
+        padding: 10px 16px;
+        font-size: 16px;
     }
 }
 
@@ -208,16 +216,12 @@
     font-size: 12px;
 }
 
-.music-player.mini .control-buttons {
-    gap: 0;
-}
-
 .music-player.mini .play-btn {
     padding: 10px 18px;
     font-size: 16px;
 }
 
-/* 歌曲列表项样式（用于集成到其他页面） */
+/* 歌曲列表项样式 - 仅用于页面列表，不影响播放器 */
 .song-list-item {
     display: flex;
     align-items: center;

@@ -71,7 +71,7 @@
     <!-- 下方l.rank_id或者pe.rank_id必须有一个取别名，也可以两个都取别名，子查询时相当于生成一个临时表，而sql只会识别出
     临时表中的字段属性，不会辨别此字段来自哪个表，如果不取别名，子表查询出两个相同的rank_id,影响后续外联-->
     <select id="selectLoveSong" resultMap="MyRankWithSongsResultMap">
-   select r.rs_id,r.ranking,r.rank_update_time,p.rank_id,p.rank_name,p.publish_time,s.song_name,si.singer_name from
+   select r.rs_id,r.ranking,r.rank_update_time,r.song_id,p.rank_id,p.rank_name,p.publish_time,s.song_name,si.singer_name from
    (select l.rank_id as love_rank_id ,l.user_id ,l.love_id,pe.rank_id,pe.rank_name,pe.publish_time from love_record as l
     left join personal_rank as pe on l.rank_id = pe.rank_id
     where l.user_id=#{userId} order by pe.publish_time limit #{pageSize} offset #{offset}) as p

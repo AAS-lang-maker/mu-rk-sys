@@ -1,25 +1,33 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>登录</title>
 
     <style>
+        /* 全局样式重置 - 与主页保持一致 */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Microsoft YaHei', 'Arial', sans-serif;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background-color: #1a365d;
+            background-color: #0f172a;
+            background-image:
+                    linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 60px 60px;
+            background-attachment: fixed;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
+            color: #f1f5f9;
         }
 
         .login-container {
@@ -27,15 +35,17 @@
             max-width: 1000px;
             width: 90%;
             min-height: 600px;
-            background: white;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
             border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .illustration-side {
             flex: 1.2;
-            background: linear-gradient(135deg, #1a202c, #2d3748);
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.8));
             position: relative;
             overflow: hidden;
             display: flex;
@@ -156,8 +166,15 @@
         }
 
         @keyframes twinkle {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 1; }
+
+            0%,
+            100% {
+                opacity: 0.3;
+            }
+
+            50% {
+                opacity: 1;
+            }
         }
 
         .login-side {
@@ -171,10 +188,11 @@
         .login-title {
             font-size: 32px;
             font-weight: 700;
-            color: #2d3748;
+            color: #fffa9c;
             margin-bottom: 50px;
             text-align: center;
         }
+
         .form-group {
             margin-bottom: 30px;
         }
@@ -182,30 +200,32 @@
         .form-label {
             display: block;
             font-size: 16px;
-            color: #718096;
+            color: rgba(247, 250, 252, 0.7);
             margin-bottom: 10px;
         }
 
         .form-input {
             width: 100%;
             padding: 16px 20px;
-            border: 1px solid #e2e8f0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 8px;
             font-size: 16px;
             transition: all 0.2s ease;
+            background: rgba(30, 41, 59, 0.8);
+            color: #f1f5f9;
         }
 
         .form-input:focus {
             outline: none;
-            border-color: #4299e1;
-            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+            border-color: #fffa9c;
+            box-shadow: 0 0 0 3px rgba(255, 250, 156, 0.2);
         }
 
         .login-button {
             width: 100%;
             padding: 16px;
-            background: #2d3748;
-            color: white;
+            background: #fffa9c;
+            color: #1a202c;
             border: none;
             border-radius: 8px;
             font-size: 18px;
@@ -216,18 +236,20 @@
         }
 
         .login-button:hover {
-            background: #1a202c;
+            background: #fff780;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 250, 156, 0.4);
         }
 
         .register-link {
             text-align: center;
             margin-top: 30px;
             font-size: 16px;
-            color: #718096;
+            color: rgba(247, 250, 252, 0.7);
         }
 
         .register-link a {
-            color: #4299e1;
+            color: #fffa9c;
             text-decoration: none;
             font-weight: 600;
         }
@@ -243,7 +265,7 @@
 
         .other-login-title {
             font-size: 16px;
-            color: #718096;
+            color: rgba(247, 250, 252, 0.7);
             margin-bottom: 20px;
         }
 
@@ -257,22 +279,25 @@
             width: 50px;
             height: 50px;
             border-radius: 50%;
-            border: 1px solid #e2e8f0;
-            background: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(30, 41, 59, 0.8);
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             transition: all 0.2s ease;
         }
+
         .social-button:hover {
             transform: translateY(-3px);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+            border-color: #fffa9c;
         }
 
         .social-icon {
             width: 24px;
             height: 24px;
+            filter: invert(1);
         }
 
         @media (max-width: 768px) {
@@ -290,22 +315,30 @@
                 padding: 50px 40px;
             }
         }
+
         /* 小红框错误提示样式 - 保留原有 */
         .error-alert {
-            display: none; /* 默认隐藏，不影响原有页面布局 */
-            background-color: #fef2f2; /* 浅红背景 */
-            border: 1px solid #ffccc7; /* 红边框 */
-            color: #ef4444; /* 红色文字 */
+            display: none;
+            /* 默认隐藏，不影响原有页面布局 */
+            background-color: rgba(254, 242, 242, 0.2);
+            /* 浅红背景 */
+            border: 1px solid #ffccc7;
+            /* 红边框 */
+            color: #ef4444;
+            /* 红色文字 */
             padding: 10px 15px;
-            border-radius: 4px; /* 圆角，更美观 */
-            margin: 15px 0; /* 和上下元素保持间距 */
+            border-radius: 4px;
+            /* 圆角，更美观 */
+            margin: 15px 0;
+            /* 和上下元素保持间距 */
             font-size: 14px;
             line-height: 1.5;
         }
+
         /* 新增：成功提示样式（可选，绿色） */
         .success-alert {
             display: none;
-            background-color: #f0fdf4;
+            background-color: rgba(240, 253, 244, 0.2);
             border: 1px solid #bbf7d0;
             color: #16a34a;
             padding: 10px 15px;
@@ -316,6 +349,7 @@
         }
     </style>
 </head>
+
 <body>
 <div class="login-container">
     <div class="illustration-side">
@@ -414,7 +448,7 @@
     }
 
     // 【核心改造】登录按钮异步点击事件（Axios请求，替代原生表单提交）
-    document.getElementById('loginBtn').addEventListener('click', async function() {
+    document.getElementById('loginBtn').addEventListener('click', async function () {
         // 1. 获取并校验表单数据
         const username = document.querySelector('input[name="username"]').value.trim();
         const password = document.querySelector('input[name="password"]').value.trim();
@@ -485,11 +519,11 @@
     });
 
     // 保留原有：注册链接、社交登录点击事件
-    document.querySelector('.register-link a').addEventListener('click', function(e) {
+    document.querySelector('.register-link a').addEventListener('click', function (e) {
         // 无拦截，正常跳转
     });
     // 保留原有：页面加载解析参数（可移除，因改为异步跳转，地址栏不再有参数）
-    window.onload = function() {
+    window.onload = function () {
         const urlParams = new URLSearchParams(window.location.search);
         const errorMsg = urlParams.get('errormessage');
         if (errorMsg) {
@@ -503,4 +537,5 @@
     };
 </script>
 </body>
+
 </html>
