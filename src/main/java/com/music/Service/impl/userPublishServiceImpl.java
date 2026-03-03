@@ -109,11 +109,11 @@ public class userPublishServiceImpl implements UserPublishService {
         String voteKey = String.format(Vote_Key, userId, rankId);
         log.info("【点赞操作】开始，userId={}, rankId={}, RedisKey={}", userId, rankId, voteKey);
 
-        // 2. 核心：用Redis的setIfAbsent原子操作判断是否已投票（解决竞态条件）
+        // 2. 核心：用Redis的setIfAbsent原子操作判断是否已投票
         // setIfAbsent = 只有key不存在时才设置成功，返回true；已存在则返回false
         Boolean isFirstVote = stringRedisTemplate.opsForValue().setIfAbsent(voteKey, "1", 24, TimeUnit.HOURS);
 
-        // ========== 分支1：已投票（需要取消点赞） ==========
+        //  分支1：已投票（需要取消点赞）
         if (Boolean.FALSE.equals(isFirstVote)) {
             log.info("【取消点赞】Redis已存在记录，开始删除数据库+Redis记录");
             // 第一步：先删数据库（保证数据一致性，删库成功再删Redis）
@@ -135,7 +135,7 @@ public class userPublishServiceImpl implements UserPublishService {
             return deleteSuccess; // 最终返回Redis删除结果（保证缓存和数据库一致）
         }
 
-        // ========== 分支2：未投票（需要新增点赞） ==========
+        // 分支2：未投票（需要新增点赞）
         // 先校验榜单是否存在
         PersonalRank v = userPublishMapper.selectRankById(rankId);
         if (v == null) {
@@ -172,7 +172,7 @@ public class userPublishServiceImpl implements UserPublishService {
         // 2. 先同步数据库收藏状态到Redis（解决缓存和数据库不一致问题）
         syncLoveStatus(userId, rankId, loveKey);
 
-        // 3. 核心：用Redis的setIfAbsent原子操作判断是否已收藏（杜绝竞态条件）
+        // 3. 核心：用Redis的setIfAbsent原子操作判断是否已收藏
         Boolean isFirstLove = stringRedisTemplate.opsForValue().setIfAbsent(loveKey, "1", 24, TimeUnit.HOURS);
         // 防御性判断：Redis连接失败时直接返回
         if (isFirstLove == null) {
@@ -180,7 +180,7 @@ public class userPublishServiceImpl implements UserPublishService {
             return false;
         }
 
-        // ========== 分支1：已收藏（执行取消收藏） ==========
+        // 分支1：已收藏（执行取消收藏）
         if (Boolean.FALSE.equals(isFirstLove)) {
             log.info("【取消收藏】Redis已存在记录，开始删除数据库+Redis记录");
             try {
@@ -206,11 +206,11 @@ public class userPublishServiceImpl implements UserPublishService {
             } catch (Exception e) {
                 log.error("【取消收藏】执行失败", e);
                 stringRedisTemplate.delete(loveKey); // 异常时删除Redis
-                throw e; // 抛异常触发事务回滚
+                throw e; // 抛异常触发事务回滚？？？
             }
         }
 
-        // ========== 分支2：未收藏（执行新增收藏） ==========
+        // 分支2：未收藏（执行新增收藏）
         try {
             // 校验榜单是否存在
             PersonalRank l = userPublishMapper.selectRankById(rankId);
@@ -239,10 +239,10 @@ public class userPublishServiceImpl implements UserPublishService {
             throw e; // 抛异常触发事务回滚
         }
     }
+    //豆包更新之后变权威了
+    //下方方法目的：刷新页面之后不会让统统一用户能重复投票，使用redis达到记录用户投票状态的目的
+    // 可以在页面加载获取榜单信息时，或者在投票前调用这个方法
 
-    /**
-     * 同步数据库收藏状态到Redis（解决缓存和数据库不一致）
-     */
     private void syncLoveStatus(Integer userId, Integer rankId, String loveKey) {
         // 先在Mapper中新增countLove方法（和点赞的countVote逻辑一致）
         Integer count = userPublishMapper.countLove(userId, rankId);
@@ -369,29 +369,7 @@ public class userPublishServiceImpl implements UserPublishService {
         return result > 0;
     }
 
-    //豆包更新之后变权威了
-    //下方方法目的：刷新页面之后不会让统统一用户能重复投票，使用redis达到记录用户投票状态的目的
-    // 可以在页面加载获取榜单信息时，或者在投票前调用这个方法
-    public void syncVoteStatusFromDBToRedis(Integer userId, Integer rankId) {
-        String voteKey = String.format(Vote_Key, userId, rankId);
-        // 检查数据库中是否有记录
-        VoteRecord record = userPublishMapper.countVote(userId, rankId); // 你需要实现这个查询方法
-        if (record != null && !stringRedisTemplate.hasKey(voteKey)) {
-            // 如果数据库有记录，但Redis没有，就同步到Redis
-            stringRedisTemplate.opsForValue().set(voteKey, "1");
-            log.info("【缓存同步】从数据库同步投票状态到Redis，userId={}, rankId={}", userId, rankId);
-        }
-    }
-    private void sychorLoveToRedis(Integer rankId,Integer userId,String lovekey){
-        int y=userPublishMapper.countLove(rankId,userId);
-        boolean flag=stringRedisTemplate.hasKey(lovekey);
-        if(y>0||flag==false){
-            stringRedisTemplate.opsForValue().set(lovekey,"1");
-            log.info("【状态同步】数据库有投票记录，Redis补写Key：{}", lovekey);
-        }
-        if(y<=0||flag==true){
-            stringRedisTemplate.delete(lovekey);
-            log.info("【状态同步】数据库无投票记录，Redis删除Key：{}", lovekey);
-        }
-    }
+
+
+
 }
