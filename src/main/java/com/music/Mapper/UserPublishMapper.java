@@ -54,18 +54,18 @@ public interface UserPublishMapper {
     @Select("select * from personal_rank where rank_id=#{rankId} ")
     PersonalRank selectRankById(Integer rankId);
 
-    int insertVote(Integer rankId, Integer userId);
+    int insertVote(@Param("rankId") Integer rankId,@Param("userId") Integer userId);
 
-    int insertLove(Integer userId, Integer rankId);
+    int insertLove(@Param("userId") Integer userId,@Param("rankId") Integer rankId);
 
     @Delete("delete from vote_record where rank_id=#{rankId} and user_id=#{userId}")
-    int deleteVote(Integer rankId, Integer userId);
+    int deleteVote(@Param("rankId") Integer rankId,@Param("userId") Integer userId);
 
-    @Delete("delete from love_record where rank_id=#{rankId} and user_id=#{userId};")
-    int deleteLove(Integer rankId, Integer userId);
+    @Delete("delete from love_record where   user_id=#{userId} and rank_id=#{rankId};")
+    int deleteLove(@Param("userId") Integer userId, @Param("rankId") Integer rankId);
 
     @Select("select count(*) from vote_record where user_id=#{userId} and rank_id=#{rankId}")
-    int countVote(@Param("rankId") Integer rankId,@Param("userId") Integer userId);
+    VoteRecord countVote(@Param("rankId") Integer rankId,@Param("userId") Integer userId);
 
     @Select("select count(*) from love_record where user_id=#{userId} and rank_id=#{rankId}")
     int countLove(Integer rankId, Integer userId);

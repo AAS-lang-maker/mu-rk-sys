@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Service
 
@@ -98,65 +99,161 @@ public class userPublishServiceImpl implements UserPublishService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class) // 明确回滚所有异常
     public boolean insertVote(Integer userId, Integer rankId) {
-        String votekey=String.format(Vote_Key,userId,rankId);
-        log.info("【点赞操作】开始，userId={}, rankId={}, RedisKey={}", userId, rankId, votekey);
-        Boolean result=stringRedisTemplate.hasKey(votekey);
-        if(Boolean.TRUE.equals(result)){
-            log.info("【取消点赞】Redis已存在记录，准备删除数据库记录");
-            boolean deleteSuccess=stringRedisTemplate.delete(votekey);
-            if (!deleteSuccess) {
-                log.warn("【取消投票】第一次删除Redis Key失败，重试一次！Key={}", votekey);
-                deleteSuccess = stringRedisTemplate.delete(votekey);
-            }
-
-            // 打印删除结果（关键：看日志就能知道删没删成）
-            log.info("【取消投票】Redis Key删除结果：{}（true=成功，false=失败），Key={}", deleteSuccess, votekey);
-
-            int deleteresult=userPublishMapper.deleteVote(userId,rankId);
-            log.info("【取消投票】数据库影响行数：{}", deleteresult);
-                return deleteresult>0;
-
-        }
-        PersonalRank v=userPublishMapper.selectRankById(rankId);
-        if(v==null){
+        // 1. 校验基础参数（避免空指针）
+        if (userId == null || rankId == null) {
+            log.error("【点赞操作】参数为空，userId={}, rankId={}", userId, rankId);
             return false;
         }
-        int rows=userPublishMapper.insertVote(rankId,userId);
-        stringRedisTemplate.opsForValue().set(votekey,"1");
-        log.info("【投票成功】Redis已记录，userId={}, rankId={}", userId, rankId);
-        return rows>0;
+        String voteKey = String.format(Vote_Key, userId, rankId);
+        log.info("【点赞操作】开始，userId={}, rankId={}, RedisKey={}", userId, rankId, voteKey);
+
+        // 2. 核心：用Redis的setIfAbsent原子操作判断是否已投票（解决竞态条件）
+        // setIfAbsent = 只有key不存在时才设置成功，返回true；已存在则返回false
+        Boolean isFirstVote = stringRedisTemplate.opsForValue().setIfAbsent(voteKey, "1", 24, TimeUnit.HOURS);
+
+        // ========== 分支1：已投票（需要取消点赞） ==========
+        if (Boolean.FALSE.equals(isFirstVote)) {
+            log.info("【取消点赞】Redis已存在记录，开始删除数据库+Redis记录");
+            // 第一步：先删数据库（保证数据一致性，删库成功再删Redis）
+            int deleteResult = userPublishMapper.deleteVote(rankId, userId);
+            if (deleteResult <= 0) {
+                log.error("【取消点赞】数据库删除失败，userId={}, rankId={}", userId, rankId);
+                return false; // 数据库没删成，直接返回失败
+            }
+            log.info("【取消点赞】数据库记录已删除，影响行数：{}", deleteResult);
+
+            // 第二步：删Redis（重试机制保留）
+            boolean deleteSuccess = stringRedisTemplate.delete(voteKey);
+            if (!deleteSuccess) {
+                log.warn("【取消点赞】第一次删除Redis Key失败，重试一次！Key={}", voteKey);
+                deleteSuccess = stringRedisTemplate.delete(voteKey);
+            }
+            log.info("【取消点赞】Redis Key删除结果：{}，Key={}", deleteSuccess, voteKey);
+
+            return deleteSuccess; // 最终返回Redis删除结果（保证缓存和数据库一致）
+        }
+
+        // ========== 分支2：未投票（需要新增点赞） ==========
+        // 先校验榜单是否存在
+        PersonalRank v = userPublishMapper.selectRankById(rankId);
+        if (v == null) {
+            log.error("【点赞操作】榜单不存在，rankId={}", rankId);
+            stringRedisTemplate.delete(voteKey); // 删掉刚才原子操作的占位key
+            return false;
+        }
+
+        // 插入数据库
+        int rows = userPublishMapper.insertVote(rankId, userId);
+        if (rows <= 0) {
+            log.error("【点赞操作】数据库插入失败，userId={}, rankId={}", userId, rankId);
+            stringRedisTemplate.delete(voteKey); // 数据库失败，删Redis占位key
+            return false;
+        }
+
+        log.info("【点赞成功】数据库和Redis均已记录，userId={}, rankId={}", userId, rankId);
+        return true;
     }
 
     @Override
-    @Transactional
-    public boolean insertLove(Integer userId,  Integer rankId) {
-         //拼接Redis的key值
-        String lovekey=String.format(Love_Key,userId,rankId);
-        log.info("【收藏操作】开始，userId={}, rankId={}, RedisKey={}", userId, rankId, lovekey);
-       //看看Redis中是否有key，如果有，就不能再点赞，从而达到防刷票
-        Boolean hasLove=stringRedisTemplate.hasKey(lovekey);
-        if(Boolean.TRUE.equals(hasLove)){
-            log.info("【取消收藏】Redis已存在记录，准备删除数据库记录");
-            int result=userPublishMapper.deleteLove(userId,rankId);
-            log.info("【取消收藏】Redis记录已删除，userId={}, rankId={}", userId, rankId);
-                stringRedisTemplate.delete(lovekey);
-            log.info("【取消收藏】mysql记录已删除，userId={}, rankId={}", userId, rankId);
-                return result>0;
-        }
-        PersonalRank l=userPublishMapper.selectRankById(rankId);
-       if(l==null){
-           return false;
-       }
-        int row1=userPublishMapper.insertLove(userId,rankId);
-        if(row1>0){
-         stringRedisTemplate.opsForValue().set(lovekey,"1");//1??"1"?
-        log.info("【收藏成功】Redis已记录，userId={}, rankId={}", userId, rankId);
-        return row1>0;}
-        else{
-            log.error("【收藏成功】Redis记录失败或者数据库操作失败，userId={}, rankId={}", userId, rankId);
+    @Transactional(rollbackFor = Exception.class) // 明确回滚所有异常
+    public boolean insertLove(Integer userId, Integer rankId) {
+        // 1. 基础参数校验（避免空指针导致数据不一致）
+        if (userId == null || rankId == null) {
+            log.error("【收藏操作】参数为空，userId={}, rankId={}", userId, rankId);
             return false;
+        }
+
+        // 拼接Redis的key值
+        String loveKey = String.format(Love_Key, userId, rankId);
+        log.info("【收藏操作】开始，userId={}, rankId={}, RedisKey={}", userId, rankId, loveKey);
+
+        // 2. 先同步数据库收藏状态到Redis（解决缓存和数据库不一致问题）
+        syncLoveStatus(userId, rankId, loveKey);
+
+        // 3. 核心：用Redis的setIfAbsent原子操作判断是否已收藏（杜绝竞态条件）
+        Boolean isFirstLove = stringRedisTemplate.opsForValue().setIfAbsent(loveKey, "1", 24, TimeUnit.HOURS);
+        // 防御性判断：Redis连接失败时直接返回
+        if (isFirstLove == null) {
+            log.error("【收藏操作】Redis连接失败，无法判断收藏状态");
+            return false;
+        }
+
+        // ========== 分支1：已收藏（执行取消收藏） ==========
+        if (Boolean.FALSE.equals(isFirstLove)) {
+            log.info("【取消收藏】Redis已存在记录，开始删除数据库+Redis记录");
+            try {
+                // 调用Mapper删除（用@Param注解后参数顺序不再敏感，优先保证userId/rankId传对）
+                int deleteResult = userPublishMapper.deleteLove(userId, rankId);
+                log.info("【取消收藏】数据库删除影响行数：{}", deleteResult);
+
+                // 数据库删除成功才删Redis，失败则删除Redis并抛异常
+                if (deleteResult > 0) {
+                    boolean deleteSuccess = stringRedisTemplate.delete(loveKey);
+                    if (!deleteSuccess) {
+                        log.warn("【取消收藏】第一次删除Redis Key失败，重试一次！Key={}", loveKey);
+                        deleteSuccess = stringRedisTemplate.delete(loveKey);
+                    }
+                    log.info("【取消收藏】Redis Key删除结果：{}，Key={}", deleteSuccess, loveKey);
+                    return deleteSuccess;
+                } else {
+                    log.error("【取消收藏】数据库删除失败，userId={}, rankId={}", userId, rankId);
+                    // 数据库无记录，强制删除Redis避免缓存残留
+                    stringRedisTemplate.delete(loveKey);
+                    throw new RuntimeException("取消收藏：数据库无对应记录");
+                }
+            } catch (Exception e) {
+                log.error("【取消收藏】执行失败", e);
+                stringRedisTemplate.delete(loveKey); // 异常时删除Redis
+                throw e; // 抛异常触发事务回滚
+            }
+        }
+
+        // ========== 分支2：未收藏（执行新增收藏） ==========
+        try {
+            // 校验榜单是否存在
+            PersonalRank l = userPublishMapper.selectRankById(rankId);
+            if (l == null) {
+                log.error("【收藏操作】榜单不存在，rankId={}", rankId);
+                stringRedisTemplate.delete(loveKey); // 删除Redis占位key
+                return false;
+            }
+
+            // 插入数据库（关键：确保userId/rankId参数顺序和Mapper的@Param匹配）
+            int row1 = userPublishMapper.insertLove(userId, rankId);
+            log.info("【收藏操作】数据库插入影响行数：{}", row1);
+
+            // 数据库插入成功才保留Redis记录，失败则回滚
+            if (row1 > 0) {
+                log.info("【收藏成功】Redis已记录，userId={}, rankId={}", userId, rankId);
+                return true;
+            } else {
+                log.error("【收藏失败】数据库插入无影响行数，userId={}, rankId={}", userId, rankId);
+                stringRedisTemplate.delete(loveKey); // 删除Redis占位key
+                throw new RuntimeException("收藏失败：数据库插入失败");
+            }
+        } catch (Exception e) {
+            log.error("【收藏操作】执行失败", e);
+            stringRedisTemplate.delete(loveKey); // 异常时删除Redis
+            throw e; // 抛异常触发事务回滚
+        }
+    }
+
+    /**
+     * 同步数据库收藏状态到Redis（解决缓存和数据库不一致）
+     */
+    private void syncLoveStatus(Integer userId, Integer rankId, String loveKey) {
+        // 先在Mapper中新增countLove方法（和点赞的countVote逻辑一致）
+        Integer count = userPublishMapper.countLove(userId, rankId);
+        if (count > 0 && !stringRedisTemplate.hasKey(loveKey)) {
+            // 数据库有收藏记录，Redis无 → 同步到Redis
+            stringRedisTemplate.opsForValue().set(loveKey, "1");
+            log.info("【收藏缓存同步】数据库有记录，Redis同步成功，userId={}, rankId={}", userId, rankId);
+        } else if (count == 0 && stringRedisTemplate.hasKey(loveKey)) {
+            // 数据库无收藏记录，Redis有 → 删除Redis
+            stringRedisTemplate.delete(loveKey);
+            log.info("【收藏缓存同步】数据库无记录，Redis删除成功，userId={}, rankId={}", userId, rankId);
         }
     }
 
@@ -274,17 +371,15 @@ public class userPublishServiceImpl implements UserPublishService {
 
     //豆包更新之后变权威了
     //下方方法目的：刷新页面之后不会让统统一用户能重复投票，使用redis达到记录用户投票状态的目的
-    private void sychorVoteToRedis(Integer rankId,Integer userId,String votekey){
-        //sychronise翻译为同步，有点像锁但不是，这里本质是一个方法，将redis和mysql同步
-        int x=userPublishMapper.countVote(rankId,userId);
-        boolean flag=stringRedisTemplate.hasKey(votekey);
-        if(x>0||flag==false){
-           stringRedisTemplate.opsForValue().set(votekey,"1");
-            log.info("【状态同步】数据库有投票记录，Redis补写Key：{}", votekey);
-        }
-        if(x<=0||flag==true){
-            stringRedisTemplate.delete(votekey);
-            log.info("【状态同步】数据库无投票记录，Redis删除Key：{}", votekey);
+    // 可以在页面加载获取榜单信息时，或者在投票前调用这个方法
+    public void syncVoteStatusFromDBToRedis(Integer userId, Integer rankId) {
+        String voteKey = String.format(Vote_Key, userId, rankId);
+        // 检查数据库中是否有记录
+        VoteRecord record = userPublishMapper.countVote(userId, rankId); // 你需要实现这个查询方法
+        if (record != null && !stringRedisTemplate.hasKey(voteKey)) {
+            // 如果数据库有记录，但Redis没有，就同步到Redis
+            stringRedisTemplate.opsForValue().set(voteKey, "1");
+            log.info("【缓存同步】从数据库同步投票状态到Redis，userId={}, rankId={}", userId, rankId);
         }
     }
     private void sychorLoveToRedis(Integer rankId,Integer userId,String lovekey){
