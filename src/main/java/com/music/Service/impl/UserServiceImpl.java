@@ -94,18 +94,8 @@ public class UserServiceImpl implements UserInfoService {
 
         //try-catch的代码是依托屎吗？
         //又看了一遍还是觉得写的是屎。
-        try{
-            int insertRows=userInfoMapper.insert(newUser);//想到转成整数的是神吗？
-             //insert返回值设置为整数，用于接住异常
-            if(insertRows!=1){
-                System.out.println("注册失败:用户"+username+"插入数据库失败");//屎
-                return Result.error("注册失败，请稍后再试");
-            }
-        } catch (Exception e) {
-            System.err.println("注册失败：用户" + username + "插入数据库异常");//屎
-            e.printStackTrace();
-            return Result.error("注册失败，请稍后重试"+e.getMessage());
-        }
+       //喜喜加上了全局异常处理，让代码不再是屎
+        userInfoMapper.insert(newUser);
         return Result.success();
     }
 
