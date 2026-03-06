@@ -10,6 +10,7 @@ import com.music.pojo.Singer;
 import com.music.pojo.Song;
 import com.music.utils.JwtUtils;
 import com.music.utils.Result;
+import com.music.utils.ThreadLocalUtil;
 import jakarta.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,75 +63,39 @@ public class UserPublishController {
     }
 
     @PostMapping("/add/{category}")
-    public String add(@PathVariable("category") Integer category,
+    @ResponseBody
+    public Result<String> add(@PathVariable("category") Integer category,
                       @RequestBody RankAddRequest rankAddRequestDto,
-                      @RequestHeader("Authorization") String authHeader,
-                      RedirectAttributes redirectAttributes) throws Exception {
-        String token = authHeader.substring(7).trim();
-        // 1. 修复：仅截取1次Bearer前缀（删除后续重复截取的错误代码）
-        if (token == null || token.isEmpty()) {
-            redirectAttributes.addFlashAttribute("errormessage", "token已失效");
-            return "redirect:/login.html";
-        }
-        if (token.startsWith("Bearer ")) {
-            token = token.substring(7);
-        }
-        Integer userId;
-        try {
-            userId = JwtUtils.getUserIdFromToken(token);
-        } catch (Exception e) {
-            e.printStackTrace();
-            redirectAttributes.addFlashAttribute("errormessage", "token不见啦，请重新登录");
-            return "redirect:/login.html";
-        }
+                      HttpServletRequest request,
+                      @RequestHeader("Authorization") String authHeader) throws Exception {
+        Integer userId= ThreadLocalUtil.get();
+        String token=(String) request.getAttribute("token");
         // 修复：字符串判空用equals，避免==""失效
         if (rankAddRequestDto.getRankName() == null || "".equals(rankAddRequestDto.getRankName())) {
-            // 修复：addFlashAttribute参数格式（属性名+逗号+提示内容）
-            redirectAttributes.addFlashAttribute("errormessage", "榜单名不能为空");
-            // 修复：重定向URL拼接（加?开头，&分隔参数）
-            return "redirect:/rank.html?token=" + token + "&userId=" + userId + "&category=" + category;
-        }
+           return Result.error("榜单名不能为空");
+             }
 
         List<RankAddRequest.RankSongItem> songItems = rankAddRequestDto.getSongItems();
 
         // 修复：先判空再遍历，避免空列表触发空指针
         if (songItems == null || songItems.isEmpty()) {
-            redirectAttributes.addFlashAttribute("errormessage", "歌曲榜单不能完全为空");
-            return "redirect:/rank.html?token=" + token + "&userId=" + userId + "&category=" + category;
+          return  Result.error("歌曲列表不能为空");
         }
 
         // 修复：排名校验先判空，避免null==0触发空指针
         for (RankAddRequest.RankSongItem item : songItems) {
             if (item.getSongId() == null || item.getSongId() <= 0 || item.getRanking() == null || item.getRanking() == 0) {
-                redirectAttributes.addFlashAttribute("errormessage", "榜单的歌曲不能不存在或者其排名为空");
-                return "redirect:/rank.html?token=" + token + "&userId=" + userId + "&category=" + category;
-            }
+                   return Result.error("要选择歌曲和相应排名");   }
         }
 
-        // 修复：Token校验提示信息错误（匹配实际错误）
-        if (token == null || "".equals(token)) {
-            redirectAttributes.addFlashAttribute("errormessage", "登录失效，请重新登录");
-            return "redirect:/login.html";
-        }
-
-        try {
-            userId = JwtUtils.getUserIdFromToken(token);
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errormessage", "登录失效，请重新登录");
-            return "redirect:/login.html";
-        }
 
         // 核心入库逻辑（完全保留你原有代码，未修改）
         boolean result = userPublishService.insertRank(category, userId, rankAddRequestDto);
         if (result) {
-            // 修复：addFlashAttribute参数格式+URL拼接
-            redirectAttributes.addFlashAttribute("success", "发布榜单成功！");
-            return "redirect:/music/api/rank/publish?token=" + token + "&userId=" + userId + "&category=" + category;
-        } else {
-            // 修复：addFlashAttribute参数格式+URL拼接
-            redirectAttributes.addFlashAttribute("errormessage", "发布失败，请稍后再试");
-            return "redirect:/music/api/rank/publish?token=" + token + "&userId=" + userId + "&category=" + category;
-        }
+            return  Result.success("发布榜单成功");
+         } else {
+            return Result.error("榜单发布失败，请稍后再试一试");
+           }
     }
 
     @GetMapping("/singer")

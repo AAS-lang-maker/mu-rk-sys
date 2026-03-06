@@ -366,374 +366,199 @@
 
 <!-- 新增：自定义提示框DOM -->
 <div class="tip-box" id="customTip"></div><script>
-    // ************************** 分类配置（核心！）**************************
-    // 定义不同分类的接口和文案配置
-    // 基础 URL，包含后端服务的上下文路径
+    // ==========================================
+    // 1. 基础配置（大豆包的资源名册）
+    // ==========================================
     const BASE_API_URL = '/music/api';
     const categoryConfig = {
-        1: {
-            title: '歌手明星榜单',
-            singerApi: `${BASE_API_URL}/rank/singer`,
-            songApi: `${BASE_API_URL}/rank/song`,
-            publishApi: `${BASE_API_URL}/rank/add`,
-            emptyText: '暂无歌手数据'
-        },
-        2: {
-            title: '影视作品榜单',
-            singerApi: `${BASE_API_URL}/workrank/singer`,
-            songApi: `${BASE_API_URL}/workrank/song`,
-            publishApi: `${BASE_API_URL}/workrank/add-work`,
-            emptyText: '暂无影视作品数据'
-        }
+        1: { title: '歌手明星榜单', singerApi: `${BASE_API_URL}/rank/singer`, songApi: `${BASE_API_URL}/rank/song`, publishApi: `${BASE_API_URL}/rank/add`, emptyText: '暂无歌手数据' },
+        2: { title: '影视作品榜单', singerApi: `${BASE_API_URL}/workrank/singer`, songApi: `${BASE_API_URL}/workrank/song`, publishApi: `${BASE_API_URL}/workrank/add-work`, emptyText: '暂无影视作品数据' }
     };
 
-    // 获取DOM元素
+    // 抓取页面上的小零件
     const openModalBtn = document.getElementById('openModalBtn');
     const addRowBtn = document.getElementById('addRowBtn');
     const publishBtn = document.getElementById('publishBtn');
     const modal = document.getElementById('singerModal');
-    const closeBtn = document.querySelector('.close');
-    const singerSearch = document.getElementById('singerSearch');
-    const singerList = document.getElementById('singerList');
-    const songList = document.getElementById('songList');
-    const songItems = document.getElementById('songItems');
-    const songTable = document.getElementById('songTable').querySelector('tbody');
-    const customTip = document.getElementById('customTip');
+    const songTable = document.getElementById('songTable');
+    const songTableBody = songTable.querySelector('tbody');
     const listNameInput = document.getElementById('list-name');
-    const pageTitle = document.getElementById('pageTitle'); // 假设页面上有一个显示标题的元素
+    const customTip = document.getElementById('customTip');
 
-    // 全局变量（存储URL参数，类型转换为后端匹配的Integer）
-    let token = '';
-    let userId = '';
-    let category = '';
-    let allSingers = []; // 存储后端返回的歌手/作品数据
+    let token = '', userId = '', category = '', currentConfig = null;
     let selectedSongIds = new Set();
-    let currentConfig = null; // 当前分类的配置
+    let allSingers = [];
 
-    // ************************** 通用工具函数 **************************
-    // 1. 获取URL参数
-    function getUrlParam(paramName) {
-        const reg = new RegExp("(^|&)" + paramName + "=([^&]*)(&|$)");
-        const paramMatch = window.location.search.substr(1).match(reg);
-        return paramMatch ? decodeURIComponent(paramMatch[2]) : null;
+    // ==========================================
+    // 2. 工具函数（大豆包的百宝箱）
+    // ==========================================
+    function getUrlParam(name) {
+        return new URLSearchParams(window.location.search).get(name);
     }
 
-    // 2. 自定义提示框（替换原生alert）
     function showTip(msg, isError = false) {
         customTip.textContent = msg;
         customTip.className = 'tip-box ' + (isError ? 'tip-error' : 'tip-success');
         customTip.style.display = 'block';
-        setTimeout(() => {
-            customTip.style.display = 'none';
-        }, 2000);
+        setTimeout(() => { customTip.style.display = 'none'; }, 2000);
     }
 
-    // 3. 检查登录态和分类配置（页面加载时执行）
     function checkAuth() {
-        const rawToken = getUrlParam('token');
+        token = getUrlParam('token');
         userId = getUrlParam('userId');
         category = getUrlParam('category');
-
-         window.rawToken = rawToken;
-         token=rawToken?encodeURIComponent(rawToken):'';
-        // 类型转换+非空校验（匹配后端Integer类型）
-        userId = userId ? Number(userId) : null;
-        category= category ? Number(category) : null;
-        token = token ? encodeURIComponent(token) : ''; // token编码，防止特殊字符
-
-        if (!token || !userId || isNaN(userId)) {
-            showTip('登录信息失效，请重新登录！', true);
-            setTimeout(() => window.location.href = '/music/login.html', 1500);
+        if (!token || !userId || !category) {
+            showTip('糟糕！参数丢了，请重新从首页进来~', true);
             return false;
         }
-
-        // 校验分类并加载配置
         currentConfig = categoryConfig[category];
-        if (!currentConfig) {
-            showTip('不支持的榜单分类！', true);
-            setTimeout(() => window.location.href = '/music/index.html', 1500);
-            return false;
-        }
-
-        // 更新页面标题
-        if (pageTitle) {
-            pageTitle.textContent = currentConfig.title;
-        }
         document.title = currentConfig.title;
         return true;
     }
 
-    // ************************** 页面初始化 **************************
-    window.onload = function() {
-        if (!checkAuth()) return;
-        // 初始化时不请求数据，仅打开弹窗时请求
-    };
+    // ==========================================
+    // 3. 核心功能（大豆包开工啦！）
+    // ==========================================
+    window.onload = () => { checkAuth(); };
 
-    // ************************** 弹窗相关逻辑 **************************
-    // 打开弹窗+请求数据
-    openModalBtn.onclick = function() {
-        if (!checkAuth()) return;
-        modal.style.display = "block";
-        singerSearch.value = '';
-        songList.style.display = "none";
-        loadSingers(); // 打开弹窗时才请求数据
-    };
-
-    // 关闭弹窗
-    closeBtn.onclick = function() {
-        modal.style.display = "none";
-        songList.style.display = "none";
-    };
-    window.onclick = function(event) {
-        if (event.target === modal) {
-            modal.style.display = "none";
-            songList.style.display = "none";
-        }
-    };
-
-    // 歌手/作品搜索功能
-    singerSearch.oninput = function() {
-        const keyword = this.value.trim().toLowerCase();
-        const filtered = allSingers.filter(item =>
-            item.singerName.toLowerCase().includes(keyword)
-        );
-        renderSingerList(filtered);
-    };
-
-    // ************************** 后端接口请求 **************************
-    // 1. 请求歌手/作品列表
-    function loadSingers() {
-        singerList.innerHTML = `<div style="padding:10px; color:#aaa; text-align:center;">加载中...</div>`;
-        fetch(`${currentConfig.singerApi}?token=${token}&userId=${userId}&category=${category}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json;charset=utf-8'
-            }
-        })
-            .then(response => {
-                if (!response.ok) throw new Error(`接口返回${response.status}`);
-                return response.json();
-            })
-            .then(data => {
-                allSingers = data || [];
-                renderSingerList(allSingers);
-            })
-            .catch(error => {
-                console.error('加载失败：', error);
-                singerList.innerHTML = `<div style="padding:10px; color:#ff6347; text-align:center;">${currentConfig.emptyText}</div>`;
-            });
-    }
-
-    // 2. 根据歌手/作品ID请求歌曲/详情列表
-    function showSongs(singer) {
-        if (!singer || !singer.singerId) return;
-        songList.style.display = "block";
-        songItems.innerHTML = `<div style="padding:10px; color:#aaa; text-align:center;">加载中...</div>`;
-
-        fetch(`${currentConfig.songApi}?token=${token}&userId=${userId}&singerId=${singer.singerId}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json;charset=utf-8'
-            }
-        })
-            .then(response => {
-                if (!response.ok) throw new Error(`接口返回${response.status}`);
-                return response.json();
-            })
-            .then(songs => {
-                songItems.innerHTML = '';
-                const songData = songs || [];
-                if (songData.length === 0) {
-                    songItems.innerHTML = `<div style="padding:10px; color:#aaa; text-align:center;">该${category === 1 ? '歌手' : '作品'}暂无相关内容</div>`;
-                    return;
-                }
-                songData.forEach(song => {
-                    const item = document.createElement('div');
-                    item.className = 'song-item';
-                    item.textContent = song.songName || '未知内容';
-                    item.dataset.songId = song.songId;
-                    item.onclick = () => selectSong(song.songName, song.songId);
-                    songItems.appendChild(item);
-                });
-            })
-            .catch(error => {
-                console.error('加载内容失败：', error);
-                songItems.innerHTML = `<div style="padding:10px; color:#ff6347; text-align:center;">加载内容失败，请重试</div>`;
-            });
-    }
-
-    // ************************** 页面渲染逻辑 **************************
-    // 渲染歌手/作品列表
-    function renderSingerList(list) {
-        singerList.innerHTML = '';
-        if (list.length === 0) {
-            singerList.innerHTML = `<div style="padding:10px; color:#aaa; text-align:center;">${currentConfig.emptyText}</div>`;
-            return;
-        }
-        list.forEach(item => {
-            const el = document.createElement('div');
-            el.className = 'singer-item';
-            el.textContent = item.singerName || '未知项';
-            el.onclick = () => showSongs(item);
-            singerList.appendChild(el);
-        });
-    }
-
-    // 选择歌曲/内容填入表格
-    function selectSong(songName, songId) {
-        if (!songName || !songId || isNaN(Number(songId))) return;
-        const songIdNum = Number(songId);
-        if (selectedSongIds.has(songIdNum)) {
-            showTip('该内容已加入榜单，请勿重复选择！', true);
-            modal.style.display = "none";
-            songList.style.display = "none";
-            return;
-        }
-        const emptyInputs = songTable.querySelectorAll('input[placeholder="请输入歌曲名称"]');
-        let emptyInput = null;
-        for (let input of emptyInputs) {
-            if (!input.value.trim()) {
-                emptyInput = input;
-                emptyInput.dataset.songId = songIdNum;
-                break;
-            }
-        }
-        if (emptyInput) {
-            emptyInput.value = songName;
-            emptyInput.focus();
-            selectedSongIds.add(songIdNum);
-            showTip('内容添加成功！', false);
-        } else {
-            showTip('当前无空行，可点击「新增内容行」', true);
-        }
-        modal.style.display = "none";
-        songList.style.display = "none";
-    }
-
-    // ************************** 表格操作逻辑 **************************
-    // 新增：添加内容行
+    // 【新增行】逻辑
     addRowBtn.onclick = function() {
+        console.log("➕ 正在为你新增一行...");
         const tr = document.createElement('tr');
         tr.innerHTML = `
-        <td><input type="text" placeholder="请输入歌曲名称" readonly style="cursor: not-allowed;"></td>
-        <td>
-            <div class="rank-op-container">
-                <input type="number" placeholder="排名" min="1">
-                <button class="del-btn">×</button>
-            </div>
-        </td>
-    `;
-        songTable.appendChild(tr);
-        tr.querySelector('.del-btn').onclick = function() {
-            const songInput = tr.querySelector('input[placeholder="请输入歌曲名称"]');
-            const songId = Number(songInput.dataset.songId);
-            if (songId && !isNaN(songId)) {
-                selectedSongIds.delete(songId);
-            }
-            tr.remove();
-            showTip('已移除内容行', false);
-        };
+            <td><input type="text" placeholder="请输入歌曲名称" readonly style="cursor: not-allowed;"></td>
+            <td>
+                <div class="rank-op-container">
+                    <input type="number" placeholder="排名" min="1">
+                    <button class="del-btn" type="button">×</button>
+                </div>
+            </td>`;
+        songTableBody.appendChild(tr);
     };
 
-    // 初始化表格删除按钮事件
-    document.querySelectorAll('.del-btn').forEach(btn => {
-        btn.onclick = function() {
-            const tr = this.closest('tr');
-            const songInput = tr.querySelector('input[placeholder="请输入歌曲名称"]');
-            const songId = Number(songInput.dataset.songId);
-            if (songId && !isNaN(songId)) {
-                selectedSongIds.delete(songId);
-            }
+    // 【删除行】逻辑（这里解决了你点不动叉叉的问题！）
+    songTableBody.addEventListener('click', function(e) {
+        if (e.target && e.target.classList.contains('del-btn')) {
+            const tr = e.target.closest('tr');
+            const input = tr.querySelector('input');
+            const sId = input.dataset.songId;
+            if (sId) selectedSongIds.delete(Number(sId)); // 从已选列表中移除
             tr.remove();
-            showTip('已移除内容行', false);
-        };
+            showTip('已成功移除该行！');
+        }
     });
 
-    // ************************** 发布榜单校验 **************************
-    publishBtn.onclick = function() {
-        // 1. 榜单名非空校验
-        const listName = listNameInput.value.trim();
-        if (!listName) {
-            showTip('请输入榜单名称！', true);
-            listNameInput.focus();
+    // 【打开选择弹窗】
+    openModalBtn.onclick = () => {
+        if (!checkAuth()) return;
+        modal.style.display = "block";
+        loadSingers();
+    };
+
+    function loadSingers() {
+        const listEl = document.getElementById('singerList');
+        listEl.innerHTML = '<div style="color:#aaa; text-align:center;">正在翻阅名册...</div>';
+        fetch(`${currentConfig.singerApi}?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}`)
+            .then(res => res.json())
+            .then(data => { allSingers = data || []; renderSingerList(allSingers); });
+    }
+
+    function renderSingerList(list) {
+        const listEl = document.getElementById('singerList');
+        listEl.innerHTML = '';
+        list.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'singer-item';
+            div.textContent = item.singerName;
+            div.onclick = () => showSongs(item);
+            listEl.appendChild(div);
+        });
+    }
+
+    function showSongs(singer) {
+        document.getElementById('songList').style.display = "block";
+        const songItemsEl = document.getElementById('songItems');
+        songItemsEl.innerHTML = '<div style="color:#aaa;">正在找歌...</div>';
+        fetch(`${currentConfig.songApi}?token=${encodeURIComponent(token)}&userId=${userId}&singerId=${singer.singerId}`)
+            .then(res => res.json())
+            .then(songs => {
+                songItemsEl.innerHTML = '';
+                songs.forEach(song => {
+                    const div = document.createElement('div');
+                    div.className = 'song-item';
+                    div.textContent = song.songName;
+                    div.onclick = () => selectSongToTable(song.songName, song.songId);
+                    songItemsEl.appendChild(div);
+                });
+            });
+    }
+
+    function selectSongToTable(name, id) {
+        if (selectedSongIds.has(Number(id))) {
+            showTip('这首歌已经在榜单里啦！', true);
             return;
         }
-        // 2. 内容-排名成对校验 + 收集有效数据
-        const rows = songTable.querySelectorAll('tr');
-        let hasError = false;
-        const songItems = [];
-        const publishCheckSet = new Set();
+        // 找第一个没填歌的行
+        const emptyInput = Array.from(songTableBody.querySelectorAll('input[placeholder="请输入歌曲名称"]'))
+            .find(input => !input.value.trim());
+        if (emptyInput) {
+            emptyInput.value = name;
+            emptyInput.dataset.songId = id;
+            selectedSongIds.add(Number(id));
+            modal.style.display = "none";
+            showTip('歌曲添加成功！✨');
+        } else {
+            showTip('没空行了，先新增一行吧~', true);
+        }
+    }
 
-        rows.forEach((row, index) => {
-            const songInput = row.querySelector('input[placeholder="请输入歌曲名称"]');
-            const rankInput = row.querySelector('input[placeholder="排名"]');
-            const songName = songInput.value.trim();
-            const rankVal = rankInput.value.trim();
-            const songId = Number(songInput.dataset.songId);
+    // 【发布榜单】逻辑（这里修复了“假成功”的问题！）
+    publishBtn.onclick = function() {
+        const listName = listNameInput.value.trim();
+        if (!listName) { showTip('起个榜单名字吧！', true); return; }
 
-            if ((songName && !rankVal) || (!songName && rankVal)) {
-                showTip(`第${index+1}行：内容和排名需成对填写！`, true);
-                hasError = true;
-                return;
-            }
-            if (rankVal) {
-                const rankNum = Number(rankVal);
-                if (isNaN(rankNum) || rankNum < 1) {
-                    showTip(`第${index+1}行：排名必须是大于0的数字！`, true);
-                    hasError = true;
-                    return;
-                }
-            }
-            if (songName && rankVal && songId && !isNaN(songId) && songId > 0) {
-                if (publishCheckSet.has(songId)) {
-                    showTip(`第${index+1}行：内容重复，请检查！`, true);
-                    hasError = true;
-                    return;
-                }
-                publishCheckSet.add(songId);
-                songItems.push({
-                    songId: songId,
-                    ranking: Number(rankVal)
-                });
-            }
+        const songItemsData = [];
+        songTableBody.querySelectorAll('tr').forEach(row => {
+            const sId = row.querySelector('input').dataset.songId;
+            const rVal = row.querySelector('input[type="number"]').value;
+            if (sId && rVal) songItemsData.push({ songId: Number(sId), ranking: Number(rVal) });
         });
 
-        if (hasError) return;
-        if (songItems.length === 0) {
-            showTip('请至少选择1项内容！', true);
-            return;
-        }
+        if (songItemsData.length === 0) { showTip('还没选歌呢，发不出去呀~', true); return; }
 
-        // 3. 构造后端需要的请求体
-        const requestData = {
-            rankName: listName,
-            songItems: songItems,
-            targetId: 0
-        };
+        console.log("🚀 准备提交：", { rankName: listName, songItems: songItemsData });
 
-        // 4. 提交到后端发布接口
         fetch(`${currentConfig.publishApi}/${category}`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json;charset=utf-8',
-                'Authorization': `Bearer ${window.rawToken}`
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` // 用 Bearer 格式传 Token
             },
-            body: JSON.stringify(requestData)
+            body: JSON.stringify({ rankName: listName, songItems: songItemsData, targetId: 0 })
         })
             .then(response => {
-                if (!response.status>=400) throw new Error(`发布失败，接口返回${response.status}`);
-                return response.text();
+                if (!response.ok) throw new Error('服务器炸了，状态码：' + response.status);
+                return response.json(); // 解析后端返回的 Result 对象
             })
-            .then(() => {
-                showTip('发布榜单成功！', false);
-                selectedSongIds.clear();
-                setTimeout(() => window.location.href = `/music/api/rank/publish?token=${token}&userId=${userId}&category=${category}`, 1500);
+            .then(res => {
+                if (res.code === 200) {
+                    showTip('发布成功！即将为你刷新~', false);
+                    setTimeout(() => {
+                        window.location.href = `/music/api/rank/publish?token=${token}&userId=${userId}&category=${category}`;
+                    }, 1500);
+                } else {
+                    showTip('后端说：' + res.msg, true);
+                }
             })
-            .catch(error => {
-                console.error('发布失败：', error);
-                showTip('发布榜单失败，请重试！', true);
+            .catch(err => {
+                console.error('完整报错：', err);
+                showTip('哎呀，出错了：' + err.message, true);
             });
     };
+
+    // 弹窗关闭
+    document.querySelector('.close').onclick = () => modal.style.display = "none";
+    window.onclick = (e) => { if (e.target === modal) modal.style.display = "none"; };
 </script>
 </body>
 </html>

@@ -8,39 +8,40 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * Web配置类（一级包：config）
- * 注册拦截器，配置拦截/放行规则
+ * Web配置类：注册拦截器，配置拦截/放行规则
  */
-@Configuration // 标记为配置类，Spring启动时自动加载
+@Configuration
 public class WebConfig implements WebMvcConfigurer {
-    // 放行静态资源：让Spring Boot能找到static下的HTML/CSS/JS
+
+    // 1. 注入你的登录拦截器
+    @Autowired
+    private LoginInterceptor loginInterceptor;
+
+    // 放行静态资源：让 Spring Boot 能找到 static 下的 HTML/CSS/JS
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/**") // 匹配所有访问路径
-                .addResourceLocations("classpath:/static/"); // 静态资源所在目录
+        registry.addResourceHandler("/**")
+                .addResourceLocations("classpath:/static/");
     }
-    // 注入自定义的登录拦截器
-  //  @Autowired
-  //  private LoginInterceptor loginInterceptor;
 
-    /*
+    /**
      * 注册拦截器的核心方法
      */
     @Override
-   public void addInterceptors(InterceptorRegistry registry) {
-        // 注册登录拦截器
-       // registry.addInterceptor(loginInterceptor)
-                // 拦截所有请求（/** 表示匹配所有层级的接口）
-             //   .addPathPatterns("/**")
-                // 放行的接口（无需登录即可访问）
-               // .excludePathPatterns(
-                 //       "/user/register", // 注册接口
-                   //     "/user/login",    // 登录接口
-                        // 放行静态资源（如果有前端页面，比如html/css/js，需要放行）
-                     //   "/js/**",
-                       // "/**.html",
-                        //"/**.css",
-                  //      "/images/**"
-                //);
-   }
+    public void addInterceptors(InterceptorRegistry registry) {
+        // 2. 注册登录拦截器并配置规则
+        registry.addInterceptor(loginInterceptor)
+                .addPathPatterns("/**") // 拦截所有请求
+                .excludePathPatterns(    // 以下是“白名单”，不用登录也能访问
+                        "/api/user/register", // 你的注册接口（根据实际路径检查一下）
+                        "/api/user/login",    // 你的登录接口
+                        "/js/**",         // 放行 JS 文件夹
+                        "/player/**",     // 放行播放器插件文件夹
+                        "/login.html",    // 放行登录页
+                        "/register.html", // 放行注册页
+                        "/index.html",    // 放行首页
+                        "/*.css",         // 放行根目录下的 CSS
+                        "/*.js"           // 放行根目录下的 JS
+                );
+    }
 }
