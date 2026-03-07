@@ -394,7 +394,8 @@
         </form>
     </div>
 </div>
-<script src="/music/js/axios.min.js"></script>
+<script th:src="@{/js/axios.min.js}"></script>
+<script th:src="@{/js/request.js}"></script>
 <script>
     // 生成随机星星 - 保留原有代码
     const starsContainer = document.querySelector('.stars');
