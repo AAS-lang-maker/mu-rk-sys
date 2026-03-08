@@ -20,15 +20,16 @@ public interface MyRankService {
 
     List<Song> selectSong(Integer singerId);
 
-    void insertNewRank(EditRank dto);
 
     PageInfo<MyRankWithSong> selectMyLoverank(Integer pageNum, Integer pageSize, Integer offset, Integer userId);
 
-    boolean deleteRank(Integer rankId);
+
 
     UserInfo selectByuserId(Integer userId);
 
     List<CommentVo> selectComment(Integer rankId, Integer userId);
 
     boolean deleteComment(Integer comId, Integer userId);
+
+    boolean update(EditRank dto, Integer rankId);
 }

@@ -1019,6 +1019,8 @@
                 const category = urlParams.get('category') || localStorage.getItem('category') || '';
                 const success = urlParams.get('success') || localStorage.getItem('success') || '';
 
+                console.log('📌 跳转前参数：', { token, userId, category, success });
+
                 if (!token || !userId) {
                     alert('登录信息失效，请重新登录');
                     window.location.href = '/music/login.html';

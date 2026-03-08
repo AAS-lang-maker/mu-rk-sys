@@ -31,7 +31,7 @@ public class UserPublishController {
     private UserPublishService userPublishService;
 
     @GetMapping("/publish")
-    public String publish(@RequestParam("token") String token, RedirectAttributes redirectAttributes, @RequestParam("category") Integer category,
+    public String publish(@RequestParam("token") String token, RedirectAttributes redirectAttributes, @RequestParam(value = "category",required = false) Integer category,
                           @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum, @RequestParam(value = "pageSize", defaultValue = "4") Integer pageSize, Model model) {
         if (token == null || token.isEmpty()) {
             redirectAttributes.addFlashAttribute("errormessage", "token已失效");

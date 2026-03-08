@@ -90,7 +90,6 @@ public class MyRankController {
     //负责前端数据渲染的视图
     @GetMapping("/edit-page")
     public String editPage(@RequestParam("token")String token,Model model,@RequestParam("rankId")Integer rankId) throws Exception {
-        //看不懂思密达，全都看不懂啥意思，豆包屎个角色
         if(token==null||token.isEmpty()){
             return "redirect:/login.html";
         }
@@ -156,9 +155,21 @@ public class MyRankController {
         if(userId==null){
             return Result.error("userId不能为空");
         }
-        myRankService.insertNewRank(dto);
-        redirectAttributes.addFlashAttribute("success","榜单重新编辑成功，已经保存");
-        return Result.success("榜单编辑成功");
+            Integer rankId=dto.getRankId();
+            if(rankId==null) {
+                return Result.error("请先选择榜单");}
+                try {
+                    boolean result = myRankService.update(dto, rankId);
+                    if (result) {
+                        return Result.success();
+                    } else {
+                        return Result.error("编辑保存榜单失败");
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return Result.error(e.getMessage() + "编辑榜单失败");
+                }
     }
     @GetMapping("/lv")
     public String lv(@RequestParam("userId")Integer userId,@RequestParam("token")String token, RedirectAttributes redirectAttributes){
@@ -185,31 +196,7 @@ public class MyRankController {
         model.addAttribute("userId", userId);
         return "mylove-page";
     }
-    @DeleteMapping("deleterank")
-    @ResponseBody
-    public Result<String> deleterank(@RequestParam("token")String token,@RequestParam("rankId")Integer rankId){
-        if(rankId==null){
-            return Result.error("token不能为空哦");
-        }
-        Integer userId=validateToken(token,null);
-        if(userId==null){
-            return Result.error("userId不能为空哦");
-        }
-        try {
-            if(rankId==null){
-                return Result.error("请选择榜单");
-            }
-            boolean result=myRankService.deleteRank(rankId);
-            if(result){
-                return  Result.success();
-            }else{
-                return Result.error("删除榜单失败");
-            }
-        }catch (Exception e){
-            e.printStackTrace();
-            return Result.error(e.getMessage()+"删除榜单失败");
-        }
-    }
+
     @GetMapping("/list")
     @ResponseBody
     public Result<List<CommentVo>> list(@RequestParam("token")String token

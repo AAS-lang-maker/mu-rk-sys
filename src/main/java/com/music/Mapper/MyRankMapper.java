@@ -24,7 +24,7 @@ public interface MyRankMapper {
     @Update("update personal_rank set rank_name=#{rankName},publish_time=now() where rank_id=#{rankId}")
     void insertNewRankname(@Param("rankId") Integer rankId,@Param("rankName") String rankName);
     @Delete("delete from rank_song where rank_id=#{rankId}")
-    void deleteOldRankname(Integer rankId);
+   Integer deleteOldRankname(Integer rankId);
 
     void insertNewRank(List<RankSong> newSongs);
 

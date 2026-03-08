@@ -1,20 +1,16 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>登录</title>
-
     <style>
-        /* 全局样式重置 - 与主页保持一致 */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: 'Microsoft YaHei', 'Arial', sans-serif;
         }
-
         body {
             background-color: #0f172a;
             background-image:
@@ -29,7 +25,6 @@
             padding: 20px;
             color: #f1f5f9;
         }
-
         .login-container {
             display: flex;
             max-width: 1000px;
@@ -42,7 +37,6 @@
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
-
         .illustration-side {
             flex: 1.2;
             background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.8));
@@ -52,19 +46,15 @@
             align-items: center;
             justify-content: center;
         }
-
-
         .space-illustration {
             width: 100%;
             height: 100%;
             position: relative;
         }
-
         .planet {
             position: absolute;
             border-radius: 50%;
         }
-
         .planet-1 {
             width: 220px;
             height: 220px;
@@ -73,7 +63,6 @@
             left: 15%;
             box-shadow: 0 0 40px rgba(255, 107, 107, 0.5);
         }
-
         .planet-1::before {
             content: '';
             position: absolute;
@@ -85,7 +74,6 @@
             left: -20px;
             transform: translateY(-50%);
         }
-
         .planet-2 {
             width: 150px;
             height: 150px;
@@ -94,7 +82,6 @@
             right: 20%;
             box-shadow: 0 0 30px rgba(78, 205, 196, 0.5);
         }
-
         .planet-2::before {
             content: '';
             position: absolute;
@@ -106,7 +93,6 @@
             left: -25px;
             transform: translateY(-50%);
         }
-
         .astronaut {
             position: absolute;
             width: 180px;
@@ -114,7 +100,6 @@
             bottom: 15%;
             left: 30%;
         }
-
         .astronaut-hand {
             position: absolute;
             width: 100px;
@@ -124,7 +109,6 @@
             bottom: 0;
             left: 40px;
         }
-
         .astronaut-hand::before {
             content: '';
             position: absolute;
@@ -135,7 +119,6 @@
             top: -20px;
             left: 35px;
         }
-
         .astronaut-hand::after {
             content: '';
             position: absolute;
@@ -147,7 +130,6 @@
             left: 15px;
             transform: rotate(-30deg);
         }
-
         .stars {
             position: absolute;
             top: 0;
@@ -155,7 +137,6 @@
             width: 100%;
             height: 100%;
         }
-
         .star {
             position: absolute;
             width: 2px;
@@ -164,19 +145,10 @@
             border-radius: 50%;
             animation: twinkle 3s infinite;
         }
-
         @keyframes twinkle {
-
-            0%,
-            100% {
-                opacity: 0.3;
-            }
-
-            50% {
-                opacity: 1;
-            }
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
         }
-
         .login-side {
             flex: 1;
             padding: 80px 60px;
@@ -184,7 +156,6 @@
             flex-direction: column;
             justify-content: center;
         }
-
         .login-title {
             font-size: 32px;
             font-weight: 700;
@@ -192,18 +163,15 @@
             margin-bottom: 50px;
             text-align: center;
         }
-
         .form-group {
             margin-bottom: 30px;
         }
-
         .form-label {
             display: block;
             font-size: 16px;
             color: rgba(247, 250, 252, 0.7);
             margin-bottom: 10px;
         }
-
         .form-input {
             width: 100%;
             padding: 16px 20px;
@@ -214,13 +182,11 @@
             background: rgba(30, 41, 59, 0.8);
             color: #f1f5f9;
         }
-
         .form-input:focus {
             outline: none;
             border-color: #fffa9c;
             box-shadow: 0 0 0 3px rgba(255, 250, 156, 0.2);
         }
-
         .login-button {
             width: 100%;
             padding: 16px;
@@ -234,47 +200,39 @@
             transition: all 0.2s ease;
             margin-top: 20px;
         }
-
         .login-button:hover {
             background: #fff780;
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(255, 250, 156, 0.4);
         }
-
         .register-link {
             text-align: center;
             margin-top: 30px;
             font-size: 16px;
             color: rgba(247, 250, 252, 0.7);
         }
-
         .register-link a {
             color: #fffa9c;
             text-decoration: none;
             font-weight: 600;
         }
-
         .register-link a:hover {
             text-decoration: underline;
         }
-
         .other-login-methods {
             margin-top: 40px;
             text-align: center;
         }
-
         .other-login-title {
             font-size: 16px;
             color: rgba(247, 250, 252, 0.7);
             margin-bottom: 20px;
         }
-
         .social-buttons {
             display: flex;
             justify-content: center;
             gap: 20px;
         }
-
         .social-button {
             width: 50px;
             height: 50px;
@@ -287,55 +245,40 @@
             cursor: pointer;
             transition: all 0.2s ease;
         }
-
         .social-button:hover {
             transform: translateY(-3px);
             box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
             border-color: #fffa9c;
         }
-
         .social-icon {
             width: 24px;
             height: 24px;
             filter: invert(1);
         }
-
         @media (max-width: 768px) {
             .login-container {
                 flex-direction: column;
                 min-height: 700px;
             }
-
             .illustration-side {
                 height: 350px;
                 flex: none;
             }
-
             .login-side {
                 padding: 50px 40px;
             }
         }
-
-        /* 小红框错误提示样式 - 保留原有 */
         .error-alert {
             display: none;
-            /* 默认隐藏，不影响原有页面布局 */
             background-color: rgba(254, 242, 242, 0.2);
-            /* 浅红背景 */
             border: 1px solid #ffccc7;
-            /* 红边框 */
             color: #ef4444;
-            /* 红色文字 */
             padding: 10px 15px;
             border-radius: 4px;
-            /* 圆角，更美观 */
             margin: 15px 0;
-            /* 和上下元素保持间距 */
             font-size: 14px;
             line-height: 1.5;
         }
-
-        /* 新增：成功提示样式（可选，绿色） */
         .success-alert {
             display: none;
             background-color: rgba(240, 253, 244, 0.2);
@@ -349,7 +292,6 @@
         }
     </style>
 </head>
-
 <body>
 <div class="login-container">
     <div class="illustration-side">
@@ -374,13 +316,10 @@
     <div class="login-side">
         <h1 class="login-title">登录</h1>
         <form class="login-form">
-            <!-- 保留原有错误提示框 -->
             <div class="error-alert" id="errorAlert"></div>
-            <!-- 新增成功提示框 -->
             <div class="success-alert" id="successAlert"></div>
             <div class="form-group">
                 <label class="form-label">请输入用户名</label>
-                <!-- 修复：占位符错别字“用户民”→“用户名” -->
                 <input type="text" class="form-input" placeholder="请输入您的用户名" name="username" required>
             </div>
             <div class="form-group">
@@ -394,10 +333,13 @@
         </form>
     </div>
 </div>
-<script th:src="@{/js/axios.min.js}"></script>
-<script th:src="@{/js/request.js}"></script>
+
+<!-- 正确加载axios和request.js（静态页面相对路径） -->
+<script src="./js/axios.min.js"></script>
+<script src="./js/request.js"></script>
+
 <script>
-    // 生成随机星星 - 保留原有代码
+    // 生成随机星星
     const starsContainer = document.querySelector('.stars');
     for (let i = 0; i < 30; i++) {
         const star = document.createElement('div');
@@ -408,7 +350,7 @@
         starsContainer.appendChild(star);
     }
 
-    // 优化：复用页面内置提示框，样式和页面统一，删除动态创建逻辑
+    // 提示框函数
     function showErrorTip(msg) {
         const errorAlert = document.getElementById('errorAlert');
         errorAlert.innerText = msg;
@@ -426,109 +368,78 @@
             successAlert.style.display = 'none';
         }, 1500);
     }
-    // 假设这是你登录成功后的回调
-    function loginSuccess(response) {
-        const { token, user_id, category } = response.data;
 
-        // 1. 先存 localStorage（这部分保留）
-        localStorage.setItem('token', token);
-        localStorage.setItem('user_id', user_id);
-        localStorage.setItem('category', category || 'all');
-
-        // 2. 再构建带参 URL，强制把参数拼进去
-        const params = new URLSearchParams({
-            token: token,
-            user_id: user_id,
-            category: category || 'all'
-        });
-
-        // 3. 强制跳转，确保 URL 里有参数
-        const targetUrl = `/music/myrank-page.html?${params.toString()}`;
-        console.log('🚀 登录成功，跳转到榜单页：', targetUrl); // 关键：打印跳转地址
-        window.location.href = targetUrl;
-    }
-
-    // 【核心改造】登录按钮异步点击事件（Axios请求，替代原生表单提交）
+    // 登录按钮点击事件（完整、无语法错误）
     document.getElementById('loginBtn').addEventListener('click', async function () {
-        // 1. 获取并校验表单数据
-        const username = document.querySelector('input[name="username"]').value.trim();
-        const password = document.querySelector('input[name="password"]').value.trim();
-
-        if (!username || !password) {
-            showErrorTip('请输入用户名和密码');
+        // 1. 检查request是否加载成功
+        if (typeof request === 'undefined') {
+            showErrorTip('request.js加载失败，请检查文件路径');
             return;
         }
 
-        // 2. 构造请求参数
-        const loginData = {
-            username: username,
-            password: password
-        };
+        // 2. 获取并校验表单数据
+        const username = document.querySelector('input[name="username"]').value.trim();
+        const password = document.querySelector('input[name="password"]').value.trim();
+
+        if (!username) {
+            showErrorTip('请输入用户名');
+            return;
+        }
+        if (!password) {
+            showErrorTip('请输入密码');
+            return;
+        }
 
         try {
-            // 3. 异步请求后端登录接口（关键：和后端接口地址一致）
-            const response = await axios({
-                url: '/music/api/user/login', // 后端登录接口地址，和你原有form的action一致
+            // 3. 调用封装的request实例发起请求
+            const data = await request({
+                url: '/user/login', // 结合request.js的baseURL=/music/api，完整地址是/music/api/user/login
                 method: 'post',
-                data: loginData, // POST请求传参
-                headers: {
-                    'Content-Type': 'application/json;charset=utf-8' // 告诉后端是JSON数据
-                }
+                data: { username, password }, // JSON格式传参
+                headers: { 'Content-Type': 'application/json;charset=utf-8' }
             });
 
-            // 4. 处理后端返回结果（核心：获取token/userId/userName）
-            const res = response.data;
-            // 假设后端返回格式：{code:200, msg:"登录成功", data:{token:"xxx", userId:1, userName:"张三"}}
-            if (res.code === 200) {
-                const { token, userId, userName } = res.data;
-                // 校验后端是否返回完整参数
-                if (!token || !userId || !userName) {
-                    showErrorTip('登录接口返回参数不完整，请检查后端');
-                    return;
-                }
-
-                // 5. 显示成功提示并拼接参数跳转到首页（解决缺少userId的核心步骤）
-                showSuccessTip('登录成功，即将跳转到首页...');
-                // 编码用户名（防止中文/特殊字符解析失败）
-                const encodeUserName = encodeURIComponent(userName);
-                // 拼接token+userId+userName到首页URL
-                const homeUrl = `/music/index.html?token=${token}&userId=${userId}&userName=${encodeUserName}`;
-                // 延迟跳转，让用户看到成功提示
-                setTimeout(() => {
-                    window.location.href = homeUrl;
-                }, 1500);
-
-            } else {
-                // 后端返回业务错误（如用户名密码错误）
-                showErrorTip(res.msg || '登录失败，请重试');
+            // 4. 处理登录成功逻辑（request拦截器已返回res.data）
+            const { token, userId, userName } = data;
+            if (!token || !userId || !userName) {
+                showErrorTip('登录返回参数不完整，请检查后端');
+                return;
             }
 
+            // 5. 存储登录信息
+            localStorage.setItem('token', token);
+            localStorage.setItem('userId', userId);
+            localStorage.setItem('userName', encodeURIComponent(userName));
+            localStorage.setItem('category', 'all');
+
+            // 6. 成功提示+跳转
+            showSuccessTip('登录成功，即将跳转首页...');
+            setTimeout(() => {
+                window.location.href = `/music/index.html?token=${token}&userId=${userId}&userName=${encodeURIComponent(userName)}`;
+            }, 1500);
+
         } catch (error) {
-            // 处理网络错误/接口404/500等异常
-            console.error('登录请求异常：', error);
+            // 7. 统一处理异常
+            console.error('登录异常：', error);
             if (error.response) {
-                // 后端返回错误状态码（如401/404）
-                showErrorTip('登录失败，' + (error.response.data?.msg || '服务器异常'));
+                // 后端返回错误
+                showErrorTip(`登录失败：${error.response.data?.msg || `服务器错误(${error.response.status})`}`);
             } else if (error.request) {
-                // 无响应（网络问题/后端未启动）
-                showErrorTip('网络异常，请检查后端服务是否启动');
+                // 网络错误（没连到后端）
+                showErrorTip('网络异常，无法连接后端服务');
             } else {
-                // 请求构造错误
-                showErrorTip('请求失败，' + error.message);
+                // 其他错误（如参数错误）
+                showErrorTip(`请求失败：${error.message}`);
             }
         }
     });
 
-    // 保留原有：注册链接、社交登录点击事件
-    document.querySelector('.register-link a').addEventListener('click', function (e) {
-        // 无拦截，正常跳转
-    });
-    // 保留原有：页面加载解析参数（可移除，因改为异步跳转，地址栏不再有参数）
+    // 页面加载时处理URL中的错误提示
     window.onload = function () {
         const urlParams = new URLSearchParams(window.location.search);
         const errorMsg = urlParams.get('errormessage');
         if (errorMsg) {
-            showErrorTip(errorMsg);
+            showErrorTip(decodeURIComponent(errorMsg));
             const passwordInput = document.querySelector('input[name="password"]');
             if (passwordInput) {
                 passwordInput.value = "";
@@ -538,5 +449,4 @@
     };
 </script>
 </body>
-
 </html>

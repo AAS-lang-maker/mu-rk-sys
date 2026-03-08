@@ -617,19 +617,18 @@
         const songItems = document.querySelectorAll('.song-item');
         const songs = [];
         let hasEmptySong = false;
-
+// 替换原有的歌曲遍历校验逻辑
         songItems.forEach((item, index) => {
             const songId = item.getAttribute('data-song-id');
             const rankInput = item.querySelector('.song-rank-input');
             const ranking = rankInput ? parseInt(rankInput.value) : index + 1;
             const songName = item.querySelector('.song-name').textContent;
 
-            // 检查是否有未选择歌曲的行
-            if (!songId && songName !== '新歌曲' + (index + 1)) {
+            // 核心修复：只要是“新歌曲X”且无songId，就是未选择歌曲
+            if (songName.startsWith('新歌曲') && !songId) {
                 hasEmptySong = true;
             }
 
-            // 只添加有songId的歌曲
             if (songId) {
                 songs.push({
                     songId: parseInt(songId),
@@ -649,8 +648,7 @@
             alert('请至少添加一首歌曲');
             return;
         }
-
-        // 发送更新请求
+// 发送更新请求
         fetch(`/music/api/mine/save?token=${getToken()}`, {
             method: 'POST',
             headers: {
@@ -667,8 +665,8 @@
                 // 检查后端返回的数据结构
                 console.log('保存请求返回的数据:', data);
 
-                // 检查所有可能的成功情况
-                if (data.success === true || data.msg === 'success' || data.message === 'success' || data.data === '榜单编辑成功') {
+                // 核心修改：匹配后端实际的Result格式
+                if (data.code === 200) { // 后端成功的核心标识是code=200
                     // 获取token
                     const token = getToken();
 
@@ -697,7 +695,8 @@
                         window.location.href = '/music/login.html';
                     }
                 } else {
-                    alert('保存失败：' + (data.msg || data.message || '未知错误'));
+                    // 失败时显示后端返回的具体错误信息
+                    alert('保存失败：' + (data.msg || '未知错误'));
                 }
             })
             .catch(error => {
@@ -705,7 +704,6 @@
                 alert('保存失败，请稍后重试');
             });
     });
-
     // 取消按钮
     document.getElementById('cancelBtn').addEventListener('click', function () {
         // 返回上一页

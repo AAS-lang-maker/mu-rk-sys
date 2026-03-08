@@ -16,11 +16,11 @@ public class Result<T> {
         result.setMsg("success");
         return result;
     }
-    public static <T> Result<T> success(T date) {
+    public static <T> Result<T> success(T data) {
         Result<T>result=new Result<>();//有数据的业务成功
         result.setCode(200);
         result.setMsg("success");
-        result.setData(date);
+        result.setData(data);
         return  result;
     }
     public static <T>Result<T> error(String msg) {//失败

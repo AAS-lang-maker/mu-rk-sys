@@ -1,5 +1,6 @@
 package com.music.Service.impl;
 
+import com.alibaba.druid.support.logging.LogFactory;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.music.Mapper.MyRankMapper;
@@ -9,6 +10,10 @@ import com.music.dto.EditRank;
 import com.music.dto.MyRankWithSong;
 import com.music.dto.RankAddRequest;
 import com.music.pojo.*;
+import groovy.util.logging.Log;
+import groovy.util.logging.Slf4j;
+import org.apache.logging.log4j.LogManager;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +29,7 @@ import java.util.List;
 public class MyRankServiceImpl implements MyRankService {
 @Autowired
 private MyRankMapper myRankMapper;
-
+//private static final Logger log = (Logger) LogManager.getLogger(MyRankServiceImpl.class);
     //查询personl_rank主表
     @Override
     public PageInfo<MyRankWithSong> selectMyrank(Integer pageNum,Integer pageSize,Integer offset,Integer userId) {
@@ -45,11 +50,6 @@ private MyRankMapper myRankMapper;
     }
 
     @Override
-    public MyRankWithSong getRank(Integer rankId) {
-        return myRankMapper.getRank(rankId);
-    }
-
-    @Override
     public List<Singer> selectSinger(Integer categoryId) {
         List<Singer> singers=myRankMapper.selectSinger(categoryId);
          return singers;
@@ -61,27 +61,41 @@ private MyRankMapper myRankMapper;
         return songs;
     }
 
+
     @Override
-    @Transactional
-    public void insertNewRank(EditRank dto) {
-         Integer rankId=dto.getRankId();
-         String rankName=dto.getRankName();
-         myRankMapper.insertNewRankname(rankId,rankName);
-         myRankMapper.deleteOldRankname(rankId);
-         List<RankAddRequest.RankSongItem> items=dto.getSongItems();
+    public MyRankWithSong getRank(Integer rankId) {
+        return myRankMapper.getRank(rankId);
+    }
+
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean update(EditRank dto, Integer rankId) {
+        String rankName=dto.getRankName();
+        //log.info("开始编辑榜单：rankId={}, 新名称={}", rankId, rankName);
+        myRankMapper.insertNewRankname(rankId,rankName);
+        //log.info("主表榜单名更新完成");
+        int deleteCount=myRankMapper.deleteOldRankname(rankId);
+        //log.info("删除子表旧数据：rankId={}, 删除行数={}", rankId, deleteCount);
+        List<RankAddRequest.RankSongItem> items=dto.getSongItems();
         List<RankSong> newSongs=new ArrayList<>();
-         if(!CollectionUtils.isEmpty(items)){
-             for (RankAddRequest.RankSongItem item : items) {
-                 RankSong newSong=new RankSong();
-                 newSong.setSongId(item.getSongId());
-                 newSong.setRanking(item.getRanking());
-                 newSong.setRankId(rankId);
-                 newSongs.add(newSong);
-             }
-         }
-         if(!CollectionUtils.isEmpty(newSongs)){
-         myRankMapper.insertNewRank(newSongs);
-       }
+        if(!CollectionUtils.isEmpty(items)){
+            for (RankAddRequest.RankSongItem item : items) {
+                RankSong newSong=new RankSong();
+                newSong.setSongId(item.getSongId());
+                newSong.setRanking(item.getRanking());
+                newSong.setRankId(rankId);
+                newSongs.add(newSong);
+            }
+        }
+        if(!CollectionUtils.isEmpty(newSongs)){
+          //  log.info("开始插入新歌曲：rankId={}, 歌曲数量={}", rankId, newSongs.size());
+            myRankMapper.insertNewRank(newSongs);
+            //log.info("新歌曲插入完成");
+        }else {
+            //log.warn("无有效歌曲数据，跳过插入");
+        }
+        return true;
     }
 
     @Override
@@ -98,11 +112,7 @@ private MyRankMapper myRankMapper;
         return pageInfo;
     }
 
-    @Override
-    @Transactional
-    public boolean deleteRank(Integer rankId) {
-        return myRankMapper.deleteRank(rankId);
-    }
+
 
     @Override
     public UserInfo selectByuserId(Integer userId) {

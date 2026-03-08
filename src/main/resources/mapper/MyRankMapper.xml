@@ -21,7 +21,7 @@
         left join song as c on c.song_id=b.song_id
         left join singer as d on c.singer_id = d.singer_id
         left join user u on u.user_id=a.user_id
-        order by b.rank_update_time asc, b.ranking asc
+        order by b.rank_update_time desc, b.ranking asc
     </select>
 
     <!-- 定义结果映射，把联表查询的结果映射到VO对象 -->
@@ -129,11 +129,12 @@
         <result property="parentUsername" column="parent_username"/>
     </resultMap>
     <insert id="insertNewRank">
-        insert into rank_song(rank_id,song_id,ranking,rank_update_time)
+        insert ignore into rank_song(rank_id,song_id,ranking,rank_update_time)
         values
             <foreach collection="list" item="item" separator=",">
                 (#{item.rankId},#{item.songId},#{item.ranking},now())
             </foreach>
+<!--insert ignore 最佳适配场景，直接忽略重复键，只插入不重复的行-->
     </insert>
 
 </mapper>
