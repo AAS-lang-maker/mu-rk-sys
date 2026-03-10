@@ -9,7 +9,6 @@ import com.music.pojo.PersonalRank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,7 +24,7 @@ public class HotRankServiceImpl implements HotRankService {
     /*逻辑：    1.设置榜单排名的分数计算公式，自定义
                2.根据公式调用Redis，根据分数公式对分数进行排名并实时更新
                 */
-    private static final Logger log = LoggerFactory.getLogger(userPublishServiceImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(UserPublishServiceImpl.class);
 
     private static final String Hot_Rank_Key="music:rank:hot";
     @Autowired
