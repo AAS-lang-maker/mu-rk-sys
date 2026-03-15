@@ -1,0 +1,24 @@
+version: '3.8'
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+# 这里的数据库名改成了你的 music_db
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/music_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: music_db # 这里也要改成 music_db
+    ports:
+      - "3306:3306"
+    volumes:
+     - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
