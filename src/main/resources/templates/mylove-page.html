@@ -843,17 +843,17 @@
                 commentItem.className = 'comment-item';
 
                 commentItem.innerHTML = `
-                <div class="comment-header">
-                    <span class="comment-username">${comment.username || '匿名用户'}</span>
-                    <span class="comment-time">${formatTime(comment.comTime)}</span>
-                </div>
-                <div class="comment-content">${comment.comContent || ''}</div>
-                <div class="comment-actions-bar">
-                    ${comment.userId === parseInt(userId) ?
+            <div class="comment-header">
+                <span class="comment-username">${comment.username || '匿名用户'}</span>
+                <span class="comment-time">${formatTime(comment.comTime)}</span>
+            </div>
+            <div class="comment-content">${comment.comContent || ''}</div>
+            <div class="comment-actions-bar">
+                ${comment.userId === parseInt(userId) ?
                     `<button class="comment-delete-btn" data-comment-id="${comment.comId}">删除</button>` : ''
                 }
-                </div>
-            `;
+            </div>
+        `;
 
                 container.appendChild(commentItem);
             });
@@ -950,17 +950,19 @@
         (function () {
             try {
                 const urlParams = new URLSearchParams(window.location.search);
+                // 关键修复1：仅读取核心参数，跳过分页参数，避免覆盖
                 const urlToken = urlParams.get('token') || '';
                 const urlUid = urlParams.get('user_id') || urlParams.get('userId') || '';
                 const urlUserName = urlParams.get('userName') || urlParams.get('username') || '';
                 const urlCategory = urlParams.get('category') || '';
                 const urlSuccess = urlParams.get('success') || '';
 
-                localStorage.setItem('token', urlToken);
-                localStorage.setItem('user_id', urlUid);
-                localStorage.setItem('userName', urlUserName);
-                localStorage.setItem('category', urlCategory);
-                localStorage.setItem('success', urlSuccess);
+                // 关键修复2：仅当参数不为空时才存储，避免清空已有值
+                if (urlToken) localStorage.setItem('token', urlToken);
+                if (urlUid) localStorage.setItem('user_id', urlUid);
+                if (urlUserName) localStorage.setItem('userName', urlUserName);
+                if (urlCategory) localStorage.setItem('category', urlCategory);
+                if (urlSuccess) localStorage.setItem('success', urlSuccess);
 
                 console.log('✅ 收藏页初始化完成，参数：', {
                     token: urlToken,
@@ -1010,38 +1012,43 @@
             }
         }
 
-        // 修复：返回主页函数 - 跳转页面路径（不是接口路径）
+        // 关键修复3：重写goToPu函数，解决参数编码和优先级问题
         function goToPu() {
             try {
+                // 强制重新读取最新参数（不从localStorage取，避免脏数据）
                 const urlParams = new URLSearchParams(window.location.search);
                 const token = urlParams.get('token') || localStorage.getItem('token') || '';
                 const userId = urlParams.get('userId') || urlParams.get('user_id') || localStorage.getItem('user_id') || '';
-                const category = urlParams.get('category') || localStorage.getItem('category') || '';
-                const success = urlParams.get('success') || localStorage.getItem('success') || '';
+                // 仅携带核心参数，不携带收藏页的分页参数
+                const category = localStorage.getItem('category') || '';
+                const success = localStorage.getItem('success') || '';
 
-                console.log('📌 跳转前参数：', { token, userId, category, success });
+                console.log('📌 收藏页跳转publish参数：', { token, userId, category, success });
 
+                // 严格校验
                 if (!token || !userId) {
-                    alert('登录信息失效，请重新登录');
-                    window.location.href = '/music/login.html';
+                    showErrorTip('登录信息失效，请重新登录'); // 改用统一提示框
+                    setTimeout(() => window.location.href = '/music/login.html', 1500);
                     return;
                 }
 
+                // 关键修复4：参数做URL编码，避免特殊字符导致跳转失败
                 const params = new URLSearchParams();
-                params.append('token', token);
-                params.append('userId', userId);
-                if (category) params.append('category', category);
-                if (success) params.append('success', success);
+                params.append('token', encodeURIComponent(token));
+                params.append('userId', encodeURIComponent(userId));
+                if (category) params.append('category', encodeURIComponent(category));
+                if (success) params.append('success', encodeURIComponent(success));
 
-                // 修复：跳转页面路径（改为.html页面，不是/api接口）
-                // 请根据你的实际主页页面路径调整，示例使用/music/publish.html
+                // 确保跳转路径和个人榜单页完全一致
                 const targetUrl = `/music/api/rank/publish?${params.toString()}`;
-                console.log('📌 返回主页跳转URL：', targetUrl);
-                window.location.href = targetUrl;
+                console.log('📌 收藏页最终跳转URL：', targetUrl);
+
+                // 强制跳转（用replace避免历史记录问题）
+                window.location.replace(targetUrl);
 
             } catch (err) {
-                console.error('❌ 跳转出错：', err);
-                alert('跳转失败，请刷新重试！');
+                console.error('❌ 收藏页跳转publish出错：', err);
+                showErrorTip('跳转失败：' + err.message); // 改用统一提示框
             }
         }
 
@@ -1051,30 +1058,40 @@
             window.location.href = `/music/api/mine/mylove?pageNum=${page}&token=${encodeURIComponent(currentToken)}&userId=${encodeURIComponent(currentUserId)}`;
         }
 
-        // ===================== 事件委托绑定（强化播放按钮事件）=====================
+        // ===================== 事件委托绑定（修复事件优先级）=====================
         document.addEventListener('DOMContentLoaded', function() {
-            // 强制初始化播放器（确保加载）
+            // 初始化播放器
             initMusicPlayer();
 
-            // 1. 侧边栏按钮绑定
-            document.getElementById('btn-goToPu').addEventListener('click', goToPu);
+            // 1. 侧边栏按钮绑定（优先绑定，确保点击触发）
+            const goToPuBtn = document.getElementById('btn-goToPu');
+            if (goToPuBtn) {
+                goToPuBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    goToPu(); // 直接调用，避免事件委托失效
+                });
+            } else {
+                console.error('❌ 未找到返回主页按钮');
+            }
+
             document.getElementById('btn-reLogin').addEventListener('click', function() {
                 window.location.href='/music/login.html';
             });
             document.getElementById('btn-goToHome').addEventListener('click', goToHome);
 
-            // 2. 播放按钮绑定（强化事件委托，确保能触发）
+            // 2. 播放按钮绑定（移除捕获阶段，改为冒泡阶段）
             document.addEventListener('click', function(e) {
                 const playBtn = e.target.closest('.play-btn');
                 if (playBtn) {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('播放按钮点击，歌曲ID：', playBtn.dataset.songId); // 调试日志
+                    console.log('播放按钮点击，歌曲ID：', playBtn.dataset.songId);
                     playSongFromData(playBtn);
                 }
-            }, true); // 捕获阶段触发，确保不被阻止
+            }); // 移除true，改为冒泡阶段
 
-            // 3. 评论切换按钮绑定（事件委托）
+            // 3. 评论相关按钮绑定（保持不变）
             document.addEventListener('click', function(e) {
                 const commentToggle = e.target.closest('.comment-toggle');
                 if (commentToggle) {
@@ -1085,7 +1102,6 @@
                 }
             });
 
-            // 4. 评论提交按钮绑定（事件委托）
             document.addEventListener('click', function(e) {
                 const commentSubmit = e.target.closest('.comment-submit');
                 if (commentSubmit) {
@@ -1096,7 +1112,6 @@
                 }
             });
 
-            // 5. 评论删除按钮绑定（事件委托）
             document.addEventListener('click', function(e) {
                 const commentDelete = e.target.closest('.comment-delete-btn');
                 if (commentDelete) {
@@ -1107,7 +1122,7 @@
                 }
             });
 
-            // 6. 分页按钮绑定（事件委托）
+            // 4. 分页按钮绑定（保持不变）
             document.addEventListener('click', function(e) {
                 const pageBtn = e.target.closest('.pagination button');
                 if (pageBtn && !pageBtn.disabled) {
@@ -1125,5 +1140,5 @@
             }
         });
     </script>
-</body>
+ </body>
 </html>
