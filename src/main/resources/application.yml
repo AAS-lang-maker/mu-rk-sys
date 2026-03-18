@@ -34,7 +34,7 @@ pagehelper:
 
   redis:
     host: 172.17.211.108
-    port: 6379
+    port: 63790
     lettuce:
       pool:
         max-active: 8
@@ -44,3 +44,9 @@ pagehelper:
         music:
           file:
             path: D:/music/music_files/
+            langchain4j:
+            open-ai:
+            chat-model:
+            base-url: https://api.siliconflow.cn/v1
+            api-key: ${SILICONFLOW_API_KEY}
+            model-name: deepseek-ai/DeepSeek-V3 # 推荐用这个，又强又免费额度多
