@@ -11,8 +11,9 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.sql.DataSource;
-
+//import dev.langchain4j.service.spring.AiServiceScan;
 @SpringBootApplication
+//@AiServiceScan("com.music.Service")
 @MapperScan("com.music.Mapper")
 @EnableTransactionManagement(proxyTargetClass=true)
 public class MusicApplication implements WebMvcConfigurer {

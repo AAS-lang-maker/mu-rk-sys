@@ -843,17 +843,17 @@
                 commentItem.className = 'comment-item';
 
                 commentItem.innerHTML = `
-            <div class="comment-header">
-                <span class="comment-username">${comment.username || '匿名用户'}</span>
-                <span class="comment-time">${formatTime(comment.comTime)}</span>
-            </div>
-            <div class="comment-content">${comment.comContent || ''}</div>
-            <div class="comment-actions-bar">
-                ${comment.userId === parseInt(userId) ?
+                <div class="comment-header">
+                    <span class="comment-username">${comment.username || '匿名用户'}</span>
+                    <span class="comment-time">${formatTime(comment.comTime)}</span>
+                </div>
+                <div class="comment-content">${comment.comContent || ''}</div>
+                <div class="comment-actions-bar">
+                    ${comment.userId === parseInt(userId) ?
                     `<button class="comment-delete-btn" data-comment-id="${comment.comId}">删除</button>` : ''
                 }
-            </div>
-        `;
+                </div>
+            `;
 
                 container.appendChild(commentItem);
             });
@@ -1140,5 +1140,5 @@
             }
         });
     </script>
- </body>
+</body>
 </html>
