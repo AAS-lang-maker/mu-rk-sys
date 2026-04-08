@@ -242,8 +242,39 @@
             font-size: 32px;
             font-weight: 700;
             color: #2d3748;
-            margin-bottom: 50px;
+            margin-bottom: 30px;
             text-align: center;
+        }
+
+        .login-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .tab-item {
+            padding: 10px 20px;
+            cursor: pointer;
+            color: #a0aec0;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .tab-item.active {
+            color: #2d3748;
+        }
+
+        .tab-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: #2d3748;
         }
 
         .form-group {
@@ -391,7 +422,11 @@
         </div>
     </div>
     <div class="login-side">
-        <h1 class="login-title">注册</h1>
+        <div class="login-tabs">
+            <div class="tab-item active" id="userTab">用户注册</div>
+            <div class="tab-item" id="adminTab">管理员注册</div>
+        </div>
+        <h1 class="login-title" id="registerTitle">用户注册</h1>
         <form class="login-form" action="/music/api/user/register" method="post">
             <div class="error-alert" id="errorAlert"></div>
             <div class="form-group">
@@ -410,7 +445,7 @@
                     <span class="message"></span>
                 </div>
             </div>
-            <button type="submit" class="login-button" id="register-button">注册</button>
+            <button type="button" class="login-button" id="register-button">注册</button>
             <div class="register-link">
                 已有账号？<a href="/music/login.html">立即登录</a>
             </div>
@@ -437,6 +472,26 @@
     // 【新增】获取form元素（关键：要通过form提交数据）
     const registerForm = document.querySelector('.login-form');// 注意：form的class是login-form，和登录页一致，若不一样要改
     const errorAlert = document.getElementById("errorAlert");
+    const userTab = document.getElementById('userTab');
+    const adminTab = document.getElementById('adminTab');
+    const registerTitle = document.getElementById('registerTitle');
+
+    // 切换模式逻辑
+    userTab.addEventListener('click', () => {
+        userTab.classList.add('active');
+        adminTab.classList.remove('active');
+        registerTitle.innerText = '用户注册';
+        registerForm.action = '/music/api/user/register';
+    });
+
+    adminTab.addEventListener('click', () => {
+        adminTab.classList.add('active');
+        userTab.classList.remove('active');
+        registerTitle.innerText = '管理员注册';
+        // 管理员注册接口：根据控制器 @RequestMapping("/api/role") 和方法 @PostMapping("/register")
+        registerForm.action = '/music/api/role/register';
+        console.log("已切换到管理员注册模式，接口地址：", registerForm.action);
+    });
 
     // 验证函数（保留，这部分写得很好，不用动）
     function validateUsername() {
@@ -444,10 +499,10 @@
         const errorMessage = usernameError.querySelector('.message');
 
         if (!username) {
-            showError(usernameInput, usernameError, '用户名不能为空');
+            showError(usernameInput, usernameError, '用户名不能为空格');
             return false;
         } else if (username.length < 3 || username.length > 16) {
-            showError(usernameInput, usernameError, '用户名长度要在3~16位');
+            showError(usernameInput, usernameError, '用户名长度要在3-16位');
             return false;
         } else {
             hideError(usernameInput, usernameError);
@@ -456,14 +511,14 @@
     }
 
     function validatePassword() {
-        const password = passwordInput.value;
+        const password = passwordInput.value.trim(); // 也要去空格校验
         const errorMessage = passwordError.querySelector('.message');
 
         if (!password) {
-            showError(passwordInput, passwordError, '密码不能为空');
+            showError(passwordInput, passwordError, '用户密码不能为空格');
             return false;
         } else if (password.length < 6 || password.length > 15) {
-            showError(passwordInput, passwordError, '密码长度要在6~15位');
+            showError(passwordInput, passwordError, '用户密码要在6-15位');
             return false;
         } else {
             hideError(passwordInput, passwordError);
@@ -486,15 +541,47 @@
     usernameInput.addEventListener('input', validateUsername);
     passwordInput.addEventListener('input', validatePassword);
 
-    // 注册按钮点击事件：恢复原生同步提交，保留前端校验
-    registerButton.addEventListener('click', function () {
-        // 保留你原有的前端校验（用户名长度、密码长度，不变）
+    // 注册按钮点击事件：改为 AJAX 异步提交
+    registerButton.addEventListener('click', async function (e) {
+        e.preventDefault();
+
+        // 触发表单校验
         const isUsernameValid = validateUsername();
         const isPasswordValid = validatePassword();
 
-        // 校验通过，执行原生同步表单提交
         if (isUsernameValid && isPasswordValid) {
-            document.querySelector('.login-form').submit();
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
+
+            try {
+                // 使用 axios 发起请求 (注意：后端 Controller 接收的是表单格式，所以用 URLSearchParams)
+                const params = new URLSearchParams();
+                params.append('username', username);
+                params.append('password', password);
+
+                const response = await axios.post(registerForm.action, params, {
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+                });
+
+                // 处理后端返回的重定向或结果
+                // 由于后端 @Controller 注册成功返回 "redirect:/login.html"
+                // 在 Axios 中，如果后端返回的是 302 重定向，浏览器会自动跟随，response.data 将是登录页的 HTML
+                // 但根据您的报错图，后端拦截器返回的是 JSON。
+
+                if (response.data && response.data.code && response.data.code !== 200) {
+                    showTip(response.data.msg || '注册失败');
+                } else {
+                    // 注册成功，手动跳转到登录页并带上成功信息
+                    showTip('注册成功，正在跳转...', true);
+                    setTimeout(() => {
+                        window.location.href = '/music/login.html?success=' + encodeURIComponent('注册成功，请去登录吧');
+                    }, 1500);
+                }
+            } catch (error) {
+                console.error('注册异常：', error);
+                const errorMsg = error.response?.data?.msg || '请求失败，请检查后端拦截器配置';
+                showTip(errorMsg);
+            }
         }
     });
     // 【新增通用函数：放在所有代码的最后面】

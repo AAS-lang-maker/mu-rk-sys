@@ -69,5 +69,7 @@ public interface UserPublishMapper {
 
     @Select("select count(*) from love_record where user_id=#{userId} and rank_id=#{rankId}")
     int countLove(Integer rankId, Integer userId);
+
+    void insertApply(String singerName, String songName);
     //@Param("list")注解，专门为Maybatis批量插入的需求的List集合起一个别名
 }

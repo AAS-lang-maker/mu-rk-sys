@@ -366,7 +366,15 @@ public class UserPublishServiceImpl implements UserPublishService {
         return result > 0;
     }
 
-
+    @Override
+    public boolean insertApply(String singerName, String songName) {
+        if(singerName==null||songName==null){
+            return false;
+        }else{
+            userPublishMapper.insertApply(singerName,songName);
+            return true;
+        }
+    }
 
 
 }

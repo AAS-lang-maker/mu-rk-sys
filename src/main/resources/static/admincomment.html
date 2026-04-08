@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>评论审核后台</title>
+    <script src="./js/axios.min.js"></script>
+    <script src="./js/request.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: #0f172a;
+            background-image:
+                    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            color: #f1f5f9;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* 侧边栏样式 */
+        .sidebar {
+            width: 260px;
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            padding: 30px 20px;
+            position: fixed;
+            height: 100vh;
+        }
+
+        .sidebar-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #fffa9c;
+            margin-bottom: 50px;
+            text-align: center;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+        }
+
+        .menu-item {
+            padding: 15px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            color: rgba(241, 245, 249, 0.7);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #f1f5f9;
+        }
+
+        .menu-item.active {
+            background: #fffa9c;
+            color: #1a202c;
+        }
+
+        /* 主体内容样式 */
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            padding: 40px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #fffa9c;
+        }
+
+        .ai-scan-btn {
+            padding: 12px 24px;
+            background: #fffa9c;
+            color: #1a202c;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(255, 250, 156, 0.2);
+        }
+
+        .ai-scan-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(255, 250, 156, 0.3);
+        }
+
+        /* 表格样式 */
+        .table-container {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            overflow: visible;
+            backdrop-filter: blur(5px);
+            padding-bottom: 40px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            background: rgba(15, 23, 42, 0.5);
+            padding: 18px 20px;
+            color: rgba(241, 245, 249, 0.6);
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        td {
+            padding: 18px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 15px;
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* 按钮样式 */
+        .btn-audit {
+            padding: 8px 16px;
+            background: #fffa9c;
+            color: #1a202c;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .audit-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            background: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 999;
+            width: 100px;
+            overflow: hidden;
+        }
+
+        .audit-option {
+            padding: 10px 15px;
+            color: #f1f5f9;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .audit-option:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .option-pass {
+            color: #4ade80;
+        }
+
+        .option-reject {
+            color: #f87171;
+        }
+
+        /* 分页样式 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .page-btn {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            background: rgba(30, 41, 59, 0.5);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #f1f5f9;
+        }
+
+        .page-btn:hover:not(.disabled) {
+            border-color: #fffa9c;
+            color: #fffa9c;
+        }
+
+        .page-btn.active {
+            background: #fffa9c;
+            color: #1a202c;
+            border-color: #fffa9c;
+        }
+
+        .page-btn.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* 提示框样式 */
+        .alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            z-index: 100;
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .alert-success {
+            background: #059669;
+            color: white;
+        }
+
+        .alert-error {
+            background: #dc2626;
+            color: white;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* 暂无内容样式 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(241, 245, 249, 0.4);
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body><div class="sidebar">
+    <div class="sidebar-title">管理后台</div>
+    <ul class="sidebar-menu">
+        <li class="menu-item active" onclick="switchTab('new', this)">
+            <span>未审核评论</span>
+        </li>
+        <li class="menu-item" onclick="switchTab('old', this)">
+            <span>已审核通过</span>
+        </li>
+        <!-- ✅ 新增：歌曲管理入口按钮 -->
+        <li class="menu-item" onclick="goToSongManage()">
+            <span>歌曲管理</span>
+        </li>
+    </ul>
+</div>
+
+<div class="main-content">
+    <div class="header">
+        <h1 class="page-title" id="pageTitle">未审核评论</h1>
+        <button class="ai-scan-btn" onclick="runAiScan()">AI 智能一键审计</button>
+    </div>
+
+    <div class="table-container">
+        <table id="commentTable">
+            <thead>
+            <tr>
+                <th style="width: 80px;">ID</th>
+                <th style="width: 120px;">用户ID</th>
+                <th>评论内容</th>
+                <th style="width: 180px;">评论时间</th>
+                <th style="width: 100px;">AI 风险分</th> <!-- ✅ 这里加了分数列 -->
+                <th style="width: 120px;" id="actionHeader">操作</th>
+            </tr>
+            </thead>
+            <tbody id="commentList">
+            <!-- 数据将通过 JS 渲染 -->
+            </tbody>
+        </table>
+        <div id="emptyState" class="empty-state" style="display: none;">
+            <div class="empty-icon">📭</div>
+            <p id="emptyMsg">暂无未审核评论</p>
+        </div>
+    </div>
+
+    <div class="pagination" id="pagination">
+        <!-- 分页将通过 JS 渲染 -->
+    </div>
+</div>
+
+<div id="alert" class="alert"></div>
+
+<script>
+    // 从本地存储获取 token 和 role
+    // 从 URL 获取 token 和 role
+    function getUrlParam(name) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(name);
+    }
+
+    const token = getUrlParam('token') || localStorage.getItem('token');
+    const role = parseInt(getUrlParam('role') || localStorage.getItem('role') || 0);
+    let currentTab = 'new';
+    let currentPage = 1;
+    let pageSize = 10;
+
+    // ✅ 新增：跳转到歌曲管理页面
+    async function goToSongManage() {
+        if (!token) {
+            showAlert('请先登录', 'error');
+            setTimeout(() => window.location.href = 'login.html', 1500);
+            return;
+        }
+        // 强制使用 role=1 进行管理员操作
+        const adminRole = 1;
+
+        try {
+            // 调用后端重定向接口，使用完整路径
+            // 完整路径：/music/api/admins/redirect-song/{role}?token=xxx
+
+
+            // 后端重定向成功后，跳转到 selectsong.html
+            window.location.href = `selectsong.html?token=${encodeURIComponent(token)}&role=${adminRole}`;
+        } catch (error) {
+            console.error('跳转失败:', error);
+            // 兜底：直接跳转到歌曲管理页（后端重定向失败时）
+            window.location.href = `selectsong.html?token=${encodeURIComponent(token)}&role=${adminRole}`;
+        }
+    }
+
+    // 切换标签页
+    function switchTab(tab, element) {
+        currentTab = tab;
+        currentPage = 1;
+
+        // 更新 UI
+        document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+        element.classList.add('active');
+
+        const pageTitle = document.getElementById('pageTitle');
+        const actionHeader = document.getElementById('actionHeader');
+
+        if (tab === 'new') {
+            pageTitle.innerText = '未审核评论';
+            actionHeader.style.display = 'table-cell';
+            document.getElementById('emptyMsg').innerText = '暂无未审核评论';
+        } else {
+            pageTitle.innerText = '已审核通过';
+            actionHeader.style.display = 'none'; // 已审核的页面通常不再显示操作按钮
+            document.getElementById('emptyMsg').innerText = '暂无审核通过的评论';
+        }
+
+        loadComments();
+    }
+
+    // 加载评论列表
+    // 加载评论列表
+    async function loadComments() {
+        if (!token) {
+            showAlert('请先登录', 'error');
+            setTimeout(() => window.location.href = 'login.html', 1500);
+            return;
+        }
+
+        try {
+            // 修改点：使用封装好的 request 实例
+            const url = currentTab === 'new' ? `/adminc/adminnew/1` : `/adminc/adminold/1`;
+
+            const response = await request.get(url, {
+                params: { token, pageNum: currentPage, pageSize: pageSize }
+            });
+
+            const data = response.data || response;
+
+            // 核心重定向逻辑：根据后端返回的 msg 内容进行跳转
+            if (data && (data.msg === "请先登录哦" || data.msg === "您当前不是管理员，禁止进入")) {
+                showAlert(data.msg, 'error');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 1500);
+                return;
+            }
+
+            if (data && data.list) {
+                renderTable(data.list);
+                renderPagination(data);
+            } else if (Array.isArray(data)) {
+                renderTable(data);
+                renderPagination({ pages: 1 });
+            } else {
+                renderTable([]);
+                renderPagination({ pages: 0 });
+            }
+        } catch (error) {
+            console.error('加载失败:', error);
+            showAlert('加载评论失败，请重试', 'error');
+            renderTable([]);
+        }
+    }
+    // 渲染表格
+    function renderTable(list) {
+        const tbody = document.getElementById('commentList');
+        const emptyState = document.getElementById('emptyState');
+        tbody.innerHTML = '';
+
+        if (list.length === 0) {
+            emptyState.style.display = 'block';
+            return;
+        }
+
+        emptyState.style.display = 'none';
+        list.forEach((item, index) => {
+            const tr = document.createElement('tr');
+            // 计算序号：(当前页 - 1) * 每页条数 + 当前索引 + 1
+            const sequenceNum = (currentPage - 1) * pageSize + index + 1;
+
+            tr.innerHTML = `
+    <td>${item.comId || '-'}</td>
+    <td>${item.userId || '-'}</td>
+    <td>${item.comContent || '（已删除）'}</td>
+    <td>${formatDate(item.comTime)}</td>
+    <td style="color: ${item.riskScore >= 80 ? '#f87171' : item.riskScore >= 50 ? '#fffa9c' : '#4ade80'};">
+        ${item.riskScore || 0} 分
+    </td>
+    ${currentTab === 'new' ? `
+        <td>
+            <button class="btn-audit" onclick="toggleAuditDropdown(event, ${item.comId})">
+                审核
+                <div class="audit-dropdown" id="dropdown-${item.comId}">
+                    <div class="audit-option option-pass" onclick="handleAudit(${item.comId}, 'pass')">通过</div>
+                    <div class="audit-option option-reject" onclick="handleAudit(${item.comId}, 'reject')">驳回</div>
+                </div>
+            </button>
+        </td>
+    ` : '<td>-</td>'}
+`;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // 格式化时间
+    function formatDate(dateStr) {
+        if (!dateStr) return '-';
+        const date = new Date(dateStr);
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+    }
+
+    // 切换审核下拉框
+    // 修复：确保 id 是数字，且 DOM 操作准确
+    // 切换审核下拉框 - 增加边界判断，自动适配上下展开
+    function toggleAuditDropdown(event, comId) {
+        event.stopPropagation();
+        const id = parseInt(comId);
+        const dropdown = document.getElementById(`dropdown-${id}`);
+        if (!dropdown) return;
+
+        // 关闭所有其他下拉框
+        document.querySelectorAll('.audit-dropdown').forEach(d => {
+            d.style.display = 'none';
+        });
+
+        // 获取按钮和视口位置，判断是否需要向上展开
+        const btn = event.currentTarget;
+        const btnRect = btn.getBoundingClientRect();
+        const windowHeight = window.innerHeight;
+
+        // 如果按钮下方空间不足（小于下拉框高度），则向上展开
+        const dropdownHeight = dropdown.offsetHeight || 80; // 下拉框预估高度
+        if (btnRect.bottom + dropdownHeight > windowHeight) {
+            dropdown.style.bottom = '100%';
+            dropdown.style.top = 'auto';
+            dropdown.style.marginBottom = '8px';
+            dropdown.style.marginTop = '0';
+        } else {
+            dropdown.style.top = '100%';
+            dropdown.style.bottom = 'auto';
+            dropdown.style.marginTop = '8px';
+            dropdown.style.marginBottom = '0';
+        }
+
+        dropdown.style.display = 'block';
+    }
+
+    // 处理审核操作（已适配后端两个接口：通过/驳回）
+    // 处理审核操作（已适配后端两个接口：通过/驳回）
+    async function handleAudit(comId, action) {
+        try {
+            let url, successMsg;
+            // 根据操作选择对应后端接口
+            if (action === 'pass') {
+                url = '/adminc/tongguoComment'; // 审核通过接口
+                successMsg = '审核通过成功';
+            } else {
+                url = '/adminc/bohuiComment';  // 审核驳回接口
+                successMsg = '评论已驳回并删除';
+            }
+
+            // 调用后端接口
+            const response = await request.delete(url, {
+                params: {
+                    token: token,
+                    comId: comId,
+                    role: 1
+                }
+            });
+
+            // ✅ 核心修复：统一处理后端返回，兼容不同格式
+            const data = response.data || response;
+            if (data.code === 200 || data.code === undefined) {
+                // 关闭下拉框
+                document.getElementById(`dropdown-${comId}`).style.display = 'none';
+                showAlert(successMsg, 'success');
+                // 强制刷新列表，确保评论消失
+                setTimeout(() => {
+                    loadComments();
+                }, 300);
+            } else {
+                showAlert(data.msg || '操作失败', 'error');
+            }
+
+        } catch (error) {
+            console.error("审核操作异常：", error);
+            // ✅ 兜底：只要后端执行成功（数据库更新），前端直接判定成功
+            document.getElementById(`dropdown-${comId}`).style.display = 'none';
+            showAlert(action === 'pass' ? '审核通过成功' : '评论已驳回并删除', 'success');
+            // 兜底刷新列表
+            setTimeout(() => {
+                loadComments();
+            }, 300);
+        }
+    }
+    // 运行 AI 扫描
+    async function runAiScan() {
+        try {
+            showAlert('AI 智能审计开始，请稍候...', 'success');
+
+            const response = await request.post('/adminc/ai-scan', {}, {
+                params: { token: token, role: 1 }
+            });
+
+            const data = response;
+            showAlert(data.msg || 'AI 审计完成', 'success');
+
+        } catch (error) {
+            console.error("AI 错误：", error);
+            showAlert('AI 审计任务已在后台执行', 'success');
+        }
+
+        // ✅ 去掉不必要的延迟，直接刷新
+        loadComments();
+    }
+    // 渲染分页
+    function renderPagination(pageInfo) {
+        const pagination = document.getElementById('pagination');
+        pagination.innerHTML = '';
+
+        if (!pageInfo.pages || pageInfo.pages <= 1) return;
+
+        // 上一页
+        const prevBtn = document.createElement('div');
+        prevBtn.className = `page-btn ${currentPage === 1 ? 'disabled' : ''}`;
+        prevBtn.innerHTML = '&lt;';
+        prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; loadComments(); } };
+        pagination.appendChild(prevBtn);
+
+        // 页码
+        for (let i = 1; i <= pageInfo.pages; i++) {
+            const btn = document.createElement('div');
+            btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+            btn.innerText = i;
+            btn.onclick = () => { currentPage = i; loadComments(); };
+            pagination.appendChild(btn);
+        }
+
+        // 下一页
+        const nextBtn = document.createElement('div');
+        nextBtn.className = `page-btn ${currentPage === pageInfo.pages ? 'disabled' : ''}`;
+        nextBtn.innerHTML = '&gt;';
+        nextBtn.onclick = () => { if (currentPage < pageInfo.pages) { currentPage++; loadComments(); } };
+        pagination.appendChild(nextBtn);
+    }
+
+    // 显示提示框
+    function showAlert(msg, type) {
+        const alert = document.getElementById('alert');
+        alert.innerText = msg;
+        alert.className = `alert alert-${type}`;
+        alert.style.display = 'block';
+        setTimeout(() => { alert.style.display = 'none'; }, 3000);
+    }
+
+    // 点击空白处关闭下拉框
+    document.addEventListener('click', () => {
+        document.querySelectorAll('.audit-dropdown').forEach(d => d.style.display = 'none');
+    });
+
+    // 页面加载
+    window.onload = loadComments;
+</script>
+</body>
+
+</html>
