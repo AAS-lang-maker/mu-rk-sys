@@ -40,4 +40,6 @@ public interface UserPublishService {
     boolean deleteVote(Integer rankId, Integer userId);
 
     boolean deleteLove(Integer rankId, Integer userId);
+
+    boolean insertApply(String singerName, String songName);
 }

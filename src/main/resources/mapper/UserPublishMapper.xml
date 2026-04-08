@@ -40,6 +40,12 @@
     <insert id="insertLike">
         insert into like_comment(user_id,com_id) values (#{userId},#{comId})
     </insert>
+    <insert id="insertApply">
+        <selectKey keyProperty="id" keyColumn="user_id" resultType="Integer" order="AFTER">
+            SELECT LAST_INSERT_ID()  <!-- MySQL 获取自增主键的函数 -->
+        </selectKey>
+        insert into song_demand(demand_songname,demand_singername) values (#{songName},#{singerName})
+    </insert>
     <select id="selectSinger" resultType="com.music.pojo.Singer">
         select singer_id,singer_name from singer where category_id=#{categoryId} and singer_status=1
     </select>

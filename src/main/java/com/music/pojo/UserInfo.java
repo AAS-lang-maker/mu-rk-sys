@@ -14,4 +14,5 @@ public class UserInfo { // 注意类名首字母大写，符合Java规范
     private String username;
     private String password;
     private LocalDateTime createTime;
+    private Integer role;
 }
