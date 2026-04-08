@@ -25,6 +25,8 @@ import java.util.List;
 @RequestMapping("/api/workrank")
 public class WorkPublishController {
     @Resource
+
+
     private WorkPublishServiceImpl workPublishServiceImpl;
     @GetMapping("/publish")
     public String publish(@RequestParam("token")String token,@RequestParam("userId")Integer userId,

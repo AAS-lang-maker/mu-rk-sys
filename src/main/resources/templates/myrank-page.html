@@ -693,7 +693,8 @@
                                 <button class="play-btn"
                                         th:data-song-id="${song.songId}"
                                         th:data-song-name="${song.songName}"
-                                        th:data-singer-name="${song.singerName}">
+                                        th:data-singer-name="${song.singerName}"
+                                        th:data-rank-id="${ranking.rankId}">
                                     &#9658;
                                 </button>
                             </div>
@@ -856,6 +857,7 @@
             const songId = btn.dataset.songId;
             const songName = btn.dataset.songName;
             const singerName = btn.dataset.singerName;
+            const rankId = btn.dataset.rankId;
 
             if (!songId) {
                 showErrorTip("歌曲ID为空，无法播放！");
@@ -866,6 +868,35 @@
                 songId: songId,
                 songName: songName || "未知歌曲",
                 singerName: singerName || "未知歌手"
+            });
+
+            // 播放时：查询“互关好友共同收藏（收藏该榜单）”
+            if (rankId) {
+                fetchCommonLove(rankId);
+            }
+        }
+
+        // 查询互关好友共同收藏人数（收藏同一个榜单）
+        function fetchCommonLove(rankId) {
+            if (!token || !userId) return;
+            axios.get(`/music/api/friend/common-love`, {
+                params: {
+                    token: token,
+                    userId: userId,
+                    rankId: rankId,
+                    limit: 5
+                }
+            }).then(res => {
+                const body = res.data;
+                if (!(body && (body.code === 200 || body.success))) return;
+                const vo = body.data || {};
+                const count = vo.commonLoveCount || 0;
+                const names = (vo.usernames || []).filter(Boolean);
+                if (count <= 0) return;
+                const nameText = names.length ? `（${names.join("、")}${count > names.length ? "..." : ""}）` : "";
+                showSuccessTip(`互关好友共同收藏：${count}人${nameText}`);
+            }).catch(() => {
+                // 静默失败：不影响播放
             });
         }
 
