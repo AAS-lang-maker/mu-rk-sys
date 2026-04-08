@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>编辑榜单</title>
+    <script src="js/axios.min.js"></script>
+    <script src="js/request.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #0f172a;
+            min-height: 100vh;
+            color: #f7fafc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+
+        /* 编辑弹窗样式 */
+        .edit-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgb(30, 41, 59);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image:
+                    linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 80px 80px;
+            /* 网格大小，可调整 */
+            background-position: center;
+        }
+
+        .modal-content {
+            background: #1E293B;
+            border: 1px solid #fffa9c;
+            border-radius: 12px;
+            padding: 30px;
+            width: 95%;
+            max-width: 800px;
+            max-height: 95vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(255, 250, 156, 0.3);
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .modal-header h3 {
+            color: #fffa9c;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #f7fafc;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 1px solid #fffa9c;
+            border-radius: 6px;
+            background: rgba(255, 250, 156, 0.1);
+            color: #f7fafc;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:hover {
+            background: rgba(255, 250, 156, 0.2);
+            border-color: #fff780;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #fff780;
+            background: rgba(255, 250, 156, 0.25);
+            box-shadow: 0 0 0 2px rgba(255, 250, 156, 0.3);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #fffa9c;
+            color: #1a202c;
+        }
+
+        .btn-primary:hover {
+            background: #fff780;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 250, 156, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            background: #fffa9c;
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #f7fafc;
+            border: 1px solid #fffa9c;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 250, 156, 0.2);
+            transform: translateY(-2px);
+            border-color: #fff780;
+        }
+
+        .btn-secondary:active {
+            transform: translateY(0);
+        }
+
+        .song-list {
+            margin: 20px 0;
+            border: 1px solid #fffa9c;
+            border-radius: 8px;
+            overflow: hidden;
+            background: rgba(255, 250, 156, 0.05);
+        }
+
+        .song-item {
+            display: flex;
+            align-items: center;
+            padding: 16px 20px;
+            background: rgba(255, 250, 156, 0.1);
+            border-bottom: 1px solid rgba(255, 250, 156, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .song-item:hover {
+            background: rgba(255, 250, 156, 0.2);
+            transform: translateX(2px);
+        }
+
+        .song-item.selected {
+            background: rgba(255, 250, 156, 0.3);
+        }
+
+        .song-info {
+            flex: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .song-name {
+            font-weight: bold;
+            color: #f7fafc;
+            font-size: 16px;
+        }
+
+        .song-rank {
+            color: #fffa9c;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #ff4444;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0 15px;
+            transition: all 0.3s ease;
+        }
+
+        .delete-btn:hover {
+            color: #ff6666;
+            transform: scale(1.1);
+        }
+
+        .delete-btn:active {
+            transform: scale(0.95);
+        }
+
+        .hint-text {
+            color: rgba(247, 250, 252, 0.6);
+            font-size: 14px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        /* 歌手选择弹窗 */
+        .singer-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            z-index: 1100;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .singer-modal.show {
+            display: flex;
+        }
+
+        .singer-content {
+            background: #1E293B;
+            border: 1px solid #fffa9c;
+            border-radius: 12px;
+            padding: 30px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 8px 32px rgba(255, 250, 156, 0.3);
+        }
+
+        .singer-header {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .singer-header h3 {
+            color: #fffa9c;
+            font-size: 18px;
+        }
+
+        .singer-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #fffa9c;
+            border-radius: 8px;
+            background: rgba(255, 250, 156, 0.05);
+        }
+
+        .singer-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(255, 250, 156, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #f7fafc;
+        }
+
+        .singer-item:hover {
+            background: rgba(255, 250, 156, 0.2);
+            transform: translateX(5px);
+        }
+
+        .singer-item:last-child {
+            border-bottom: none;
+        }
+
+        .singer-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .modal-content {
+                width: 95%;
+                padding: 20px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .singer-content {
+                width: 95%;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- 编辑弹窗 -->
+<div class="edit-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>榜单更新</h3>
+        </div>
+
+        <div class="form-group">
+            <label for="rankingTitle">榜单标题</label>
+            <input type="text" id="rankingTitle" placeholder="请输入榜单标题">
+        </div>
+        <input type="hidden" id="rankId" th:value="${rankId}">
+        <div class="button-group">
+            <button class="btn btn-primary" id="selectSingerBtn" disabled>选择歌手</button>
+            <button class="btn btn-primary" id="addSongBtn">新增歌曲排名行</button>
+        </div>
+
+        <p class="hint-text">提示：请先选择要编辑的歌曲行</p>
+
+        <div class="song-list" id="songList"></div>
+
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="cancelBtn">取消</button>
+            <button class="btn btn-primary" id="saveBtn">保存</button>
+        </div>
+    </div>
+</div>
+
+<!-- 歌手选择弹窗 -->
+<div class="singer-modal" id="singerModal">
+    <div class="singer-content">
+        <div class="singer-header">
+            <h3>选择歌手</h3>
+        </div>
+
+        <div class="singer-list" id="singerList"></div>
+
+        <div class="singer-footer">
+            <button class="btn btn-secondary" id="closeSingerModalBtn">关闭</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let selectedSongIndex = -1;
+
+    // 辅助函数：从本地存储获取token
+    function getToken() {
+        return localStorage.getItem('token') || '';
+    }
+
+    // 辅助函数：从本地存储获取userId
+    function getUserId() {
+        // 1. 首先从localStorage中获取userId
+        const userId = localStorage.getItem('userId');
+        if (userId) {
+            return userId;
+        }
+
+        // 2. 如果localStorage中没有userId，尝试从URL中获取
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlUserId = urlParams.get('userId');
+        if (urlUserId) {
+            localStorage.setItem('userId', urlUserId);
+            return urlUserId;
+        }
+
+        // 3. 如果URL中也没有userId，尝试从token中获取
+        const token = getToken();
+        if (token) {
+            try {
+                // 解析token获取userId
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                const tokenUserId = payload.userId || payload.user_id || payload.id;
+                if (tokenUserId) {
+                    localStorage.setItem('userId', tokenUserId.toString());
+                    return tokenUserId.toString();
+                }
+            } catch (error) {
+                console.error('解析token获取userId失败:', error);
+            }
+        }
+
+        return null;
+    }
+
+    // 辅助函数：绑定歌曲项事件
+    function bindSongItemEvents(item, index) {
+        item.addEventListener('click', function () {
+            document.querySelectorAll('.song-item').forEach(i => i.classList.remove('selected'));
+            this.classList.add('selected');
+            selectedSongIndex = index;
+            document.getElementById('selectSingerBtn').disabled = false;
+        });
+
+        const deleteBtn = item.querySelector('.delete-btn');
+        deleteBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            item.remove();
+            selectedSongIndex = -1;
+            document.getElementById('selectSingerBtn').disabled = true;
+        });
+    }
+
+    // 页面加载时自动回显榜单数据
+    document.addEventListener('DOMContentLoaded', function () {
+        // 1. 从URL中获取参数
+        const urlParams = new URLSearchParams(window.location.search);
+        const rankId = urlParams.get('rankId');
+        const token = urlParams.get('token') || getToken();
+        const userId = urlParams.get('userId');
+
+        // 存储token和userId到localStorage
+        if (token) {
+            localStorage.setItem('token', token);
+        }
+        if (userId) {
+            localStorage.setItem('userId', userId);
+        }
+
+        if (!rankId || !token) {
+            console.log('缺少参数，不进行回显');
+            return;
+        }
+
+        // 2. 调用后端接口获取数据
+        fetch(`/music/api/mine/getRank/${rankId}?token=${token}`)
+            .then(response => {
+                if (!response.ok) throw new Error('网络响应不正常');
+                return response.json();
+            })
+            .then(data => {
+                console.log('获取到的榜单数据:', data);
+
+                // 3. 回显榜单标题
+                const rankingTitleInput = document.getElementById('rankingTitle');
+                if (rankingTitleInput) {
+                    rankingTitleInput.value = data.rankName || '';
+                }
+
+                const rankIdInput = document.getElementById('rankId');
+                if (rankIdInput) {
+                    rankIdInput.value = data.rankId || '';
+                }
+
+                // 4. 回显歌曲列表
+                const songListDiv = document.getElementById('songList');
+                if (songListDiv && data.rankSongList) {
+                    // 清空原有内容，然后重新渲染
+                    songListDiv.innerHTML = '';
+
+                    data.rankSongList.forEach((song, index) => {
+                        const songItem = document.createElement('div');
+                        songItem.className = 'song-item';
+                        songItem.innerHTML = `
+                        <div class="song-info">
+                            <span class="song-name">${song.songName}</span>
+                            <input type="number" class="song-rank-input" value="${index + 1}" min="1" style="width: 50px; text-align: center; background: transparent; border: 1px solid #fff; color: #fff; border-radius: 4px; font-size: 18px; font-weight: bold; outline: none;">
+                        </div>
+                        <button class="delete-btn">×</button>
+                    `;
+                        // 存储歌曲ID到元素属性中
+                        if (song.songId) {
+                            songItem.setAttribute('data-song-id', song.songId);
+                        }
+                        // 绑定事件，让新生成的歌曲项也能被选中和删除
+                        bindSongItemEvents(songItem, index);
+                        songListDiv.appendChild(songItem);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('获取榜单数据失败:', error);
+            });
+    });
+
+    // 选择歌手按钮
+    document.getElementById('selectSingerBtn').addEventListener('click', function () {
+        if (selectedSongIndex === -1) {
+            alert('请先选择要编辑的歌曲行');
+            return;
+        }
+
+        // 动态加载歌手列表
+        fetch('/music/api/mine/singer?token=' + getToken() + '&userId=' + getUserId() + '&categoryId=1')
+            .then(response => response.json())
+            .then(singers => {
+                const singerList = document.getElementById('singerList');
+                singerList.innerHTML = ''; // 清空
+
+                singers.forEach(singer => {
+                    const singerItem = document.createElement('div');
+                    singerItem.className = 'singer-item';
+                    singerItem.textContent = singer.singerName;
+                    singerItem.addEventListener('click', function () {
+                        // 选完歌手后，加载该歌手的歌曲
+                        loadSongsBySinger(singer.singerId);
+                    });
+                    singerList.appendChild(singerItem);
+                });
+
+                document.getElementById('singerModal').classList.add('show');
+            })
+            .catch(error => {
+                console.error('加载歌手列表失败:', error);
+            });
+    });
+
+    // 辅助函数：根据歌手ID加载歌曲
+    function loadSongsBySinger(singerId) {
+        fetch('/music/api/mine/song?token=' + getToken() + '&userId=' + getUserId() + '&singerId=' + singerId)
+            .then(response => response.json())
+            .then(songs => {
+                const singerList = document.getElementById('singerList');
+                singerList.innerHTML = ''; // 清空，显示歌曲列表
+
+                songs.forEach(song => {
+                    const songItem = document.createElement('div');
+                    songItem.className = 'singer-item';
+                    songItem.textContent = song.songName;
+                    songItem.addEventListener('click', function () {
+                        if (selectedSongIndex !== -1) {
+                            const songItems = document.querySelectorAll('.song-item');
+                            const songNameElement = songItems[selectedSongIndex].querySelector('.song-name');
+                            songNameElement.textContent = song.songName;
+                            // 存储歌曲ID到元素属性中
+                            songItems[selectedSongIndex].setAttribute('data-song-id', song.songId);
+                        }
+                        document.getElementById('singerModal').classList.remove('show');
+                    });
+                    singerList.appendChild(songItem);
+                });
+            })
+            .catch(error => {
+                console.error('加载歌曲列表失败:', error);
+            });
+    }
+
+    // 新增歌曲排名行
+    document.getElementById('addSongBtn').addEventListener('click', function () {
+        const songList = document.getElementById('songList');
+        const currentCount = songList.querySelectorAll('.song-item').length;
+
+        const newSongItem = document.createElement('div');
+        newSongItem.className = 'song-item';
+        newSongItem.innerHTML = `
+                <div class="song-info">
+                    <span class="song-name">新歌曲${currentCount + 1}</span>
+                    <input type="number" class="song-rank-input" value="${currentCount + 1}" min="1" style="width: 50px; text-align: center; background: transparent; border: 1px solid #fff; color: #fff; border-radius: 4px; font-size: 18px; font-weight: bold; outline: none;">
+                </div>
+                <button class="delete-btn">×</button>
+            `;
+
+        newSongItem.addEventListener('click', function () {
+            document.querySelectorAll('.song-item').forEach(i => i.classList.remove('selected'));
+            this.classList.add('selected');
+            selectedSongIndex = currentCount;
+            document.getElementById('selectSingerBtn').disabled = false;
+        });
+
+        newSongItem.querySelector('.delete-btn').addEventListener('click', function (e) {
+            e.stopPropagation();
+            newSongItem.remove();
+            selectedSongIndex = -1;
+            document.getElementById('selectSingerBtn').disabled = true;
+        });
+
+        songList.appendChild(newSongItem);
+    });
+
+    // 关闭歌手选择弹窗
+    document.getElementById('closeSingerModalBtn').addEventListener('click', function () {
+        document.getElementById('singerModal').classList.remove('show');
+    });
+
+    // 保存按钮
+    document.getElementById('saveBtn').addEventListener('click', function () {
+        const title = document.getElementById('rankingTitle').value;
+        if (!title) {
+            alert('请输入榜单标题');
+            return;
+        }
+
+        // 从隐藏 input 获取 rankId
+        const rankId = document.getElementById('rankId').value;
+
+        // 收集歌曲数据
+        const songItems = document.querySelectorAll('.song-item');
+        const songs = [];
+        let hasEmptySong = false;
+// 替换原有的歌曲遍历校验逻辑
+        songItems.forEach((item, index) => {
+            const songId = item.getAttribute('data-song-id');
+            const rankInput = item.querySelector('.song-rank-input');
+            const ranking = rankInput ? parseInt(rankInput.value) : index + 1;
+            const songName = item.querySelector('.song-name').textContent;
+
+            // 核心修复：只要是“新歌曲X”且无songId，就是未选择歌曲
+            if (songName.startsWith('新歌曲') && !songId) {
+                hasEmptySong = true;
+            }
+
+            if (songId) {
+                songs.push({
+                    songId: parseInt(songId),
+                    ranking: ranking
+                });
+            }
+        });
+
+        // 检查是否有未选择歌曲的行
+        if (hasEmptySong) {
+            alert('请为所有歌曲行选择歌曲');
+            return;
+        }
+
+        // 检查是否有歌曲
+        if (songs.length === 0) {
+            alert('请至少添加一首歌曲');
+            return;
+        }
+// 发送更新请求
+        fetch(`/music/api/mine/save?token=${getToken()}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                rankId: parseInt(rankId),
+                rankName: title,
+                songItems: songs
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                // 检查后端返回的数据结构
+                console.log('保存请求返回的数据:', data);
+
+                // 核心修改：匹配后端实际的Result格式
+                if (data.code === 200) { // 后端成功的核心标识是code=200
+                    // 获取token
+                    const token = getToken();
+
+                    // 确保token存在
+                    if (token) {
+                        // 尝试从多个来源获取userId
+                        let userId = getUserId();
+                        if (!userId) {
+                            const urlParams = new URLSearchParams(window.location.search);
+                            userId = urlParams.get('userId');
+                        }
+
+                        // 构建跳转URL
+                        let redirectUrl = `/music/api/mine/myrank?token=${token}`;
+
+                        // 只要userId存在，就添加到URL中
+                        if (userId) {
+                            redirectUrl += `&userId=${userId}`;
+                        }
+
+                        // 直接跳转到我的榜单页面
+                        window.location.href = redirectUrl;
+                    } else {
+                        // 如果缺少token，显示警告并跳转到登录页面
+                        alert('缺少必要参数，请重新登录');
+                        window.location.href = '/music/login.html';
+                    }
+                } else {
+                    // 失败时显示后端返回的具体错误信息
+                    alert('保存失败：' + (data.msg || '未知错误'));
+                }
+            })
+            .catch(error => {
+                console.error('保存榜单失败:', error);
+                alert('保存失败，请稍后重试');
+            });
+    });
+    // 取消按钮
+    document.getElementById('cancelBtn').addEventListener('click', function () {
+        // 返回上一页
+        window.history.back();
+    });
+
+</script>
+</body>
+
+</html>

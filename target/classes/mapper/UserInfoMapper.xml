@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 核心：namespace必须等于UserMapper接口的全限定类名（包名+接口名） -->
+<mapper namespace="com.music.Mapper.UserInfoMapper">
+
+    <!-- 1. 插入用户：对应UserMapper接口的insert(User user)方法 -->
+    <!-- id=接口方法名，parameterType=方法参数类型（可省略，MyBatis会自动推断） -->
+    <insert id="insert" parameterType="com.music.pojo.UserInfo">
+        <selectKey keyProperty="id" keyColumn="user_id" resultType="Integer" order="AFTER">
+            SELECT LAST_INSERT_ID()  <!-- MySQL 获取自增主键的函数 -->
+        </selectKey>
+            <!-- 又让我遇到高级玩意了，主键自增策略-->
+        INSERT INTO user (username, password, user_create_time)
+        VALUES (#{username}, #{password}, #{createTime})
+    </insert>
+
+    <!-- 2. 根据用户名查询用户：对应UserMapper接口的selectByUsername(String username)方法 -->
+    <!-- resultType=查询结果返回类型（全限定类名，因yml配置了type-aliases-package，可直接写User） -->
+    <select id="selectByUsername" parameterType="String" resultType="com.music.pojo.UserInfo">
+        SELECT user_id as id, username, password, user_create_time as createTime
+        FROM user
+        WHERE username = #{username}
+    </select>
+
+</mapper>
