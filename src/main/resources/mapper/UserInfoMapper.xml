@@ -13,8 +13,8 @@
             SELECT LAST_INSERT_ID()  <!-- MySQL 获取自增主键的函数 -->
         </selectKey>
             <!-- 又让我遇到高级玩意了，主键自增策略-->
-        INSERT INTO user (username, password, user_create_time)
-        VALUES (#{username}, #{password}, #{createTime})
+        INSERT INTO user (username, password, user_create_time,role)
+        VALUES (#{username}, #{password}, #{createTime},0)
     </insert>
 
     <!-- 2. 根据用户名查询用户：对应UserMapper接口的selectByUsername(String username)方法 -->
@@ -22,7 +22,7 @@
     <select id="selectByUsername" parameterType="String" resultType="com.music.pojo.UserInfo">
         SELECT user_id as id, username, password, user_create_time as createTime
         FROM user
-        WHERE username = #{username}
+        WHERE username = #{username} and role=0
     </select>
 
 </mapper>

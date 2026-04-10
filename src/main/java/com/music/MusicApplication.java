@@ -5,6 +5,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -16,6 +17,7 @@ import javax.sql.DataSource;
 //@AiServiceScan("com.music.Service")
 @MapperScan("com.music.Mapper")
 @EnableTransactionManagement(proxyTargetClass=true)
+@EnableAsync
 public class MusicApplication implements WebMvcConfigurer {
 
     public static void main(String[] args) {

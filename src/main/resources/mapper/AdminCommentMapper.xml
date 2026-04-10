@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 核心：namespace必须等于UserMapper接口的全限定类名（包名+接口名） -->
+<mapper namespace="com.music.Mapper.AdminCommentMapper">
+    <update id="deleteComment1">
+update comment set status=1,id_delete=0
+        <where>
+            <if test="comId instanceof java.lang.Integer">
+                com_id = #{comId}
+            </if>
+            <if test="comId instanceof java.util.List">
+                com_id in
+                <foreach collection="comId" item="id" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+    </update>
+    <update id="deleteComment2">
+        update comment set status=1,id_delete=1,comment_content=null
+        <where>
+            <if test="comId instanceof java.lang.Integer">
+                com_id = #{comId}
+            </if>
+            <if test="comId instanceof java.util.List">
+                com_id in
+                <foreach collection="comId" item="id" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+    </update>
+    <select id="selectAll" resultType="java.lang.Integer">
+        select count(*) from comment where status=0
+    </select>
+    <select id="selectAllComment" resultMap="CommentResultMap">
+        select com_id,comment_content,comment_time from comment where status=0
+        limit #{pageSize} offset #{offset}
+    </select>
+    <resultMap id="CommentResultMap" type="com.music.pojo.Comment">
+        <id property="comId" column="com_id"/>
+        <result property="comContent" column="comment_content"/>
+        <result property="comTime" column="comment_time"/>
+        <result property="status" column="status"/>
+        <result property="idDelete" column="is_delete"/>
+        <result property="riskScore" column="risk_score"/>
+    </resultMap>
+    <select id="selectAll1" resultType="java.lang.Integer">
+        select count(*) from comment where status=1
+    </select>
+    <select id="selectAllComment1" resultMap="CommentResultMaps">
+        select com_id,comment_content ,comment_time from comment where status=1
+        limit #{pageSize} offset #{offset}
+    </select>
+    <resultMap id="CommentResultMaps" type="com.music.pojo.Comment">
+        <id property="comId" column="com_id"/>
+        <result property="comContent" column="comment_content"/>
+        <result property="comTime" column="comment_time"/>
+    </resultMap>
+    <!-- 给 AI 审计使用的查询：自动映射所有字段，包括内容 -->
+    <select id="selectAllCom" resultMap="CommentResultMapForAI">
+        select *
+        from music_db.comment
+        where status=0 and id_delete=0
+    </select>
+
+    <!-- 🔥 AI 专用 ResultMap：完全匹配你的 POJO，绝对不影响前端 -->
+    <resultMap id="CommentResultMapForAI" type="com.music.pojo.Comment">
+        <id property="comId" column="com_id"/>
+        <result property="comContent" column="comment_content"/>
+        <result property="idDelete" column="id_delete"/>
+        <result property="status" column="status"/>
+        <result property="riskScore" column="risk_score"/>
+        <result property="comTime" column="comment_time"/>
+    </resultMap>
+
+</mapper>

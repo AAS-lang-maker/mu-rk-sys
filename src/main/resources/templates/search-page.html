@@ -1423,35 +1423,41 @@
         });
     }
 
+    // 发表评论 - 修复 rankId 传递问题
     function submitComment(rankId) {
+        console.log('提交评论,rankId:', rankId);
         const input = document.getElementById(`comment-input-${rankId}`);
-        if (!input) return;
-
+        if (!input) {
+            showErrorTip("评论输入框未找到！");
+            return;
+        }
         const content = input.value.trim();
+
         if (!content) {
             showErrorTip("评论内容不能为空！");
             return;
         }
 
-        if (!token || !userId) {
+        if (!token || !userId || isNaN(userId)) {
             showErrorTip("请先登录后再评论！");
             return;
         }
 
-        axios.post(`/music/api/rank/pubcomment`, {
-            rankId: rankId,
-            userId: userId,
-            content: content,
-            parentId: null
-        }, {
-            params: { token: token }
+        // ✅ 修复：rankId 放在 params 里，后端 @RequestParam 才能收到！
+        axios.post(`/music/api/rank/pubcomment`, null, {
+            params: {
+                token: token,
+                rankId: rankId,     // 关键修复
+                userId: userId,     // 关键修复
+                content: content,   // 关键修复
+                parentId: null
+            }
         })
             .then(response => {
                 if (response.data.code === 200 || response.data.success) {
                     showSuccessTip("评论发表成功！");
                     input.value = '';
                     loadComments(rankId);
-                    document.getElementById(`comment-container-${rankId}`).classList.add('show');
                 } else {
                     showErrorTip("评论发表失败：" + (response.data.msg || '未知错误'));
                 }

@@ -15,7 +15,7 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont,, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background-color:#0f172a;
             min-height: 100vh;
             display: flex;
@@ -223,7 +223,7 @@
             border: 1px solid rgba(255, 250, 205, 0.3)
         }
 
-        .close {
+        .close, .close-apply {
             color: #aaa;
             float: right;
             font-size: 28px;
@@ -231,7 +231,7 @@
             cursor: pointer;
         }
 
-        .close:hover {
+        .close:hover, .close-apply:hover {
             color: #fffa9c;
         }
 
@@ -299,9 +299,10 @@
         <label for="list-name">榜单名</label>
         <input type="text" id="list-name" placeholder="请输入榜单名称">
     </div>
-    <!-- 新增：动态添加行按钮 -->
+    <!-- 新增：申请歌曲按钮 -->
     <button class="add-song-btn" id="openModalBtn">选择歌曲</button>
     <button class="add-song-btn" style="margin-left: 10px;" id="addRowBtn">新增歌曲行</button>
+    <button class="add-song-btn" style="margin-left: 10px;" id="applySongBtn">申请歌曲</button>
 
     <table class="song-table" id="songTable">
         <thead>
@@ -366,19 +367,50 @@
     </div>
 </div>
 
+<!-- 申请歌曲弹窗 -->
+<div id="applySongModal" class="modal">
+    <div class="modal-content">
+        <span class="close-apply">&times;</span>
+        <h3>申请添加歌曲</h3>
+        <div class="form-group" style="margin-bottom: 20px;">
+            <label for="applySongName" style="color: #fffa9c; font-size: 16px; margin-bottom: 8px; display: block;">歌曲名称</label>
+            <input type="text" id="applySongName" class="search-input" placeholder="请输入要申请的歌曲名称">
+        </div>
+        <div class="form-group" style="margin-bottom: 20px;">
+            <label for="applySingerName" style="color: #fffa9c; font-size: 16px; margin-bottom: 8px; display: block;">歌手名称</label>
+            <input type="text" id="applySingerName" class="search-input" placeholder="请输入歌手名称">
+        </div>
+        <button class="submit-btn" id="submitApplyBtn" style="margin-top: 10px; width: auto; padding: 10px 20px; font-size: 16px;">提交申请</button>
+    </div>
+</div>
+
 <!-- 新增：自定义提示框DOM -->
 <div class="tip-box" id="customTip"></div>
 <script>
     // ==========================================
-    // 1. 基础配置（大豆包的资源名册）
+    // 1. 基础配置
     // ==========================================
     const BASE_API_URL = '/music/api';
     const categoryConfig = {
-        1: { title: '歌手明星榜单', singerApi: `${BASE_API_URL}/rank/singer`, songApi: `${BASE_API_URL}/rank/song`, publishApi: `${BASE_API_URL}/rank/add`, emptyText: '暂无歌手数据' },
-        2: { title: '影视作品榜单', singerApi: `${BASE_API_URL}/workrank/singer`, songApi: `${BASE_API_URL}/workrank/song`, publishApi: `${BASE_API_URL}/workrank/add-work`, emptyText: '暂无影视作品数据' }
+        1: {
+            title: '歌手明星榜单',
+            singerApi: `${BASE_API_URL}/rank/singer`,
+            songApi: `${BASE_API_URL}/rank/song`,
+            publishApi: `${BASE_API_URL}/rank/add`,
+            emptyText: '暂无歌手数据',
+            backPage: '/music/rank.html' // 跳回榜单页
+        },
+        2: {
+            title: '影视作品榜单',
+            singerApi: `${BASE_API_URL}/workrank/singer`,
+            songApi: `${BASE_API_URL}/workrank/song`,
+            publishApi: `${BASE_API_URL}/workrank/add-work`,
+            emptyText: '暂无影视作品数据',
+            backPage: '/music/rank.html'
+        }
     };
 
-    // 抓取页面上的小零件
+    // 页面元素
     const openModalBtn = document.getElementById('openModalBtn');
     const addRowBtn = document.getElementById('addRowBtn');
     const publishBtn = document.getElementById('publishBtn');
@@ -393,7 +425,7 @@
     let allSingers = [];
 
     // ==========================================
-    // 2. 工具函数（大豆包的百宝箱）
+    // 2. 工具函数
     // ==========================================
     function getUrlParam(name) {
         return new URLSearchParams(window.location.search).get(name);
@@ -420,38 +452,37 @@
     }
 
     // ==========================================
-    // 3. 核心功能（大豆包开工啦！）
+    // 3. 核心功能
     // ==========================================
     window.onload = () => { checkAuth(); };
 
-    // 【新增行】逻辑
+    // 新增行
     addRowBtn.onclick = function() {
-        console.log("➕ 正在为你新增一行...");
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td><input type="text" placeholder="请输入歌曲名称" readonly style="cursor: not-allowed;"></td>
-            <td>
-                <div class="rank-op-container">
-                    <input type="number" placeholder="排名" min="1">
-                    <button class="del-btn" type="button">×</button>
-                </div>
-            </td>`;
+        <td><input type="text" placeholder="请输入歌曲名称" readonly style="cursor: not-allowed;"></td>
+        <td>
+            <div class="rank-op-container">
+                <input type="number" placeholder="排名" min="1">
+                <button class="del-btn" type="button">×</button>
+            </div>
+        </td>`;
         songTableBody.appendChild(tr);
     };
 
-    // 【删除行】逻辑（这里解决了你点不动叉叉的问题！）
+    // 删除行
     songTableBody.addEventListener('click', function(e) {
         if (e.target && e.target.classList.contains('del-btn')) {
             const tr = e.target.closest('tr');
             const input = tr.querySelector('input');
             const sId = input.dataset.songId;
-            if (sId) selectedSongIds.delete(Number(sId)); // 从已选列表中移除
+            if (sId) selectedSongIds.delete(Number(sId));
             tr.remove();
             showTip('已成功移除该行！');
         }
     });
 
-    // 【打开选择弹窗】
+    // 打开选择弹窗
     openModalBtn.onclick = () => {
         if (!checkAuth()) return;
         modal.style.display = "block";
@@ -460,7 +491,7 @@
 
     function loadSingers() {
         const listEl = document.getElementById('singerList');
-        listEl.innerHTML = '<div style="color:#aaa; text-align:center;">正在翻阅名册...</div>';
+        listEl.innerHTML = '<div style="color:#aaa; text-align:center;">加载中...</div>';
         fetch(`${currentConfig.singerApi}?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}`)
             .then(res => res.json())
             .then(data => { allSingers = data || []; renderSingerList(allSingers); });
@@ -481,7 +512,7 @@
     function showSongs(singer) {
         document.getElementById('songList').style.display = "block";
         const songItemsEl = document.getElementById('songItems');
-        songItemsEl.innerHTML = '<div style="color:#aaa;">正在找歌...</div>';
+        songItemsEl.innerHTML = '<div style="color:#aaa;">加载中...</div>';
         fetch(`${currentConfig.songApi}?token=${encodeURIComponent(token)}&userId=${userId}&singerId=${singer.singerId}`)
             .then(res => res.json())
             .then(songs => {
@@ -501,7 +532,6 @@
             showTip('这首歌已经在榜单里啦！', true);
             return;
         }
-        // 找第一个没填歌的行
         const emptyInput = Array.from(songTableBody.querySelectorAll('input[placeholder="请输入歌曲名称"]'))
             .find(input => !input.value.trim());
         if (emptyInput) {
@@ -515,8 +545,8 @@
         }
     }
 
-    // 【发布榜单】逻辑（这里修复了“假成功”的问题！）
-    publishBtn.onclick = function() {
+    // ✅ 修复：发布榜单接口（完全匹配后端）
+    publishBtn.onclick = async function() {
         const listName = listNameInput.value.trim();
         if (!listName) { showTip('起个榜单名字吧！', true); return; }
 
@@ -529,39 +559,98 @@
 
         if (songItemsData.length === 0) { showTip('还没选歌呢，发不出去呀~', true); return; }
 
-        console.log("🚀 准备提交：", { rankName: listName, songItems: songItemsData });
-
-        fetch(`${currentConfig.publishApi}/${category}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}` // 用 Bearer 格式传 Token
-            },
-            body: JSON.stringify({ rankName: listName, songItems: songItemsData, targetId: 0 })
-        })
-            .then(response => {
-                if (!response.ok) throw new Error('服务器炸了，状态码：' + response.status);
-                return response.json(); // 解析后端返回的 Result 对象
-            })
-            .then(res => {
-                if (res.code === 200) {
-                    showTip('发布成功！即将为你刷新~', false);
-                    setTimeout(() => {
-                        window.location.href = `/music/api/rank/publish?token=${token}&userId=${userId}&category=${category}`;
-                    }, 1500);
-                } else {
-                    showTip('后端说：' + res.msg, true);
+        try {
+            // ✅ 正确接口路径：/music/api/rank/add/{category}
+            const res = await axios.post(`${currentConfig.publishApi}/${category}`, {
+                rankName: listName,
+                songItems: songItemsData,
+                targetId: 0
+            }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 }
-            })
-            .catch(err => {
-                console.error('完整报错：', err);
-                showTip('哎呀，出错了：' + err.message, true);
             });
+
+            const data = res.data;
+            if (data.code === 200) {
+                showTip('发布成功！即将返回榜单页...');
+                // ✅ 跳回 rank.html 榜单发布页，携带参数
+                setTimeout(() => {
+                    window.location.href = `${currentConfig.backPage}?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}`;
+                }, 1500);
+            } else {
+                showTip('后端提示：' + data.msg, true);
+            }
+        } catch (err) {
+            console.error('发布失败：', err);
+            showTip('发布失败，请检查网络后重试', true);
+        }
     };
 
-    // 弹窗关闭
+    // 关闭弹窗
     document.querySelector('.close').onclick = () => modal.style.display = "none";
-    window.onclick = (e) => { if (e.target === modal) modal.style.display = "none"; };
+    window.onclick = (e) => {
+        if (e.target === modal) modal.style.display = "none";
+        if (e.target === applySongModal) applySongModal.style.display = "none";
+    };
+
+    // ==========================================
+    // ✅ 修复：申请歌曲功能（成功后跳回 rank.html）
+    // ==========================================
+    const applySongBtn = document.getElementById('applySongBtn');
+    const applySongModal = document.getElementById('applySongModal');
+    const closeApplyBtn = document.querySelector('.close-apply');
+    const submitApplyBtn = document.getElementById('submitApplyBtn');
+    const applySongNameInput = document.getElementById('applySongName');
+    const applySingerNameInput = document.getElementById('applySingerName');
+
+    // 打开申请弹窗
+    applySongBtn.onclick = () => {
+        if (!checkAuth()) return;
+        applySongNameInput.value = '';
+        applySingerNameInput.value = '';
+        applySongModal.style.display = "block";
+    };
+
+    // 关闭申请弹窗
+    closeApplyBtn.onclick = () => applySongModal.style.display = "none";
+
+    // 提交申请
+    submitApplyBtn.onclick = async function() {
+        const songName = applySongNameInput.value.trim();
+        const singerName = applySingerNameInput.value.trim();
+
+        if (!songName || !singerName) {
+            showTip('歌曲名和歌手名不能为空！', true);
+            return;
+        }
+
+        try {
+            // ✅ 正确接口路径：/music/api/rank/applysong
+            const res = await axios.post('/music/api/rank/applysong', null, {
+                params: {
+                    token: token,
+                    songName: songName,
+                    singerName: singerName
+                }
+            });
+
+            const data = res.data;
+            if (data.code === 200) {
+                showTip(data.data || '申请成功！我们会尽快更新歌曲~', false);
+                // ✅ 申请成功后，跳回 rank.html 榜单发布页
+                setTimeout(() => {
+                    window.location.href = `/music/rank.html?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}`;
+                }, 1500);
+            } else {
+                showTip(data.msg || '申请失败，请稍后再试', true);
+            }
+        } catch (error) {
+            console.error('申请歌曲失败:', error);
+            showTip('申请失败，请检查网络后重试', true);
+        }
+    };
 </script>
 </body>
 </html>
