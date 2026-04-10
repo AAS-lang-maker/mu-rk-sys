@@ -9,7 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 public class HotRankInitTest {
     @Autowired
     private HotRankService hotRankService;
-    @Test
+  @Test
     public void hotRankInitTest(){
         hotRankService.updateHotRank(12L);
         hotRankService.updateHotRank(13L);
