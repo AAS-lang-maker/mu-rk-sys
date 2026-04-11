@@ -65,12 +65,6 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- PageHelper 分页插件 -->
-        <dependency>
-            <groupId>com.github.pagehelper</groupId>
-            <artifactId>pagehelper-spring-boot-starter</artifactId>
-            <version>1.4.6</version>
-        </dependency>
 
         <!-- Spring Boot 测试 -->
         <dependency>
@@ -166,13 +160,20 @@
             <!-- 这样你在打包（mvn package）成正式产品时，它就不会被带走，节省生产环境资源 -->
             <optional>true</optional>
         </dependency>
-
+        <!--阿里云AI-->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>dashscope-sdk-java</artifactId>
+            <version>2.16.0</version>
+        </dependency>
         <!-- 2. LangChain4j 的核心库（提供 @AiService 等核心注解） -->
-
-
+        <!-- 正确依赖！！！ -->
+        <dependency>
+            <groupId>net.jthink</groupId>
+            <artifactId>jaudiotagger</artifactId>
+            <version>3.0.1</version>
+        </dependency>
     </dependencies>
-
-
     <!-- 确保 compiler 插件版本适配 Java 17 -->
     <build>
         <plugins>

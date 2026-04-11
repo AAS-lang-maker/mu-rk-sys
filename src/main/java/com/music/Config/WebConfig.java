@@ -35,6 +35,8 @@ public class WebConfig implements WebMvcConfigurer {
                 .excludePathPatterns(    // 以下是“白名单”，不用登录也能访问
                         "/api/user/register", // 你的注册接口（根据实际路径检查一下）
                         "/api/user/login",    // 你的登录接口
+                        "/api/role/register",
+                        "/api/role/login",
                         "/js/**",         // 放行 JS 文件夹
                         "/player/**",     // 放行播放器插件文件夹
                         "/login.html",    // 放行登录页

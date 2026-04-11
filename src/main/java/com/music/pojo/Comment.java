@@ -13,4 +13,9 @@ public class Comment {
     private int rankId;
     private int idDelete;
     private LocalDateTime comTime;
+    private int isAi;
+    private int status;
+    private int reportFlag;
+    private int riskScore;
+    private String auditRemark;
 }

@@ -2,6 +2,7 @@ package com.music.Controller;
 
 import com.github.pagehelper.PageInfo;
 import com.music.Service.UserPublishService;
+import com.music.dto.ApplySongVo;
 import com.music.dto.CommentVo;
 import com.music.dto.MyRankWithSong;
 import com.music.dto.RankAddRequest;
@@ -117,6 +118,21 @@ public class UserPublishController {
     ) {
         List<Song> songs = userPublishService.selectSong(singerId);
         return songs;
+    }
+
+    @PostMapping("/applysong")
+    @ResponseBody
+    public Result<String> applySong(@RequestParam("token") String token, @RequestParam("songName")String songName,
+                                    @RequestParam("singerName")String singerName){
+        if (token == null || token.isEmpty()) {
+            return Result.error("登录信息失效，请重新登录");
+        }
+  boolean falg= userPublishService.insertApply(singerName,songName);
+    if (falg) {
+        return Result.success("已收到您的请求，我们会尽快更新歌曲的~");
+    }    else{
+        return  Result.error("申请失败，请稍后再试试");
+    }
     }
 
     @PostMapping("/vote")
