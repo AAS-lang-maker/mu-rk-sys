@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>添加榜单</title>
+    <script src="js/axios.min.js"></script>
+    <script src="js/request.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color:#0f172a;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #f7fafc;
+            padding: 20px;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255, 250, 255, 0.08)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>') repeat;
+            z-index: -1;
+        }
+
+        .container {
+            width: 70%;
+            max-width: 800px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .form-group {
+            margin-bottom: 30px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 18px;
+            color: #fffa9c;
+            margin-bottom: 10px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 250, 156, 0.3);
+            border-radius: 8px;
+            color: #f7fafc;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #fffa9c;
+            box-shadow: 0 0 20px rgba(255, 250, 156, 0.4);
+            transform: scale(1.02);
+        }
+
+        .add-song-btn {
+            display: inline-block;
+            background-color: #fffa9c;
+            color: #1a202c;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+        }
+
+        .add-song-btn:hover {
+            background-color: #fff780;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 250, 156, 0.4);
+        }
+
+        .song-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .song-table th,
+        .song-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .song-table th {
+            color: #fffa9c;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .song-table td {
+            color: #f7fafc;
+        }
+
+        .rank-op-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .song-table input {
+            width: 100%;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            color: #f7fafc;
+        }
+
+        .song-table input:focus {
+            outline: none;
+            border-color: #fffa9c;
+        }
+
+        .song-name-col {
+            width: 70%;
+        }
+
+        .song-rank-col {
+            width: 30%;
+        }
+
+        .del-btn {
+            background: transparent;
+            border: none;
+            color: #aaa;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            padding: 2px 6px;
+            transition: all 0.2s ease;
+            line-height: 1;
+        }
+
+        .del-btn:hover {
+            color: #fffa9c;
+            transform: scale(1.1);
+            background: rgba(255, 250, 205, 0.1);
+        }
+
+        .submit-btn {
+            display: block;
+            width: 100%;
+            background-color: #fffa9c;
+            color: #1a202c;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 30px;
+        }
+
+        .submit-btn:hover {
+            background-color: #fff780;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 250, 156, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                width: 90%;
+                padding: 30px;
+            }
+
+            .song-name-col {
+                width: 60%;
+            }
+
+            .song-rank-col {
+                width: 40%;
+            }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: #1E293B;
+            margin: 15% auto;
+            padding: 30px;
+            border-radius: 12px;
+            width: 80%;
+            max-width: 500px;
+            border: 1px solid rgba(255, 250, 205, 0.3)
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #fffa9c;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px;
+            margin: 15px 0;
+            border: 1px solid rgba(255, 250, 205, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #f7fafc;
+            outline: none;
+        }
+
+        .singer-list,
+        .song-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 15px 0;
+        }
+
+        .singer-item,
+        .song-item {
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .singer-item:hover,
+        .song-item:hover {
+            background: rgba(255, 250, 205, 0.15);
+            color: #fffa9c;
+        }
+
+        /* 新增：自定义提示框样式，贴合页面风格 */
+        .tip-box {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            border-radius: 8px;
+            color: #1E293B;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 2000;
+            display: none;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+        }
+        .tip-success {
+            background: #fffa9c;
+        }
+        .tip-error {
+            background: #ff6347;
+            color: #f7fafc;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+    <div class="form-group">
+        <label for="list-name">榜单名</label>
+        <input type="text" id="list-name" placeholder="请输入榜单名称">
+    </div>
+    <!-- 新增：动态添加行按钮 -->
+    <button class="add-song-btn" id="openModalBtn">选择歌曲</button>
+    <button class="add-song-btn" style="margin-left: 10px;" id="addRowBtn">新增歌曲行</button>
+
+    <table class="song-table" id="songTable">
+        <thead>
+        <tr>
+            <th class="song-name-col">歌曲名称</th>
+            <th class="song-rank-col">排名</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td><input type="text" placeholder="请输入歌曲名称"></td>
+            <td>
+                <div class="rank-op-container">
+                    <input type="number" placeholder="排名" min="1">
+                    <button class="del-btn">×</button>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td><input type="text" placeholder="请输入歌曲名称"></td>
+            <td>
+                <div class="rank-op-container">
+                    <input type="number" placeholder="排名" min="1">
+                    <button class="del-btn">×</button>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td><input type="text" placeholder="请输入歌曲名称" readonly style="cursor: not-allowed;"></td>
+            <td>
+                <div class="rank-op-container">
+                    <input type="number" placeholder="排名" min="1">
+                    <button class="del-btn">×</button>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td><input type="text" placeholder="请输入歌曲名称"></td>
+            <td>
+                <div class="rank-op-container">
+                    <input type="number" placeholder="排名" min="1">
+                    <button class="del-btn">×</button>
+                </div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <button class="submit-btn" id="publishBtn">发布榜单</button>
+</div>
+
+<div id="singerModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h3>选择歌手和歌曲</h3>
+        <input type="text" id="singerSearch" placeholder="搜索歌手..." class="search-input">
+        <div id="singerList" class="singer-list"></div>
+        <div id="songList" class="song-list" style="display: none;">
+            <h4>选择歌曲</h4>
+            <div id="songItems"></div>
+        </div>
+    </div>
+</div>
+
+<!-- 新增：自定义提示框DOM -->
+<div class="tip-box" id="customTip"></div>
+<script>
+    // ==========================================
+    // 1. 基础配置（大豆包的资源名册）
+    // ==========================================
+    const BASE_API_URL = '/music/api';
+    const categoryConfig = {
+        1: { title: '歌手明星榜单', singerApi: `${BASE_API_URL}/rank/singer`, songApi: `${BASE_API_URL}/rank/song`, publishApi: `${BASE_API_URL}/rank/add`, emptyText: '暂无歌手数据' },
+        2: { title: '影视作品榜单', singerApi: `${BASE_API_URL}/workrank/singer`, songApi: `${BASE_API_URL}/workrank/song`, publishApi: `${BASE_API_URL}/workrank/add-work`, emptyText: '暂无影视作品数据' }
+    };
+
+    // 抓取页面上的小零件
+    const openModalBtn = document.getElementById('openModalBtn');
+    const addRowBtn = document.getElementById('addRowBtn');
+    const publishBtn = document.getElementById('publishBtn');
+    const modal = document.getElementById('singerModal');
+    const songTable = document.getElementById('songTable');
+    const songTableBody = songTable.querySelector('tbody');
+    const listNameInput = document.getElementById('list-name');
+    const customTip = document.getElementById('customTip');
+
+    let token = '', userId = '', category = '', currentConfig = null;
+    let selectedSongIds = new Set();
+    let allSingers = [];
+
+    // ==========================================
+    // 2. 工具函数（大豆包的百宝箱）
+    // ==========================================
+    function getUrlParam(name) {
+        return new URLSearchParams(window.location.search).get(name);
+    }
+
+    function showTip(msg, isError = false) {
+        customTip.textContent = msg;
+        customTip.className = 'tip-box ' + (isError ? 'tip-error' : 'tip-success');
+        customTip.style.display = 'block';
+        setTimeout(() => { customTip.style.display = 'none'; }, 2000);
+    }
+
+    function checkAuth() {
+        token = getUrlParam('token');
+        userId = getUrlParam('userId');
+        category = getUrlParam('category');
+        if (!token || !userId || !category) {
+            showTip('糟糕！参数丢了，请重新从首页进来~', true);
+            return false;
+        }
+        currentConfig = categoryConfig[category];
+        document.title = currentConfig.title;
+        return true;
+    }
+
+    // ==========================================
+    // 3. 核心功能（大豆包开工啦！）
+    // ==========================================
+    window.onload = () => { checkAuth(); };
+
+    // 【新增行】逻辑
+    addRowBtn.onclick = function() {
+        console.log("➕ 正在为你新增一行...");
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><input type="text" placeholder="请输入歌曲名称" readonly style="cursor: not-allowed;"></td>
+            <td>
+                <div class="rank-op-container">
+                    <input type="number" placeholder="排名" min="1">
+                    <button class="del-btn" type="button">×</button>
+                </div>
+            </td>`;
+        songTableBody.appendChild(tr);
+    };
+
+    // 【删除行】逻辑（这里解决了你点不动叉叉的问题！）
+    songTableBody.addEventListener('click', function(e) {
+        if (e.target && e.target.classList.contains('del-btn')) {
+            const tr = e.target.closest('tr');
+            const input = tr.querySelector('input');
+            const sId = input.dataset.songId;
+            if (sId) selectedSongIds.delete(Number(sId)); // 从已选列表中移除
+            tr.remove();
+            showTip('已成功移除该行！');
+        }
+    });
+
+    // 【打开选择弹窗】
+    openModalBtn.onclick = () => {
+        if (!checkAuth()) return;
+        modal.style.display = "block";
+        loadSingers();
+    };
+
+    function loadSingers() {
+        const listEl = document.getElementById('singerList');
+        listEl.innerHTML = '<div style="color:#aaa; text-align:center;">正在翻阅名册...</div>';
+        fetch(`${currentConfig.singerApi}?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}`)
+            .then(res => res.json())
+            .then(data => { allSingers = data || []; renderSingerList(allSingers); });
+    }
+
+    function renderSingerList(list) {
+        const listEl = document.getElementById('singerList');
+        listEl.innerHTML = '';
+        list.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'singer-item';
+            div.textContent = item.singerName;
+            div.onclick = () => showSongs(item);
+            listEl.appendChild(div);
+        });
+    }
+
+    function showSongs(singer) {
+        document.getElementById('songList').style.display = "block";
+        const songItemsEl = document.getElementById('songItems');
+        songItemsEl.innerHTML = '<div style="color:#aaa;">正在找歌...</div>';
+        fetch(`${currentConfig.songApi}?token=${encodeURIComponent(token)}&userId=${userId}&singerId=${singer.singerId}`)
+            .then(res => res.json())
+            .then(songs => {
+                songItemsEl.innerHTML = '';
+                songs.forEach(song => {
+                    const div = document.createElement('div');
+                    div.className = 'song-item';
+                    div.textContent = song.songName;
+                    div.onclick = () => selectSongToTable(song.songName, song.songId);
+                    songItemsEl.appendChild(div);
+                });
+            });
+    }
+
+    function selectSongToTable(name, id) {
+        if (selectedSongIds.has(Number(id))) {
+            showTip('这首歌已经在榜单里啦！', true);
+            return;
+        }
+        // 找第一个没填歌的行
+        const emptyInput = Array.from(songTableBody.querySelectorAll('input[placeholder="请输入歌曲名称"]'))
+            .find(input => !input.value.trim());
+        if (emptyInput) {
+            emptyInput.value = name;
+            emptyInput.dataset.songId = id;
+            selectedSongIds.add(Number(id));
+            modal.style.display = "none";
+            showTip('歌曲添加成功！✨');
+        } else {
+            showTip('没空行了，先新增一行吧~', true);
+        }
+    }
+
+    // 【发布榜单】逻辑（这里修复了“假成功”的问题！）
+    publishBtn.onclick = function() {
+        const listName = listNameInput.value.trim();
+        if (!listName) { showTip('起个榜单名字吧！', true); return; }
+
+        const songItemsData = [];
+        songTableBody.querySelectorAll('tr').forEach(row => {
+            const sId = row.querySelector('input').dataset.songId;
+            const rVal = row.querySelector('input[type="number"]').value;
+            if (sId && rVal) songItemsData.push({ songId: Number(sId), ranking: Number(rVal) });
+        });
+
+        if (songItemsData.length === 0) { showTip('还没选歌呢，发不出去呀~', true); return; }
+
+        console.log("🚀 准备提交：", { rankName: listName, songItems: songItemsData });
+
+        fetch(`${currentConfig.publishApi}/${category}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` // 用 Bearer 格式传 Token
+            },
+            body: JSON.stringify({ rankName: listName, songItems: songItemsData, targetId: 0 })
+        })
+            .then(response => {
+                if (!response.ok) throw new Error('服务器炸了，状态码：' + response.status);
+                return response.json(); // 解析后端返回的 Result 对象
+            })
+            .then(res => {
+                if (res.code === 200) {
+                    showTip('发布成功！即将为你刷新~', false);
+                    setTimeout(() => {
+                        window.location.href = `/music/api/rank/publish?token=${token}&userId=${userId}&category=${category}`;
+                    }, 1500);
+                } else {
+                    showTip('后端说：' + res.msg, true);
+                }
+            })
+            .catch(err => {
+                console.error('完整报错：', err);
+                showTip('哎呀，出错了：' + err.message, true);
+            });
+    };
+
+    // 弹窗关闭
+    document.querySelector('.close').onclick = () => modal.style.display = "none";
+    window.onclick = (e) => { if (e.target === modal) modal.style.display = "none"; };
+</script>
+</body>
+</html>

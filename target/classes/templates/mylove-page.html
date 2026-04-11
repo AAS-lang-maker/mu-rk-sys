@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script th:src="@{/js/axios.min.js}"></script>
     <script th:src="@{/js/request.js}"></script>
-    <title>个人榜单</title>
-    <link rel="icon" href="data:'base:;base64,iVBORw0KGgo=">
+    <title>我的收藏</title>
+    <link rel="icon" href="data:;base64,iVBORw0KGgo">
     <link rel="stylesheet" th:href="@{/player/music-player.css}">
     <style>
         * {
@@ -44,7 +44,6 @@
             transition: all 0.3s ease;
             z-index: 100;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            /* 修复：添加pointer-events确保按钮可点击 */
             pointer-events: auto;
         }
         .sidebar.collapsed{
@@ -66,7 +65,6 @@
             transition: all 0.3s ease;
             width: 100%;
             margin-bottom: 10px;
-            /* 修复：按钮添加cursor和pointer-events */
             cursor: pointer;
             pointer-events: auto;
         }
@@ -81,7 +79,6 @@
             max-width: 1200px;
             margin: 0 auto;
             padding: 40px;
-            /* 修复：添加z-index和pointer-events */
             position: relative;
             z-index: 1;
             pointer-events: auto;
@@ -136,7 +133,6 @@
             margin-bottom: 40px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             transition: all 0.3s ease;
-            /* 修复：添加z-index和pointer-events */
             position: relative;
             z-index: 1;
             pointer-events: auto;
@@ -157,35 +153,11 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            /* 修复：添加pointer-events */
             pointer-events: auto;
         }
 
         .ranking-content {
             flex: 1;
-        }
-
-        .edit-btn {
-            background-color: #fffa9c;
-            color: #1a202c;
-            border: none;
-            border-radius: 6px;
-            padding: 6px 12px;
-            font-size: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-left: 20px;
-            align-self: flex-start;
-            /* 修复：按钮添加cursor和pointer-events */
-            cursor: pointer;
-            pointer-events: auto;
-        }
-
-        .edit-btn:hover {
-            background-color: #fff780;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(255, 250, 156, 0.4);
         }
 
         .ranking-item:hover {
@@ -211,7 +183,6 @@
             justify-content: center;
             align-items: center;
             margin-top: 40px;
-            /* 修复：添加pointer-events */
             pointer-events: auto;
         }
 
@@ -224,7 +195,6 @@
             margin: 0 5px;
             cursor: pointer;
             transition: all 0.3s ease;
-            /* 修复：按钮添加cursor和pointer-events */
             cursor: pointer;
             pointer-events: auto;
         }
@@ -273,7 +243,6 @@
         .song-list {
             margin-top: 15px;
             padding-left: 0;
-            /* 修复：添加pointer-events */
             pointer-events: auto;
         }
 
@@ -300,7 +269,6 @@
             justify-content: space-between;
             align-items: center;
             transition: all 0.2s ease;
-            /* 修复：添加pointer-events */
             pointer-events: auto;
         }
 
@@ -333,11 +301,16 @@
             padding: 4px 10px;
             background: rgba(255, 250, 156, 0.1);
             border-radius: 4px;
-            /* 新增：调整排名样式，和播放按钮对齐 */
-            margin-right: 10px;
+            margin-right: 10px; /* 新增：排名和播放按钮间距 */
         }
 
-        /* 播放按钮样式（和主页保持一致） */
+        /* 新增：播放按钮和排名的容器样式 */
+        .song-actions {
+            display: flex;
+            align-items: center;
+        }
+
+        /* 播放按钮样式（和我的榜单页保持一致） */
         .play-btn {
             background: rgba(255, 250, 156, 0.2);
             border: 1px solid #fffa9c;
@@ -352,10 +325,8 @@
             transition: all 0.3s ease;
             font-size: 12px;
             padding-left: 2px;
-            /* 修复：按钮添加cursor和pointer-events */
             cursor: pointer;
             pointer-events: auto;
-            /* 修复：提高z-index避免被遮挡 */
             z-index: 2;
         }
         .play-btn:hover {
@@ -364,13 +335,7 @@
             transform: scale(1.1);
         }
 
-        /* 新增：播放按钮和排名的容器样式 */
-        .song-actions {
-            display: flex;
-            align-items: center;
-        }
-
-        /* 提示框样式（复用主页） */
+        /* 提示框样式（复用我的榜单页） */
         #errorAlert {
             display: none;
             position: fixed;
@@ -397,7 +362,7 @@
             z-index: 9999;
         }
 
-        /* 播放器容器样式（和主页保持一致） */
+        /* 播放器容器样式（和我的榜单页保持一致） */
         #music-player-container {
             position: fixed;
             bottom: 20px;
@@ -406,12 +371,11 @@
             z-index: 1000;
         }
 
-        /* 评论区样式（和主页保持一致） */
+        /* 评论区样式（和我的榜单页保持一致） */
         .comment-section {
             margin-top: 20px;
             border-top: 1px solid rgba(255, 250, 156, 0.1);
             padding-top: 15px;
-            /* 修复：添加pointer-events */
             pointer-events: auto;
         }
 
@@ -425,7 +389,6 @@
             transition: all 0.3s ease;
             font-size: 14px;
             margin-bottom: 15px;
-            /* 修复：按钮添加cursor和pointer-events */
             cursor: pointer;
             pointer-events: auto;
         }
@@ -438,7 +401,6 @@
         .comment-container {
             display: none;
             animation: fadeIn 0.3s ease;
-            /* 修复：添加pointer-events */
             pointer-events: auto;
         }
 
@@ -472,7 +434,6 @@
             resize: vertical;
             min-height: 80px;
             transition: all 0.3s ease;
-            /* 修复：添加pointer-events */
             pointer-events: auto;
         }
 
@@ -498,7 +459,6 @@
             transition: all 0.3s ease;
             font-size: 14px;
             font-weight: bold;
-            /* 修复：按钮添加cursor和pointer-events */
             cursor: pointer;
             pointer-events: auto;
         }
@@ -570,7 +530,6 @@
             align-items: center;
             gap: 4px;
             transition: all 0.2s ease;
-            /* 修复：按钮添加cursor和pointer-events */
             cursor: pointer;
             pointer-events: auto;
         }
@@ -591,70 +550,36 @@
             font-size: 12px;
         }
 
-        /* 右侧侧边栏样式 */
-        .sidebar-right {
-            position: fixed;
-            right: 0px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 160px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 12px 0 0 12px;
-            padding: 20px;
-            transition: all 0.3s ease;
-            z-index: 100;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            /* 修复：添加pointer-events确保按钮可点击 */
-            pointer-events: auto;
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(247, 250, 252, 0.6);
         }
-        .sidebar-right.collapsed{
-            right: -120px;
+
+        .empty-state h3 {
+            font-size: 24px;
+            margin-bottom: 10px;
         }
-        .sidebar-right:hover {
-            right: 0;
-        }
-        .delete-btn{
-            background: #f68d8d;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 6px 12px;
-            font-size: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-left: 10px;
-            align-self: flex-start;
-            /* 修复：按钮添加cursor和pointer-events */
-            cursor: pointer;
-            pointer-events: auto;
-        }
-        .delete-btn:hover {
-            background-color: #d87474;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(241, 166, 166, 0.99);
+
+        .empty-state p {
+            font-size: 16px;
         }
     </style>
     <script th:src="@{/player/music-player.js}"></script>
 </head>
 
 <body>
-<!-- 新增提示框（和主页一致） -->
+<!-- 提示框元素 -->
 <div id="errorAlert"></div>
 <div id="successAlert"></div>
 
-<!-- 播放器容器（和主页一致） -->
+<!-- 播放器容器（和我的榜单页一致） -->
 <div id="music-player-container"></div>
 
 <div class="sidebar">
     <button class="sidebar-btn" id="btn-goToPu">返回主页</button>
     <button class="sidebar-btn" id="btn-reLogin">重新登录</button>
     <button class="sidebar-btn" id="btn-goToHome">返回首页</button>
-</div>
-<!-- 右侧侧边栏 -->
-<div class="sidebar-right">
-    <button class="sidebar-btn" id="btn-goToMyLove">我的收藏</button>
 </div>
 
 <div class="container">
@@ -665,19 +590,19 @@
                     alt="用户头像" class="avatar">
             <div class="user-details">
                 <h2 th:text="${username}">用户名</h2>
-                <p>个人榜单管理</p>
+                <p>我的收藏管理</p>
             </div>
         </div>
     </div>
 
     <div class="rankings-container">
-        <div th:each="ranking, stat : ${personalRanks?.list}" class="ranking-item" th:data-rank-id="${ranking.rankId}">
+        <div th:each="ranking, stat : ${myloveSongs.list}" class="ranking-item" th:data-rank-id="${ranking.rankId}">
             <div class="ranking-content">
                 <!-- 榜单基本信息 -->
                 <h3 th:text="${ranking.rankName}">榜单标题</h3>
                 <p th:text="|更新于: ${ranking.publishTime}|">最后更新时间</p>
 
-                <!-- 榜单下的歌曲列表 -->
+                <!-- 榜单下的歌曲列表（修复播放按钮布局） -->
                 <div class="song-list">
                     <h4>歌曲列表</h4>
                     <ul>
@@ -686,15 +611,14 @@
                                 <span class="song-name" th:text="${song?.songName}">歌曲名称</span>
                                 <span class="singer-name" th:text="${song.singerName}">歌手名称</span>
                             </div>
-                            <!-- 调整：将排名和播放按钮放在同一个容器中 -->
+                            <!-- 修复：将排名和播放按钮放在同一个容器中 -->
                             <div class="song-actions">
                                 <span class="song-rank" th:text="${song?.ranking}">排名</span>
-                                <!-- 播放按钮：保持原有data属性，样式和主页一致 -->
+                                <!-- 播放按钮：保持原有data属性，样式和我的榜单页一致 -->
                                 <button class="play-btn"
                                         th:data-song-id="${song.songId}"
                                         th:data-song-name="${song.songName}"
-                                        th:data-singer-name="${song.singerName}"
-                                        th:data-rank-id="${ranking.rankId}">
+                                        th:data-singer-name="${song.singerName}">
                                     &#9658;
                                 </button>
                             </div>
@@ -702,13 +626,12 @@
                     </ul>
                 </div>
 
-                <!-- 评论区（新增，和主页一致） -->
+                <!-- 评论区（和我的榜单页一致） -->
                 <div class="comment-section">
                     <button class="comment-toggle" th:data-rank-id="${ranking.rankId}">
                         查看评论
                     </button>
                     <div class="comment-container" th:id="|comment-container-${ranking.rankId}|">
-                        <!-- 评论输入区 -->
                         <div class="comment-input-area">
                             <textarea class="comment-input" th:id="|comment-input-${ranking.rankId}|"
                                       placeholder="写下你的评论..."></textarea>
@@ -718,49 +641,41 @@
                                 </button>
                             </div>
                         </div>
-                        <!-- 评论列表 -->
                         <div class="comment-list" th:id="|comment-list-${ranking.rankId}|">
-                            <!-- 评论将通过JavaScript动态加载 -->
                         </div>
                     </div>
                 </div>
-
-                <button class="edit-btn" th:data-rank-id="${ranking.rankId}">编辑</button>
-                <!-- 新增删除按钮 -->
-                <button class="delete-btn" th:data-rank-id="${ranking.rankId}" style="background-color: #f68d8d; color: black;">
-                    删除
-                </button>
             </div>
         </div>
 
-        <div class="pagination" th:if="${personalRanks !=null}">
-            <button th:disabled="${personalRanks.pageNum == 1}"
-                    th:data-page="${personalRanks.pageNum - 1}">上一页</button>
+        <div class="pagination" th:if="${myloveSongs != null}">
+            <button th:disabled="${myloveSongs.pageNum == 1}"
+                    th:data-page="${myloveSongs.pageNum - 1}">上一页</button>
 
-            <button th:each="i : ${#numbers.sequence(1, personalRanks?.pages)}"
-                    th:class="${personalRanks.pageNum == i ? 'active' : ''}"
+            <button th:each="i : ${#numbers.sequence(1, myloveSongs.pages)}"
+                    th:class="${myloveSongs.pageNum == i ? 'active' : ''}"
                     th:data-page="${i}"
                     th:text="${i}">1</button>
 
-            <button th:disabled="${personalRanks.pageNum == personalRanks.pages}"
-                    th:data-page="${personalRanks.pageNum + 1}">下一页</button>
+            <button th:disabled="${myloveSongs.pageNum == myloveSongs.pages}"
+                    th:data-page="${myloveSongs.pageNum + 1}">下一页</button>
         </div>
-        <div th:if="${#lists.isEmpty(publishRanks?.list)}" class="empty-state">
-            暂无榜单数据
+
+        <div class="empty-state"
+             th:if="${myloveSongs == null or myloveSongs.list == null or myloveSongs.list.isEmpty()}">
+            <h3>暂无收藏</h3>
+            <p>您还没有收藏任何歌单</p>
         </div>
     </div>
 
-
     <script>
-        // ===================== 全局核心配置（复用主页）=====================
-        // 1. 工具函数：获取URL参数
+        // ===================== 全局核心配置（完全复用我的榜单页）=====================
         function getUrlParam(paramName) {
             const reg = new RegExp("(^|&)" + paramName + "=([^&]*)(&|$)");
             const paramMatch = window.location.search.substr(1).match(reg);
             return paramMatch ? decodeURIComponent(paramMatch[2]) : null;
         }
 
-        // 新增：从JWT Token解析userId（和主页一致）
         function getUserIdFromToken(token) {
             if (!token) return null;
             try {
@@ -774,14 +689,10 @@
             }
         }
 
-        // 2. 全局变量初始化（和主页一致）
         let token = getUrlParam("token") || localStorage.getItem('token') || '';
         let userId = getUrlParam("userId") || getUrlParam("user_id") || getUserIdFromToken(token) || localStorage.getItem('user_id') || '';
-        let category = parseInt(getUrlParam("category")) || 1;
-        // 全局播放器变量
         let musicPlayer = null;
 
-        // 3. 提示框工具（和主页一致）
         function showErrorTip(msg) {
             let el = document.getElementById('errorAlert');
             if (!el) {
@@ -808,7 +719,6 @@
             setTimeout(() => el.style.display = 'none', 2000);
         }
 
-        // 4. 兼容工具函数（和主页一致）
         function padStartCompat(str, length, padChar) {
             str = str.toString();
             while (str.length < length) {
@@ -817,8 +727,7 @@
             return str;
         }
 
-        // ===================== 播放器核心逻辑（完全复用主页）=====================
-        // 初始化播放器（全局函数）
+        // ===================== 播放器核心逻辑（完全复用我的榜单页）=====================
         function initMusicPlayer() {
             if (musicPlayer) return;
             try {
@@ -834,7 +743,6 @@
             }
         }
 
-        // 播放歌曲（全局函数）
         function playSong(song) {
             if (!song) {
                 showErrorTip("歌曲信息为空！");
@@ -852,12 +760,10 @@
             }
         }
 
-        // 播放按钮点击处理（全局函数）
         function playSongFromData(btn) {
             const songId = btn.dataset.songId;
             const songName = btn.dataset.songName;
             const singerName = btn.dataset.singerName;
-            const rankId = btn.dataset.rankId;
 
             if (!songId) {
                 showErrorTip("歌曲ID为空，无法播放！");
@@ -869,38 +775,9 @@
                 songName: songName || "未知歌曲",
                 singerName: singerName || "未知歌手"
             });
-
-            // 播放时：查询“互关好友共同收藏（收藏该榜单）”
-            if (rankId) {
-                fetchCommonLove(rankId);
-            }
         }
 
-        // 查询互关好友共同收藏人数（收藏同一个榜单）
-        function fetchCommonLove(rankId) {
-            if (!token || !userId) return;
-            axios.get(`/music/api/friend/common-love`, {
-                params: {
-                    token: token,
-                    userId: userId,
-                    rankId: rankId,
-                    limit: 5
-                }
-            }).then(res => {
-                const body = res.data;
-                if (!(body && (body.code === 200 || body.success))) return;
-                const vo = body.data || {};
-                const count = vo.commonLoveCount || 0;
-                const names = (vo.usernames || []).filter(Boolean);
-                if (count <= 0) return;
-                const nameText = names.length ? `（${names.join("、")}${count > names.length ? "..." : ""}）` : "";
-                showSuccessTip(`互关好友共同收藏：${count}人${nameText}`);
-            }).catch(() => {
-                // 静默失败：不影响播放
-            });
-        }
-
-        // ===================== 评论区功能（新增，和主页一致，不含评论点赞）=====================
+        // ===================== 评论区功能（完全复用我的榜单页）=====================
         function toggleComments(rankId) {
             const container = document.getElementById(`comment-container-${rankId}`);
             if (!container) {
@@ -1043,7 +920,6 @@
                     console.log('删除评论成功:', response.data);
                     if (response.data.code === 200 || response.data.success) {
                         showSuccessTip("删除评论成功！");
-                        // 找到对应的rankId并重新加载评论
                         const commentItem = document.querySelector(`[data-comment-id="${commentId}"]`).closest('.comment-item');
                         const commentContainer = commentItem.closest('[id^="comment-container-"]');
                         const rankId = commentContainer.id.replace('comment-container-', '');
@@ -1058,7 +934,6 @@
                 });
         }
 
-        // 时间格式化兼容低版本浏览器
         function formatTime(time) {
             if (!time) return '';
             const date = new Date(time);
@@ -1071,249 +946,152 @@
             return `${year}-${month}-${day} ${hour}:${minute}`;
         }
 
-        // ===================== 原有业务逻辑（保留不变）=====================
-        // 我的榜单页 - 初始化参数
+        // ===================== 收藏页业务逻辑（修复核心问题）=====================
         (function () {
             try {
                 const urlParams = new URLSearchParams(window.location.search);
-                // 读取所有需要的参数：token、userId、userName、category、success
+                // 关键修复1：仅读取核心参数，跳过分页参数，避免覆盖
                 const urlToken = urlParams.get('token') || '';
                 const urlUid = urlParams.get('user_id') || urlParams.get('userId') || '';
                 const urlUserName = urlParams.get('userName') || urlParams.get('username') || '';
-                const urlCategory = urlParams.get('category') || ''; // 读取category
-                const urlSuccess = urlParams.get('success') || '';   // 读取success
+                const urlCategory = urlParams.get('category') || '';
+                const urlSuccess = urlParams.get('success') || '';
 
-                // 同步到localStorage，确保参数不丢失
-                localStorage.setItem('token', urlToken);
-                localStorage.setItem('user_id', urlUid);
-                localStorage.setItem('userName', urlUserName);
-                localStorage.setItem('category', urlCategory); // 存储category
-                localStorage.setItem('success', urlSuccess);   // 存储success
+                // 关键修复2：仅当参数不为空时才存储，避免清空已有值
+                if (urlToken) localStorage.setItem('token', urlToken);
+                if (urlUid) localStorage.setItem('user_id', urlUid);
+                if (urlUserName) localStorage.setItem('userName', urlUserName);
+                if (urlCategory) localStorage.setItem('category', urlCategory);
+                if (urlSuccess) localStorage.setItem('success', urlSuccess);
 
-                console.log('✅ 初始化完成，参数：', {
+                console.log('✅ 收藏页初始化完成，参数：', {
                     token: urlToken,
                     userId: urlUid,
                     category: urlCategory,
                     success: urlSuccess
                 });
             } catch (err) {
-                console.error('❌ 初始化出错：', err);
+                console.error('❌ 收藏页初始化出错：', err);
             }
         })();
 
-        // 返回首页按钮点击函数
         function goToHome() {
             try {
-                // 1. 从localStorage读取参数（加默认值，避免undefined，改为userName）
                 let token = localStorage.getItem('token') || '';
                 let user_id = localStorage.getItem('user_id') || '';
-                let userName = localStorage.getItem('userName') || ''; // 改为userName
+                let userName = localStorage.getItem('userName') || '';
 
-                console.log('📌 跳转前读取的参数：', { token, user_id, userName }); // 改为userName
-
-                // 2. 如果localStorage为空，从URL恢复（兼容参数名，优先读userName）
                 if (!token) {
                     const urlParams = new URLSearchParams(window.location.search);
                     token = urlParams.get('token') || '';
                     user_id = urlParams.get('user_id') || urlParams.get('userId') || '';
-                    userName = urlParams.get('userName') || urlParams.get('username') || ''; // 兼容原小写，改为userName
+                    userName = urlParams.get('userName') || urlParams.get('username') || '';
 
-                    // 恢复后存回localStorage（统一存为userName）
                     if (token) localStorage.setItem('token', token);
                     if (user_id) localStorage.setItem('user_id', user_id);
-                    if (userName) localStorage.setItem('userName', userName); // 改为userName
-
-                    console.log('📌 从URL恢复参数：', { token, user_id, userName }); // 改为userName
+                    if (userName) localStorage.setItem('userName', userName);
                 }
 
-                // 3. 校验token（为空才跳登录，避免无意义跳转）
                 if (!token) {
                     alert('登录信息已失效，请重新登录');
                     window.location.href = '/music/login.html';
                     return;
                 }
 
-                // 4. 拼接URL（确保参数不为空，避免URL格式错误，参数名改为userName）
                 const params = new URLSearchParams();
                 if (token) params.append('token', token);
-                if (user_id) params.append('userId', user_id); // 统一用userId，和首页保持一致
-                if (userName) params.append('userName', userName); // 改为userName
+                if (user_id) params.append('userId', user_id);
+                if (userName) params.append('userName', userName);
 
                 const targetUrl = `/music/index.html?${params.toString()}`;
-                console.log('📌 最终跳转URL：', targetUrl);
-
-                // 5. 执行跳转（强制跳转，避免被其他逻辑拦截）
                 window.location.href = targetUrl;
 
             } catch (err) {
-                // 捕获所有错误，打印出来，避免按钮无响应
                 console.error('❌ 跳转首页出错：', err);
                 alert('跳转失败，请刷新页面重试！');
             }
         }
 
-        // 修复后的返回主页函数
+        // 关键修复3：重写goToPu函数，解决参数编码和优先级问题
         function goToPu() {
             try {
-                // 1. 双来源读取参数：优先URL，其次localStorage（确保不丢）
+                // 强制重新读取最新参数（不从localStorage取，避免脏数据）
                 const urlParams = new URLSearchParams(window.location.search);
                 const token = urlParams.get('token') || localStorage.getItem('token') || '';
                 const userId = urlParams.get('userId') || urlParams.get('user_id') || localStorage.getItem('user_id') || '';
-                const category = urlParams.get('category') || localStorage.getItem('category') || ''; // 读取category
-                const success = urlParams.get('success') || localStorage.getItem('success') || '';   // 读取success
+                // 仅携带核心参数，不携带收藏页的分页参数
+                const category = localStorage.getItem('category') || '';
+                const success = localStorage.getItem('success') || '';
 
-                console.log('📌 跳转前参数：', { token, userId, category, success });
+                console.log('📌 收藏页跳转publish参数：', { token, userId, category, success });
 
-                // 2. 校验核心参数，缺失则提示
+                // 严格校验
                 if (!token || !userId) {
-                    alert('登录信息失效，请重新登录');
-                    window.location.href = '/music/login.html';
+                    showErrorTip('登录信息失效，请重新登录'); // 改用统一提示框
+                    setTimeout(() => window.location.href = '/music/login.html', 1500);
                     return;
                 }
 
-                // 3. 拼接URL：和你正常主页路径一致，包含所有参数
+                // 关键修复4：参数做URL编码，避免特殊字符导致跳转失败
                 const params = new URLSearchParams();
-                params.append('token', token);        // 必带
-                params.append('userId', userId);      // 必带
-                if (category) params.append('category', category); // 携带category
-                if (success) params.append('success', success);    // 携带success
+                params.append('token', encodeURIComponent(token));
+                params.append('userId', encodeURIComponent(userId));
+                if (category) params.append('category', encodeURIComponent(category));
+                if (success) params.append('success', encodeURIComponent(success));
 
-                // 替换成你实际的主页路径（和截图里的publish路径一致）
+                // 确保跳转路径和个人榜单页完全一致
                 const targetUrl = `/music/api/rank/publish?${params.toString()}`;
-                console.log('📌 最终跳转URL：', targetUrl);
+                console.log('📌 收藏页最终跳转URL：', targetUrl);
 
-                // 4. 强制跳转（确保执行）
-                window.location.href = targetUrl;
+                // 强制跳转（用replace避免历史记录问题）
+                window.location.replace(targetUrl);
 
             } catch (err) {
-                console.error('❌ 跳转出错：', err);
-                alert('跳转失败，请刷新重试！');
+                console.error('❌ 收藏页跳转publish出错：', err);
+                showErrorTip('跳转失败：' + err.message); // 改用统一提示框
             }
         }
 
-        // 编辑榜单
-        function editRanking(id) {
-            const token = localStorage.getItem('token');
-            // 把 id 放到路径里，token 放到查询参数里
-            const targetUrl = `/music/api/mine/edit/${id}?token=${encodeURIComponent(token)}`;
-            window.location.href = targetUrl;
-        }
-
-        // 跳转到我的收藏页面
-        function goToMyLove() {
-            const token = localStorage.getItem('token') || getUrlParam('token');
-            const userId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
-
-            if (token) {
-                let url = `/music/api/mine/lv?token=${encodeURIComponent(token)}`;
-                if (userId) {
-                    url += `&userId=${encodeURIComponent(userId)}`;
-                }
-                // 添加默认的分页参数
-                url += '&pageNum=1&pageSize=10';
-                window.location.href = url;
-            } else {
-                showErrorTip('登录信息失效，请重新登录！'); // 改用统一的提示框
-                window.location.href = '/music/login.html';
-            }
-        }
-
-        // 删除榜单
-        function deleteRanking(rankId) {
-            if (!confirm('确定要删除这个榜单吗？删除后无法恢复！')) {
-                return;
-            }
-
-            const token = localStorage.getItem('token') || getUrlParam('token');
-            if (!token) {
-                showErrorTip('登录信息失效，请重新登录'); // 改用统一的提示框
-                window.location.href = '/music/login.html';
-                return;
-            }
-
-            // 构建请求URL，和你的Controller路径对应
-            const deleteUrl = `/music/api/mine/deleterank?token=${encodeURIComponent(token)}&rankId=${rankId}`;
-
-            fetch(deleteUrl, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('删除请求失败');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.code === 200 || data.success) {
-                        showSuccessTip('榜单删除成功！'); // 改用统一的提示框
-                        // 删除成功后刷新页面，更新榜单列表
-                        location.reload();
-                    } else {
-                        showErrorTip(data.msg || '删除失败，请重试'); // 改用统一的提示框
-                    }
-                })
-                .catch(error => {
-                    console.error('删除请求异常：', error);
-                    showErrorTip('网络错误，请稍后重试'); // 改用统一的提示框
-                });
-        }
-
-        // 分页导航
         function goToPage(page) {
             const currentToken = localStorage.getItem('token') || getUrlParam('token');
             const currentUserId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
-            window.location.href = `/music/api/mine/myrank?pageNum=${page}&token=${encodeURIComponent(currentToken)}&userId=${encodeURIComponent(currentUserId)}`;
+            window.location.href = `/music/api/mine/mylove?pageNum=${page}&token=${encodeURIComponent(currentToken)}&userId=${encodeURIComponent(currentUserId)}`;
         }
 
-        // ===================== 事件委托绑定（核心修复）=====================
+        // ===================== 事件委托绑定（修复事件优先级）=====================
         document.addEventListener('DOMContentLoaded', function() {
             // 初始化播放器
             initMusicPlayer();
 
-            // 1. 侧边栏按钮绑定
-            document.getElementById('btn-goToPu').addEventListener('click', goToPu);
+            // 1. 侧边栏按钮绑定（优先绑定，确保点击触发）
+            const goToPuBtn = document.getElementById('btn-goToPu');
+            if (goToPuBtn) {
+                goToPuBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    goToPu(); // 直接调用，避免事件委托失效
+                });
+            } else {
+                console.error('❌ 未找到返回主页按钮');
+            }
+
             document.getElementById('btn-reLogin').addEventListener('click', function() {
                 window.location.href='/music/login.html';
             });
             document.getElementById('btn-goToHome').addEventListener('click', goToHome);
-            document.getElementById('btn-goToMyLove').addEventListener('click', goToMyLove);
 
-            // 2. 播放按钮绑定（事件委托）
+            // 2. 播放按钮绑定（移除捕获阶段，改为冒泡阶段）
             document.addEventListener('click', function(e) {
                 const playBtn = e.target.closest('.play-btn');
                 if (playBtn) {
                     e.preventDefault();
                     e.stopPropagation();
+                    console.log('播放按钮点击，歌曲ID：', playBtn.dataset.songId);
                     playSongFromData(playBtn);
                 }
-            });
+            }); // 移除true，改为冒泡阶段
 
-            // 3. 编辑按钮绑定（事件委托）
-            document.addEventListener('click', function(e) {
-                const editBtn = e.target.closest('.edit-btn');
-                if (editBtn) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const rankId = editBtn.dataset.rankId;
-                    editRanking(rankId);
-                }
-            });
-
-            // 4. 删除按钮绑定（事件委托）
-            document.addEventListener('click', function(e) {
-                const deleteBtn = e.target.closest('.delete-btn');
-                if (deleteBtn) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const rankId = deleteBtn.dataset.rankId;
-                    deleteRanking(rankId);
-                }
-            });
-
-            // 7. 评论切换按钮绑定（事件委托）
+            // 3. 评论相关按钮绑定（保持不变）
             document.addEventListener('click', function(e) {
                 const commentToggle = e.target.closest('.comment-toggle');
                 if (commentToggle) {
@@ -1324,7 +1102,6 @@
                 }
             });
 
-            // 8. 评论提交按钮绑定（事件委托）
             document.addEventListener('click', function(e) {
                 const commentSubmit = e.target.closest('.comment-submit');
                 if (commentSubmit) {
@@ -1335,7 +1112,6 @@
                 }
             });
 
-            // 9. 评论删除按钮绑定（事件委托）
             document.addEventListener('click', function(e) {
                 const commentDelete = e.target.closest('.comment-delete-btn');
                 if (commentDelete) {
@@ -1346,7 +1122,7 @@
                 }
             });
 
-            // 10. 分页按钮绑定（事件委托）
+            // 4. 分页按钮绑定（保持不变）
             document.addEventListener('click', function(e) {
                 const pageBtn = e.target.closest('.pagination button');
                 if (pageBtn && !pageBtn.disabled) {
