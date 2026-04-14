@@ -7,7 +7,7 @@ server:
     max-http-form-post-size: 100MB
 
 debug: true
-
+# 数据库连接配置（MySQL8.0，5.7仅需改驱动类）
 spring:
   thymeleaf:
     prefix: classpath:/templates/
@@ -17,11 +17,11 @@ spring:
     mode: HTML
 
   datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver  # MySQL8.0驱动（5.7用com.mysql.jdbc.Driver）
+    driver-class-name: com.mysql.cj.jdbc.Driver # MySQL8.0驱动（5.7用com.mysql.jdbc.Driver）
     url: jdbc:mysql://localhost:3306/music_db?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
     username: root  # 你的MySQL账号（默认root）
     # 解释：localhost=本地数据库，3306=MySQL默认端口，music_db=你的数据库名（需自己在MySQL中建）
-    password: 280939  # 你的MySQL密码
+    password: "123456"  # 你的MySQL密码
 
 
 
@@ -32,14 +32,14 @@ spring:
       max-file-size: 100MB
       max-request-size: 100MB
 
-redis:
-  host: 172.17.211.108
-  port: 63790
-  lettuce:
-    pool:
-      max-active: 8
-      max-idle: 8
-      min-idle: 0
+  redis:
+    host: 172.17.211.108
+    port: 63790
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
 
 # MyBatis
 mybatis:
