@@ -1021,7 +1021,7 @@
                 container.appendChild(commentItem);
             });
         }
-
+        // 发表评论 - 最终修复版（强制所有参数拼在URL里）
         function submitComment(rankId) {
             console.log('提交评论,rankId:', rankId);
             const input = document.getElementById(`comment-input-${rankId}`);
@@ -1041,16 +1041,13 @@
                 return;
             }
 
-            axios.post(`/music/api/rank/pubcomment`, {
-                rankId: rankId,
-                userId: userId,
-                content: content,
-                parentId: null
-            }, {
-                params: { token: token }
-            })
+            // ✅ 核心修复：手动把所有参数拼在URL后面，100%确保后端能收到
+            const url = `/music/api/rank/pubcomment?token=${encodeURIComponent(token)}&rankId=${rankId}&userId=${userId}&content=${encodeURIComponent(content)}&parentId=null`;
+
+            // 用POST请求，第二个参数传null（空请求体）
+            axios.post(url, null)
                 .then(response => {
-                    console.log('提交评论成功:', response.data);
+                    console.log('提交评论响应:', response.data);
                     if (response.data.code === 200 || response.data.success) {
                         showSuccessTip("评论发表成功！");
                         input.value = '';
@@ -1064,7 +1061,6 @@
                     showErrorTip("评论发表失败：" + (error.response?.data?.msg || error.message));
                 });
         }
-
         function deleteComment(commentId) {
             console.log('删除评论，commentId:', commentId);
 

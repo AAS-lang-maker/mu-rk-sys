@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>歌曲管理</title>
+    <script src="./js/axios.min.js"></script>
+    <script src="./js/request.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: #0f172a;
+            background-image:
+                    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            color: #f1f5f9;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* 侧边栏样式 */
+        .sidebar {
+            width: 260px;
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            padding: 30px 20px;
+            position: fixed;
+            height: 100vh;
+        }
+
+        .sidebar-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #fffa9c;
+            margin-bottom: 50px;
+            text-align: center;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+        }
+
+        .menu-item {
+            padding: 15px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            color: rgba(241, 245, 249, 0.7);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #f1f5f9;
+        }
+
+        .menu-item.active {
+            background: #fffa9c;
+            color: #1a202c;
+        }
+
+        /* 主体内容样式 */
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            padding: 40px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #fffa9c;
+        }
+
+        .refresh-btn {
+            padding: 12px 24px;
+            background: #fffa9c;
+            color: #1a202c;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(255, 250, 156, 0.2);
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(255, 250, 156, 0.3);
+        }
+
+        /* 表格样式 */
+        .table-container {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            overflow: hidden;
+            backdrop-filter: blur(5px);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            background: rgba(15, 23, 42, 0.5);
+            padding: 18px 20px;
+            color: rgba(241, 245, 249, 0.6);
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        td {
+            padding: 18px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 15px;
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* 按钮样式 */
+        .upload-btn {
+            padding: 8px 16px;
+            background: #fffa9c;
+            color: #1a202c;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .upload-btn:hover {
+            background: #fff780;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 250, 156, 0.4);
+        }
+
+        .upload-btn:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* 文件上传样式 */
+        .file-input {
+            display: none;
+        }
+
+        .upload-progress {
+            margin-top: 10px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .upload-progress-bar {
+            height: 100%;
+            background: #fffa9c;
+            border-radius: 2px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        /* 提示框样式 */
+        .alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            z-index: 100;
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .alert-success {
+            background: #059669;
+            color: white;
+        }
+
+        .alert-error {
+            background: #dc2626;
+            color: white;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* 暂无内容样式 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(241, 245, 249, 0.4);
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        /* 加载状态样式 */
+        .loading-state {
+            text-align: center;
+            padding: 30px 20px;
+            color: rgba(241, 245, 249, 0.6);
+            font-size: 14px;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fffa9c;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* 加载完成样式 */
+        .end-state {
+            text-align: center;
+            padding: 30px 20px;
+            color: rgba(241, 245, 249, 0.4);
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+<div class="sidebar">
+    <div class="sidebar-title">管理后台</div>
+    <ul class="sidebar-menu">
+        <li class="menu-item" onclick="goToCommentManage()">
+            <span>评论审核</span>
+        </li>
+        <li class="menu-item active">
+            <span>歌曲管理</span>
+        </li>
+    </ul>
+</div>
+
+<div class="main-content">
+    <div class="header">
+        <h1 class="page-title">用户申请歌曲管理</h1>
+        <button class="refresh-btn" onclick="refreshSongs()">刷新列表</button>
+    </div>
+
+    <div class="table-container">
+        <table id="songTable">
+            <thead>
+            <tr>
+                <th style="width: 80px;">序号</th>
+                <th>歌曲名称</th>
+                <th>歌手名称</th>
+                <th style="width: 180px;">操作</th>
+            </tr>
+            </thead>
+            <tbody id="songList">
+            </tbody>
+        </table>
+        <div id="emptyState" class="empty-state" style="display: none;">
+            <div class="empty-icon">🎵</div>
+            <p>暂无用户申请的歌曲</p>
+        </div>
+        <div id="loadingState" class="loading-state" style="display: none;">
+            <span class="loading-spinner"></span>
+            <span>加载中...</span>
+        </div>
+        <div id="endState" class="end-state" style="display: none;">
+            已加载全部歌曲
+        </div>
+    </div>
+</div>
+
+<div id="alert" class="alert"></div>
+
+<script>
+    function getUrlParam(name) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(name);
+    }
+
+    const token = getUrlParam('token') || localStorage.getItem('token');
+    const role = 1;
+
+    let songs = [];
+    let isLoading = false;
+    let isEnd = false;
+    let currentPage = 1;
+    const pageSize = 10;
+
+    async function loadSongs(isRefresh = false) {
+        if (!token) {
+            showAlert('请先登录', 'error');
+            setTimeout(() => window.location.href = 'login.html', 1500);
+            return;
+        }
+
+        if (isLoading || (isEnd && !isRefresh)) return;
+
+        try {
+            isLoading = true;
+            document.getElementById('loadingState').style.display = 'block';
+            document.getElementById('endState').style.display = 'none';
+
+            const response = await request.get('/admins/selectsong', {
+                params: { token, role }
+            });
+
+            const newSongs = response || [];
+
+            if (isRefresh) {
+                songs = newSongs;
+                currentPage = 1;
+                isEnd = false;
+            } else {
+                const start = (currentPage - 1) * pageSize;
+                const end = start + pageSize;
+                const paginatedSongs = newSongs.slice(start, end);
+                songs = [...songs, ...paginatedSongs];
+                if (paginatedSongs.length < pageSize) isEnd = true;
+            }
+
+            renderTable();
+            currentPage++;
+
+        } catch (error) {
+            console.error('加载失败:', error);
+            showAlert('加载失败，请重试', 'error');
+            if (isRefresh) songs = [];
+        } finally {
+            isLoading = false;
+            document.getElementById('loadingState').style.display = 'none';
+            if (isEnd) document.getElementById('endState').style.display = 'block';
+        }
+    }
+
+    function refreshSongs() {
+        loadSongs(true);
+    }
+
+    function renderTable() {
+        const tbody = document.getElementById('songList');
+        const emptyState = document.getElementById('emptyState');
+        tbody.innerHTML = '';
+
+        if (songs.length === 0) {
+            emptyState.style.display = 'block';
+            return;
+        }
+
+        emptyState.style.display = 'none';
+        songs.forEach((item, index) => {
+            const tr = document.createElement('tr');
+            const sequenceNum = (currentPage - 1) * pageSize + index + 1;
+
+            tr.innerHTML = `
+                <td>${sequenceNum}</td>
+                <td>${item.songName || '-'}</td>
+                <td>${item.singerName || '-'}</td>
+                <td>
+                    <button class="upload-btn" onclick="document.getElementById('file-${item.songId}').click()">上传歌曲文件</button>
+                    <input type="file" id="file-${item.songId}" class="file-input" onchange="handleFileUpload(this, ${item.songId})">
+                    <div class="upload-progress" id="progress-${item.songId}">
+                        <div class="upload-progress-bar" id="progress-bar-${item.songId}"></div>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    async function handleFileUpload(input, songId) {
+        const file = input.files[0];
+        if (!file) return;
+
+        const progressDiv = document.getElementById(`progress-${songId}`);
+        const progressBar = document.getElementById(`progress-bar-${songId}`);
+        const uploadBtn = input.previousElementSibling;
+
+        progressDiv.style.display = 'block';
+        uploadBtn.disabled = true;
+        uploadBtn.textContent = '上传中...';
+
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('token', token);
+            formData.append('role', role);
+
+            const response = await request.post('/admins/upload', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+                onUploadProgress: (e) => {
+                    const percent = Math.round((e.loaded / e.total) * 100);
+                    progressBar.style.width = percent + '%';
+                }
+            });
+
+            const data = response || response.data;
+            if (data.code === 200 || data.success) {
+                showAlert('上传成功', 'success');
+            } else {
+                showAlert(data.msg || '上传失败', 'error');
+            }
+        } catch (error) {
+            console.error('上传失败:', error);
+            showAlert('上传失败', 'error');
+        } finally {
+            setTimeout(() => {
+                progressDiv.style.display = 'none';
+                progressBar.style.width = '0%';
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = '上传歌曲文件';
+                input.value = '';
+            }, 1500);
+        }
+    }
+
+    function handleScroll() {
+        if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100 && !isLoading && !isEnd) {
+            loadSongs();
+        }
+    }
+
+    function showAlert(msg, type) {
+        const alert = document.getElementById('alert');
+        alert.innerText = msg;
+        alert.className = `alert alert-${type}`;
+        alert.style.display = 'block';
+        setTimeout(() => alert.style.display = 'none', 3000);
+    }
+
+    window.onload = function () {
+        loadSongs(true);
+        window.addEventListener('scroll', handleScroll);
+    };
+
+    function goToCommentManage() {
+        window.location.href = `admincomment.html?token=${encodeURIComponent(token)}&role=${role}`;
+    }
+</script>
+</body>
+
+</html>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 核心：namespace必须等于UserMapper接口的全限定类名（包名+接口名） -->
+<mapper namespace="com.music.Mapper.AdminSongMapper">
+    <select id="selectAllApply" resultMap="ApplySongVoResultMap">
+        select demand_id,demand_songname,demand_singername from song_demand where is_delete=0;
+    </select>
+    <resultMap id="ApplySongVoResultMap" type="com.music.dto.ApplySongVo">
+    <id property="demandId" column="demand_id"/>
+    <result property="songName" column="demand_songname"/>
+        <result property="singerName" column="demand_singername"/>
+    </resultMap>
+</mapper>
