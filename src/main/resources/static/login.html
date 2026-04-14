@@ -62,6 +62,7 @@
             top: 15%;
             left: 15%;
             box-shadow: 0 0 40px rgba(255, 107, 107, 0.5);
+            animation: rotate 30s linear infinite;
         }
         .planet-1::before {
             content: '';
@@ -81,6 +82,7 @@
             bottom: 20%;
             right: 20%;
             box-shadow: 0 0 30px rgba(78, 205, 196, 0.5);
+            animation: rotate 40s linear infinite reverse;
         }
         .planet-2::before {
             content: '';
@@ -92,6 +94,15 @@
             top: 50%;
             left: -25px;
             transform: translateY(-50%);
+        }
+        /* 行星旋转动画 */
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
         }
         .astronaut {
             position: absolute;

@@ -1,0 +1,29 @@
+@font-face {
+  font-family: "iconfont"; /* Project id  */
+  src: url('iconfont.ttf?t=1776168641063') format('truetype');
+}
+
+.iconfont {
+  font-family: "iconfont" !important;
+  font-size: 30px;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-bofangkongjian-bofang:before {
+  content: "\e6b0";
+}
+
+.icon-a-368793441:before {
+  content: "\e605";
+}
+
+.icon-a-368793440:before {
+  content: "\e606";
+}
+
+.icon-a-368793439:before {
+  content: "\e607";
+}
+

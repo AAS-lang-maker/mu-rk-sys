@@ -19,80 +19,159 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             min-height: 100vh;
-            color: #f7fafc;
-            padding: 20px;
+            color: #1a202c;
+            padding: 0;
             background:
-                    linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-                    linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-                    #0f172a;
+                linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                #1a365d;
             background-size: 50px 50px, 50px 50px, 100% 100%;
             background-attachment: fixed;
             position: relative;
-            overflow-x: hidden;
         }
 
-        .sidebar {
-            position: fixed;
-            left: 0px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 160px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 0 12px 12px 0;
+        .page-wrapper {
+            display: flex;
+            min-height: 100vh;
+            gap: 20px;
             padding: 20px;
-            transition: all 0.3s ease;
-            z-index: 100;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            /* 修复：添加pointer-events确保按钮可点击 */
-            pointer-events: auto;
-        }
-        .sidebar.collapsed{
-            left: -120px;
-        }
-        .sidebar:hover {
-            left: 0;
+            padding-bottom: 120px;
         }
 
-        .sidebar-btn {
-            background-color: #fffa9c;
-            color: #1a202c;
-            border: none;
+        .left-sidebar {
+            width: 100px;
+            background: #fff9c4;
+            border-radius: 16px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .nav-toggle-btn {
+            width: 40px;
+            height: 40px;
+            background: transparent;
+            border: 2px solid #1a365d;
             border-radius: 8px;
-            padding: 10px 15px;
-            font-size: 14px;
-            font-weight: bold;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
             transition: all 0.3s ease;
-            width: 100%;
-            margin-bottom: 10px;
-            /* 修复：按钮添加cursor和pointer-events */
+        }
+
+        .nav-toggle-btn:hover {
+            background: #1a365d;
+        }
+
+        .nav-toggle-btn:hover svg rect {
+            fill: #fff9c4;
+        }
+
+        .nav-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            flex: 1;
+        }
+
+        .nav-circle-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #fff9c4;
+            border: 2px solid #1a365d;
             cursor: pointer;
-            pointer-events: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            transition: all 0.3s ease;
+            padding: 5px;
         }
 
-        .sidebar-btn:hover {
-            background-color: #fff780;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(255, 250, 156, 0.4);
+        .nav-circle-btn:hover {
+            background: #1a365d;
+            transform: scale(1.05);
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 40px;
-            /* 修复：添加z-index和pointer-events */
-            position: relative;
-            z-index: 1;
-            pointer-events: auto;
+        .nav-circle-btn.active {
+            background: #1a365d;
+        }
+
+        .nav-icon {
+            font-size: 18px;
+        }
+
+        .nav-text {
+            font-size: 10px;
+            color: #1a365d;
+            font-weight: bold;
+        }
+
+        .nav-circle-btn:hover .nav-text,
+        .nav-circle-btn.active .nav-text {
+            color: #fff9c4;
+        }
+
+        /* 发布按钮的特殊样式 */
+        .nav-add-btn {
+            background: linear-gradient(135deg, #fffa9c, #fff176);
+            border-color: #f57f17;
+        }
+
+        .nav-add-btn:hover {
+            background: linear-gradient(135deg, #fff176, #ffee58);
+            transform: scale(1.1) rotate(90deg);
+        }
+
+        /* 导航栏底部虚线分隔 */
+        .sidebar-divider {
+            margin-top: 5px;
+            border-top: 2px dashed #1a365d;
+        }
+
+        .left-sidebar.collapsed {
+            width: 60px !important;
+        }
+
+        .left-sidebar.collapsed .nav-text {
+            display: none;
+        }
+
+        .left-sidebar.collapsed .nav-circle-btn {
+            width: 45px;
+            height: 45px;
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 0 15px;
+            overflow-y: auto;
+            height: calc(100vh - 40px);
+            flex: 1;
+            max-width: calc(100% - 120px);
+        }
+
+        .ranking-list-box {
+            background: linear-gradient(135deg, #fffa9c 0%, #fff9c4 100%);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 2px solid rgba(26, 54, 93, 0.15);
+            flex-shrink: 0;
         }
 
         .header {
             display: flex;
             align-items: center;
-            margin-bottom: 40px;
+            margin-bottom: 25px;
             padding-bottom: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 2px solid rgba(26, 54, 93, 0.15);
         }
 
         .user-info {
@@ -102,54 +181,47 @@
         }
 
         .avatar {
-            width: 80px;
-            height: 80px;
+            width: 70px;
+            height: 70px;
             border-radius: 50%;
             margin-right: 20px;
             object-fit: cover;
-            border: 3px solid #fffa9c;
-            box-shadow: 0 4px 12px rgba(255, 250, 156, 0.3);
+            border: 3px solid #1a365d;
+            box-shadow: 0 4px 12px rgba(26, 54, 93, 0.2);
             transition: all 0.3s ease;
         }
 
         .avatar:hover {
             transform: scale(1.1);
-            box-shadow: 0 6px 20px rgba(255, 250, 156, 0.5);
+            box-shadow: 0 6px 20px rgba(26, 54, 93, 0.35);
         }
 
         .user-details h2 {
-            font-size: 24px;
-            color: #fffa9c;
+            font-size: 22px;
+            color: #1a365d;
             margin-bottom: 5px;
         }
 
         .user-details p {
             font-size: 14px;
-            color: rgba(247, 250, 252, 0.7);
+            color: rgba(26, 54, 93, 0.7);
         }
 
         .rankings-container {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 12px;
-            padding: 30px;
-            margin-bottom: 40px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            background: transparent;
+            border-radius: 0;
+            padding: 0;
+            margin-bottom: 0;
+            box-shadow: none;
             transition: all 0.3s ease;
-            /* 修复：添加z-index和pointer-events */
             position: relative;
             z-index: 1;
             pointer-events: auto;
         }
 
-        .rankings-container:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
-        }
-
         .ranking-item {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 12px;
             padding: 20px;
             margin-bottom: 15px;
             transition: all 0.3s ease;
@@ -157,8 +229,8 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            /* 修复：添加pointer-events */
             pointer-events: auto;
+            border: 1px solid rgba(26, 54, 93, 0.1);
         }
 
         .ranking-content {
@@ -166,42 +238,41 @@
         }
 
         .edit-btn {
-            background-color: #fffa9c;
-            color: #1a202c;
+            background-color: #1a365d;
+            color: #fffa9c;
             border: none;
-            border-radius: 6px;
-            padding: 6px 12px;
+            border-radius: 8px;
+            padding: 6px 14px;
             font-size: 12px;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin-left: 20px;
+            margin-left: 15px;
             align-self: flex-start;
-            /* 修复：按钮添加cursor和pointer-events */
-            cursor: pointer;
             pointer-events: auto;
         }
 
         .edit-btn:hover {
-            background-color: #fff780;
+            background-color: #2d3748;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(255, 250, 156, 0.4);
+            box-shadow: 0 4px 12px rgba(26, 54, 93, 0.3);
         }
 
         .ranking-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateX(10px);
-            border-left-color: #fffa9c;
+            background: rgba(255, 255, 255, 0.85);
+            transform: translateX(5px);
+            border-left-color: #1a365d;
+            box-shadow: 0 4px 15px rgba(26, 54, 93, 0.12);
         }
 
         .ranking-item h3 {
-            color: #fffa9c;
+            color: #1a365d;
             font-size: 18px;
             margin-bottom: 10px;
         }
 
         .ranking-item p {
-            color: rgba(247, 250, 252, 0.7);
+            color: rgba(26, 54, 93, 0.7);
             font-size: 14px;
             line-height: 1.5;
         }
@@ -210,34 +281,31 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-top: 40px;
-            /* 修复：添加pointer-events */
+            margin-top: 30px;
             pointer-events: auto;
         }
 
         .pagination button {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 250, 156, 0.3);
-            color: #f7fafc;
-            border-radius: 6px;
+            background: #ffffff;
+            border: 1px solid rgba(26, 54, 93, 0.3);
+            color: #1a365d;
+            border-radius: 8px;
             padding: 8px 16px;
             margin: 0 5px;
             cursor: pointer;
             transition: all 0.3s ease;
-            /* 修复：按钮添加cursor和pointer-events */
-            cursor: pointer;
             pointer-events: auto;
         }
 
         .pagination button:hover:not(:disabled) {
-            background-color: #fffa9c;
-            color: #1a202c;
+            background-color: #1a365d;
+            color: #fffa9c;
             transform: translateY(-2px);
         }
 
         .pagination button.active {
-            background-color: #fffa9c;
-            color: #1a202c;
+            background-color: #1a365d;
+            color: #fffa9c;
             font-weight: bold;
         }
 
@@ -246,9 +314,43 @@
             cursor: not-allowed;
         }
 
-        @media (max-width: 768px) {
-            .container {
+        @media (max-width: 1024px) {
+            .left-sidebar {
+                width: 70px;
+            }
+
+            .main-content {
+                gap: 15px;
+                padding: 20px 15px;
+                height: calc(100vh - 30px);
+                max-width: calc(100% - 90px);
+            }
+
+            .ranking-list-box {
                 padding: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .page-wrapper {
+                flex-direction: column;
+            }
+
+            .left-sidebar {
+                display: none;
+            }
+
+            .main-content {
+                gap: 12px;
+                padding: 15px;
+                height: auto;
+                min-height: calc(100vh - 30px);
+                max-width: 100%;
+            }
+
+            .ranking-list-box {
+                padding: 15px;
+                border-radius: 12px;
             }
 
             .header {
@@ -257,28 +359,23 @@
             }
 
             .user-info {
-                margin-bottom: 20px;
+                margin-bottom: 15px;
             }
 
             .avatar {
-                width: 60px;
-                height: 60px;
-            }
-
-            .rankings-container {
-                padding: 20px;
+                width: 55px;
+                height: 55px;
             }
         }
 
         .song-list {
             margin-top: 15px;
             padding-left: 0;
-            /* 修复：添加pointer-events */
             pointer-events: auto;
         }
 
         .song-list h4 {
-            color: #fffa9c;
+            color: #1a365d;
             font-size: 16px;
             margin-bottom: 12px;
             font-weight: 500;
@@ -287,20 +384,19 @@
         .song-list ul {
             list-style: none;
             padding: 0;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 6px;
+            background: rgba(26, 54, 93, 0.05);
+            border-radius: 10px;
             padding: 10px;
         }
 
         .song-list li {
             margin: 8px 0;
             padding: 10px 15px;
-            border-bottom: 1px solid rgba(255, 250, 156, 0.1);
+            border-bottom: 1px solid rgba(26, 54, 93, 0.12);
             display: flex;
             justify-content: space-between;
             align-items: center;
             transition: all 0.2s ease;
-            /* 修复：添加pointer-events */
             pointer-events: auto;
         }
 
@@ -309,39 +405,40 @@
         }
 
         .song-list li:hover {
-            background: rgba(255, 250, 156, 0.05);
+            background: rgba(26, 54, 93, 0.06);
         }
-        .song-info{
+
+        .song-info {
             display: flex;
             align-items: center;
             gap: 15px;
-            flex: 1; /* 新增：让歌曲信息占满剩余空间 */
+            flex: 1;
         }
+
         .song-name {
-            color: #f7fafc;
+            color: #1a365d;
             font-size: 15px;
         }
-        .singer-name{
-            color: #d1d5db;
-            font-size: 15px;
+
+        .singer-name {
+            color: rgba(26, 54, 93, 0.65);
+            font-size: 14px;
         }
 
         .song-rank {
-            color: #fffa9c;
+            color: #1a365d;
             font-size: 15px;
             font-weight: 600;
             padding: 4px 10px;
-            background: rgba(255, 250, 156, 0.1);
-            border-radius: 4px;
-            /* 新增：调整排名样式，和播放按钮对齐 */
+            background: rgba(26, 54, 93, 0.1);
+            border-radius: 6px;
             margin-right: 10px;
         }
 
-        /* 播放按钮样式（和主页保持一致） */
         .play-btn {
-            background: rgba(255, 250, 156, 0.2);
-            border: 1px solid #fffa9c;
-            color: #fffa9c;
+            background: rgba(26, 54, 93, 0.1);
+            border: 1px solid #1a365d;
+            color: #1a365d;
             border-radius: 50%;
             width: 30px;
             height: 30px;
@@ -352,25 +449,22 @@
             transition: all 0.3s ease;
             font-size: 12px;
             padding-left: 2px;
-            /* 修复：按钮添加cursor和pointer-events */
-            cursor: pointer;
             pointer-events: auto;
-            /* 修复：提高z-index避免被遮挡 */
             z-index: 2;
         }
+
         .play-btn:hover {
-            background: #fffa9c;
-            color: #1a202c;
+            background: #1a365d;
+            color: #fffa9c;
             transform: scale(1.1);
+            box-shadow: 0 0 8px rgba(26, 54, 93, 0.4);
         }
 
-        /* 新增：播放按钮和排名的容器样式 */
         .song-actions {
             display: flex;
             align-items: center;
         }
 
-        /* 提示框样式（复用主页） */
         #errorAlert {
             display: none;
             position: fixed;
@@ -397,48 +491,43 @@
             z-index: 9999;
         }
 
-        /* 播放器容器样式（和主页保持一致） */
         #music-player-container {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 300px;
-            z-index: 1000;
+            position: fixed !important;
+            bottom: 20px !important;
+            right: 20px !important;
+            width: 350px !important;
+            min-height: 90px !important;
+            z-index: 1001;
         }
 
-        /* 评论区样式（和主页保持一致） */
         .comment-section {
             margin-top: 20px;
-            border-top: 1px solid rgba(255, 250, 156, 0.1);
+            border-top: 1px solid rgba(26, 54, 93, 0.15);
             padding-top: 15px;
-            /* 修复：添加pointer-events */
             pointer-events: auto;
         }
 
         .comment-toggle {
-            background: rgba(255, 250, 156, 0.1);
-            border: 1px solid rgba(255, 250, 156, 0.3);
-            color: #fffa9c;
+            background: rgba(26, 54, 93, 0.1);
+            border: 1px solid rgba(26, 54, 93, 0.3);
+            color: #1a365d;
             border-radius: 20px;
             padding: 6px 16px;
             cursor: pointer;
             transition: all 0.3s ease;
             font-size: 14px;
             margin-bottom: 15px;
-            /* 修复：按钮添加cursor和pointer-events */
-            cursor: pointer;
             pointer-events: auto;
         }
 
         .comment-toggle:hover {
-            background: rgba(255, 250, 156, 0.2);
+            background: rgba(26, 54, 93, 0.2);
             transform: translateY(-2px);
         }
 
         .comment-container {
             display: none;
             animation: fadeIn 0.3s ease;
-            /* 修复：添加pointer-events */
             pointer-events: auto;
         }
 
@@ -451,6 +540,7 @@
                 opacity: 0;
                 transform: translateY(-10px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -464,22 +554,21 @@
         .comment-input {
             width: 100%;
             padding: 12px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 250, 156, 0.3);
-            border-radius: 8px;
-            color: #f7fafc;
+            background: rgba(26, 54, 93, 0.04);
+            border: 1px solid rgba(26, 54, 93, 0.25);
+            border-radius: 10px;
+            color: #1a365d;
             font-size: 14px;
             resize: vertical;
             min-height: 80px;
             transition: all 0.3s ease;
-            /* 修复：添加pointer-events */
             pointer-events: auto;
         }
 
         .comment-input:focus {
             outline: none;
-            border-color: #fffa9c;
-            box-shadow: 0 0 10px rgba(255, 250, 156, 0.3);
+            border-color: #1a365d;
+            box-shadow: 0 0 10px rgba(26, 54, 93, 0.2);
         }
 
         .comment-actions {
@@ -489,22 +578,20 @@
         }
 
         .comment-submit {
-            background: #fffa9c;
-            color: #1a202c;
+            background: #1a365d;
+            color: #fffa9c;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             padding: 8px 16px;
             cursor: pointer;
             transition: all 0.3s ease;
             font-size: 14px;
             font-weight: bold;
-            /* 修复：按钮添加cursor和pointer-events */
-            cursor: pointer;
             pointer-events: auto;
         }
 
         .comment-submit:hover {
-            background: #fff780;
+            background: #2d3748;
             transform: translateY(-2px);
         }
 
@@ -513,15 +600,16 @@
         }
 
         .comment-item {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 8px;
+            background: rgba(26, 54, 93, 0.04);
+            border-radius: 10px;
             padding: 15px;
             margin-bottom: 12px;
             transition: all 0.3s ease;
+            border: 1px solid rgba(26, 54, 93, 0.08);
         }
 
         .comment-item:hover {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(26, 54, 93, 0.07);
         }
 
         .comment-header {
@@ -532,18 +620,18 @@
         }
 
         .comment-username {
-            color: #fffa9c;
+            color: #1a365d;
             font-weight: bold;
             font-size: 14px;
         }
 
         .comment-time {
-            color: rgba(247, 250, 252, 0.5);
+            color: rgba(26, 54, 93, 0.5);
             font-size: 12px;
         }
 
         .comment-content {
-            color: #f7fafc;
+            color: #2d3748;
             font-size: 14px;
             line-height: 1.4;
             margin-bottom: 10px;
@@ -555,7 +643,6 @@
             gap: 15px;
         }
 
-        /* 评论删除按钮核心样式 */
         .comment-delete-btn {
             background: transparent;
             border: none;
@@ -570,8 +657,6 @@
             align-items: center;
             gap: 4px;
             transition: all 0.2s ease;
-            /* 修复：按钮添加cursor和pointer-events */
-            cursor: pointer;
             pointer-events: auto;
         }
 
@@ -591,34 +676,18 @@
             font-size: 12px;
         }
 
-        /* 右侧侧边栏样式 */
-        .sidebar-right {
-            position: fixed;
-            right: 0px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 160px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 12px 0 0 12px;
-            padding: 20px;
-            transition: all 0.3s ease;
-            z-index: 100;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            /* 修复：添加pointer-events确保按钮可点击 */
-            pointer-events: auto;
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: rgba(26, 54, 93, 0.5);
+            font-size: 16px;
         }
-        .sidebar-right.collapsed{
-            right: -120px;
-        }
-        .sidebar-right:hover {
-            right: 0;
-        }
-        .delete-btn{
+
+        .delete-btn {
             background: #f68d8d;
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             padding: 6px 12px;
             font-size: 12px;
             font-weight: bold;
@@ -626,140 +695,171 @@
             transition: all 0.3s ease;
             margin-left: 10px;
             align-self: flex-start;
-            /* 修复：按钮添加cursor和pointer-events */
-            cursor: pointer;
             pointer-events: auto;
         }
+
         .delete-btn:hover {
-            background-color: #d87474;
+            background-color: #ef6c6c;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(241, 166, 166, 0.99);
+            box-shadow: 0 4px 12px rgba(246, 141, 141, 0.5);
         }
     </style>
     <script th:src="@{/player/music-player.js}"></script>
 </head>
 
 <body>
-<!-- 新增提示框（和主页一致） -->
-<div id="errorAlert"></div>
-<div id="successAlert"></div>
+    <div id="errorAlert"></div>
+    <div id="successAlert"></div>
 
-<!-- 播放器容器（和主页一致） -->
-<div id="music-player-container"></div>
-
-<div class="sidebar">
-    <button class="sidebar-btn" id="btn-goToPu">返回主页</button>
-    <button class="sidebar-btn" id="btn-reLogin">重新登录</button>
-    <button class="sidebar-btn" id="btn-goToHome">返回首页</button>
-</div>
-<!-- 右侧侧边栏 -->
-<div class="sidebar-right">
-    <button class="sidebar-btn" id="btn-goToMyLove">我的收藏</button>
-</div>
-
-<div class="container">
-    <div class="header">
-        <div class="user-info">
-            <img
-                    src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=user%20avatar%20profile%20picture%20friendly%20face&image_size=square"
-                    alt="用户头像" class="avatar">
-            <div class="user-details">
-                <h2 th:text="${username}">用户名</h2>
-                <p>个人榜单管理</p>
+    <div class="page-wrapper">
+        <!-- ========== 左侧导航栏 ========== -->
+        <div class="left-sidebar">
+            <div class="nav-toggle-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="3" width="7" height="7" rx="1" fill="#1a365d" />
+                    <rect x="14" y="3" width="7" height="7" rx="1" fill="#1a365d" />
+                    <rect x="3" y="14" width="7" height="7" rx="1" fill="#1a365d" />
+                    <rect x="14" y="14" width="7" height="7" rx="1" fill="#1a365d" />
+                </svg>
             </div>
+
+            <nav class="nav-buttons">
+                <button class="nav-circle-btn" id="navIndex" title="首页">
+                    <span class="nav-icon">🏠</span>
+                    <span class="nav-text">首页</span>
+                </button>
+                <button class="nav-circle-btn" id="navHome" title="主页">
+                    <span class="nav-icon">📝</span>
+                    <span class="nav-text">主页</span>
+                </button>
+                <button class="nav-circle-btn" id="navSearch" title="搜索">
+                    <span class="nav-icon">🔍</span>
+                    <span class="nav-text">搜索</span>
+                </button>
+                <button class="nav-circle-btn active" id="navMyRank" title="榜单">
+                    <span class="nav-icon">📋</span>
+                    <span class="nav-text">榜单</span>
+                </button>
+                <button class="nav-circle-btn" id="navHotRank" title="热门">
+                    <span class="nav-icon">🔥</span>
+                    <span class="nav-text">热门</span>
+                </button>
+                <button class="nav-circle-btn" id="navMyLove" title="收藏">
+                    <span class="nav-icon">❤️</span>
+                    <span class="nav-text">收藏</span>
+                </button>
+                <button class="nav-circle-btn" id="btn-reLogin" title="登录">
+                    <span class="nav-icon">🔑</span>
+                    <span class="nav-text">登录</span>
+                </button>
+                <button class="nav-circle-btn nav-add-btn" id="navAdd" title="发布">
+                    <span class="nav-icon">➕</span>
+                    <span class="nav-text">发布</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-divider"></div>
         </div>
-    </div>
 
-    <div class="rankings-container">
-        <div th:each="ranking, stat : ${personalRanks?.list}" class="ranking-item" th:data-rank-id="${ranking.rankId}">
-            <div class="ranking-content">
-                <!-- 榜单基本信息 -->
-                <h3 th:text="${ranking.rankName}">榜单标题</h3>
-                <p th:text="|更新于: ${ranking.publishTime}|">最后更新时间</p>
-
-                <!-- 榜单下的歌曲列表 -->
-                <div class="song-list">
-                    <h4>歌曲列表</h4>
-                    <ul>
-                        <li th:each="song : ${ranking.rankSongList}" th:data-song-id="${song.songId}">
-                            <div class="song-info">
-                                <span class="song-name" th:text="${song?.songName}">歌曲名称</span>
-                                <span class="singer-name" th:text="${song.singerName}">歌手名称</span>
-                            </div>
-                            <!-- 调整：将排名和播放按钮放在同一个容器中 -->
-                            <div class="song-actions">
-                                <span class="song-rank" th:text="${song?.ranking}">排名</span>
-                                <!-- 播放按钮：保持原有data属性，样式和主页一致 -->
-                                <button class="play-btn"
-                                        th:data-song-id="${song.songId}"
-                                        th:data-song-name="${song.songName}"
-                                        th:data-singer-name="${song.singerName}">
-                                    &#9658;
-                                </button>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- 评论区（新增，和主页一致） -->
-                <div class="comment-section">
-                    <button class="comment-toggle" th:data-rank-id="${ranking.rankId}">
-                        查看评论
-                    </button>
-                    <div class="comment-container" th:id="|comment-container-${ranking.rankId}|">
-                        <!-- 评论输入区 -->
-                        <div class="comment-input-area">
-                            <textarea class="comment-input" th:id="|comment-input-${ranking.rankId}|"
-                                      placeholder="写下你的评论..."></textarea>
-                            <div class="comment-actions">
-                                <button class="comment-submit" th:data-rank-id="${ranking.rankId}">
-                                    发表评论
-                                </button>
-                            </div>
-                        </div>
-                        <!-- 评论列表 -->
-                        <div class="comment-list" th:id="|comment-list-${ranking.rankId}|">
-                            <!-- 评论将通过JavaScript动态加载 -->
+        <!-- ========== 中间主内容区 ========== -->
+        <div class="main-content">
+            <div class="ranking-list-box">
+                <div class="header">
+                    <div class="user-info">
+                        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=user%20avatar%20profile%20picture%20friendly%20face&image_size=square"
+                            alt="用户头像" class="avatar">
+                        <div class="user-details">
+                            <h2 th:text="${username}">用户名</h2>
+                            <p th:text="${userName}">用户昵称</p>
+                            <p>个人榜单管理</p>
                         </div>
                     </div>
                 </div>
 
-                <button class="edit-btn" th:data-rank-id="${ranking.rankId}">编辑</button>
-                <!-- 新增删除按钮 -->
-                <button class="delete-btn" th:data-rank-id="${ranking.rankId}" style="background-color: #f68d8d; color: black;">
-                    删除
-                </button>
+                <div class="rankings-container">
+                    <div th:each="ranking, stat : ${personalRanks?.list}" class="ranking-item"
+                        th:data-rank-id="${ranking.rankId}">
+                        <div class="ranking-content">
+                            <h3 th:text="${ranking.rankName}">榜单标题</h3>
+                            <p th:text="|更新于: ${ranking.publishTime}|">最后更新时间</p>
+
+                            <div class="song-list">
+                                <h4>歌曲列表</h4>
+                                <ul>
+                                    <li th:each="song : ${ranking.rankSongList}" th:data-song-id="${song.songId}">
+                                        <div class="song-info">
+                                            <span class="song-name" th:text="${song?.songName}">歌曲名称</span>
+                                            <span class="singer-name" th:text="${song.singerName}">歌手名称</span>
+                                        </div>
+                                        <div class="song-actions">
+                                            <span class="song-rank" th:text="${song?.ranking}">排名</span>
+                                            <button class="play-btn" th:data-song-id="${song.songId}"
+                                                th:data-song-name="${song.songName}"
+                                                th:data-singer-name="${song.singerName}">
+                                                &#9658;
+                                            </button>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="comment-section">
+                                <button class="comment-toggle" th:data-rank-id="${ranking.rankId}">
+                                    查看评论
+                                </button>
+                                <div class="comment-container" th:id="|comment-container-${ranking.rankId}|">
+                                    <div class="comment-input-area">
+                                        <textarea class="comment-input" th:id="|comment-input-${ranking.rankId}|"
+                                            placeholder="写下你的评论..."></textarea>
+                                        <div class="comment-actions">
+                                            <button class="comment-submit" th:data-rank-id="${ranking.rankId}">
+                                                发表评论
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="comment-list" th:id="|comment-list-${ranking.rankId}|">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button class="edit-btn" th:data-rank-id="${ranking.rankId}">编辑</button>
+                            <button class="delete-btn" th:data-rank-id="${ranking.rankId}">
+                                删除
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="pagination" th:if="${personalRanks !=null}">
+                        <button th:disabled="${personalRanks.pageNum == 1}"
+                            th:data-page="${personalRanks.pageNum - 1}">上一页</button>
+
+                        <button th:each="i : ${#numbers.sequence(1, personalRanks?.pages)}"
+                            th:class="${personalRanks.pageNum == i ? 'active' : ''}" th:data-page="${i}"
+                            th:text="${i}">1</button>
+
+                        <button th:disabled="${personalRanks.pageNum == personalRanks.pages}"
+                            th:data-page="${personalRanks.pageNum + 1}">下一页</button>
+                    </div>
+                    <div th:if="${#lists.isEmpty(publishRanks?.list)}" class="empty-state">
+                        暂无榜单数据
+                    </div>
+                </div>
             </div>
         </div>
-
-        <div class="pagination" th:if="${personalRanks !=null}">
-            <button th:disabled="${personalRanks.pageNum == 1}"
-                    th:data-page="${personalRanks.pageNum - 1}">上一页</button>
-
-            <button th:each="i : ${#numbers.sequence(1, personalRanks?.pages)}"
-                    th:class="${personalRanks.pageNum == i ? 'active' : ''}"
-                    th:data-page="${i}"
-                    th:text="${i}">1</button>
-
-            <button th:disabled="${personalRanks.pageNum == personalRanks.pages}"
-                    th:data-page="${personalRanks.pageNum + 1}">下一页</button>
-        </div>
-        <div th:if="${#lists.isEmpty(publishRanks?.list)}" class="empty-state">
-            暂无榜单数据
-        </div>
     </div>
+
+    <!-- 音乐播放器（固定定位在右下角） -->
+    <div id="music-player-container"></div>
 
 
     <script>
         // ===================== 全局核心配置（复用主页）=====================
-        // 1. 工具函数：获取URL参数
         function getUrlParam(paramName) {
             const reg = new RegExp("(^|&)" + paramName + "=([^&]*)(&|$)");
             const paramMatch = window.location.search.substr(1).match(reg);
             return paramMatch ? decodeURIComponent(paramMatch[2]) : null;
         }
 
-        // 新增：从JWT Token解析userId（和主页一致）
         function getUserIdFromToken(token) {
             if (!token) return null;
             try {
@@ -773,14 +873,11 @@
             }
         }
 
-        // 2. 全局变量初始化（和主页一致）
         let token = getUrlParam("token") || localStorage.getItem('token') || '';
         let userId = getUrlParam("userId") || getUrlParam("user_id") || getUserIdFromToken(token) || localStorage.getItem('user_id') || '';
         let category = parseInt(getUrlParam("category")) || 1;
-        // 全局播放器变量
         let musicPlayer = null;
 
-        // 3. 提示框工具（和主页一致）
         function showErrorTip(msg) {
             let el = document.getElementById('errorAlert');
             if (!el) {
@@ -807,7 +904,6 @@
             setTimeout(() => el.style.display = 'none', 2000);
         }
 
-        // 4. 兼容工具函数（和主页一致）
         function padStartCompat(str, length, padChar) {
             str = str.toString();
             while (str.length < length) {
@@ -817,7 +913,6 @@
         }
 
         // ===================== 播放器核心逻辑（完全复用主页）=====================
-        // 初始化播放器（全局函数）
         function initMusicPlayer() {
             if (musicPlayer) return;
             try {
@@ -833,7 +928,6 @@
             }
         }
 
-        // 播放歌曲（全局函数）
         function playSong(song) {
             if (!song) {
                 showErrorTip("歌曲信息为空！");
@@ -851,7 +945,6 @@
             }
         }
 
-        // 播放按钮点击处理（全局函数）
         function playSongFromData(btn) {
             const songId = btn.dataset.songId;
             const songName = btn.dataset.songName;
@@ -894,11 +987,11 @@
             if (!commentList) return;
 
             if (!token) {
-                commentList.innerHTML = '<p style="color: rgba(247, 250, 252, 0.7); text-align: center;">请先登录后查看评论</p>';
+                commentList.innerHTML = '<p style="color: rgba(26, 54, 93, 0.6); text-align: center;">请先登录后查看评论</p>';
                 return;
             }
 
-            commentList.innerHTML = '<p style="color: rgba(247, 250, 252, 0.7); text-align: center;">加载中...</p>';
+            commentList.innerHTML = '<p style="color: rgba(26, 54, 93, 0.6); text-align: center;">加载中...</p>';
 
             axios.get(`/music/api/rank/list`, {
                 params: {
@@ -913,19 +1006,19 @@
                         const comments = response.data.data || response.data;
                         renderComments(commentList, comments);
                     } else {
-                        commentList.innerHTML = `<p style="color: rgba(247, 250, 252, 0.7); text-align: center;">查询评论失败：${response.data.msg || '未知错误'}</p>`;
+                        commentList.innerHTML = `<p style="color: rgba(26, 54, 93, 0.6); text-align: center;">查询评论失败：${response.data.msg || '未知错误'}</p>`;
                         console.error('评论查询失败:', response.data);
                     }
                 })
                 .catch(error => {
                     console.error('加载评论失败:', error);
-                    commentList.innerHTML = `<p style="color: rgba(247, 250, 252, 0.7); text-align: center;">加载评论失败：${error.response?.data?.msg || error.message}</p>`;
+                    commentList.innerHTML = `<p style="color: rgba(26, 54, 93, 0.6); text-align: center;">加载评论失败：${error.response?.data?.msg || error.message}</p>`;
                 });
         }
 
         function renderComments(container, comments) {
             if (!comments || comments.length === 0) {
-                container.innerHTML = '<p style="color: rgba(247, 250, 252, 0.7); text-align: center;">暂无评论</p>';
+                container.innerHTML = '<p style="color: rgba(26, 54, 93, 0.6); text-align: center;">暂无评论</p>';
                 return;
             }
 
@@ -942,8 +1035,8 @@
                 <div class="comment-content">${comment.comContent || ''}</div>
                 <div class="comment-actions-bar">
                     ${comment.userId === parseInt(userId) ?
-                    `<button class="comment-delete-btn" data-comment-id="${comment.comId}">删除</button>` : ''
-                }
+                        `<button class="comment-delete-btn" data-comment-id="${comment.comId}">删除</button>` : ''
+                    }
                 </div>
             `;
 
@@ -1012,7 +1105,6 @@
                     console.log('删除评论成功:', response.data);
                     if (response.data.code === 200 || response.data.success) {
                         showSuccessTip("删除评论成功！");
-                        // 找到对应的rankId并重新加载评论
                         const commentItem = document.querySelector(`[data-comment-id="${commentId}"]`).closest('.comment-item');
                         const commentContainer = commentItem.closest('[id^="comment-container-"]');
                         const rankId = commentContainer.id.replace('comment-container-', '');
@@ -1027,7 +1119,6 @@
                 });
         }
 
-        // 时间格式化兼容低版本浏览器
         function formatTime(time) {
             if (!time) return '';
             const date = new Date(time);
@@ -1041,23 +1132,20 @@
         }
 
         // ===================== 原有业务逻辑（保留不变）=====================
-        // 我的榜单页 - 初始化参数
         (function () {
             try {
                 const urlParams = new URLSearchParams(window.location.search);
-                // 读取所有需要的参数：token、userId、userName、category、success
                 const urlToken = urlParams.get('token') || '';
                 const urlUid = urlParams.get('user_id') || urlParams.get('userId') || '';
                 const urlUserName = urlParams.get('userName') || urlParams.get('username') || '';
-                const urlCategory = urlParams.get('category') || ''; // 读取category
-                const urlSuccess = urlParams.get('success') || '';   // 读取success
+                const urlCategory = urlParams.get('category') || '';
+                const urlSuccess = urlParams.get('success') || '';
 
-                // 同步到localStorage，确保参数不丢失
                 localStorage.setItem('token', urlToken);
                 localStorage.setItem('user_id', urlUid);
                 localStorage.setItem('userName', urlUserName);
-                localStorage.setItem('category', urlCategory); // 存储category
-                localStorage.setItem('success', urlSuccess);   // 存储success
+                localStorage.setItem('category', urlCategory);
+                localStorage.setItem('success', urlSuccess);
 
                 console.log('✅ 初始化完成，参数：', {
                     token: urlToken,
@@ -1070,88 +1158,150 @@
             }
         })();
 
-        // 返回首页按钮点击函数
         function goToHome() {
             try {
-                // 1. 从localStorage读取参数（加默认值，避免undefined，改为userName）
-                let token = localStorage.getItem('token') || '';
-                let user_id = localStorage.getItem('user_id') || '';
-                let userName = localStorage.getItem('userName') || ''; // 改为userName
+                const urlParams = new URLSearchParams(window.location.search);
+                let token = urlParams.get('token') || localStorage.getItem('token') || '';
+                let user_id = urlParams.get('userId') || urlParams.get('user_id') || localStorage.getItem('user_id') || '';
+                let userName = urlParams.get('userName') || localStorage.getItem('userName') || '';
+                const category = urlParams.get('category') || localStorage.getItem('category') || '';
+                const success = urlParams.get('success') || localStorage.getItem('success') || '';
 
-                console.log('📌 跳转前读取的参数：', { token, user_id, userName }); // 改为userName
+                console.log('📌 跳转主页前读取的参数：', { token, user_id, userName, category, success });
 
-                // 2. 如果localStorage为空，从URL恢复（兼容参数名，优先读userName）
-                if (!token) {
-                    const urlParams = new URLSearchParams(window.location.search);
-                    token = urlParams.get('token') || '';
-                    user_id = urlParams.get('user_id') || urlParams.get('userId') || '';
-                    userName = urlParams.get('userName') || urlParams.get('username') || ''; // 兼容原小写，改为userName
-
-                    // 恢复后存回localStorage（统一存为userName）
-                    if (token) localStorage.setItem('token', token);
-                    if (user_id) localStorage.setItem('user_id', user_id);
-                    if (userName) localStorage.setItem('userName', userName); // 改为userName
-
-                    console.log('📌 从URL恢复参数：', { token, user_id, userName }); // 改为userName
-                }
-
-                // 3. 校验token（为空才跳登录，避免无意义跳转）
                 if (!token) {
                     alert('登录信息已失效，请重新登录');
                     window.location.href = '/music/login.html';
                     return;
                 }
 
-                // 4. 拼接URL（确保参数不为空，避免URL格式错误，参数名改为userName）
+                if (!user_id) {
+                    alert('用户ID缺失，请重新登录');
+                    window.location.href = '/music/login.html';
+                    return;
+                }
+
                 const params = new URLSearchParams();
-                if (token) params.append('token', token);
-                if (user_id) params.append('userId', user_id); // 统一用userId，和首页保持一致
-                if (userName) params.append('userName', userName); // 改为userName
+                params.append('token', token);
+                params.append('userId', user_id);
+                if (userName) params.append('userName', userName);
+                if (category) params.append('category', category);
+                if (success) params.append('success', success);
 
-                const targetUrl = `/music/index.html?${params.toString()}`;
-                console.log('📌 最终跳转URL：', targetUrl);
+                const targetUrl = `/music/api/rank/publish?${params.toString()}`;
+                console.log('📌 最终跳转主页URL：', targetUrl);
 
-                // 5. 执行跳转（强制跳转，避免被其他逻辑拦截）
                 window.location.href = targetUrl;
 
             } catch (err) {
-                // 捕获所有错误，打印出来，避免按钮无响应
+                console.error('❌ 跳转主页出错：', err);
+                alert('跳转失败，请刷新页面重试！');
+            }
+        }
+
+        function goToIndex() {
+            try {
+                const token = localStorage.getItem('token') || getUrlParam('token');
+                const userId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
+                const userName = localStorage.getItem('userName') || '';
+                
+                let url = '/music/index.html';
+                const params = new URLSearchParams();
+                if (token) params.append('token', token);
+                if (userId) params.append('userId', userId);
+                if (userName) params.append('userName', userName);
+                
+                if (params.toString()) {
+                    url += '?' + params.toString();
+                }
+                
+                window.location.href = url;
+            } catch (err) {
                 console.error('❌ 跳转首页出错：', err);
                 alert('跳转失败，请刷新页面重试！');
             }
         }
 
-        // 修复后的返回主页函数
-        function goToPu() {
+        function goToSearch() {
             try {
-                // 1. 双来源读取参数：优先URL，其次localStorage（确保不丢）
                 const urlParams = new URLSearchParams(window.location.search);
                 const token = urlParams.get('token') || localStorage.getItem('token') || '';
                 const userId = urlParams.get('userId') || urlParams.get('user_id') || localStorage.getItem('user_id') || '';
-                const category = urlParams.get('category') || localStorage.getItem('category') || ''; // 读取category
-                const success = urlParams.get('success') || localStorage.getItem('success') || '';   // 读取success
+                const category = urlParams.get('category') || localStorage.getItem('category') || '1';
+
+                console.log('📌 跳转搜索页前读取的参数：', { token, userId, category });
+
+                if (!token) {
+                    alert('登录信息失效，请重新登录');
+                    window.location.href = '/music/login.html';
+                    return;
+                }
+
+                if (!userId) {
+                    alert('用户ID缺失，请重新登录');
+                    window.location.href = '/music/login.html';
+                    return;
+                }
+
+                const params = new URLSearchParams();
+                params.append('token', token);
+                params.append('userId', userId);
+                params.append('category', category);
+
+                const targetUrl = `/music/api/rank/search?${params.toString()}`;
+                console.log('📌 最终跳转搜索页URL：', targetUrl);
+
+                window.location.href = targetUrl;
+            } catch (err) {
+                console.error('❌ 跳转搜索页出错：', err);
+                alert('跳转失败，请刷新重试！');
+            }
+        }
+
+        function goToHotRank() {
+            try {
+                const token = localStorage.getItem('token') || getUrlParam('token');
+                const userId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
+                
+                if (!token || !userId) {
+                    alert('登录信息失效，请重新登录');
+                    window.location.href = '/music/login.html';
+                    return;
+                }
+                
+                let url = `/music/hotrank.html?token=${encodeURIComponent(token)}&userId=${encodeURIComponent(userId)}`;
+                window.location.href = url;
+            } catch (err) {
+                console.error('❌ 跳转热门榜出错：', err);
+                alert('跳转失败，请刷新重试！');
+            }
+        }
+
+        function goToPu() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const token = urlParams.get('token') || localStorage.getItem('token') || '';
+                const userId = urlParams.get('userId') || urlParams.get('user_id') || localStorage.getItem('user_id') || '';
+                const category = urlParams.get('category') || localStorage.getItem('category') || '';
+                const success = urlParams.get('success') || localStorage.getItem('success') || '';
 
                 console.log('📌 跳转前参数：', { token, userId, category, success });
 
-                // 2. 校验核心参数，缺失则提示
                 if (!token || !userId) {
                     alert('登录信息失效，请重新登录');
                     window.location.href = '/music/login.html';
                     return;
                 }
 
-                // 3. 拼接URL：和你正常主页路径一致，包含所有参数
                 const params = new URLSearchParams();
-                params.append('token', token);        // 必带
-                params.append('userId', userId);      // 必带
-                if (category) params.append('category', category); // 携带category
-                if (success) params.append('success', success);    // 携带success
+                params.append('token', token);
+                params.append('userId', userId);
+                if (category) params.append('category', category);
+                if (success) params.append('success', success);
 
-                // 替换成你实际的主页路径（和截图里的publish路径一致）
                 const targetUrl = `/music/api/rank/publish?${params.toString()}`;
                 console.log('📌 最终跳转URL：', targetUrl);
 
-                // 4. 强制跳转（确保执行）
                 window.location.href = targetUrl;
 
             } catch (err) {
@@ -1160,15 +1310,12 @@
             }
         }
 
-        // 编辑榜单
         function editRanking(id) {
             const token = localStorage.getItem('token');
-            // 把 id 放到路径里，token 放到查询参数里
             const targetUrl = `/music/api/mine/edit/${id}?token=${encodeURIComponent(token)}`;
             window.location.href = targetUrl;
         }
 
-        // 跳转到我的收藏页面
         function goToMyLove() {
             const token = localStorage.getItem('token') || getUrlParam('token');
             const userId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
@@ -1178,16 +1325,14 @@
                 if (userId) {
                     url += `&userId=${encodeURIComponent(userId)}`;
                 }
-                // 添加默认的分页参数
                 url += '&pageNum=1&pageSize=10';
                 window.location.href = url;
             } else {
-                showErrorTip('登录信息失效，请重新登录！'); // 改用统一的提示框
+                showErrorTip('登录信息失效，请重新登录！');
                 window.location.href = '/music/login.html';
             }
         }
 
-        // 删除榜单
         function deleteRanking(rankId) {
             if (!confirm('确定要删除这个榜单吗？删除后无法恢复！')) {
                 return;
@@ -1195,12 +1340,11 @@
 
             const token = localStorage.getItem('token') || getUrlParam('token');
             if (!token) {
-                showErrorTip('登录信息失效，请重新登录'); // 改用统一的提示框
+                showErrorTip('登录信息失效，请重新登录');
                 window.location.href = '/music/login.html';
                 return;
             }
 
-            // 构建请求URL，和你的Controller路径对应
             const deleteUrl = `/music/api/mine/deleterank?token=${encodeURIComponent(token)}&rankId=${rankId}`;
 
             fetch(deleteUrl, {
@@ -1217,20 +1361,18 @@
                 })
                 .then(data => {
                     if (data.code === 200 || data.success) {
-                        showSuccessTip('榜单删除成功！'); // 改用统一的提示框
-                        // 删除成功后刷新页面，更新榜单列表
+                        showSuccessTip('榜单删除成功！');
                         location.reload();
                     } else {
-                        showErrorTip(data.msg || '删除失败，请重试'); // 改用统一的提示框
+                        showErrorTip(data.msg || '删除失败，请重试');
                     }
                 })
                 .catch(error => {
                     console.error('删除请求异常：', error);
-                    showErrorTip('网络错误，请稍后重试'); // 改用统一的提示框
+                    showErrorTip('网络错误，请稍后重试');
                 });
         }
 
-        // 分页导航
         function goToPage(page) {
             const currentToken = localStorage.getItem('token') || getUrlParam('token');
             const currentUserId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
@@ -1238,95 +1380,123 @@
         }
 
         // ===================== 事件委托绑定（核心修复）=====================
-        document.addEventListener('DOMContentLoaded', function() {
-            // 初始化播放器
+        document.addEventListener('DOMContentLoaded', function () {
             initMusicPlayer();
 
-            // 1. 侧边栏按钮绑定
-            document.getElementById('btn-goToPu').addEventListener('click', goToPu);
-            document.getElementById('btn-reLogin').addEventListener('click', function() {
-                window.location.href='/music/login.html';
-            });
-            document.getElementById('btn-goToHome').addEventListener('click', goToHome);
-            document.getElementById('btn-goToMyLove').addEventListener('click', goToMyLove);
+            document.addEventListener('click', function (e) {
+                const target = e.target;
 
-            // 2. 播放按钮绑定（事件委托）
-            document.addEventListener('click', function(e) {
+                if (target.closest('#btn-goToPu')) {
+                    goToPu();
+                    return;
+                }
+                if (target.closest('#btn-reLogin')) {
+                    window.location.href = '/music/login.html';
+                    return;
+                }
+                // ========== 导航按钮事件绑定 ==========
+                if (target.closest('#navIndex')) {
+                    goToIndex();
+                    return;
+                }
+                if (target.closest('#navHome')) {
+                    goToHome();
+                    return;
+                }
+                if (target.closest('#navSearch')) {
+                    goToSearch();
+                    return;
+                }
+                if (target.closest('#navMyRank')) {
+                    location.reload();
+                    return;
+                }
+                if (target.closest('#navHotRank')) {
+                    goToHotRank();
+                    return;
+                }
+                if (target.closest('#navMyLove')) {
+                    goToMyLove();
+                    return;
+                }
+                if (target.closest('#navAdd')) {
+                    goToPu();
+                    return;
+                }
+                if (target.closest('#btn-reLogin')) {
+                    window.location.href = '/music/login.html';
+                    return;
+                }
+
                 const playBtn = e.target.closest('.play-btn');
                 if (playBtn) {
                     e.preventDefault();
                     e.stopPropagation();
                     playSongFromData(playBtn);
+                    return;
                 }
-            });
 
-            // 3. 编辑按钮绑定（事件委托）
-            document.addEventListener('click', function(e) {
                 const editBtn = e.target.closest('.edit-btn');
                 if (editBtn) {
                     e.preventDefault();
                     e.stopPropagation();
                     const rankId = editBtn.dataset.rankId;
                     editRanking(rankId);
+                    return;
                 }
-            });
 
-            // 4. 删除按钮绑定（事件委托）
-            document.addEventListener('click', function(e) {
                 const deleteBtn = e.target.closest('.delete-btn');
                 if (deleteBtn) {
                     e.preventDefault();
                     e.stopPropagation();
                     const rankId = deleteBtn.dataset.rankId;
                     deleteRanking(rankId);
+                    return;
                 }
-            });
 
-            // 7. 评论切换按钮绑定（事件委托）
-            document.addEventListener('click', function(e) {
                 const commentToggle = e.target.closest('.comment-toggle');
                 if (commentToggle) {
                     e.preventDefault();
                     e.stopPropagation();
                     const rankId = commentToggle.dataset.rankId;
                     toggleComments(rankId);
+                    return;
                 }
-            });
 
-            // 8. 评论提交按钮绑定（事件委托）
-            document.addEventListener('click', function(e) {
                 const commentSubmit = e.target.closest('.comment-submit');
                 if (commentSubmit) {
                     e.preventDefault();
                     e.stopPropagation();
                     const rankId = commentSubmit.dataset.rankId;
                     submitComment(rankId);
+                    return;
                 }
-            });
 
-            // 9. 评论删除按钮绑定（事件委托）
-            document.addEventListener('click', function(e) {
                 const commentDelete = e.target.closest('.comment-delete-btn');
                 if (commentDelete) {
                     e.preventDefault();
                     e.stopPropagation();
                     const commentId = commentDelete.dataset.commentId;
                     deleteComment(commentId);
+                    return;
                 }
-            });
 
-            // 10. 分页按钮绑定（事件委托）
-            document.addEventListener('click', function(e) {
                 const pageBtn = e.target.closest('.pagination button');
                 if (pageBtn && !pageBtn.disabled) {
                     e.preventDefault();
                     e.stopPropagation();
                     const page = pageBtn.dataset.page;
                     goToPage(page);
+                    return;
+                }
+
+                if (target.closest('.nav-toggle-btn')) {
+                    const sidebar = document.querySelector('.left-sidebar');
+                    sidebar.classList.toggle('collapsed');
+                    return;
                 }
             });
 
-            // 校验登录状态
             if (!token || !userId || isNaN(userId)) {
                 showErrorTip('登录信息失效，请重新登录');
                 setTimeout(() => window.location.href = '/music/login.html', 1500);
@@ -1334,4 +1504,5 @@
         });
     </script>
 </body>
+
 </html>
