@@ -19,69 +19,326 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             min-height: 100vh;
-            color: #f7fafc;
-            padding: 20px;
-            background:
-                    linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-                    linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-                    #0f172a;
-            background-size: 50px 50px, 50px 50px, 100% 100%;
-            background-attachment: fixed;
+            color: #1a202c;
+            padding: 0;
+            margin: 0;
+            background: #1a365d;
             position: relative;
             overflow-x: hidden;
         }
 
-        .sidebar {
-            position: fixed;
-            left: 0px;
+        .left-sidebar {
             top: 50%;
             transform: translateY(-50%);
-            width: 160px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 0 12px 12px 0;
-            padding: 20px;
-            transition: all 0.3s ease;
+            position: fixed;
+            left: 20px;
+            width: 100px;
+            background: #fff9c4;
+            border-radius: 16px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
             z-index: 100;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            pointer-events: auto;
-        }
-        .sidebar.collapsed{
-            left: -120px;
-        }
-        .sidebar:hover {
-            left: 0;
         }
 
-        .sidebar-btn {
-            background-color: #fffa9c;
-            color: #1a202c;
-            border: none;
+        .nav-toggle-btn {
+            width: 40px;
+            height: 40px;
+            background: transparent;
+            border: 2px solid #1e3a5f;
             border-radius: 8px;
-            padding: 10px 15px;
-            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-toggle-btn:hover {
+            background: #1e3a5f;
+        }
+
+        .nav-toggle-btn:hover svg rect {
+            fill: #fff9c4;
+        }
+
+        .nav-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            flex: 1;
+        }
+
+        .nav-circle-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #fff9c4;
+            border: 2px solid #1e3a5f;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            transition: all 0.3s ease;
+            padding: 5px;
+        }
+
+        .nav-circle-btn:hover {
+            background: #1e3a5f;
+            transform: scale(1.05);
+        }
+
+        .nav-circle-btn.active {
+            background: #1e3a5f;
+        }
+
+        .nav-icon {
+            font-size: 18px;
+        }
+
+        .nav-text {
+            font-size: 10px;
+            color: #1e3a5f;
             font-weight: bold;
+        }
+
+        .nav-circle-btn:hover .nav-text,
+        .nav-circle-btn.active .nav-text {
+            color: #fff9c4;
+        }
+
+        .left-sidebar.collapsed {
+            width: 60px !important;
+        }
+
+        .left-sidebar.collapsed .nav-text {
+            display: none;
+        }
+
+        .left-sidebar.collapsed .nav-circle-btn {
+            width: 45px;
+            height: 45px;
+        }
+
+        .left-sidebar.collapsed .sidebar-cloud-tags {
+            display: none;
+        }
+
+        .sidebar-cloud-tags {
+            margin-top: auto;
+            padding-top: 15px;
+            border-top: 2px dashed #1e3a5f;
+        }
+
+        .nav-add-btn {
+            background: linear-gradient(135deg, #fffa9c, #fff176);
+            border-color: #f57f17;
+        }
+
+        .nav-add-btn:hover {
+            background: linear-gradient(135deg, #fff176, #ffee58);
+            transform: scale(1.1) rotate(90deg);
+        }
+
+        .main-container {
+            margin-left: 140px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .top-nav {
+            background: #1a365d;
+            padding: 30px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .top-nav-divider {
+            height: 1px;
+            background: rgba(255, 250, 156, 0.3);
+            margin: 0 40px;
+        }
+
+        .ranking-item {
+            position: relative;
+        }
+
+        .cloud-tag-container {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: #1a365d;
+            padding: 10px 15px;
+            border-radius: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            max-width: 200px;
+        }
+
+        .cloud-tag-container h4 {
+            color: #fffa9c;
+            margin-top: 0;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .cloud-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .cloud-tag {
+            background: #fffa9c;
+            color: #1a365d;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
             cursor: pointer;
             transition: all 0.3s ease;
-            width: 100%;
-            margin-bottom: 10px;
-            cursor: pointer;
-            pointer-events: auto;
         }
 
-        .sidebar-btn:hover {
-            background-color: #fff780;
-            transform: translateY(-2px);
+        .cloud-tag:hover {
+            background: #ffffff;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+        }
+
+        .avatar-container {
+            position: relative;
+            cursor: pointer;
+            margin-right: 20px;
+        }
+
+        .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #fffa9c;
+            transition: all 0.3s ease;
+        }
+
+        .avatar-container:hover .avatar {
+            transform: scale(1.05);
             box-shadow: 0 4px 12px rgba(255, 250, 156, 0.4);
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 40px;
-            position: relative;
-            z-index: 1;
-            pointer-events: auto;
+        .avatar-edit-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(26, 54, 93, 0.7);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .avatar-container:hover .avatar-edit-overlay {
+            opacity: 1;
+        }
+
+        .avatar-edit-text {
+            color: #fffa9c;
+            font-size: 12px;
+            text-align: center;
+            padding: 0 10px;
+        }
+
+        .user-info {
+            color: #fffa9c;
+        }
+
+        .user-info h3 {
+            margin: 0;
+            font-size: 40px;
+        }
+
+        .user-info p {
+            margin: 8px 0 0 0;
+            font-size: 18px;
+            opacity: 0.8;
+        }
+
+        .mutual-friend-recommend {
+            display: flex;
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 25px 30px;
+            width: 30%;
+            font-size: 18px;
+            height: 115px;
+            align-items: center;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background: #1a365d;
+            color: #fffa9c;
+        }
+
+        .content-area {
+            flex: 1;
+            display: flex;
+            padding: 30px;
+            gap: 30px;
+        }
+
+        .main-content {
+            flex: 1;
+            background: #fffa9c;
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .right-sidebar {
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .friend-recommendations {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .comment-section {
+            background: #fffa9c;
+            border-radius: 30px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            flex: 1;
+        }
+
+        .player-container {
+            padding: 0;
         }
 
         .header {
@@ -93,14 +350,14 @@
         }
 
         .user-info {
-            display: flex;
+            /*display: flex;*/
             align-items: center;
             flex: 1;
         }
 
         .avatar {
-            width: 80px;
-            height: 80px;
+            width: 100px;
+            height: 100px;
             border-radius: 50%;
             margin-right: 20px;
             object-fit: cover;
@@ -125,55 +382,29 @@
             color: rgba(247, 250, 252, 0.7);
         }
 
-        .rankings-container {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 12px;
-            padding: 30px;
-            margin-bottom: 40px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
-            position: relative;
-            z-index: 1;
-            pointer-events: auto;
-        }
-
-        .rankings-container:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
-        }
-
         .ranking-item {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.5);
+            border: 2px solid #1a365d;
             border-radius: 8px;
             padding: 20px;
             margin-bottom: 15px;
             transition: all 0.3s ease;
-            border-left: 4px solid transparent;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            pointer-events: auto;
-        }
-
-        .ranking-content {
-            flex: 1;
         }
 
         .ranking-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateX(10px);
-            border-left-color: #fffa9c;
+            background: rgba(255, 255, 255, 0.8);
+            transform: translateY(-2px);
         }
 
         .ranking-item h3 {
-            color: #fffa9c;
+            color: #1a365d;
             font-size: 18px;
             margin-bottom: 10px;
+            font-weight: bold;
         }
 
         .ranking-item p {
-            color: rgba(247, 250, 252, 0.7);
+            color: #2d3748;
             font-size: 14px;
             line-height: 1.5;
         }
@@ -187,27 +418,25 @@
         }
 
         .pagination button {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 250, 156, 0.3);
-            color: #f7fafc;
+            background: #ffffff;
+            border: 1px solid #1a365d;
+            color: #1a365d;
             border-radius: 6px;
             padding: 8px 16px;
             margin: 0 5px;
             cursor: pointer;
             transition: all 0.3s ease;
-            cursor: pointer;
-            pointer-events: auto;
         }
 
         .pagination button:hover:not(:disabled) {
-            background-color: #fffa9c;
-            color: #1a202c;
+            background-color: #1a365d;
+            color: #fffa9c;
             transform: translateY(-2px);
         }
 
         .pagination button.active {
-            background-color: #fffa9c;
-            color: #1a202c;
+            background-color: #1a365d;
+            color: #fffa9c;
             font-weight: bold;
         }
 
@@ -216,38 +445,13 @@
             cursor: not-allowed;
         }
 
-        @media (max-width: 768px) {
-            .container {
-                padding: 20px;
-            }
-
-            .header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .user-info {
-                margin-bottom: 20px;
-            }
-
-            .avatar {
-                width: 60px;
-                height: 60px;
-            }
-
-            .rankings-container {
-                padding: 20px;
-            }
-        }
-
         .song-list {
             margin-top: 15px;
             padding-left: 0;
-            pointer-events: auto;
         }
 
         .song-list h4 {
-            color: #fffa9c;
+            color: #1a365d;
             font-size: 16px;
             margin-bottom: 12px;
             font-weight: 500;
@@ -256,7 +460,8 @@
         .song-list ul {
             list-style: none;
             padding: 0;
-            background: rgba(255, 255, 255, 0.03);
+            background: transparent;
+            border: 1px solid #1a365d;
             border-radius: 6px;
             padding: 10px;
         }
@@ -264,12 +469,11 @@
         .song-list li {
             margin: 8px 0;
             padding: 10px 15px;
-            border-bottom: 1px solid rgba(255, 250, 156, 0.1);
+            border-bottom: 1px solid rgba(26, 54, 93, 0.3);
             display: flex;
             justify-content: space-between;
             align-items: center;
             transition: all 0.2s ease;
-            pointer-events: auto;
         }
 
         .song-list li:last-child {
@@ -277,43 +481,46 @@
         }
 
         .song-list li:hover {
-            background: rgba(255, 250, 156, 0.05);
+            background: rgba(26, 54, 93, 0.1);
         }
-        .song-info{
+
+        .song-info {
             display: flex;
             align-items: center;
             gap: 15px;
-            flex: 1; /* 新增：让歌曲信息占满剩余空间 */
+            flex: 1;
         }
+
         .song-name {
-            color: #f7fafc;
+            color: #1a365d;
             font-size: 15px;
+            font-weight: 600;
         }
-        .singer-name{
-            color: #d1d5db;
+
+        .singer-name {
+            color: #2d3748;
             font-size: 15px;
         }
 
         .song-rank {
-            color: #fffa9c;
+            color: #1a365d;
             font-size: 15px;
-            font-weight: 600;
+            font-weight: 700;
             padding: 4px 10px;
-            background: rgba(255, 250, 156, 0.1);
+            background: rgba(26, 54, 93, 0.15);
+            border: 2px solid #1a365d;
             border-radius: 4px;
-            margin-right: 10px; /* 新增：排名和播放按钮间距 */
+            margin-right: 10px;
         }
 
-        /* 新增：播放按钮和排名的容器样式 */
         .song-actions {
             display: flex;
             align-items: center;
         }
 
-        /* 播放按钮样式（和我的榜单页保持一致） */
         .play-btn {
-            background: rgba(255, 250, 156, 0.2);
-            border: 1px solid #fffa9c;
+            background: #1a365d;
+            border: 1px solid #1a365d;
             color: #fffa9c;
             border-radius: 50%;
             width: 30px;
@@ -324,18 +531,14 @@
             cursor: pointer;
             transition: all 0.3s ease;
             font-size: 12px;
-            padding-left: 2px;
-            cursor: pointer;
-            pointer-events: auto;
-            z-index: 2;
+            padding-left: 9px;
         }
+
         .play-btn:hover {
-            background: #fffa9c;
-            color: #1a202c;
+            background: #2a4365;
             transform: scale(1.1);
         }
 
-        /* 提示框样式（复用我的榜单页） */
         #errorAlert {
             display: none;
             position: fixed;
@@ -362,309 +565,269 @@
             z-index: 9999;
         }
 
-        /* 播放器容器样式（和我的榜单页保持一致） */
         #music-player-container {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 300px;
-            z-index: 1000;
-        }
-
-        /* 评论区样式（和我的榜单页保持一致） */
-        .comment-section {
-            margin-top: 20px;
-            border-top: 1px solid rgba(255, 250, 156, 0.1);
-            padding-top: 15px;
-            pointer-events: auto;
-        }
-
-        .comment-toggle {
-            background: rgba(255, 250, 156, 0.1);
-            border: 1px solid rgba(255, 250, 156, 0.3);
-            color: #fffa9c;
-            border-radius: 20px;
-            padding: 6px 16px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 14px;
-            margin-bottom: 15px;
-            cursor: pointer;
-            pointer-events: auto;
-        }
-
-        .comment-toggle:hover {
-            background: rgba(255, 250, 156, 0.2);
-            transform: translateY(-2px);
-        }
-
-        .comment-container {
-            display: none;
-            animation: fadeIn 0.3s ease;
-            pointer-events: auto;
-        }
-
-        .comment-container.show {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .comment-input-area {
-            margin-bottom: 20px;
-        }
-
-        .comment-input {
             width: 100%;
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 250, 156, 0.3);
-            border-radius: 8px;
-            color: #f7fafc;
+        }
+
+        .friend-recommendations h4,
+        .comment-section h4,
+        .player-container h4 {
+            color: #1a365d;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .friend-recommendations p,
+        .comment-section p {
+            color: #4a5568;
             font-size: 14px;
-            resize: vertical;
-            min-height: 80px;
-            transition: all 0.3s ease;
-            pointer-events: auto;
-        }
-
-        .comment-input:focus {
-            outline: none;
-            border-color: #fffa9c;
-            box-shadow: 0 0 10px rgba(255, 250, 156, 0.3);
-        }
-
-        .comment-actions {
-            display: flex;
-            justify-content: flex-end;
-            margin-top: 10px;
-        }
-
-        .comment-submit {
-            background: #fffa9c;
-            color: #1a202c;
-            border: none;
-            border-radius: 6px;
-            padding: 8px 16px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            pointer-events: auto;
-        }
-
-        .comment-submit:hover {
-            background: #fff780;
-            transform: translateY(-2px);
-        }
-
-        .comment-list {
-            margin-top: 20px;
-        }
-
-        .comment-item {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 12px;
-            transition: all 0.3s ease;
-        }
-
-        .comment-item:hover {
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .comment-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-
-        .comment-username {
-            color: #fffa9c;
-            font-weight: bold;
-            font-size: 14px;
-        }
-
-        .comment-time {
-            color: rgba(247, 250, 252, 0.5);
-            font-size: 12px;
-        }
-
-        .comment-content {
-            color: #f7fafc;
-            font-size: 14px;
-            line-height: 1.4;
-            margin-bottom: 10px;
-        }
-
-        .comment-actions-bar {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        /* 评论删除按钮核心样式 */
-        .comment-delete-btn {
-            background: transparent;
-            border: none;
-            outline: none;
-            color: rgba(255, 99, 71, 0.7);
-            font-size: 13px;
-            font-weight: 500;
-            padding: 4px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            transition: all 0.2s ease;
-            cursor: pointer;
-            pointer-events: auto;
-        }
-
-        .comment-delete-btn:hover {
-            color: #ff6347;
-            background-color: rgba(255, 99, 71, 0.1);
-            transform: translateY(-1px);
-        }
-
-        .comment-delete-btn:active {
-            transform: translateY(0);
-            opacity: 0.8;
-        }
-
-        .comment-delete-btn::before {
-            content: "🗑️";
-            font-size: 12px;
         }
 
         .empty-state {
             text-align: center;
             padding: 60px 20px;
-            color: rgba(247, 250, 252, 0.6);
+            color: #4a5568;
         }
 
         .empty-state h3 {
             font-size: 24px;
             margin-bottom: 10px;
+            color: #1a365d;
         }
 
         .empty-state p {
             font-size: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .left-sidebar {
+                width: 70px;
+                left: 10px;
+                top: 10px;
+                padding: 10px;
+            }
+
+            .main-container {
+                margin-left: 100px;
+            }
+
+            .top-nav {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+                padding: 15px 20px;
+            }
+
+            .content-area {
+                flex-direction: column;
+                padding: 20px;
+                gap: 20px;
+            }
+
+            .right-sidebar {
+                width: 100%;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+
+            .user-profile {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .avatar {
+                width: 60px;
+                height: 60px;
+            }
+
+            .user-info h3 {
+                font-size: 28px;
+            }
+
+            .user-info p {
+                font-size: 14px;
+            }
+
+            .mutual-friend-recommend {
+                width: 100%;
+                padding: 15px 20px;
+                font-size: 14px;
+            }
+
+            .cloud-tag-container {
+                position: relative;
+                margin-bottom: 15px;
+                max-width: 100%;
+                top: 0;
+                right: 0;
+            }
+
+            .cloud-tag {
+                font-size: 11px;
+                padding: 3px 8px;
+            }
         }
     </style>
     <script th:src="@{/player/music-player.js}"></script>
 </head>
 
 <body>
-<!-- 提示框元素 -->
-<div id="errorAlert"></div>
-<div id="successAlert"></div>
+    <!-- 提示框元素 -->
+    <div id="errorAlert"></div>
+    <div id="successAlert"></div>
 
-<!-- 播放器容器（和我的榜单页一致） -->
-<div id="music-player-container"></div>
-
-<div class="sidebar">
-    <button class="sidebar-btn" id="btn-goToPu">返回主页</button>
-    <button class="sidebar-btn" id="btn-reLogin">重新登录</button>
-    <button class="sidebar-btn" id="btn-goToHome">返回首页</button>
-</div>
-
-<div class="container">
-    <div class="header">
-        <div class="user-info">
-            <img
-                    src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=user%20avatar%20profile%20picture%20friendly%20face&image_size=square"
-                    alt="用户头像" class="avatar">
-            <div class="user-details">
-                <h2 th:text="${username}">用户名</h2>
-                <p>我的收藏管理</p>
-            </div>
+    <div class="left-sidebar">
+        <div class="nav-toggle-btn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="3" width="7" height="7" rx="1" fill="#1e3a5f" />
+                <rect x="14" y="3" width="7" height="7" rx="1" fill="#1e3a5f" />
+                <rect x="3" y="14" width="7" height="7" rx="1" fill="#1e3a5f" />
+                <rect x="14" y="14" width="7" height="7" rx="1" fill="#1e3a5f" />
+            </svg>
         </div>
+        <nav class="nav-buttons">
+            <button class="nav-circle-btn" id="navIndex" title="首页">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-text">首页</span>
+            </button>
+            <button class="nav-circle-btn" id="navHome" title="主页">
+                <span class="nav-icon">📝</span>
+                <span class="nav-text">主页</span>
+            </button>
+            <button class="nav-circle-btn" id="navSearch" title="搜索">
+                <span class="nav-icon">🔍</span>
+                <span class="nav-text">搜索</span>
+            </button>
+            <button class="nav-circle-btn" id="navMyRank" title="我的榜单">
+                <span class="nav-icon">📋</span>
+                <span class="nav-text">榜单</span>
+            </button>
+            <button class="nav-circle-btn" id="navHotRank" title="热门榜单">
+                <span class="nav-icon">🔥</span>
+                <span class="nav-text">热门</span>
+            </button>
+            <button class="nav-circle-btn active" id="navMyLove" title="我的收藏">
+                <span class="nav-icon">❤️</span>
+                <span class="nav-text">收藏</span>
+            </button>
+            <button class="nav-circle-btn nav-add-btn" id="navAdd" title="发布榜单">
+                <span class="nav-icon">➕</span>
+                <span class="nav-text">发布</span>
+            </button>
+        </nav>
+        <div class="sidebar-cloud-tags"></div>
     </div>
 
-    <div class="rankings-container">
-        <div th:each="ranking, stat : ${myloveSongs.list}" class="ranking-item" th:data-rank-id="${ranking.rankId}">
-            <div class="ranking-content">
-                <!-- 榜单基本信息 -->
-                <h3 th:text="${ranking.rankName}">榜单标题</h3>
-                <p th:text="|更新于: ${ranking.publishTime}|">最后更新时间</p>
-
-                <!-- 榜单下的歌曲列表（修复播放按钮布局） -->
-                <div class="song-list">
-                    <h4>歌曲列表</h4>
-                    <ul>
-                        <li th:each="song : ${ranking.rankSongList}" th:data-song-id="${song.songId}">
-                            <div class="song-info">
-                                <span class="song-name" th:text="${song?.songName}">歌曲名称</span>
-                                <span class="singer-name" th:text="${song.singerName}">歌手名称</span>
-                            </div>
-                            <!-- 修复：将排名和播放按钮放在同一个容器中 -->
-                            <div class="song-actions">
-                                <span class="song-rank" th:text="${song?.ranking}">排名</span>
-                                <!-- 播放按钮：保持原有data属性，样式和我的榜单页一致 -->
-                                <button class="play-btn"
-                                        th:data-song-id="${song.songId}"
-                                        th:data-song-name="${song.songName}"
-                                        th:data-singer-name="${song.singerName}">
-                                    &#9658;
-                                </button>
-                            </div>
-                        </li>
-                    </ul>
+    <div class="main-container">
+        <div class="top-nav">
+            <div class="user-profile">
+                <div class="avatar-container">
+                    <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=user%20avatar%20profile%20picture%20friendly%20face&image_size=square"
+                        alt="用户头像" class="avatar" id="user-avatar">
+                    <div class="avatar-edit-overlay">
+                        <span class="avatar-edit-text">点击更换头像</span>
+                    </div>
+                    <input type="file" id="avatar-upload" accept="image/*" style="display: none;">
                 </div>
+                <div class="user-info">
+                    <h3 th:text="${username}">用户名</h3>
+                    <p th:text="${userName}">用户昵称</p>
+                </div>
+            </div>
+            <div class="mutual-friend-recommend">
+                共同好友推荐
+            </div>
+        </div>
+        <div class="top-nav-divider"></div>
 
-                <!-- 评论区（和我的榜单页一致） -->
-                <div class="comment-section">
-                    <button class="comment-toggle" th:data-rank-id="${ranking.rankId}">
-                        查看评论
-                    </button>
-                    <div class="comment-container" th:id="|comment-container-${ranking.rankId}|">
-                        <div class="comment-input-area">
-                            <textarea class="comment-input" th:id="|comment-input-${ranking.rankId}|"
-                                      placeholder="写下你的评论..."></textarea>
-                            <div class="comment-actions">
-                                <button class="comment-submit" th:data-rank-id="${ranking.rankId}">
-                                    发表评论
-                                </button>
-                            </div>
+        <div class="content-area">
+            <div class="main-content">
+                <!-- 收藏的歌单列表 -->
+                <div th:each="ranking, stat : ${myloveSongs.list}" class="ranking-item"
+                    th:data-rank-id="${ranking.rankId}">
+                    <!-- 云标签模块 -->
+                    <div class="cloud-tag-container">
+                        <h4>标签</h4>
+                        <div class="cloud-tags">
+                            <span class="cloud-tag">流行</span>
+                            <span class="cloud-tag">摇滚</span>
+                            <span class="cloud-tag">民谣</span>
+                            <span class="cloud-tag">电子</span>
                         </div>
-                        <div class="comment-list" th:id="|comment-list-${ranking.rankId}|">
+                    </div>
+                    <div class="ranking-content">
+                        <!-- 榜单基本信息 -->
+                        <h3 th:text="${ranking.rankName}">榜单标题</h3>
+                        <p th:text="|更新于: ${ranking.publishTime}|">最后更新时间</p>
+
+                        <!-- 榜单下的歌曲列表 -->
+                        <div class="song-list">
+
+                            <ul>
+                                <li th:each="song : ${ranking.rankSongList}" th:data-song-id="${song.songId}">
+                                    <div class="song-info">
+                                        <span class="song-name" th:text="${song?.songName}">歌曲名称</span>
+                                        <span class="singer-name" th:text="${song.singerName}">歌手名称</span>
+                                    </div>
+                                    <div class="song-actions">
+                                        <span class="song-rank" th:text="${song?.ranking}">排名</span>
+                                        <button class="play-btn" th:data-song-id="${song.songId}"
+                                            th:data-song-name="${song.songName}"
+                                            th:data-singer-name="${song.singerName}">
+                                            &#9658;
+                                        </button>
+                                    </div>
+                                </li>
+                            </ul>
                         </div>
                     </div>
                 </div>
+
+                <!-- 分页 -->
+                <div class="pagination" th:if="${myloveSongs != null}">
+                    <button th:disabled="${myloveSongs.pageNum == 1}"
+                        th:data-page="${myloveSongs.pageNum - 1}">上一页</button>
+
+                    <button th:each="i : ${#numbers.sequence(1, myloveSongs.pages)}"
+                        th:class="${myloveSongs.pageNum == i ? 'active' : ''}" th:data-page="${i}"
+                        th:text="${i}">1</button>
+
+                    <button th:disabled="${myloveSongs.pageNum == myloveSongs.pages}"
+                        th:data-page="${myloveSongs.pageNum + 1}">下一页</button>
+                </div>
+
+                <!-- 空状态 -->
+                <div class="empty-state"
+                    th:if="${myloveSongs == null or myloveSongs.list == null or myloveSongs.list.isEmpty()}">
+                    <h3>暂无收藏</h3>
+                    <p>您还没有收藏任何歌单</p>
+                </div>
             </div>
-        </div>
 
-        <div class="pagination" th:if="${myloveSongs != null}">
-            <button th:disabled="${myloveSongs.pageNum == 1}"
-                    th:data-page="${myloveSongs.pageNum - 1}">上一页</button>
+            <div class="right-sidebar">
+                <!-- 评论区 -->
+                <div class="comment-section">
+                    <h4>评论区</h4>
+                    <div id="comment-container">
+                        <div id="comment-list"></div>
+                        <div class="comment-input-area">
+                            <input type="text" id="comment-input" placeholder="写下你的评论..."
+                                style="width: 100%; padding: 10px; border: 1px solid #1a365d; border-radius: 6px; margin-bottom: 10px;">
+                            <button id="comment-submit"
+                                style="background: #1a365d; color: #fffa9c; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">提交评论</button>
+                        </div>
+                    </div>
+                </div>
 
-            <button th:each="i : ${#numbers.sequence(1, myloveSongs.pages)}"
-                    th:class="${myloveSongs.pageNum == i ? 'active' : ''}"
-                    th:data-page="${i}"
-                    th:text="${i}">1</button>
-
-            <button th:disabled="${myloveSongs.pageNum == myloveSongs.pages}"
-                    th:data-page="${myloveSongs.pageNum + 1}">下一页</button>
-        </div>
-
-        <div class="empty-state"
-             th:if="${myloveSongs == null or myloveSongs.list == null or myloveSongs.list.isEmpty()}">
-            <h3>暂无收藏</h3>
-            <p>您还没有收藏任何歌单</p>
+                <!-- 播放器 -->
+                <div class="player-container">
+                    <div id="music-player-container"></div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -839,6 +1002,11 @@
 
             container.innerHTML = '';
             comments.forEach(comment => {
+                if (!comment || !comment.comId) {
+                    console.warn('发现无效评论数据，已跳过:', comment);
+                    return;
+                }
+
                 const commentItem = document.createElement('div');
                 commentItem.className = 'comment-item';
 
@@ -850,8 +1018,8 @@
                 <div class="comment-content">${comment.comContent || ''}</div>
                 <div class="comment-actions-bar">
                     ${comment.userId === parseInt(userId) ?
-                    `<button class="comment-delete-btn" data-comment-id="${comment.comId}">删除</button>` : ''
-                }
+                        `<button class="comment-delete-btn" data-comment-id="${comment.comId}">删除</button>` : ''
+                    }
                 </div>
             `;
 
@@ -916,10 +1084,26 @@
                     console.log('删除评论成功:', response.data);
                     if (response.data.code === 200 || response.data.success) {
                         showSuccessTip("删除评论成功！");
-                        const commentItem = document.querySelector(`[data-comment-id="${commentId}"]`).closest('.comment-item');
-                        const commentContainer = commentItem.closest('[id^="comment-container-"]');
-                        const rankId = commentContainer.id.replace('comment-container-', '');
-                        loadComments(rankId);
+
+                        try {
+                            const commentEl = document.querySelector(`[data-comment-id="${commentId}"]`);
+                            if (commentEl) {
+                                const commentItem = commentEl.closest('.comment-item');
+                                const commentContainer = commentItem?.closest('[id^="comment-container-"]');
+                                if (commentContainer) {
+                                    const rankId = commentContainer.id.replace('comment-container-', '');
+                                    loadComments(rankId);
+                                    return;
+                                }
+                            }
+
+                            console.log('未找到特定评论容器，使用全局评论刷新');
+                            loadGlobalComments();
+
+                        } catch (error) {
+                            console.error('删除后刷新评论时出错:', error);
+                            loadGlobalComments();
+                        }
                     } else {
                         showErrorTip("删除评论失败：" + (response.data.msg || '未知错误'));
                     }
@@ -956,20 +1140,250 @@
                 // 关键修复2：仅当参数不为空时才存储，避免清空已有值
                 if (urlToken) localStorage.setItem('token', urlToken);
                 if (urlUid) localStorage.setItem('user_id', urlUid);
-                if (urlUserName) localStorage.setItem('userName', urlUserName);
+                if (urlUserName) {
+                    localStorage.setItem('userName', urlUserName);
+                    localStorage.setItem('username', urlUserName); // 同时存储username
+                }
                 if (urlCategory) localStorage.setItem('category', urlCategory);
                 if (urlSuccess) localStorage.setItem('success', urlSuccess);
 
                 console.log('✅ 收藏页初始化完成，参数：', {
                     token: urlToken,
                     userId: urlUid,
+                    userName: urlUserName,
                     category: urlCategory,
                     success: urlSuccess
                 });
+
+                // 客户端渲染用户名字作为后备方案
+                renderUserNameFromLocalStorage();
             } catch (err) {
                 console.error('❌ 收藏页初始化出错：', err);
             }
         })();
+
+        // 从localStorage渲染用户名字作为后备方案
+        function renderUserNameFromLocalStorage() {
+            console.log('🔍 开始渲染用户名字');
+
+            // 检查用户配置文件元素
+            const userProfileElement = document.querySelector('.user-profile');
+            console.log('🔍 用户配置文件元素:', userProfileElement);
+
+            if (userProfileElement) {
+                console.log('🔍 用户配置文件元素尺寸:', {
+                    width: userProfileElement.offsetWidth,
+                    height: userProfileElement.offsetHeight
+                });
+                console.log('🔍 用户配置文件元素样式:', window.getComputedStyle(userProfileElement));
+                console.log('🔍 用户配置文件元素子元素:', userProfileElement.children);
+            }
+
+            // 检查用户信息元素
+            const userInfoElement = document.querySelector('.user-info');
+            const userNameElement = document.querySelector('.user-info h3');
+            const userNicknameElement = document.querySelector('.user-info p');
+
+            console.log('🔍 用户信息元素:', userInfoElement);
+            console.log('🔍 用户名字元素:', userNameElement);
+            console.log('🔍 用户昵称元素:', userNicknameElement);
+
+            if (userInfoElement) {
+                console.log('🔍 用户信息元素尺寸:', {
+                    width: userInfoElement.offsetWidth,
+                    height: userInfoElement.offsetHeight
+                });
+                console.log('🔍 用户信息元素样式:', window.getComputedStyle(userInfoElement));
+            }
+
+            if (userNameElement) {
+                console.log('🔍 当前用户名文本:', userNameElement.textContent);
+                console.log('🔍 用户名元素尺寸:', {
+                    width: userNameElement.offsetWidth,
+                    height: userNameElement.offsetHeight
+                });
+            }
+            if (userNicknameElement) {
+                console.log('🔍 当前用户昵称文本:', userNicknameElement.textContent);
+                console.log('🔍 用户昵称元素尺寸:', {
+                    width: userNicknameElement.offsetWidth,
+                    height: userNicknameElement.offsetHeight
+                });
+            }
+
+            // 获取用户名字数据
+            const storedUserName = localStorage.getItem('userName') || localStorage.getItem('username') || '';
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlUserName = urlParams.get('userName') || urlParams.get('username') || '';
+            const finalUserName = urlUserName || storedUserName || '测试用户';
+
+            console.log('🔍 最终用户名字:', finalUserName);
+            console.log('🔍 localStorage中的用户名字:', storedUserName);
+            console.log('🔍 URL中的用户名字:', urlUserName);
+
+            // 强制设置用户名字
+            if (userNameElement) {
+                userNameElement.textContent = finalUserName;
+                console.log('✅ 已设置用户名:', userNameElement.textContent);
+            }
+            if (userNicknameElement) {
+                userNicknameElement.textContent = finalUserName;
+                console.log('✅ 已设置用户昵称:', userNicknameElement.textContent);
+            }
+
+            // 确保元素可见
+            if (userInfoElement) {
+                userInfoElement.style.display = 'block';
+                userInfoElement.style.visibility = 'visible';
+                userInfoElement.style.opacity = '1';
+                userInfoElement.style.minWidth = '200px';
+                userInfoElement.style.minHeight = '80px';
+                console.log('✅ 已确保用户信息元素可见');
+            }
+
+            if (userProfileElement) {
+                userProfileElement.style.display = 'flex';
+                userProfileElement.style.alignItems = 'center';
+                console.log('✅ 已确保用户配置文件元素可见');
+            }
+
+            // 同时存储到localStorage
+            if (finalUserName && finalUserName !== '测试用户') {
+                localStorage.setItem('userName', finalUserName);
+                localStorage.setItem('username', finalUserName);
+                console.log('✅ 已存储用户名字到localStorage');
+            }
+        }
+
+        // 头像上传功能
+        function initAvatarUpload() {
+            console.log('🔍 初始化头像上传功能');
+
+            const avatarContainer = document.querySelector('.avatar-container');
+            const avatarUpload = document.getElementById('avatar-upload');
+            const userAvatar = document.getElementById('user-avatar');
+
+            console.log('🔍 头像容器:', avatarContainer);
+            console.log('🔍 头像上传输入:', avatarUpload);
+            console.log('🔍 用户头像:', userAvatar);
+
+            if (avatarContainer && avatarUpload) {
+                // 点击头像容器触发文件选择
+                avatarContainer.addEventListener('click', function (e) {
+                    console.log('🔍 点击头像容器');
+                    avatarUpload.click();
+                });
+
+                // 处理文件选择
+                avatarUpload.addEventListener('change', function (e) {
+                    console.log('🔍 文件选择变化');
+                    const file = e.target.files[0];
+                    if (file) {
+                        console.log('🔍 选择的文件:', file);
+                        previewAvatar(file);
+                    }
+                });
+            }
+
+            // 从localStorage加载头像
+            loadAvatarFromLocalStorage();
+        }
+
+        // 预览头像
+        function previewAvatar(file) {
+            console.log('🔍 预览头像:', file);
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const userAvatar = document.getElementById('user-avatar');
+                if (userAvatar) {
+                    userAvatar.src = e.target.result;
+                    console.log('✅ 头像预览成功');
+
+                    // 上传头像
+                    uploadAvatar(file);
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // 上传头像
+        function uploadAvatar(file) {
+            console.log('🔍 开始上传头像');
+
+            // 显示上传中状态
+            showUploadingStatus();
+
+            // 模拟上传过程
+            setTimeout(function () {
+                // 模拟上传成功
+                const mockAvatarUrl = URL.createObjectURL(file);
+                console.log('✅ 头像上传成功:', mockAvatarUrl);
+
+                // 保存头像URL到localStorage
+                localStorage.setItem('avatarUrl', mockAvatarUrl);
+
+                // 显示上传成功提示
+                showSuccessTip('头像上传成功！');
+
+                // 恢复正常状态
+                hideUploadingStatus();
+            }, 1000);
+        }
+
+        // 显示上传中状态
+        function showUploadingStatus() {
+            const avatarContainer = document.querySelector('.avatar-container');
+            if (avatarContainer) {
+                avatarContainer.style.position = 'relative';
+
+                // 创建上传中覆盖层
+                let uploadingOverlay = document.querySelector('.avatar-uploading-overlay');
+                if (!uploadingOverlay) {
+                    uploadingOverlay = document.createElement('div');
+                    uploadingOverlay.className = 'avatar-uploading-overlay';
+                    uploadingOverlay.style.cssText = `
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        bottom: 0;
+                        background: rgba(26, 54, 93, 0.8);
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        z-index: 10;
+                    `;
+                    uploadingOverlay.innerHTML = `
+                        <div style="color: #fffa9c; font-size: 12px;">上传中...</div>
+                    `;
+                    avatarContainer.appendChild(uploadingOverlay);
+                }
+            }
+        }
+
+        // 隐藏上传中状态
+        function hideUploadingStatus() {
+            const uploadingOverlay = document.querySelector('.avatar-uploading-overlay');
+            if (uploadingOverlay) {
+                uploadingOverlay.remove();
+            }
+        }
+
+        // 从localStorage加载头像
+        function loadAvatarFromLocalStorage() {
+            console.log('🔍 从localStorage加载头像');
+            const storedAvatarUrl = localStorage.getItem('avatarUrl');
+            const userAvatar = document.getElementById('user-avatar');
+
+            console.log('🔍 localStorage中的头像URL:', storedAvatarUrl);
+
+            if (storedAvatarUrl && userAvatar) {
+                userAvatar.src = storedAvatarUrl;
+                console.log('✅ 已从localStorage加载头像');
+            }
+        }
 
         function goToHome() {
             try {
@@ -1054,30 +1468,231 @@
             window.location.href = `/music/api/mine/mylove?pageNum=${page}&token=${encodeURIComponent(currentToken)}&userId=${encodeURIComponent(currentUserId)}`;
         }
 
+        // ===================== 全局评论区功能 =====================
+        function loadGlobalComments() {
+            const commentList = document.getElementById('comment-list');
+            if (!commentList) return;
+
+            if (!token) {
+                commentList.innerHTML = '<p style="color: #4a5568; text-align: center;">请先登录后查看评论</p>';
+                return;
+            }
+
+            commentList.innerHTML = '<p style="color: #4a558; text-align: center;">加载中...</p>';
+
+            const firstRankingItem = document.querySelector('.ranking-item');
+            const rankId = firstRankingItem ? firstRankingItem.dataset.rankId : null;
+
+            if (!rankId) {
+                commentList.innerHTML = '<p style="color: #4a558; text-align: center;">暂无收藏榜单，无法加载评论</p>';
+                return;
+            }
+
+            axios.get(`/music/api/rank/list`, {
+                params: {
+                    token: token,
+                    rankId: rankId,
+                    userId: userId
+                }
+            })
+                .then(response => {
+                    console.log('加载全局评论响应:', response.data);
+                    if (response.data.code === 200 || response.data.success) {
+                        const comments = response.data.data || response.data;
+                        renderGlobalComments(commentList, comments);
+                    } else {
+                        commentList.innerHTML = `<p style="color: #4a5568; text-align: center;">查询评论失败：${response.data.msg || '未知错误'}</p>`;
+                        console.error('评论查询失败:', response.data);
+                    }
+                })
+                .catch(error => {
+                    console.error('加载评论失败:', error);
+                    commentList.innerHTML = `<p style="color: #4a5568; text-align: center;">加载评论失败：${error.response?.data?.msg || error.message}</p>`;
+                });
+        }
+
+        function renderGlobalComments(container, comments) {
+            if (!comments || comments.length === 0) {
+                container.innerHTML = '<p style="color: #4a5568; text-align: center;">暂无评论</p>';
+                return;
+            }
+
+            container.innerHTML = '';
+            comments.forEach(comment => {
+                if (!comment || !comment.comId) {
+                    console.warn('发现无效评论数据，已跳过:', comment);
+                    return;
+                }
+
+                const commentItem = document.createElement('div');
+                commentItem.className = 'comment-item';
+                commentItem.style.cssText = 'padding: 15px; border-bottom: 1px solid rgba(26, 54, 93, 0.2); margin-bottom: 10px;';
+
+                commentItem.innerHTML = `
+                <div class="comment-header" style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span class="comment-username" style="font-weight: bold; color: #1a365d;">${comment.username || '匿名用户'}</span>
+                    <span class="comment-time" style="font-size: 12px; color: #4a5568;">${formatTime(comment.comTime)}</span>
+                </div>
+                <div class="comment-content" style="color: #2d3748; margin-bottom: 10px;">${comment.comContent || ''}</div>
+                <div class="comment-actions-bar">
+                    ${comment.userId === parseInt(userId) ?
+                        `<button class="comment-delete-btn" data-comment-id="${comment.comId}" style="background: transparent; border: 1px solid #1a365d; color: #1a365d; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer;">删除</button>` : ''
+                    }
+                </div>
+            `;
+
+                container.appendChild(commentItem);
+            });
+        }
+
+        function submitGlobalComment() {
+            const input = document.getElementById('comment-input');
+            if (!input) {
+                showErrorTip("评论输入框未找到！");
+                return;
+            }
+            const content = input.value.trim();
+
+            if (!content) {
+                showErrorTip("评论内容不能为空！");
+                return;
+            }
+
+            if (!token || !userId || isNaN(userId)) {
+                showErrorTip("请先登录后再评论！");
+                return;
+            }
+
+            const firstRankingItem = document.querySelector('.ranking-item');
+            const rankId = firstRankingItem ? firstRankingItem.dataset.rankId : null;
+
+            if (!rankId) {
+                showErrorTip("暂无收藏榜单，无法发表评论");
+                return;
+            }
+
+            axios.post(`/music/api/rank/pubcomment`, null, {
+                params: {
+                    token: token,
+                    rankId: rankId,
+                    userId: userId,
+                    content: content,
+                    parentId: null
+                }
+            })
+                .then(response => {
+                    console.log('提交评论成功:', response.data);
+                    if (response.data.code === 200 || response.data.success) {
+                        showSuccessTip("评论发表成功！");
+                        input.value = '';
+                        loadGlobalComments();
+                    } else {
+                        showErrorTip("评论发表失败：" + (response.data.msg || '未知错误'));
+                    }
+                })
+                .catch(error => {
+                    console.error('提交评论失败:', error);
+                    showErrorTip("评论发表失败：" + (error.response?.data?.msg || error.message));
+                });
+        }
+
         // ===================== 事件委托绑定（修复事件优先级）=====================
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // 初始化播放器
             initMusicPlayer();
 
-            // 1. 侧边栏按钮绑定（优先绑定，确保点击触发）
-            const goToPuBtn = document.getElementById('btn-goToPu');
-            if (goToPuBtn) {
-                goToPuBtn.addEventListener('click', function(e) {
+            // 加载全局评论
+            loadGlobalComments();
+
+            // 渲染用户名字作为后备方案
+            renderUserNameFromLocalStorage();
+
+            // 初始化头像上传功能
+            initAvatarUpload();
+
+            // 1. 导航栏切换按钮（收起/展开）
+            document.addEventListener('click', function (e) {
+                if (e.target.closest('.nav-toggle-btn')) {
+                    const sidebar = document.querySelector('.left-sidebar');
+                    if (sidebar) {
+                        sidebar.classList.toggle('collapsed');
+                    }
+                }
+            });
+
+            // 2. 左侧导航按钮绑定
+            document.addEventListener('click', function (e) {
+                const target = e.target;
+
+                // 首页
+                if (target.closest('#navIndex')) {
                     e.preventDefault();
                     e.stopPropagation();
-                    goToPu(); // 直接调用，避免事件委托失效
-                });
-            } else {
-                console.error('❌ 未找到返回主页按钮');
-            }
+                    let navToken = localStorage.getItem('token') || getUrlParam('token');
+                    let navUserId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
+                    window.location.href = `/music/index.html?token=${encodeURIComponent(navToken)}&userId=${encodeURIComponent(navUserId)}`;
+                    return;
+                }
 
-            document.getElementById('btn-reLogin').addEventListener('click', function() {
-                window.location.href='/music/login.html';
+                // 主页 -> 跳转到 publish 页面
+                if (target.closest('#navHome')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    goToPu();
+                    return;
+                }
+
+                // 搜索
+                if (target.closest('#navSearch')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    let navToken = localStorage.getItem('token') || getUrlParam('token');
+                    let navUserId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
+                    let navCategory = localStorage.getItem('category') || getUrlParam('category') || '1';
+                    window.location.href = `/music/api/rank/sou?token=${encodeURIComponent(navToken)}&category=${navCategory}&userId=${encodeURIComponent(navUserId)}`;
+                    return;
+                }
+
+                // 我的榜单
+                if (target.closest('#navMyRank')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    goToPu();
+                    return;
+                }
+
+                // 热门榜单
+                if (target.closest('#navHotRank')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    let navToken = localStorage.getItem('token') || getUrlParam('token');
+                    let navUserId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
+                    window.location.href = `/music/hotrank.html?token=${encodeURIComponent(navToken)}&userId=${encodeURIComponent(navUserId)}`;
+                    return;
+                }
+
+                // 我的收藏（当前页面，高亮active）
+                if (target.closest('#navMyLove')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    document.querySelectorAll('.nav-circle-btn').forEach(btn => btn.classList.remove('active'));
+                    target.closest('#navMyLove').classList.add('active');
+                    return;
+                }
+
+                // 发布榜单
+                if (target.closest('#navAdd')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    let navToken = localStorage.getItem('token') || getUrlParam('token');
+                    let navUserId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
+                    window.location.href = `/music/rank.html?token=${encodeURIComponent(navToken)}&userId=${encodeURIComponent(navUserId)}`;
+                    return;
+                }
             });
-            document.getElementById('btn-goToHome').addEventListener('click', goToHome);
 
             // 2. 播放按钮绑定（移除捕获阶段，改为冒泡阶段）
-            document.addEventListener('click', function(e) {
+            document.addEventListener('click', function (e) {
                 const playBtn = e.target.closest('.play-btn');
                 if (playBtn) {
                     e.preventDefault();
@@ -1088,7 +1703,7 @@
             }); // 移除true，改为冒泡阶段
 
             // 3. 评论相关按钮绑定（保持不变）
-            document.addEventListener('click', function(e) {
+            document.addEventListener('click', function (e) {
                 const commentToggle = e.target.closest('.comment-toggle');
                 if (commentToggle) {
                     e.preventDefault();
@@ -1098,7 +1713,7 @@
                 }
             });
 
-            document.addEventListener('click', function(e) {
+            document.addEventListener('click', function (e) {
                 const commentSubmit = e.target.closest('.comment-submit');
                 if (commentSubmit) {
                     e.preventDefault();
@@ -1108,7 +1723,16 @@
                 }
             });
 
-            document.addEventListener('click', function(e) {
+            // 全局评论提交按钮
+            document.addEventListener('click', function (e) {
+                if (e.target.id === 'comment-submit') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    submitGlobalComment();
+                }
+            });
+
+            document.addEventListener('click', function (e) {
                 const commentDelete = e.target.closest('.comment-delete-btn');
                 if (commentDelete) {
                     e.preventDefault();
@@ -1119,7 +1743,7 @@
             });
 
             // 4. 分页按钮绑定（保持不变）
-            document.addEventListener('click', function(e) {
+            document.addEventListener('click', function (e) {
                 const pageBtn = e.target.closest('.pagination button');
                 if (pageBtn && !pageBtn.disabled) {
                     e.preventDefault();
@@ -1137,4 +1761,5 @@
         });
     </script>
 </body>
+
 </html>
