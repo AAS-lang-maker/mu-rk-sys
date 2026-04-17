@@ -15,7 +15,7 @@ spring:
     encoding: UTF-8
     cache: false
     mode: HTML
-datasource:
+  datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver  # MySQL8.0驱动（5.7用com.mysql.jdbc.Driver）
     url: jdbc:mysql://localhost:3306/music_db?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
     username: root  # 你的MySQL账号（默认root）

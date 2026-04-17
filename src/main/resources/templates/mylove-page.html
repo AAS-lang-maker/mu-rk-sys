@@ -1002,6 +1002,11 @@
 
             container.innerHTML = '';
             comments.forEach(comment => {
+                if (!comment || !comment.comId) {
+                    console.warn('发现无效评论数据，已跳过:', comment);
+                    return;
+                }
+
                 const commentItem = document.createElement('div');
                 commentItem.className = 'comment-item';
 
@@ -1079,10 +1084,26 @@
                     console.log('删除评论成功:', response.data);
                     if (response.data.code === 200 || response.data.success) {
                         showSuccessTip("删除评论成功！");
-                        const commentItem = document.querySelector(`[data-comment-id="${commentId}"]`).closest('.comment-item');
-                        const commentContainer = commentItem.closest('[id^="comment-container-"]');
-                        const rankId = commentContainer.id.replace('comment-container-', '');
-                        loadComments(rankId);
+
+                        try {
+                            const commentEl = document.querySelector(`[data-comment-id="${commentId}"]`);
+                            if (commentEl) {
+                                const commentItem = commentEl.closest('.comment-item');
+                                const commentContainer = commentItem?.closest('[id^="comment-container-"]');
+                                if (commentContainer) {
+                                    const rankId = commentContainer.id.replace('comment-container-', '');
+                                    loadComments(rankId);
+                                    return;
+                                }
+                            }
+
+                            console.log('未找到特定评论容器，使用全局评论刷新');
+                            loadGlobalComments();
+
+                        } catch (error) {
+                            console.error('删除后刷新评论时出错:', error);
+                            loadGlobalComments();
+                        }
                     } else {
                         showErrorTip("删除评论失败：" + (response.data.msg || '未知错误'));
                     }
@@ -1457,11 +1478,20 @@
                 return;
             }
 
-            commentList.innerHTML = '<p style="color: #4a5568; text-align: center;">加载中...</p>';
+            commentList.innerHTML = '<p style="color: #4a558; text-align: center;">加载中...</p>';
+
+            const firstRankingItem = document.querySelector('.ranking-item');
+            const rankId = firstRankingItem ? firstRankingItem.dataset.rankId : null;
+
+            if (!rankId) {
+                commentList.innerHTML = '<p style="color: #4a558; text-align: center;">暂无收藏榜单，无法加载评论</p>';
+                return;
+            }
 
             axios.get(`/music/api/rank/list`, {
                 params: {
                     token: token,
+                    rankId: rankId,
                     userId: userId
                 }
             })
@@ -1489,6 +1519,11 @@
 
             container.innerHTML = '';
             comments.forEach(comment => {
+                if (!comment || !comment.comId) {
+                    console.warn('发现无效评论数据，已跳过:', comment);
+                    return;
+                }
+
                 const commentItem = document.createElement('div');
                 commentItem.className = 'comment-item';
                 commentItem.style.cssText = 'padding: 15px; border-bottom: 1px solid rgba(26, 54, 93, 0.2); margin-bottom: 10px;';
@@ -1528,16 +1563,22 @@
                 return;
             }
 
-            // 这里需要一个默认的rankId，或者根据当前页面的逻辑获取合适的rankId
-            const defaultRankId = 1; // 假设默认评论到第一个榜单
+            const firstRankingItem = document.querySelector('.ranking-item');
+            const rankId = firstRankingItem ? firstRankingItem.dataset.rankId : null;
 
-            axios.post(`/music/api/rank/pubcomment`, {
-                rankId: defaultRankId,
-                userId: userId,
-                content: content,
-                parentId: null
-            }, {
-                params: { token: token }
+            if (!rankId) {
+                showErrorTip("暂无收藏榜单，无法发表评论");
+                return;
+            }
+
+            axios.post(`/music/api/rank/pubcomment`, null, {
+                params: {
+                    token: token,
+                    rankId: rankId,
+                    userId: userId,
+                    content: content,
+                    parentId: null
+                }
             })
                 .then(response => {
                     console.log('提交评论成功:', response.data);

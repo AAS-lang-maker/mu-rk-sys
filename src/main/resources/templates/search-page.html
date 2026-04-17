@@ -2168,13 +2168,14 @@
                 return;
             }
 
-            axios.post(`/music/api/rank/pubcomment`, {
-                rankId: rankId,
-                userId: userId,
-                content: content,
-                parentId: null
-            }, {
-                params: { token: token }
+            axios.post(`/music/api/rank/pubcomment`, null, {
+                params: {
+                    token: token,
+                    rankId: rankId,
+                    userId: userId,
+                    content: content,
+                    parentId: null
+                }
             })
                 .then(response => {
                     if (response.data.code === 200 || response.data.success) {
