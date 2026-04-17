@@ -19,7 +19,7 @@ import java.util.*;
 @Service
 @Slf4j
 public class AiCommentServiceImpl implements AiCommentService {
-    @Value(value = "${ai.api-key}")
+    @Value("${siliconflow.api-key}")
     private String apiKey;
     private final static String MODEL="deepseek-ai/Deepseek-V3";
     private final static String API_URL="https://api.siliconflow.cn/v1/chat/completions";
@@ -36,7 +36,7 @@ public class AiCommentServiceImpl implements AiCommentService {
          headers.setContentType(MediaType.APPLICATION_JSON);
          headers.set("Authorization","Bearer"+apiKey);
          String userContent=String.format("你是一个资格榜单分析师。用户正在听《%s》歌，歌手是%s,标签是%s。请结合这些信息，"+"" +
-                 "请用温柔的语气给这个榜单做一个犀利，专业的分析评价，并能够进行总结，总结出榜单风格等等。字树20-50字。",
+                 "请用温柔的语气给这个榜单做一个犀利，专业的分析评价，并能够进行总结，总结出榜单风格等等。字数20-50字。",
                  rankSong.getSongName(),
                  rankSong.getSingerName(),
                  rankSong.getRanking(),
