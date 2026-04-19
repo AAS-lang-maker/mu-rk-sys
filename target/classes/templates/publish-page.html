@@ -9,6 +9,7 @@
     <title>榜单页</title>
     <link rel="icon" href="data:'base:;base64,iVBORw0KGgo=">
     <link rel="stylesheet" th:href="@{/player/music-player.css}">
+    <link rel="stylesheet" href="../static/player/iconfont/iconfont.css">
     <style>
         /* 全局样式统一 - 与搜索页保持一致 */
         * {
@@ -20,12 +21,12 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             min-height: 100vh;
-            color: #f7fafc;
-            padding: 20px;
+            color: #1a202c;
+            padding: 0;
             background:
-                    linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-                    linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-                    #0f172a;
+                linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                #1e3a5f;
             background-size: 50px 50px, 50px 50px, 100% 100%;
             background-attachment: fixed;
             position: relative;
@@ -33,8 +34,343 @@
 
         .container {
             padding: 40px;
-            max-width: 1200px;
+            max-width: 100%;
             margin: 0 auto;
+        }
+
+        .page-wrapper {
+            display: flex;
+            min-height: 100vh;
+            gap: 20px;
+            padding: 20px;
+            padding-bottom: 20px;
+        }
+
+        .left-sidebar {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 100px;
+            background: #fff9c4;
+            border-radius: 16px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 左侧导航栏样式 */
+        .nav-toggle-btn {
+            width: 40px;
+            height: 40px;
+            background: transparent;
+            border: 2px solid #1e3a5f;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-toggle-btn:hover {
+            background: #1e3a5f;
+        }
+
+        .nav-toggle-btn:hover svg rect {
+            fill: #fff9c4;
+        }
+
+        .nav-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            flex: 1;
+        }
+
+        .nav-circle-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #fff9c4;
+            border: 2px solid #1e3a5f;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            transition: all 0.3s ease;
+            padding: 5px;
+        }
+
+        .nav-circle-btn:hover {
+            background: #1e3a5f;
+            transform: scale(1.05);
+        }
+
+        .nav-circle-btn.active {
+            background: #1e3a5f;
+        }
+
+        .nav-icon {
+            font-size: 18px;
+        }
+
+        .nav-text {
+            font-size: 10px;
+            color: #1e3a5f;
+            font-weight: bold;
+        }
+
+        .nav-circle-btn:hover .nav-text,
+        .nav-circle-btn.active .nav-text {
+            color: #fff9c4;
+        }
+
+        /* 收起状态 */
+        .left-sidebar.collapsed {
+            width: 60px !important;
+        }
+
+        .left-sidebar.collapsed .nav-text {
+            display: none;
+        }
+
+        .left-sidebar.collapsed .nav-circle-btn {
+            width: 45px;
+            height: 45px;
+        }
+
+        .left-sidebar.collapsed .sidebar-cloud-tags {
+            display: none;
+        }
+
+        .sidebar-cloud-tags {
+            margin-top: auto;
+            padding-top: 15px;
+            border-top: 2px dashed #1e3a5f;
+        }
+
+        /* ========== 中间内容区三盒布局样式 ========== */
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 0 25px 0 170px;
+            overflow-y: auto;
+            height: calc(453vh - 40px);
+        }
+
+        /* 盒子1：榜单列表盒 */
+        .ranking-list-box {
+            background: #fffa9c;
+            border-radius: 16px;
+            padding: 0 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 2px solid rgba(30, 58, 95, 0.1);
+            flex-shrink: 0;
+        }
+
+        /* 盒子2：云标签盒 */
+        .cloud-tag-box-container {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 18px 22px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            border: 2px solid rgba(30, 58, 95, 0.15);
+            flex-shrink: 0;
+        }
+
+        .cloud-tag-box-container .cloud-tag-label {
+            display: block;
+            font-size: 15px;
+            color: #1e3a5f;
+            font-weight: bold;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .cloud-tag-box-container .cloud-tag-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .cloud-tag-box-container .tag-item {
+            background: rgba(30, 58, 95, 0.12);
+            color: #1e3a5f;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid rgba(30, 58, 95, 0.25);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .cloud-tag-box-container .tag-item:hover {
+            background: #1e3a5f;
+            color: #fff9c4;
+            transform: scale(1.08);
+            box-shadow: 0 2px 8px rgba(30, 58, 95, 0.3);
+        }
+
+        /* 盒子3：音乐播放器盒 */
+        .music-player-box {
+            background: linear-gradient(135deg, rgba(30, 58, 95, 0.95) 0%, rgba(30, 58, 95, 0.98) 100%);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 15px 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            border: 2px solid rgba(255, 250, 156, 0.3);
+            flex-shrink: 0;
+            min-height: 100px;
+        }
+
+        /* 底部双盒并排容器 */
+        .bottom-dual-boxes {
+            display: flex;
+            gap: 20px;
+            flex-shrink: 0;
+        }
+
+        .bottom-dual-boxes .cloud-tag-box-container {
+            flex: 1;
+        }
+
+        .bottom-dual-boxes .music-player-box {
+            flex: 1.5;
+            /* 播放器盒稍宽一些 */
+        }
+
+        /* ========== 子元素在新盒子内的优化样式 ========== */
+
+        .ranking-list-box .container {
+            max-width: 100%;
+            padding: 0;
+            margin: 0;
+        }
+
+        .ranking-list-box .main-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(30, 58, 95, 0.15);
+        }
+
+        .ranking-list-box .main-title {
+            font-size: 28px;
+            color: #1e3a5f;
+        }
+
+        .ranking-list-box .content {
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            padding: 0;
+            margin-top: 15px;
+        }
+
+        .right-sidebar {
+            width: 280px;
+            /*background: #fff9c4;*/
+            border-radius: 16px;
+            /*padding:0 20px;*/
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /*
+         * 以下样式已不再使用（.bottom-player-area 已从HTML中移除）
+         * 保留以备将来使用，或可删除以减少代码量
+         */
+        .bottom-player-area {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 120px;
+            background: linear-gradient(180deg, rgba(30, 58, 95, 0.9) 0%, rgba(30, 58, 95, 0.98) 100%);
+            backdrop-filter: blur(15px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 40px;
+            gap: 30px;
+            z-index: 1000;
+            border-top: 2px solid rgba(255, 250, 156, 0.3);
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .player-cloud-tags {
+            display: flex;
+            gap: 20px;
+            flex-shrink: 0;
+        }
+
+        .cloud-tag-box {
+            background: linear-gradient(135deg, #fff9c4 0%, #fff59d 100%);
+            border-radius: 12px;
+            padding: 12px 20px;
+            min-width: 180px;
+            max-width: 250px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            border: 2px solid rgba(30, 58, 95, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .cloud-tag-box:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            border-color: #1e3a5f;
+        }
+
+        .cloud-tag-label {
+            display: block;
+            font-size: 11px;
+            color: #1e3a5f;
+            font-weight: bold;
+            margin-bottom: 6px;
+            text-align: center;
+        }
+
+        .cloud-tag-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            justify-content: center;
+        }
+
+        .tag-item {
+            background: rgba(30, 58, 95, 0.15);
+            color: #1e3a5f;
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 500;
+            border: 1px solid rgba(30, 58, 95, 0.25);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .tag-item:hover {
+            background: #1e3a5f;
+            color: #fff9c4;
+            transform: scale(1.05);
+        }
+
+        #music-player-container {
+            flex: 1;
+            max-width: 400px;
+            min-height: 90px !important;
+            position: relative !important;
+            bottom: auto !important;
+            right: auto !important;
+            width: 100% !important;
+            z-index: 1001;
         }
 
         .header {
@@ -44,7 +380,7 @@
 
         .header h1 {
             font-size: 36px;
-            color: #fffa9c;
+            color: #1a202c;
             margin-bottom: 20px;
             display: flex;
             align-items: center;
@@ -54,7 +390,7 @@
 
         .header p {
             font-size: 18px;
-            color: rgba(247, 250, 252, 0.7);
+            color: rgba(26, 32, 44, 0.7);
         }
 
         /* 左上角搜索按钮样式 - 统一视觉 */
@@ -68,8 +404,8 @@
         .search-button {
             width: 70px;
             height: 70px;
-            background: #1E293B;
-            border: 2px solid #d1d5db;
+            background: #fff9c4;
+            border: 2px solid #1e3a5f;
             border-radius: 50%;
             cursor: pointer;
             display: flex;
@@ -81,9 +417,9 @@
 
         .search-button:hover {
             transform: scale(1.1);
-            background: rgba(255, 250, 156, 0.2);
-            border-color: #fffa9c;
-            box-shadow: 0 0 20px rgba(255, 250, 156, 0.5);
+            background: rgba(30, 58, 95, 0.15);
+            border-color: #1e3a5f;
+            box-shadow: 0 0 20px rgba(30, 58, 95, 0.4);
         }
 
         .search-button img {
@@ -93,16 +429,16 @@
         }
 
         .content {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.6);
             backdrop-filter: blur(10px);
-            border-radius: 12px;
+            border-radius: 16px;
             padding: 40px;
             margin-bottom: 100px;
         }
 
         .content h2 {
             font-size: 24px;
-            color: #fffa9c;
+            color: #1a202c;
             margin-bottom: 30px;
         }
 
@@ -110,6 +446,7 @@
             font-size: 16px;
             line-height: 1.6;
             margin-bottom: 20px;
+            color: rgba(26, 32, 44, 0.8);
         }
 
         /* 加号按钮样式统一 - 固定底部中央 */
@@ -155,9 +492,9 @@
         }
 
         .publisher-btn {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(26, 54, 93, 0.1);
             border: 1px solid rgba(255, 250, 156, 0.3);
-            color: #f7fafc;
+            color: #1a365d;
             border-radius: 6px;
             padding: 6px 12px;
             font-size: 14px;
@@ -166,8 +503,8 @@
         }
 
         .publisher-btn:hover {
-            background-color: #fffa9c;
-            color: #1a202c;
+            background-color: #1a365d;
+            color: #fffa9c;
             transform: translateY(-2px);
         }
 
@@ -176,8 +513,8 @@
         }
 
         .ranking-item {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 16px;
             padding: 20px;
             margin-bottom: 15px;
             transition: all 0.3s ease;
@@ -185,19 +522,19 @@
         }
 
         .ranking-item:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.8);
             transform: translateX(10px);
-            border-left-color: #fffa9c;
+            border-left-color: #1e3a5f;
         }
 
         .ranking-item h3 {
-            color: #fffa9c;
+            color: #1e3a5f;
             font-size: 18px;
             margin-bottom: 10px;
         }
 
         .ranking-item p {
-            color: rgba(247, 250, 252, 0.7);
+            color: rgba(26, 32, 44, 0.7);
             font-size: 14px;
             line-height: 1.5;
             margin-bottom: 8px;
@@ -207,7 +544,7 @@
             display: flex;
             gap: 20px;
             font-size: 13px;
-            color: rgba(255, 250, 156, 0.8);
+            color: rgba(30, 58, 95, 0.8);
         }
 
         /* 分页样式统一 */
@@ -219,10 +556,10 @@
         }
 
         .pagination button {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 250, 156, 0.3);
-            color: #f7fafc;
-            border-radius: 6px;
+            background: rgba(26, 32, 44, 0.1);
+            border: 1px solid rgba(26, 32, 44, 0.3);
+            color: #1a202c;
+            border-radius: 8px;
             padding: 8px 16px;
             margin: 0 5px;
             cursor: pointer;
@@ -230,14 +567,14 @@
         }
 
         .pagination button:hover:not(:disabled) {
-            background-color: #fffa9c;
-            color: #1a202c;
+            background-color: #1e3a5f;
+            color: #fff9c4;
             transform: translateY(-2px);
         }
 
         .pagination button.active {
-            background-color: #fffa9c;
-            color: #1a202c;
+            background-color: #1e3a5f;
+            color: #fff9c4;
             font-weight: bold;
         }
 
@@ -253,7 +590,7 @@
         }
 
         .song-list h4 {
-            color: #fffa9c;
+            color: #1e3a5f;
             font-size: 16px;
             margin-bottom: 12px;
             font-weight: 500;
@@ -262,15 +599,15 @@
         .song-list ul {
             list-style: none;
             padding: 0;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 6px;
+            background: rgba(26, 32, 44, 0.05);
+            border-radius: 12px;
             padding: 10px;
         }
 
         .song-list li {
             margin: 8px 0;
             padding: 10px 15px;
-            border-bottom: 1px solid rgba(255, 250, 156, 0.1);
+            border-bottom: 1px solid rgba(30, 58, 95, 0.15);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -282,37 +619,122 @@
         }
 
         .song-list li:hover {
-            background: rgba(255, 250, 156, 0.05);
+            background: rgba(30, 58, 95, 0.08);
         }
 
         .song-name {
-            color: #f7fafc;
+            color: #1a202c;
             font-size: 15px;
             flex: 1;
         }
 
         .singer-name {
-            color: rgba(247, 250, 252, 0.7);
+            color: rgba(26, 32, 44, 0.7);
             font-size: 14px;
             margin: 0 15px;
         }
 
         .song-rank {
-            color: #fffa9c;
-            font-size: 15px;
-            font-weight: 600;
             margin-left: 20px;
+            color: #1a365d;
+            font-size: 15px;
+            font-weight: 700;
             padding: 4px 10px;
-            background: rgba(255, 250, 156, 0.1);
+            background: rgba(26, 54, 93, 0.15);
+            border: 2px solid #1a365d;
             border-radius: 4px;
+            margin-right: 10px;
         }
 
         /* 交互按钮样式统一 */
         .interaction-section {
-            margin-top: 15px;
-            padding-left: 15px;
             display: flex;
-            gap: 15px;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            padding-left: 0;
+        }
+
+        .interaction-left,
+        .interaction-right {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        /* AI锐评按钮样式 */
+        .ai-review-btn {
+            position: relative;
+            width: 100px;
+            height: 42px;
+            background: linear-gradient(90deg, #0A73FD, #72BCFF, #B2C7FE, #FFDDB7);
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.1s ease-out;
+            transform-style: preserve-3d;
+            box-shadow: inset 0 0 30px rgba(255, 221, 183, 0.5), inset 0 0 60px rgba(178, 199, 254, 0.8), 0 20px 40px rgb(0 0 0 / 3%);
+            border:none;
+        }
+
+        .ai-review-btn::before {
+            content: "";
+            position: absolute;
+            top: 5px;
+            width: 80%;
+            height: 40%;
+            background: rgba(255, 255, 255, 0.4);
+            filter: blur(15px);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .ai-review-btn span {
+            font-family: "Inter", sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: #1a1a1a;
+            transform: translateZ(30px);
+        }
+
+        /* 云标签区域 */
+        .card-cloud-tags {
+            margin-top: 12px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .cloud-tag {
+            background: rgba(30, 58, 95, 0.1);
+            color: #1e3a5f;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            border: 1px solid rgba(30, 58, 95, 0.2);
+        }
+
+        /* 主标题区域 */
+        .main-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(30, 58, 95, 0.2);
+        }
+
+        .main-title {
+            font-size: 32px;
+            color: #1e3a5f;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        /* 隐藏原有的 header h1 "音乐排行榜" */
+        .header {
+            display: none;
         }
 
         .vote-btn,
@@ -384,7 +806,95 @@
         }
 
         /* 响应式样式统一 */
+        @media (max-width: 1024px) {
+            .right-sidebar {
+                display: none;
+            }
+
+            .left-sidebar {
+                width: 70px;
+            }
+
+            /* 三盒布局响应式 - 1024px */
+            .main-content {
+                gap: 15px;
+                padding: 20px;
+                height: calc(100vh - 30px);
+            }
+
+            .ranking-list-box {
+                padding: 20px;
+            }
+
+            .cloud-tag-box-container {
+                padding: 15px 18px;
+            }
+
+            .music-player-box {
+                padding: 12px 15px;
+            }
+
+            /* 底部双盒并排 - 1024px */
+            .bottom-dual-boxes {
+                gap: 15px;
+            }
+        }
+
         @media (max-width: 768px) {
+            .page-wrapper {
+                flex-direction: column;
+            }
+
+            .left-sidebar {
+                width: 100%;
+                height: auto;
+                flex-direction: row;
+                justify-content: space-around;
+            }
+
+            /* 三盒布局响应式 - 768px */
+            .main-content {
+                gap: 12px;
+                padding: 15px;
+                height: auto;
+                min-height: calc(100vh - 30px);
+            }
+
+            .ranking-list-box {
+                padding: 15px;
+                border-radius: 12px;
+            }
+
+            .cloud-tag-box-container {
+                padding: 12px 15px;
+            }
+
+            .cloud-tag-box-container .tag-item {
+                font-size: 12px;
+                padding: 5px 12px;
+            }
+
+            .music-player-box {
+                padding: 10px 12px;
+                min-height: 80px;
+            }
+
+            /* 底部双盒 - 移动端垂直堆叠 */
+            .bottom-dual-boxes {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .bottom-dual-boxes .cloud-tag-box-container,
+            .bottom-dual-boxes .music-player-box {
+                flex: none;
+            }
+
+            #music-player-container {
+                width: 100% !important;
+                max-width: 100%;
+            }
+
             .container {
                 padding: 20px;
             }
@@ -577,21 +1087,21 @@
         .empty-state {
             text-align: center;
             padding: 60px 20px;
-            color: rgba(247, 250, 252, 0.6);
+            color: rgba(26, 32, 44, 0.6);
             font-size: 18px;
         }
 
         /* 评论区样式统一 */
         .comment-section {
             margin-top: 20px;
-            border-top: 1px solid rgba(255, 250, 156, 0.1);
+            border-top: 1px solid rgba(30, 58, 95, 0.15);
             padding-top: 15px;
         }
 
         .comment-toggle {
-            background: rgba(255, 250, 156, 0.1);
-            border: 1px solid rgba(255, 250, 156, 0.3);
-            color: #fffa9c;
+            background: rgba(30, 58, 95, 0.1);
+            border: 1px solid rgba(30, 58, 95, 0.3);
+            color: #1e3a5f;
             border-radius: 20px;
             padding: 6px 16px;
             cursor: pointer;
@@ -601,7 +1111,7 @@
         }
 
         .comment-toggle:hover {
-            background: rgba(255, 250, 156, 0.2);
+            background: rgba(30, 58, 95, 0.2);
             transform: translateY(-2px);
         }
 
@@ -633,10 +1143,10 @@
         .comment-input {
             width: 100%;
             padding: 12px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 250, 156, 0.3);
-            border-radius: 8px;
-            color: #f7fafc;
+            background: rgba(26, 32, 44, 0.05);
+            border: 1px solid rgba(30, 58, 95, 0.3);
+            border-radius: 12px;
+            color: #1a202c;
             font-size: 14px;
             resize: vertical;
             min-height: 80px;
@@ -645,8 +1155,8 @@
 
         .comment-input:focus {
             outline: none;
-            border-color: #fffa9c;
-            box-shadow: 0 0 10px rgba(255, 250, 156, 0.3);
+            border-color: #1e3a5f;
+            box-shadow: 0 0 10px rgba(30, 58, 95, 0.2);
         }
 
         .comment-actions {
@@ -656,10 +1166,10 @@
         }
 
         .comment-submit {
-            background: #fffa9c;
-            color: #1a202c;
+            background: #1e3a5f;
+            color: #fff9c4;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             padding: 8px 16px;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -668,7 +1178,7 @@
         }
 
         .comment-submit:hover {
-            background: #fff780;
+            background: #1a365d;
             transform: translateY(-2px);
         }
 
@@ -677,15 +1187,15 @@
         }
 
         .comment-item {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 8px;
+            background: rgba(26, 32, 44, 0.05);
+            border-radius: 12px;
             padding: 15px;
             margin-bottom: 12px;
             transition: all 0.3s ease;
         }
 
         .comment-item:hover {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(26, 32, 44, 0.1);
         }
 
         .comment-header {
@@ -696,18 +1206,18 @@
         }
 
         .comment-username {
-            color: #fffa9c;
+            color: #1e3a5f;
             font-weight: bold;
             font-size: 14px;
         }
 
         .comment-time {
-            color: rgba(247, 250, 252, 0.5);
+            color: rgba(26, 32, 44, 0.5);
             font-size: 12px;
         }
 
         .comment-content {
-            color: #f7fafc;
+            color: #1a202c;
             font-size: 14px;
             line-height: 1.4;
             margin-bottom: 10px;
@@ -722,7 +1232,7 @@
         .comment-like-btn {
             background: transparent;
             border: none;
-            color: rgba(247, 250, 252, 0.7);
+            color: rgba(26, 32, 44, 0.7);
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
@@ -754,8 +1264,8 @@
 
         .comment-reply {
             margin-left: 30px;
-            background: rgba(255, 255, 255, 0.02);
-            border-left: 2px solid rgba(255, 250, 156, 0.3);
+            background: rgba(26, 32, 44, 0.03);
+            border-left: 2px solid rgba(30, 58, 95, 0.3);
         }
 
         /* 评论删除按钮样式统一 */
@@ -793,9 +1303,9 @@
 
         /* 播放按钮样式统一 */
         .play-btn {
-            background: rgba(255, 250, 156, 0.2);
-            border: 1px solid #fffa9c;
-            color: #fffa9c;
+            background: rgba(30, 58, 95, 0.15);
+            border: 1px solid #1e3a5f;
+            color: #1e3a5f;
             border-radius: 50%;
             width: 30px;
             height: 30px;
@@ -811,471 +1321,1000 @@
         }
 
         .play-btn:hover {
-            background: #fffa9c;
-            color: #1a202c;
+            background: #1e3a5f;
+            color: #fff9c4;
             transform: scale(1.1);
-            box-shadow: 0 0 8px rgba(241, 166, 156, 0.5);
+            box-shadow: 0 0 8px rgba(30, 58, 95, 0.5);
+        }
+
+        /* 右侧信息栏通用样式 */
+        .right-sidebar {
+            overflow-y: auto;
+            max-height: calc(136vh - 140px);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid rgba(30, 58, 95, 0.15);
+        }
+
+        .section-title {
+            font-size: 16px;
+            color: #1e3a5f;
+            font-weight: bold;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .title-icon {
+            font-size: 18px;
+        }
+
+        .ai-badge {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .section-content {
+            padding: 10px 0;
+        }
+
+        .placeholder-text {
+            font-size: 13px;
+            color: #4a5568;
+            line-height: 1.5;
+            margin-bottom: 12px;
+            padding: 10px;
+            background: rgba(30, 58, 95, 0.05);
+            border-radius: 8px;
+            border-left: 3px solid #1e3a5f;
+        }
+
+        /* 迷你卡片样式 */
+        .placeholder-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .mini-card {
+            background: white;
+            border-radius: 10px;
+            padding: 12px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(30, 58, 95, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .mini-card:hover {
+            transform: translateX(3px);
+            box-shadow: 0 3px 10px rgba(30, 58, 95, 0.15);
+            border-color: #1e3a5f;
+        }
+
+        .mini-card-title {
+            font-size: 14px;
+            color: #1e3a5f;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .mini-card-meta {
+            font-size: 12px;
+            color: #718096;
+        }
+
+        /* AI特性列表 */
+        .ai-feature-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .ai-feature-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            border-radius: 8px;
+            font-size: 13px;
+            color: #1e3a5f;
+            transition: all 0.3s ease;
+        }
+
+        .ai-feature-item:hover {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+            transform: translateX(3px);
+        }
+
+        .feature-icon {
+            font-size: 18px;
+        }
+
+        .feature-text {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        /* 各区域的特殊样式 */
+        .live-report-section {
+            background: linear-gradient(180deg, #fff9c4 0%, #fff59d 100%);
+            border-radius: 16px;
+            padding: 18px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .friend-recommend-section {
+            background: linear-gradient(180deg, #fff9c4 0%, #fef3c7 100%);
+            border-radius: 16px;
+            padding: 18px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .ai-recommend-section {
+            background: linear-gradient(135deg, #e0e7ff 0%, #fce7f3 100%);
+            border-radius: 16px;
+            padding: 18px;
+            box-shadow: 0 3px 10px rgba(102, 126, 234, 0.2);
+            border: 2px solid rgba(102, 126, 234, 0.3);
+        }
+
+        /* 隐藏旧的固定定位按钮（已整合到左侧导航栏） */
+        .top-right-search,
+        .slide-btn-container,
+        .login-btn-container,
+        .add-button-container {
+            display: none !important;
+        }
+
+        /* ========== 评论抽屉弹窗样式 ========== */
+        .comment-drawer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1002;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .comment-drawer-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .comment-drawer-panel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 420px;
+            height: 100vh;
+            background: #f8f9fa;
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
+            z-index: 1003;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .comment-drawer-panel.active {
+            transform: translateX(0);
+        }
+
+        .drawer-close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 32px;
+            height: 32px;
+            background: transparent;
+            border: 1px solid #ddd;
+            border-radius: 50%;
+            font-size: 24px;
+            color: #666;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            z-index: 10;
+            line-height: 1;
+        }
+
+        .drawer-close-btn:hover {
+            background: #eee;
+            color: #333;
+            transform: rotate(90deg);
+        }
+
+        .drawer-title {
+            padding: 20px 20px 10px;
+            font-size: 20px;
+            color: #1e3a5f;
+            font-weight: bold;
+            margin: 0;
+            border-bottom: 2px solid rgba(30, 58, 95, 0.1);
+        }
+
+        .drawer-input-area {
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .drawer-comment-input {
+            width: 100%;
+            min-height: 80px;
+            padding: 12px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            color: #1a202c;
+            font-size: 14px;
+            resize: vertical;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .drawer-comment-input:focus {
+            outline: none;
+            border-color: #1e3a5f;
+            box-shadow: 0 0 8px rgba(30, 58, 95, 0.2);
+        }
+
+        .drawer-input-actions {
+            margin-top: 10px;
+            text-align: right;
+        }
+
+        .drawer-submit-btn {
+            background: #1e3a5f;
+            color: #fff9c4;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .drawer-submit-btn:hover {
+            background: #1a365d;
+            transform: translateY(-2px);
+        }
+
+        .drawer-comment-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px 20px;
+        }
+
+        .drawer-comment-list .comment-item {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(30, 58, 95, 0.08);
+        }
+
+        .drawer-comment-list .comment-item:hover {
+            background: #f8f9fa;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 响应式：平板端 */
+        @media (max-width: 1024px) {
+            .comment-drawer-panel {
+                width: 350px;
+            }
+        }
+
+        /* 响应式：移动端 */
+        @media (max-width: 768px) {
+            .comment-drawer-panel {
+                width: 90vw;
+            }
+        }
+
+        /* 新增发布按钮的特殊样式 */
+        .nav-add-btn {
+            /*margin-top: auto;*/
+            background: linear-gradient(135deg, #fffa9c, #fff176);
+            border-color: #f57f17;
+        }
+
+        .nav-add-btn:hover {
+            background: linear-gradient(135deg, #fff176, #ffee58);
+            transform: scale(1.1) rotate(90deg);
         }
     </style>
 </head>
+
 <body>
-<div class="container">
-    <!-- 右上角搜索按钮 -->
-    <div class="top-right-search">
-        <button class="search-button" id="searchButton">
-            <svg width="40" height="40" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="14" cy="14" r="10" stroke="#fffa9c" stroke-width="3" />
-                <line x1="21" y1="21" x2="28" y2="28" stroke="#fffa9c" stroke-width="3" stroke-linecap="round" />
-            </svg>
-        </button>
-    </div>
-    <!-- 新增提示框（后端重定向的提示会显示在这里） -->
-    <div id="errorAlert" th:text="${errormessage}"></div>
-    <div id="successAlert" th:text="${success}"></div>
+    <!-- ==================== 三栏布局主容器 ==================== -->
+    <div class="page-wrapper">
+        <!-- ========== 左侧导航栏 ========== -->
+        <div class="left-sidebar">
+            <div class="nav-toggle-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="3" width="7" height="7" rx="1" fill="#1e3a5f" />
+                    <rect x="14" y="3" width="7" height="7" rx="1" fill="#1e3a5f" />
+                    <rect x="3" y="14" width="7" height="7" rx="1" fill="#1e3a5f" />
+                    <rect x="14" y="14" width="7" height="7" rx="1" fill="#1e3a5f" />
+                </svg>
+            </div>
 
-    <div class="header">
-        <h1>音乐排行榜</h1>
-        <p>探索热门音乐和艺术家</p>
-    </div>
+            <nav class="nav-buttons">
+                <button class="nav-circle-btn" id="navIndex" title="首页">
+                    <span class="nav-icon">🏠</span>
+                    <span class="nav-text">首页</span>
+                </button>
+                <button class="nav-circle-btn active" id="navHome" title="主页">
+                    <span class="nav-icon">📝</span>
+                    <span class="nav-text">主页</span>
+                </button>
+                <button class="nav-circle-btn" id="navSearch" title="搜索">
+                    <span class="nav-icon">🔍</span>
+                    <span class="nav-text">搜索</span>
+                </button>
+                <button class="nav-circle-btn" id="navMyRank" title="我的榜单">
+                    <span class="nav-icon">📋</span>
+                    <span class="nav-text">榜单</span>
+                </button>
+                <button class="nav-circle-btn" id="navHotRank" title="热门榜单">
+                    <span class="nav-icon">🔥</span>
+                    <span class="nav-text">热门</span>
+                </button>
+                <button class="nav-circle-btn" id="navMyLove" title="我的收藏">
+                    <span class="nav-icon">❤️</span>
+                    <span class="nav-text">收藏</span>
+                </button>
+                <button class="nav-circle-btn nav-add-btn" id="navAdd" title="发布榜单">
+                    <span class="nav-icon">➕</span>
+                    <span class="nav-text">发布</span>
+                </button>
+            </nav>
 
-    <div class="content">
-        <h2>榜单列表</h2>
-        <!-- 动态榜单列表：适配后端传递的PageInfo对象 -->
-        <div class="rankings-list">
-            <!-- 有数据时显示榜单 -->
-            <div th:each="ranking, stat : ${publishRanks?.list}" class="ranking-item" data-rank-id="${ranking.rankId}">
-                <div class="ranking-header">
-                    <h3 th:text="${ranking.rankName}">榜单标题</h3>
-                    <button class="publisher-btn" th:text="'发布人：' + ${ranking.username}">发布人：用户名</button>
-                </div>
-                <p class="ranking-meta">
-                    <span th:text="'更新时间：' + ${ranking.publishTime}">更新时间</span>
-                </p>
-                <!-- 歌曲列表 -->
-                <div class="song-list">
-                    <h4>歌曲列表</h4>
-                    <ul>
-                        <li th:each="song : ${ranking.rankSongList}">
-                            <span class="song-name" th:text="${song?.songName}">歌曲名称</span>
-                            <span class="singer-name" th:text="${song.singerName}">歌手名称</span>
-                            <span class="song-rank" th:text="${song?.ranking}">排名</span>
-                            <!-- 播放按钮：使用事件委托，移除onclick -->
-                            <button class="play-btn"
-                                    th:data-song-id="${song.songId}"
-                                    th:data-song-name="${song.songName}"
-                                    th:data-singer-name="${song.singerName}">
-                                &#9658;
-                            </button>
-                        </li>
-                    </ul>
-                </div>
-                <!-- 投票和收藏按钮：移除onclick，使用事件委托 -->
-                <div class="interaction-section">
-                    <button class="vote-btn" th:data-rank-id="${ranking.rankId}">
-                        <span class="heart-icon">♡</span>
-                        <span class="vote-count" th:text="${ranking.voteCount}">0</span>
-                    </button>
-                    <button class="collect-btn" th:data-rank-id="${ranking.rankId}">
-                        <span class="star-icon">★</span>
-                        <span class="collect-count" th:text="${ranking.loveCount}">0</span>
-                    </button>
-                </div>
-                <!-- 评论区：移除onclick，使用事件委托 -->
-                <div class="comment-section">
-                    <button class="comment-toggle" th:data-rank-id="${ranking.rankId}">
-                        查看评论
-                    </button>
-                    <div class="comment-container" th:id="|comment-container-${ranking.rankId}|">
-                        <!-- 评论输入区 -->
-                        <div class="comment-input-area">
-                            <textarea class="comment-input" th:id="|comment-input-${ranking.rankId}|"
-                                      placeholder="写下你的评论..."></textarea>
-                            <div class="comment-actions">
-                                <button class="comment-submit" th:data-rank-id="${ranking.rankId}">
-                                    发表评论
-                                </button>
+            <div class="sidebar-cloud-tags"></div>
+        </div>
+
+        <!-- ========== 中间主内容区 ========== -->
+        <div class="main-content">
+            <div class="ranking-list-box">
+
+                <div class="container">
+                    <div class="top-right-search">
+                        <button class="search-button" id="searchButton">
+                            <svg width="40" height="40" viewBox="0 0 32 32" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="14" cy="14" r="10" stroke="#fffa9c" stroke-width="3" />
+                                <line x1="21" y1="21" x2="28" y2="28" stroke="#fffa9c" stroke-width="3"
+                                    stroke-linecap="round" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="errorAlert" th:text="${errormessage}"></div>
+                    <div id="successAlert" th:text="${success}"></div>
+
+                    <div class="header">
+                        <h1>音乐排行榜</h1>
+                        <p>探索热门音乐和艺术家</p>
+                    </div>
+
+                    <div class="content">
+                        <div class="rankings-list">
+                            <div th:each="ranking, stat : ${publishRanks?.list}" class="ranking-item"
+                                data-rank-id="${ranking.rankId}">
+                                <div class="ranking-header">
+                                    <h3 th:text="${ranking.rankName}">榜单标题</h3>
+                                    <button class="publisher-btn"
+                                        th:text="'发布人：' + ${ranking.username}">发布人：用户名</button>
+                                </div>
+                                <p class="ranking-meta">
+                                    <span th:text="'更新时间：' + ${ranking.publishTime}">更新时间</span>
+                                </p>
+                                <div class="song-list">
+                                    <h4>歌曲列表</h4>
+                                    <ul>
+                                        <li th:each="song : ${ranking.rankSongList}">
+                                            <span class="song-name" th:text="${song?.songName}">歌曲名称</span>
+                                            <span class="singer-name" th:text="${song.singerName}">歌手名称</span>
+                                            <span class="song-rank" th:text="${song?.ranking}">排名</span>
+                                            <button class="play-btn" th:data-song-id="${song.songId}"
+                                                th:data-song-name="${song.songName}"
+                                                th:data-singer-name="${song.singerName}">
+                                                &#9658;
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="interaction-section">
+                                    <div class="interaction-left">
+                                        <button class="vote-btn" th:data-rank-id="${ranking.rankId}">
+                                            <span class="heart-icon">♡</span>
+                                            <span class="vote-count" th:text="${ranking.voteCount}">0</span>
+                                        </button>
+                                        <button class="collect-btn" th:data-rank-id="${ranking.rankId}">
+                                            <span class="star-icon">★</span>
+                                            <span class="collect-count" th:text="${ranking.loveCount}">0</span>
+                                        </button>
+                                    </div>
+                                    <div class="interaction-right">
+                                        <button class="ai-review-btn"
+                                                th:data-rank-id="${ranking.rankId}"
+                                                th:data-rank-name="${ranking.rankName}">
+                                            <span>AI 锐评</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-cloud-tags">
+                                    <span class="cloud-tag">#流行</span>
+                                    <span class="cloud-tag">#摇滚</span>
+                                </div>
+                                <div class="comment-section">
+                                    <button class="comment-toggle" th:data-rank-id="${ranking.rankId}">
+                                        查看评论
+                                    </button>
+                                    <div class="comment-container" th:id="|comment-container-${ranking.rankId}|">
+                                        <div class="comment-input-area">
+                                            <textarea class="comment-input" th:id="|comment-input-${ranking.rankId}|"
+                                                placeholder="写下你的评论..."></textarea>
+                                            <div class="comment-actions">
+                                                <button class="comment-submit" th:data-rank-id="${ranking.rankId}">
+                                                    发表评论
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="comment-list" th:id="|comment-list-${ranking.rankId}|">
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                        <!-- 评论列表 -->
-                        <div class="comment-list" th:id="|comment-list-${ranking.rankId}|">
-                            <!-- 评论将通过JavaScript动态加载 -->
+
+                            <div class="pagination" th:if="${publishRanks != null}">
+                                <button class="page-btn" th:data-page="${publishRanks.pageNum - 1}"
+                                    th:disabled="${publishRanks.pageNum == 1}">上一页</button>
+
+                                <button th:each="i : ${#numbers.sequence(1, publishRanks?.pages ?: 1)}"
+                                    th:class="${publishRanks.pageNum == i ? 'active page-btn' : 'page-btn'}"
+                                    th:data-page="${i}" th:text="${i}">1</button>
+
+                                <button class="page-btn" th:data-page="${publishRanks.pageNum + 1}"
+                                    th:disabled="${publishRanks.pageNum == publishRanks.pages}">下一页</button>
+                            </div>
+
+                            <div th:if="${#lists.isEmpty(publishRanks?.list)}" class="empty-state">
+                                暂无榜单数据
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 分页：增加 publishRanks 非空判断，移除onclick，使用事件委托 -->
-            <div class="pagination" th:if="${publishRanks != null}">
-                <button class="page-btn" th:data-page="${publishRanks.pageNum - 1}" th:disabled="${publishRanks.pageNum == 1}">上一页</button>
+            <!-- 底部双盒区域：云标签 + 播放器 并排 -->
+            <div class="bottom-dual-boxes">
+                <div class="cloud-tag-box-container">
+                    <span class="cloud-tag-label">🏷️ 云标签</span>
+                    <div class="cloud-tag-content">
+                        <span class="tag-item">#今日推荐</span>
+                        <span class="tag-item">#热门</span>
+                        <span class="tag-item">#新品</span>
+                        <span class="tag-item">#流行</span>
+                        <span class="tag-item">#摇滚</span>
+                    </div>
+                </div>
 
-                <button th:each="i : ${#numbers.sequence(1, publishRanks?.pages ?: 1)}"
-                        th:class="${publishRanks.pageNum == i ? 'active page-btn' : 'page-btn'}"
-                        th:data-page="${i}"
-                        th:text="${i}">1</button>
 
-                <button class="page-btn" th:data-page="${publishRanks.pageNum + 1}" th:disabled="${publishRanks.pageNum == publishRanks.pages}">下一页</button>
+                <div id="music-player-container"
+                    style="position:relative!important;bottom:auto!important;right:auto!important;width:100%!important;min-height:90px!important;z-index:1001;">
+                </div>
+
             </div>
+        </div>
 
-            <!-- 无数据时显示暂无数据：简化空值判断 -->
-            <div th:if="${#lists.isEmpty(publishRanks?.list)}" class="empty-state">
-                暂无榜单数据
+        <!-- ========== 右侧信息栏 ========== -->
+        <div class="right-sidebar">
+            <!-- 实时战报推送区域 -->
+            <div class="live-report-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <span class="title-icon">🔥</span>
+                        实时战报推送
+                    </h3>
+                </div>
+                <div class="section-content">
+
+                    <div class="placeholder-cards">
+                        <div class="mini-card">
+                            <div class="mini-card-title">热门榜单一</div>
+                            <div class="mini-card-meta">👥 1.2k 点赞</div>
+                        </div>
+                        <div class="mini-card">
+                            <div class="mini-card-title">热门榜单二</div>
+                            <div class="mini-card-meta">👥 980 点赞</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 好友社交推荐区域 -->
+            <div class="friend-recommend-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <span class="title-icon">👥</span>
+                        共同好友社交推荐
+                    </h3>
+                </div>
+                <div class="section-content">
+
+                    <div class="placeholder-cards">
+                        <div class="mini-card">
+                            <div class="mini-card-title">好友都在听</div>
+                            <div class="mini-card-meta">👫 3位好友</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- AI智能推荐区域 -->
+            <div class="ai-recommend-section">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <span class="title-icon">🤖</span>
+                        音乐智能推荐
+                    </h3>
+                    <span class="ai-badge">AI 智能体</span>
+                </div>
+                <div class="section-content">
+
+                    <div class="ai-feature-list">
+                        <div class="ai-feature-item">
+                            <span class="feature-icon">🎵</span>
+                            <span class="feature-text">智能匹配您的音乐口味</span>
+                        </div>
+                        <div class="ai-feature-item">
+                            <span class="feature-icon">📊</span>
+                            <span class="feature-text">分析全球音乐趋势</span>
+                        </div>
+                        <div class="ai-feature-item">
+                            <span class="feature-icon">💡</span>
+                            <span class="feature-text">发现隐藏的音乐宝藏</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
 
-<!-- 加号发布榜单按钮：移除onclick，使用事件委托 -->
-<div class="add-button-container">
-    <button class="add-button" id="addBtn">+</button>
-</div>
 
-<!-- 我的榜单按钮：移除onclick，使用事件委托 -->
-<div class="slide-btn-container">
-    <button class="slide-btn-toggle expanded" id="slideBtnToggle">
-        <span class="toggle-icon">我的榜单</span>
-    </button>
-    <button class="slide-btn-content show" id="myRankBtn">进入我的榜单</button>
-    <button class="slide-btn-content show" id="hotRankBtn">热门榜单</button>
-</div>
+    <!-- 加号发布榜单按钮：移除onclick，使用事件委托 -->
+    <div class="add-button-container">
+        <button class="add-button" id="addBtn">+</button>
+    </div>
 
-<!-- 返回登录按钮：移除onclick，使用事件委托 -->
-<div class="login-btn-container">
-    <button class="login-btn-toggle expanded" id="loginBtnToggle">
-        <span class="toggle-icon">登录</span>
-    </button>
-    <button class="login-btn-content show" id="loginBtn">返回登录页面</button>
-</div>
+    <!-- 我的榜单按钮：移除onclick，使用事件委托 -->
+    <div class="slide-btn-container">
+        <button class="slide-btn-toggle expanded" id="slideBtnToggle">
+            <span class="toggle-icon">我的榜单</span>
+        </button>
+        <button class="slide-btn-content show" id="myRankBtn">进入我的榜单</button>
+        <button class="slide-btn-content show" id="hotRankBtn">热门榜单</button>
+    </div>
 
-<!-- 播放器容器 -->
-<div id="music-player-container" style="position: fixed; bottom: 20px; right: 20px; width: 300px; z-index: 1000;"></div>
+    <!-- 返回登录按钮：移除onclick，使用事件委托 -->
+    <div class="login-btn-container">
+        <button class="login-btn-toggle expanded" id="loginBtnToggle">
+            <span class="toggle-icon">登录</span>
+        </button>
+        <button class="login-btn-content show" id="loginBtn">返回登录页面</button>
+    </div>
 
-<!-- 先引入播放器JS（核心修复：移到body底部） -->
-<script th:src="@{/player/music-player.js}"></script>
+    <!-- ==================== 全局评论抽屉弹窗 ==================== -->
+    <div class="comment-drawer-overlay" id="commentDrawerOverlay"></div>
+    <div class="comment-drawer-panel" id="commentDrawerPanel" data-current-rank-id="">
+        <button class="drawer-close-btn" id="drawerCloseBtn">×</button>
+        <h3 class="drawer-title">评论区</h3>
+        <div class="drawer-input-area">
+            <textarea class="drawer-comment-input" id="drawerCommentInput" placeholder="写下你的评论..."></textarea>
+            <div class="drawer-input-actions">
+                <button class="drawer-submit-btn" id="drawerSubmitBtn">发表评论</button>
+            </div>
+        </div>
+        <div class="drawer-comment-list" id="drawerCommentList"></div>
+    </div>
 
-<script>
-    // ===================== 全局核心配置（统一初始化）=====================
-    // 1. 工具函数：获取URL参数
-    function getUrlParam(paramName) {
-        const reg = new RegExp("(^|&)" + paramName + "=([^&]*)(&|$)");
-        const paramMatch = window.location.search.substr(1).match(reg);
-        return paramMatch ? decodeURIComponent(paramMatch[2]) : null;
-    }
+    <!-- 先引入播放器JS（核心修复：移到body底部） -->
+    <script th:src="@{/player/music-player.js}"></script>
 
-    // 新增：从JWT Token解析userId（解决URL无userId的核心）
-    function getUserIdFromToken(token) {
-        if (!token) return null;
-        try {
-            const payload = token.split('.')[1];
-            const decodedPayload = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
-            const payloadObj = JSON.parse(decodedPayload);
-            return payloadObj.userId || payloadObj.uid || null;
-        } catch (error) {
-            console.error("解析Token失败:", error);
-            return null;
+    <script>
+        // ===================== 全局核心配置（统一初始化）=====================
+        // 1. 工具函数：获取URL参数
+        function getUrlParam(paramName) {
+            const reg = new RegExp("(^|&)" + paramName + "=([^&]*)(&|$)");
+            const paramMatch = window.location.search.substr(1).match(reg);
+            return paramMatch ? decodeURIComponent(paramMatch[2]) : null;
         }
-    }
 
-    // 2. 全局变量（补充缺失的 musicPlayer 声明）
-    let token = getUrlParam("token");
-    let userId = getUrlParam("userId") || getUserIdFromToken(token);
-    let category = parseInt(getUrlParam("category")) || 1;
-    let pageNum = parseInt(getUrlParam("pageNum")) || 1;
-    let pageSize = parseInt(getUrlParam("pageSize")) || 4;
-    let musicPlayer = null; // 显式声明播放器变量
-
-    console.log("初始化参数：", { token, userId, category, pageNum, pageSize });
-
-    // 3. 动态路径工具
-    function getTargetPublishPath(category) {
-        return "/music/api/mine/my";
-    }
-    function getTargetVotePath(category) {
-        return category === 1 ? "/music/api/rank/vote" : "/music/api/workrank/vote";
-    }
-    function getTargetLovePath(category) {
-        return category === 1 ? "/music/api/rank/love" : "/music/api/workrank/love";
-    }
-
-    // 4. 提示框工具
-    function showErrorTip(msg) {
-        let el = document.getElementById('errorAlert');
-        if (!el) {
-            el = document.createElement('div');
-            el.id = 'errorAlert';
-            el.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:10px 20px;background:#ff4444;color:#fff;border-radius:4px;z-index:9999;';
-            document.body.appendChild(el);
+        // 新增：从JWT Token解析userId（解决URL无userId的核心）
+        function getUserIdFromToken(token) {
+            if (!token) return null;
+            try {
+                const payload = token.split('.')[1];
+                const decodedPayload = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
+                const payloadObj = JSON.parse(decodedPayload);
+                return payloadObj.userId || payloadObj.uid || null;
+            } catch (error) {
+                console.error("解析Token失败:", error);
+                return null;
+            }
         }
-        el.innerText = msg;
-        el.style.display = 'block';
-        setTimeout(() => el.style.display = 'none', 2000);
-    }
 
-    function showSuccessTip(msg) {
-        let el = document.getElementById('successAlert');
-        if (!el) {
-            el = document.createElement('div');
-            el.id = 'successAlert';
-            el.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);padding:10px 20px;background:#00C851;color:#fff;border-radius:4px;z-index:9999;';
-            document.body.appendChild(el);
+        // 2. 全局变量（补充缺失的 musicPlayer 声明）
+        let token = getUrlParam("token");
+        let userId = getUrlParam("userId") || getUserIdFromToken(token);
+        let category = parseInt(getUrlParam("category")) || 1;
+        let pageNum = parseInt(getUrlParam("pageNum")) || 1;
+        let pageSize = parseInt(getUrlParam("pageSize")) || 4;
+        let musicPlayer = null; // 显式声明播放器变量
+
+        console.log("初始化参数：", { token, userId, category, pageNum, pageSize });
+
+        // 3. 动态路径工具
+        function getTargetPublishPath(category) {
+            return "/music/api/mine/my";
         }
-        el.innerText = msg;
-        el.style.display = 'block';
-        setTimeout(() => el.style.display = 'none', 2000);
-    }
-
-    // ===================== 兼容工具函数（修复 padStart 兼容问题）=====================
-    function padStartCompat(str, length, padChar) {
-        str = str.toString();
-        while (str.length < length) {
-            str = padChar + str;
+        function getTargetVotePath(category) {
+            return category === 1 ? "/music/api/rank/vote" : "/music/api/workrank/vote";
         }
-        return str;
-    }
+        function getTargetLovePath(category) {
+            return category === 1 ? "/music/api/rank/love" : "/music/api/workrank/love";
+        }
 
-    // ===================== 播放器核心逻辑（全局可访问）=====================
-    // 初始化播放器（全局函数）
-    function initMusicPlayer() {
-        if (musicPlayer) return; // ✅ 现在变量已声明
-        try {
-            // 兼容播放器未定义的情况
-            if (typeof MusicPlayer === 'undefined') {
-                console.warn("MusicPlayer未定义，跳过播放器初始化");
+        // 4. 提示框工具
+        function showErrorTip(msg) {
+            let el = document.getElementById('errorAlert');
+            if (!el) {
+                el = document.createElement('div');
+                el.id = 'errorAlert';
+                el.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:10px 20px;background:#ff4444;color:#fff;border-radius:4px;z-index:9999;';
+                document.body.appendChild(el);
+            }
+            el.innerText = msg;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 2000);
+        }
+
+        function showSuccessTip(msg) {
+            let el = document.getElementById('successAlert');
+            if (!el) {
+                el = document.createElement('div');
+                el.id = 'successAlert';
+                el.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);padding:10px 20px;background:#00C851;color:#fff;border-radius:4px;z-index:9999;';
+                document.body.appendChild(el);
+            }
+            el.innerText = msg;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 2000);
+        }
+
+        // ===================== 兼容工具函数（修复 padStart 兼容问题）=====================
+        function padStartCompat(str, length, padChar) {
+            str = str.toString();
+            while (str.length < length) {
+                str = padChar + str;
+            }
+            return str;
+        }
+
+        // ===================== 播放器核心逻辑（全局可访问）=====================
+        // 初始化播放器（全局函数）
+        function initMusicPlayer() {
+            if (musicPlayer) return; // ✅ 现在变量已声明
+            try {
+                // 兼容播放器未定义的情况
+                if (typeof MusicPlayer === 'undefined') {
+                    console.warn("MusicPlayer未定义，跳过播放器初始化");
+                    return;
+                }
+                musicPlayer = new MusicPlayer({
+                    container: 'music-player-container',
+                    token: token,
+                    userId: userId
+                });
+                console.log("播放器初始化成功");
+            } catch (e) {
+                console.error("播放器初始化失败:", e);
+                showErrorTip("播放器加载失败：" + e.message);
+            }
+        }
+
+        // 播放歌曲（全局函数）
+        function playSong(song) {
+            if (!song) {
+                showErrorTip("歌曲信息为空！");
                 return;
             }
-            musicPlayer = new MusicPlayer({
-                container: 'music-player-container',
-                token: token,
-                userId: userId
-            });
-            console.log("播放器初始化成功");
-        } catch (e) {
-            console.error("播放器初始化失败:", e);
-            showErrorTip("播放器加载失败：" + e.message);
-        }
-    }
-
-    // 播放歌曲（全局函数）
-    function playSong(song) {
-        if (!song) {
-            showErrorTip("歌曲信息为空！");
-            return;
-        }
-        if (!musicPlayer) {
-            initMusicPlayer();
-        }
-        try {
-            musicPlayer.playSong(song);
-            showSuccessTip(`开始播放：${song.songName}`);
-        } catch (e) {
-            console.error("播放歌曲失败:", e);
-            showErrorTip("播放失败：" + e.message);
-        }
-    }
-
-    // 播放按钮点击处理（全局函数）
-    function playSongFromData(btn) {
-        const songId = btn.dataset.songId;
-        const songName = btn.dataset.songName;
-        const singerName = btn.dataset.singerName;
-
-        if (!songId) {
-            showErrorTip("歌曲ID为空，无法播放！");
-            return;
-        }
-
-        playSong({
-            songId: songId,
-            songName: songName || "未知歌曲",
-            singerName: singerName || "未知歌手"
-        });
-    }
-
-    // ===================== 页面交互逻辑 =====================
-    // 5. 搜索功能
-    function openSearch() {
-        const searchUrl = `/music/api/rank/sou?token=${encodeURIComponent(token)}&category=${category}&userId=${userId}`;
-        window.location.href = searchUrl;
-    }
-
-    // 6. 分页
-    function goToPage(page) {
-        if (isNaN(page) || page < 1) return;
-        const jumpUrl = `/music/api/rank/publish?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}&pageNum=${page}&pageSize=${pageSize}`;
-        window.location.href = jumpUrl;
-    }
-
-    // ===================== 榜单点赞/收藏（修复 POST 参数格式）=====================
-    function voteForRanking(rankId, btn) {
-        console.log('切换榜单投票状态，rankId:', rankId);
-        if (!token) {
-            showErrorTip("请先登录后再投票！");
-            return;
-        }
-
-        const voteCountEl = btn.querySelector('.vote-count');
-        const originalCount = Number(voteCountEl.textContent) || 0;
-
-        // 临时禁用按钮，添加加载状态
-        btn.style.pointerEvents = 'none';
-        btn.style.opacity = '0.7';
-
-        // ✅ 修复：POST 参数放在 data 中，params 只传通用参数
-        axios.post(getTargetVotePath(category), null, { // 将 data 设为 null
-            params: {
-                token: token,
-                rankId: rankId, // 将 rankId 也移到 params 中
-                userId: userId
+            if (!musicPlayer) {
+                initMusicPlayer();
             }
-        })
-            .then(response => {
-                if (response.data.code === 200 || response.data.success) {
-                    if (btn.classList.contains('voted')) {
-                        btn.classList.remove('voted');
-                        voteCountEl.textContent = Math.max(0, originalCount - 1);
-                        btn.querySelector('.heart-icon').textContent = '♡';
-                        showSuccessTip("取消点赞成功！");
+            try {
+                musicPlayer.playSong(song);
+                showSuccessTip(`开始播放：${song.songName}`);
+            } catch (e) {
+                console.error("播放歌曲失败:", e);
+                showErrorTip("播放失败：" + e.message);
+            }
+        }
+
+        // 播放按钮点击处理（全局函数）
+        function playSongFromData(btn) {
+            const songId = btn.dataset.songId;
+            const songName = btn.dataset.songName;
+            const singerName = btn.dataset.singerName;
+
+            if (!songId) {
+                showErrorTip("歌曲ID为空，无法播放！");
+                return;
+            }
+
+            playSong({
+                songId: songId,
+                songName: songName || "未知歌曲",
+                singerName: singerName || "未知歌手"
+            });
+        }
+
+        // ===================== 页面交互逻辑 =====================
+        // 5. 搜索功能
+        function openSearch() {
+            const searchUrl = `/music/api/rank/sou?token=${encodeURIComponent(token)}&category=${category}&userId=${userId}`;
+            window.location.href = searchUrl;
+        }
+
+        // 6. 分页
+        function goToPage(page) {
+            if (isNaN(page) || page < 1) return;
+            const jumpUrl = `/music/api/rank/publish?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}&pageNum=${page}&pageSize=${pageSize}`;
+            window.location.href = jumpUrl;
+        }
+
+        // ===================== 榜单点赞/收藏（修复 POST 参数格式）=====================
+        function voteForRanking(rankId, btn) {
+            console.log('切换榜单投票状态，rankId:', rankId);
+            if (!token) {
+                showErrorTip("请先登录后再投票！");
+                return;
+            }
+
+            const voteCountEl = btn.querySelector('.vote-count');
+            const originalCount = Number(voteCountEl.textContent) || 0;
+
+            // 临时禁用按钮，添加加载状态
+            btn.style.pointerEvents = 'none';
+            btn.style.opacity = '0.7';
+
+            // ✅ 修复：POST 参数放在 data 中，params 只传通用参数
+            axios.post(getTargetVotePath(category), null, { // 将 data 设为 null
+                params: {
+                    token: token,
+                    rankId: rankId, // 将 rankId 也移到 params 中
+                    userId: userId
+                }
+            })
+                .then(response => {
+                    if (response.data.code === 200 || response.data.success) {
+                        if (btn.classList.contains('voted')) {
+                            btn.classList.remove('voted');
+                            voteCountEl.textContent = Math.max(0, originalCount - 1);
+                            btn.querySelector('.heart-icon').textContent = '♡';
+                            showSuccessTip("取消点赞成功！");
+                        } else {
+                            btn.classList.add('voted');
+                            voteCountEl.textContent = originalCount + 1;
+                            btn.querySelector('.heart-icon').textContent = '♥';
+                            showSuccessTip("点赞成功！");
+                        }
                     } else {
-                        btn.classList.add('voted');
-                        voteCountEl.textContent = originalCount + 1;
-                        btn.querySelector('.heart-icon').textContent = '♥';
-                        showSuccessTip("点赞成功！");
+                        voteCountEl.textContent = originalCount;
+                        showErrorTip("操作失败：" + (response.data.msg || "后端处理失败"));
                     }
-                } else {
+                })
+                .catch(error => {
                     voteCountEl.textContent = originalCount;
-                    showErrorTip("操作失败：" + (response.data.msg || "后端处理失败"));
-                }
-            })
-            .catch(error => {
-                voteCountEl.textContent = originalCount;
-                showErrorTip("操作失败：" + (error.response?.data?.msg || "接口异常"));
-            })
-            .finally(() => {
-                // 无论成功失败，都恢复按钮状态
-                btn.style.pointerEvents = 'auto';
-                btn.style.opacity = '1';
-            });
-    }
-
-    function collectRanking(rankId, btn) {
-        console.log('切换榜单收藏状态，rankId:', rankId);
-        if (!token) {
-            showErrorTip("请先登录后再收藏！");
-            return;
+                    showErrorTip("操作失败：" + (error.response?.data?.msg || "接口异常"));
+                })
+                .finally(() => {
+                    // 无论成功失败，都恢复按钮状态
+                    btn.style.pointerEvents = 'auto';
+                    btn.style.opacity = '1';
+                });
         }
 
-        const collectCountEl = btn.querySelector('.collect-count');
-        const originalCount = Number(collectCountEl.textContent) || 0;
+        function collectRanking(rankId, btn) {
+            console.log('切换榜单收藏状态，rankId:', rankId);
+            if (!token) {
+                showErrorTip("请先登录后再收藏！");
+                return;
+            }
 
-        // 临时禁用按钮，添加加载状态
-        btn.style.pointerEvents = 'none';
-        btn.style.opacity = '0.7';
+            const collectCountEl = btn.querySelector('.collect-count');
+            const originalCount = Number(collectCountEl.textContent) || 0;
 
-        // ✅ 修复：POST 参数放在 data 中
-        axios.post(getTargetLovePath(category), {
-            rankId: rankId,
-            userId: userId
-        }, {
-            params: { token: token }
-        })
-            .then(response => {
-                if (response.data.code === 200 || response.data.success) {
-                    if (btn.classList.contains('collected')) {
-                        btn.classList.remove('collected');
-                        collectCountEl.textContent = Math.max(0, originalCount - 1);
-                        btn.querySelector('.star-icon').style.color = '';
-                        showSuccessTip("取消收藏成功！");
-                    } else {
-                        btn.classList.add('collected');
-                        collectCountEl.textContent = originalCount + 1;
-                        btn.querySelector('.star-icon').style.color = '#fffa9c';
-                        showSuccessTip("收藏成功！");
-                    }
-                } else {
-                    collectCountEl.textContent = originalCount;
-                    showErrorTip("操作失败：" + (response.data.msg || "后端处理失败"));
-                }
-            })
-            .catch(error => {
-                collectCountEl.textContent = originalCount;
-                showErrorTip("操作失败：" + (error.response?.data?.msg || "接口异常"));
-            })
-            .finally(() => {
-                // 无论成功失败，都恢复按钮状态
-                btn.style.pointerEvents = 'auto';
-                btn.style.opacity = '1';
-            });
-    }
+            // 临时禁用按钮，添加加载状态
+            btn.style.pointerEvents = 'none';
+            btn.style.opacity = '0.7';
 
-    // ===================== 评论功能（修复时间格式化兼容）=====================
-    function toggleComments(rankId) {
-        const container = document.getElementById(`comment-container-${rankId}`);
-        if (!container) { // ✅ 新增：防止元素不存在报错
-            showErrorTip("评论容器未找到！");
-            return;
-        }
-        const toggleBtn = container.previousElementSibling;
-
-        if (container.classList.contains('show')) {
-            container.classList.remove('show');
-            toggleBtn.textContent = '查看评论';
-        } else {
-            container.classList.add('show');
-            toggleBtn.textContent = '收起评论';
-            loadComments(rankId);
-        }
-    }
-
-    function loadComments(rankId) {
-        console.log('加载评论列表，rankId:', rankId);
-        const commentList = document.getElementById(`comment-list-${rankId}`);
-        if (!commentList) return;
-
-        if (!token) {
-            commentList.innerHTML = '<p style="color: rgba(247, 250, 252, 0.7); text-align: center;">请先登录后查看评论</p>';
-            return;
-        }
-
-        commentList.innerHTML = '<p style="color: rgba(247, 250, 252, 0.7); text-align: center;">加载中...</p>';
-
-        axios.get(`/music/api/rank/list`, {
-            params: {
-                token: token,
+            // ✅ 修复：POST 参数放在 data 中
+            axios.post(getTargetLovePath(category), {
                 rankId: rankId,
                 userId: userId
-            }
-        })
-            .then(response => {
-                console.log('加载评论响应:', response.data);
-                if (response.data.code === 200 || response.data.success) {
-                    const comments = response.data.data || response.data;
-                    renderComments(commentList, comments);
-                } else {
-                    commentList.innerHTML = `<p style="color: rgba(247, 250, 252, 0.7); text-align: center;">查询评论失败：${response.data.msg || '未知错误'}</p>`;
-                    console.error('评论查询失败:', response.data);
-                }
+            }, {
+                params: { token: token }
             })
-            .catch(error => {
-                console.error('加载评论失败:', error);
-                commentList.innerHTML = `<p style="color: rgba(247, 250, 252, 0.7); text-align: center;">加载评论失败：${error.response?.data?.msg || error.message}</p>`;
-            });
-    }
-
-    function renderComments(container, comments) {
-        if (!comments || comments.length === 0) {
-            container.innerHTML = '<p style="color: rgba(247, 250, 252, 0.7); text-align: center;">暂无评论</p>';
-            return;
+                .then(response => {
+                    if (response.data.code === 200 || response.data.success) {
+                        if (btn.classList.contains('collected')) {
+                            btn.classList.remove('collected');
+                            collectCountEl.textContent = Math.max(0, originalCount - 1);
+                            btn.querySelector('.star-icon').style.color = '';
+                            showSuccessTip("取消收藏成功！");
+                        } else {
+                            btn.classList.add('collected');
+                            collectCountEl.textContent = originalCount + 1;
+                            btn.querySelector('.star-icon').style.color = '#fffa9c';
+                            showSuccessTip("收藏成功！");
+                        }
+                    } else {
+                        collectCountEl.textContent = originalCount;
+                        showErrorTip("操作失败：" + (response.data.msg || "后端处理失败"));
+                    }
+                })
+                .catch(error => {
+                    collectCountEl.textContent = originalCount;
+                    showErrorTip("操作失败：" + (error.response?.data?.msg || "接口异常"));
+                })
+                .finally(() => {
+                    // 无论成功失败，都恢复按钮状态
+                    btn.style.pointerEvents = 'auto';
+                    btn.style.opacity = '1';
+                });
         }
 
-        container.innerHTML = '';
-        comments.forEach(comment => {
-            const commentItem = document.createElement('div');
-            commentItem.className = 'comment-item';
-            // ✅ 核心修复：dataset使用驼峰命名，解决语法错误
-            commentItem.dataset.comId = comment.comId;
-            commentItem.dataset.rankId = comment.rankId;
-            commentItem.dataset.userId = comment.userId;
-            commentItem.innerHTML = `
+        // ===================== 评论功能（修复时间格式化兼容）=====================
+
+        // 新增：打开评论抽屉
+        function openCommentDrawer(rankId) {
+            console.log('打开评论抽屉, rankId:', rankId);
+            const overlay = document.getElementById('commentDrawerOverlay');
+            const panel = document.getElementById('commentDrawerPanel');
+            const input = document.getElementById('drawerCommentInput');
+
+            if (!overlay || !panel) {
+                showErrorTip("评论抽屉组件未找到！");
+                return;
+            }
+
+            // 设置当前 rankId
+            panel.dataset.currentRankId = rankId;
+
+            // 清空输入框
+            if (input) input.value = '';
+
+            // 显示遮罩和面板
+            overlay.classList.add('active');
+            panel.classList.add('active');
+
+            // 禁止背景滚动
+            document.body.style.overflow = 'hidden';
+
+            // 加载评论数据
+            loadCommentsToDrawer(rankId);
+        }
+
+        // 新增：关闭评论抽屉
+        function closeCommentDrawer() {
+            console.log('关闭评论抽屉');
+            const overlay = document.getElementById('commentDrawerOverlay');
+            const panel = document.getElementById('commentDrawerPanel');
+
+            if (overlay && panel) {
+                overlay.classList.remove('active');
+                panel.classList.remove('active');
+            }
+
+            // 恢复背景滚动
+            document.body.style.overflow = '';
+
+            // 清除当前 rankId
+            if (panel) panel.dataset.currentRankId = '';
+        }
+
+        // 修改：toggleComments 改为调用抽屉
+        function toggleComments(rankId) {
+            const panel = document.getElementById('commentDrawerPanel');
+
+            if (panel && panel.classList.contains('active') && panel.dataset.currentRankId === String(rankId)) {
+                // 如果当前已经打开且是同一个榜单，则关闭
+                closeCommentDrawer();
+            } else {
+                // 否则打开/切换到该榜单的评论
+                openCommentDrawer(rankId);
+            }
+        }
+
+        // 修改：加载评论到抽屉容器
+        function loadCommentsToDrawer(rankId) {
+            console.log('加载评论列表到抽屉, rankId:', rankId);
+            const commentList = document.getElementById('drawerCommentList');
+            if (!commentList) return;
+
+            if (!token) {
+                commentList.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">请先登录后查看评论</p>';
+                return;
+            }
+
+            commentList.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">加载中...</p>';
+
+            axios.get(`/music/api/rank/list`, {
+                params: {
+                    token: token,
+                    rankId: rankId,
+                    userId: userId
+                }
+            })
+                .then(response => {
+                    console.log('加载评论响应:', response.data);
+                    if (response.data.code === 200 || response.data.success) {
+                        const comments = response.data.data || response.data;
+                        renderCommentsToDrawer(commentList, comments);
+                    } else {
+                        commentList.innerHTML = `<p style="color: #ff4444; text-align: center; padding: 20px;">查询评论失败：${response.data.msg || '未知错误'}</p>`;
+                        console.error('评论查询失败:', response.data);
+                    }
+                })
+                .catch(error => {
+                    console.error('加载评论失败:', error);
+                    commentList.innerHTML = `<p style="color: #ff4444; text-align: center; padding: 20px;">加载评论失败：${error.response?.data?.msg || error.message}</p>`;
+                });
+        }
+
+        // 兼容原有函数名（保留以防其他地方调用）
+        function loadComments(rankId) {
+            loadCommentsToDrawer(rankId);
+        }
+
+        // 修改：渲染评论到抽屉容器
+        function renderCommentsToDrawer(container, comments) {
+            if (!comments || comments.length === 0) {
+                container.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">暂无评论</p>';
+                return;
+            }
+
+            container.innerHTML = '';
+            comments.forEach(comment => {
+                const commentItem = document.createElement('div');
+                commentItem.className = 'comment-item';
+                commentItem.dataset.comId = comment.comId;
+                commentItem.dataset.rankId = comment.rankId;
+                commentItem.dataset.userId = comment.userId;
+                commentItem.innerHTML = `
                 <div class="comment-header">
                     <span class="comment-username">${comment.username || '匿名用户'}</span>
                     <span class="comment-time">${formatTime(comment.comTime)}</span>
@@ -1287,371 +2326,689 @@
                         <span class="comment-like-count">${comment.likeCount || 0}</span>
                     </button>
                     ${comment.userId === parseInt(userId) ?
-                `<button class="comment-delete-btn" data-com-id="${comment.comId}" data-rank-id="${comment.rankId}">删除</button>` : ''
-            }
+                        `<button class="comment-delete-btn" data-com-id="${comment.comId}" data-rank-id="${comment.rankId}">删除</button>` : ''
+                    }
                 </div>
             `;
 
-            container.appendChild(commentItem);
-        });
-    }
-
-    function submitComment(rankId) {
-        console.log('提交评论,rankId:', rankId);
-        const input = document.getElementById(`comment-input-${rankId}`);
-        if (!input) { // ✅ 新增：防止输入框不存在报错
-            showErrorTip("评论输入框未找到！");
-            return;
-        }
-        const content = input.value.trim();
-
-        if (!content) {
-            showErrorTip("评论内容不能为空！");
-            return;
-        }
-
-        if (!token || !userId || isNaN(userId)) {
-            showErrorTip("请先登录后再评论！");
-            return;
-        }
-
-        // ✅ 修复：POST 参数放在 data 中
-        axios.post(`/music/api/rank/pubcomment`, {
-            rankId: rankId,
-            userId: userId,
-            content: content,
-            parentId: null
-        }, {
-            params: { token: token }
-        })
-            .then(response => {
-                console.log('提交评论成功:', response.data);
-                if (response.data.code === 200 || response.data.success) {
-                    showSuccessTip("评论发表成功！");
-                    input.value = '';
-                    loadComments(rankId);
-                } else {
-                    showErrorTip("评论发表失败：" + (response.data.msg || '未知错误'));
-                }
-            })
-            .catch(error => {
-                console.error('提交评论失败:', error);
-                showErrorTip("评论发表失败：" + (error.response?.data?.msg || error.message));
+                container.appendChild(commentItem);
             });
-    }
-
-    // ✅ 核心修复：评论点赞接口参数格式（后端要求@RequestParam，所以参数要放在params里）
-    function toggleCommentLike(commentId, btn) {
-        console.log('切换评论点赞状态，commentId:', commentId);
-
-        if (!token) {
-            showErrorTip("请先登录后再点赞！");
-            return;
         }
 
-        const likeCountEl = btn.querySelector('.comment-like-count');
-        const originalCount = Number(likeCountEl.textContent) || 0;
-
-        // 临时禁用按钮
-        btn.style.pointerEvents = 'none';
-
-        if (btn.classList.contains('liked')) {
-            // 取消点赞 - ✅ 修复：参数放在params中（后端@RequestParam要求）
-            axios.post(`/music/api/rank/deleteLike`, null, {
-                params: {
-                    token: token,
-                    comId: commentId // 后端参数名是comId，必须匹配
-                }
-            })
-                .then(response => {
-                    console.log('取消点赞完整响应:', response.data);
-                    if (response.data.code === 200 || response.data.success) {
-                        btn.classList.remove('liked');
-                        likeCountEl.textContent = Math.max(0, originalCount - 1);
-                        showSuccessTip("取消点赞成功！");
-                    } else {
-                        showErrorTip("取消点赞失败：" + (response.data.msg || '未知错误'));
-                    }
-                })
-                .catch(error => {
-                    console.error('取消点赞失败:', error);
-                    showErrorTip("取消点赞失败：" + (error.response?.data?.msg || error.message));
-                })
-                .finally(() => {
-                    btn.style.pointerEvents = 'auto';
-                });
-        } else {
-            // 点赞 - ✅ 修复：参数放在params中（后端@RequestParam要求）
-            axios.post(`/music/api/rank/like`, null, {
-                params: {
-                    token: token,
-                    comId: commentId // 后端参数名是comId，必须匹配
-                }
-            })
-                .then(response => {
-                    console.log('点赞成功:', response.data);
-                    if (response.data.code === 200 || response.data.success) {
-                        btn.classList.add('liked');
-                        likeCountEl.textContent = originalCount + 1;
-                        showSuccessTip("点赞成功！");
-                    } else {
-                        showErrorTip("点赞失败：" + (response.data.msg || '未知错误'));
-                    }
-                })
-                .catch(error => {
-                    console.error('点赞失败:', error);
-                    showErrorTip("点赞失败：" + (error.response?.data?.msg || error.message));
-                })
-                .finally(() => {
-                    btn.style.pointerEvents = 'auto';
-                });
-        }
-    }
-
-    function deleteComment(commentId, rankId) {
-        console.log('删除评论，commentId:', commentId);
-
-        if (!confirm('确定要删除这条评论吗？')) {
-            return;
+        // 兼容原有函数名
+        function renderComments(container, comments) {
+            renderCommentsToDrawer(container, comments);
         }
 
-        axios.delete(`/music/api/rank/deleteComment`, {
-            params: {
-                token: token,
-                comId: commentId,
-                userId: userId
+        // 修改：从抽屉输入框提交评论
+        function submitComment(rankId) {
+            console.log('提交评论, rankId:', rankId);
+
+            // 优先从抽屉输入框获取内容
+            let input = null;
+            const panel = document.getElementById('commentDrawerPanel');
+            if (panel && panel.classList.contains('active')) {
+                input = document.getElementById('drawerCommentInput');
             }
-        })
-            .then(response => {
-                console.log('删除评论成功:', response.data);
-                if (response.data.code === 200 || response.data.success) {
-                    showSuccessTip("删除评论成功！");
-                    if (rankId) {
+
+            // 如果抽屉未打开或输入框不存在，尝试使用原有的输入框（降级方案）
+            if (!input) {
+                input = document.getElementById(`comment-input-${rankId}`);
+            }
+
+            if (!input) {
+                showErrorTip("评论输入框未找到！");
+                return;
+            }
+
+            const content = input.value.trim();
+
+            if (!content) {
+                showErrorTip("评论内容不能为空！");
+                return;
+            }
+
+            if (!token || !userId || isNaN(userId)) {
+                showErrorTip("请先登录后再评论！");
+                return;
+            }
+
+            axios.post(`/music/api/rank/pubcomment`, null, {
+                params: {
+                    token: token,
+                    rankId: rankId,
+                    userId: userId,
+                    content: content,
+                    parentId: null
+                }
+            })
+                .then(response => {
+                    console.log('提交评论成功:', response.data);
+                    if (response.data.code === 200 || response.data.success) {
+                        showSuccessTip("评论发表成功！");
+                        input.value = '';
                         loadComments(rankId);
+                    } else {
+                        showErrorTip("评论发表失败：" + (response.data.msg || '未知错误'));
                     }
-                } else {
-                    showErrorTip("删除评论失败：" + (response.data.msg || '未知错误'));
-                }
-            })
-            .catch(error => {
-                console.error('删除评论失败:', error);
-                showErrorTip("删除评论失败：" + (error.response?.data?.msg || error.message));
-            });
-    }
-
-    // ✅ 修复：时间格式化兼容低版本浏览器
-    function formatTime(time) {
-        if (!time) return '';
-        const date = new Date(time);
-        if (isNaN(date.getTime())) return '未知时间';
-        const year = date.getFullYear();
-        const month = padStartCompat(date.getMonth() + 1, 2, '0');
-        const day = padStartCompat(date.getDate(), 2, '0');
-        const hour = padStartCompat(date.getHours(), 2, '0');
-        const minute = padStartCompat(date.getMinutes(), 2, '0');
-        return `${year}-${month}-${day} ${hour}:${minute}`;
-    }
-
-    // ===================== 全局事件委托（核心修复：统一绑定所有按钮事件）=====================
-    function bindAllEvents() {
-        // 事件委托：处理所有按钮点击
-        document.addEventListener('click', function(e) {
-            const target = e.target;
-
-            // 1. 搜索按钮
-            if (target.closest('#searchButton')) {
-                openSearch();
-                return;
-            }
-
-            // 2. 播放按钮
-            const playBtn = target.closest('.play-btn');
-            if (playBtn) {
-                playSongFromData(playBtn);
-                return;
-            }
-
-            // 3. 投票按钮
-            const voteBtn = target.closest('.vote-btn');
-            if (voteBtn) {
-                const rankId = voteBtn.dataset.rankId;
-                if (rankId) {
-                    voteForRanking(rankId, voteBtn);
-                }
-                return;
-            }
-
-            // 4. 收藏按钮
-            const collectBtn = target.closest('.collect-btn');
-            if (collectBtn) {
-                const rankId = collectBtn.dataset.rankId;
-                if (rankId) {
-                    collectRanking(rankId, collectBtn);
-                }
-                return;
-            }
-
-            // 5. 评论切换按钮
-            const commentToggle = target.closest('.comment-toggle');
-            if (commentToggle) {
-                const rankId = commentToggle.dataset.rankId;
-                if (rankId) {
-                    toggleComments(rankId);
-                }
-                return;
-            }
-
-            // 6. 评论提交按钮
-            const commentSubmit = target.closest('.comment-submit');
-            if (commentSubmit) {
-                const rankId = commentSubmit.dataset.rankId;
-                if (rankId) {
-                    submitComment(rankId);
-                }
-                return;
-            }
-
-            // 7. 评论点赞按钮
-            const commentLikeBtn = target.closest('.comment-like-btn');
-            if (commentLikeBtn) {
-                const comId = commentLikeBtn.dataset.comId;
-                if (comId) {
-                    toggleCommentLike(comId, commentLikeBtn);
-                }
-                return;
-            }
-
-            // 8. 评论删除按钮
-            const commentDeleteBtn = target.closest('.comment-delete-btn');
-            if (commentDeleteBtn) {
-                const comId = commentDeleteBtn.dataset.comId;
-                const rankId = commentDeleteBtn.dataset.rankId;
-                if (comId && rankId) {
-                    deleteComment(comId, rankId);
-                }
-                return;
-            }
-
-            // 9. 分页按钮
-            const pageBtn = target.closest('.page-btn');
-            if (pageBtn && !pageBtn.disabled) {
-                const page = pageBtn.dataset.page;
-                if (page) {
-                    goToPage(parseInt(page));
-                }
-                return;
-            }
-
-            // 10. 加号发布按钮
-            if (target.closest('#addBtn')) {
-                if (!token || !userId || !category || isNaN(userId) || isNaN(category)) {
-                    showErrorTip("参数缺失，请刷新页面重试！");
-                    return;
-                }
-                let addPagePath = category === 1 ? "/music/rank.html" : "/music/workrank.html";
-                const jumpUrl = `${addPagePath}?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}`;
-                console.log("发布跳转URL：", jumpUrl);
-                window.location.href = jumpUrl;
-                return;
-            }
-
-            // 11. 我的榜单按钮
-            if (target.closest('#myRankBtn')) {
-                console.log("【进入我的榜单】按钮被点击");
-                if (!token || !userId || isNaN(userId)) {
-                    showErrorTip("缺少登录信息，请重新登录！");
-                    setTimeout(() => window.location.href = "/login.html", 1500);
-                    return;
-                }
-                const targetPath = getTargetPublishPath(category);
-                const jumpUrl = `${targetPath}?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}&pageNum=1&pageSize=10`;
-                console.log("跳转URL：", jumpUrl);
-                window.location.href = jumpUrl;
-                return;
-            }
-
-            // 12. 热门榜单按钮
-            if (target.closest('#hotRankBtn')) {
-                console.log("【热门榜单】按钮被点击");
-                if (!token || !userId || isNaN(userId)) {
-                    showErrorTip("缺少登录信息，请重新登录！");
-                    setTimeout(() => window.location.href = "/login.html", 1500);
-                    return;
-                }
-                const hotRankUrl = `/music/hotrank.html?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}`;
-                console.log("热门榜单跳转URL：", hotRankUrl);
-                window.location.href = hotRankUrl;
-                return;
-            }
-
-            // 13. 返回登录按钮
-            if (target.closest('#loginBtn')) {
-                console.log("【返回登录】按钮被点击");
-                window.location.href = "/music/login.html";
-                return;
-            }
-
-            // 14. 侧边栏展开/收起按钮
-            if (target.closest('#slideBtnToggle')) {
-                const toggleBtn = document.getElementById('slideBtnToggle');
-                const myRankBtn = document.getElementById('myRankBtn');
-                const hotRankBtn = document.getElementById('hotRankBtn');
-                const isExpanded = !toggleBtn.classList.contains('collapsed');
-
-                if (isExpanded) {
-                    toggleBtn.classList.remove('expanded');
-                    toggleBtn.classList.add('collapsed');
-                    myRankBtn.classList.remove('show');
-                    hotRankBtn.classList.remove('show');
-                } else {
-                    toggleBtn.classList.remove('collapsed');
-                    toggleBtn.classList.add('expanded');
-                    myRankBtn.classList.add('show');
-                    hotRankBtn.classList.add('show');
-                }
-                return;
-            }
-
-            // 15. 登录栏展开/收起按钮
-            if (target.closest('#loginBtnToggle')) {
-                const toggleBtn = document.getElementById('loginBtnToggle');
-                const loginBtn = document.getElementById('loginBtn');
-                const isExpanded = !toggleBtn.classList.contains('collapsed');
-
-                if (isExpanded) {
-                    toggleBtn.classList.remove('expanded');
-                    toggleBtn.classList.add('collapsed');
-                    loginBtn.classList.remove('show');
-                } else {
-                    toggleBtn.classList.remove('collapsed');
-                    toggleBtn.classList.add('expanded');
-                    loginBtn.classList.add('show');
-                }
-                return;
-            }
-        });
-    }
-
-    // ===================== 页面加载完成后初始化 =====================
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log("DOM加载完成，开始初始化页面");
-
-        // 1. 初始化播放器
-        initMusicPlayer();
-
-        // 2. 绑定所有事件（核心修复）
-        bindAllEvents();
-
-        // 3. 页面加载校验
-        if (!token || token.trim() === '' || !userId || isNaN(userId)) {
-            showErrorTip("登录信息失效，请重新登录！");
-            setTimeout(() => window.location.href = "/music/login.html", 1500);
-            return;
+                })
+                .catch(error => {
+                    console.error('提交评论失败:', error);
+                    showErrorTip("评论发表失败：" + (error.response?.data?.msg || error.message));
+                });
         }
 
-        console.log("页面加载成功");
-    });
+        // ✅ 核心修复：评论点赞接口参数格式（后端要求@RequestParam，所以参数要放在params里）
+        function toggleCommentLike(commentId, btn) {
+            console.log('切换评论点赞状态，commentId:', commentId);
 
-</script>
+            if (!token) {
+                showErrorTip("请先登录后再点赞！");
+                return;
+            }
+
+            const likeCountEl = btn.querySelector('.comment-like-count');
+            const originalCount = Number(likeCountEl.textContent) || 0;
+
+            // 临时禁用按钮
+            btn.style.pointerEvents = 'none';
+
+            if (btn.classList.contains('liked')) {
+                // 取消点赞 - ✅ 修复：参数放在params中（后端@RequestParam要求）
+                axios.post(`/music/api/rank/deleteLike`, null, {
+                    params: {
+                        token: token,
+                        comId: commentId // 后端参数名是comId，必须匹配
+                    }
+                })
+                    .then(response => {
+                        console.log('取消点赞完整响应:', response.data);
+                        if (response.data.code === 200 || response.data.success) {
+                            btn.classList.remove('liked');
+                            likeCountEl.textContent = Math.max(0, originalCount - 1);
+                            showSuccessTip("取消点赞成功！");
+                        } else {
+                            showErrorTip("取消点赞失败：" + (response.data.msg || '未知错误'));
+                        }
+                    })
+                    .catch(error => {
+                        console.error('取消点赞失败:', error);
+                        showErrorTip("取消点赞失败：" + (error.response?.data?.msg || error.message));
+                    })
+                    .finally(() => {
+                        btn.style.pointerEvents = 'auto';
+                    });
+            } else {
+                // 点赞 - ✅ 修复：参数放在params中（后端@RequestParam要求）
+                axios.post(`/music/api/rank/like`, null, {
+                    params: {
+                        token: token,
+                        comId: commentId // 后端参数名是comId，必须匹配
+                    }
+                })
+                    .then(response => {
+                        console.log('点赞成功:', response.data);
+                        if (response.data.code === 200 || response.data.success) {
+                            btn.classList.add('liked');
+                            likeCountEl.textContent = originalCount + 1;
+                            showSuccessTip("点赞成功！");
+                        } else {
+                            showErrorTip("点赞失败：" + (response.data.msg || '未知错误'));
+                        }
+                    })
+                    .catch(error => {
+                        console.error('点赞失败:', error);
+                        showErrorTip("点赞失败：" + (error.response?.data?.msg || error.message));
+                    })
+                    .finally(() => {
+                        btn.style.pointerEvents = 'auto';
+                    });
+            }
+        }
+
+        function deleteComment(commentId, rankId) {
+            console.log('删除评论，commentId:', commentId);
+
+            if (!confirm('确定要删除这条评论吗？')) {
+                return;
+            }
+
+            axios.delete(`/music/api/rank/deleteComment`, {
+                params: {
+                    token: token,
+                    comId: commentId,
+                    userId: userId
+                }
+            })
+                .then(response => {
+                    console.log('删除评论成功:', response.data);
+                    if (response.data.code === 200 || response.data.success) {
+                        showSuccessTip("删除评论成功！");
+                        if (rankId) {
+                            loadComments(rankId);
+                        }
+                    } else {
+                        showErrorTip("删除评论失败：" + (response.data.msg || '未知错误'));
+                    }
+                })
+                .catch(error => {
+                    console.error('删除评论失败:', error);
+                    showErrorTip("删除评论失败：" + (error.response?.data?.msg || error.message));
+                });
+        }
+
+        // ✅ 修复：时间格式化兼容低版本浏览器
+        function formatTime(time) {
+            if (!time) return '';
+            const date = new Date(time);
+            if (isNaN(date.getTime())) return '未知时间';
+            const year = date.getFullYear();
+            const month = padStartCompat(date.getMonth() + 1, 2, '0');
+            const day = padStartCompat(date.getDate(), 2, '0');
+            const hour = padStartCompat(date.getHours(), 2, '0');
+            const minute = padStartCompat(date.getMinutes(), 2, '0');
+            return `${year}-${month}-${day} ${hour}:${minute}`;
+        }
+        // ===================== AI锐评功能 完全匹配后端接口 =====================
+        function requestAiReview(myRankWithSongs, btn) {
+            console.log('请求AI锐评, 榜单ID:', myRankWithSongs.rankId, '歌曲数:', myRankWithSongs.rankSongList.length);
+
+            if (!token) {
+                showErrorTip("请先登录后再使用AI锐评！");
+                return;
+            }
+
+            // 禁用按钮
+            btn.style.pointerEvents = 'none';
+            btn.style.opacity = '0.7';
+            const originalText = btn.querySelector('span').textContent;
+            btn.querySelector('span').textContent = '分析中...';
+
+            // 调用后端接口
+            axios.post('/music/AiComment/ai', myRankWithSongs, {
+                params: {
+                    rankId: myRankWithSongs.rankId,
+                    token: token
+                }
+            })
+                .then(response => {
+                    console.log('AI锐评响应:', response.data);
+                    if (response.data.code === 200 && response.data.data != null) {
+                        showAiCommentModal(response.data.data, myRankWithSongs.rankName);
+                        showSuccessTip("AI锐评生成成功！");
+                    } else {
+                        showErrorTip("AI锐评失败：" + (response.data.msg || '未知错误'));
+                    }
+                })
+                .catch(error => {
+                    console.error('AI锐评请求失败:', error);
+                    showErrorTip("AI服务异常：" + (error.response?.data?.msg || error.message));
+                })
+                .finally(() => {
+                    btn.style.pointerEvents = 'auto';
+                    btn.style.opacity = '1';
+                    btn.querySelector('span').textContent = originalText;
+                });
+        }
+        // 显示AI评论弹窗
+        function showAiCommentModal(aiComment, rankName, songName) {
+            // 创建或获取弹窗元素
+            let modal = document.getElementById('aiCommentModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'aiCommentModal';
+                modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        `;
+
+                modal.innerHTML = `
+            <div style="
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-radius: 20px;
+                padding: 30px;
+                max-width: 500px;
+                width: 90%;
+                max-height: 80vh;
+                overflow-y: auto;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                transform: scale(0.9);
+                transition: transform 0.3s ease;
+            ">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <span style="font-size: 40px;">🤖</span>
+                    <h3 style="color: white; margin: 10px 0; font-size: 24px;">AI 音乐分析师</h3>
+                    <p style="color: rgba(255,255,255,0.8); font-size: 14px;">为《${songName || '未知歌曲'}》生成的专业锐评</p>
+                </div>
+                <div style="
+                    background: rgba(255,255,255,0.95);
+                    border-radius: 15px;
+                    padding: 20px;
+                    margin: 20px 0;
+                    color: #1a202c;
+                    font-size: 16px;
+                    line-height: 1.6;
+                    min-height: 100px;
+                " id="aiCommentContent">
+                    加载中...
+                </div>
+                <div style="text-align: center;">
+                    <button onclick="closeAiCommentModal()" style="
+                        background: white;
+                        color: #667eea;
+                        border: none;
+                        padding: 12px 30px;
+                        border-radius: 25px;
+                        font-size: 16px;
+                        font-weight: bold;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    ">关闭</button>
+                </div>
+            </div>
+        `;
+
+                document.body.appendChild(modal);
+
+                // 点击遮罩关闭
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        closeAiCommentModal();
+                    }
+                });
+            }
+
+            // 更新内容并显示
+            document.getElementById('aiCommentContent').textContent = aiComment || '暂无评论内容';
+            modal.style.opacity = '1';
+            modal.style.visibility = 'visible';
+            modal.querySelector('div > div').style.transform = 'scale(1)';
+        }
+
+        // 关闭AI评论弹窗
+        function closeAiCommentModal() {
+            const modal = document.getElementById('aiCommentModal');
+            if (modal) {
+                modal.style.opacity = '0';
+                modal.style.visibility = 'hidden';
+                modal.querySelector('div > div').style.transform = 'scale(0.9)';
+            }
+        }
+        // ===================== 全局事件委托（核心修复：统一绑定所有按钮事件）=====================
+        function bindAllEvents() {
+            // 事件委托：处理所有按钮点击
+            document.addEventListener('click', function (e) {
+                const target = e.target;
+
+                // 1. 搜索按钮
+                if (target.closest('#searchButton')) {
+                    openSearch();
+                    return;
+                }
+
+                // 2. 播放按钮
+                const playBtn = target.closest('.play-btn');
+                if (playBtn) {
+                    playSongFromData(playBtn);
+                    return;
+                }
+
+                // 3. 投票按钮
+                const voteBtn = target.closest('.vote-btn');
+                if (voteBtn) {
+                    const rankId = voteBtn.dataset.rankId;
+                    if (rankId) {
+                        voteForRanking(rankId, voteBtn);
+                    }
+                    return;
+                }
+
+                // 4. 收藏按钮
+                const collectBtn = target.closest('.collect-btn');
+                if (collectBtn) {
+                    const rankId = collectBtn.dataset.rankId;
+                    if (rankId) {
+                        collectRanking(rankId, collectBtn);
+                    }
+                    return;
+                }
+
+                // AI锐评按钮点击（预留接口）
+
+                // AI锐评按钮点击（预留接口）
+                // AI锐评按钮点击（最终修复版）
+                // AI锐评按钮点击
+                // AI锐评按钮点击 - 从 DOM 收集数据
+                const aiReviewBtn = target.closest('.ai-review-btn');
+                if (aiReviewBtn) {
+                    const rankId = aiReviewBtn.dataset.rankId;
+                    const rankName = aiReviewBtn.dataset.rankName;
+
+                    // 找到当前榜单的 DOM 元素
+                    const rankItem = aiReviewBtn.closest('.ranking-item');
+                    if (!rankItem) {
+                        showErrorTip("榜单元素未找到！");
+                        return;
+                    }
+
+                    // 从 DOM 收集歌曲列表
+                    const songRows = rankItem.querySelectorAll('.song-list li');
+                    const rankSongList = [];
+                    songRows.forEach(row => {
+                        const songName = row.querySelector('.song-name')?.textContent?.trim() || '';
+                        const singerName = row.querySelector('.singer-name')?.textContent?.trim() || '';
+                        const rankSpan = row.querySelector('.song-rank')?.textContent?.trim() || '0';
+
+                        rankSongList.push({
+                            songName: songName,
+                            singerName: singerName,
+                            ranking: parseInt(rankSpan) || 0
+                        });
+                    });
+
+                    // 构造 MyRankWithSong 对象
+                    const myRankWithSongs = {
+                        rankId: parseInt(rankId),
+                        rankName: rankName,
+                        rankSongList: rankSongList,
+                        rankTagsList: []  // 页面没显示标签，传空数组
+                    };
+
+                    console.log('从DOM收集的榜单数据:', myRankWithSongs);
+
+                    // 调用 AI 接口
+                    requestAiReview(myRankWithSongs, aiReviewBtn);
+                    return;
+                }
+                // 5. 评论切换按钮
+                const commentToggle = target.closest('.comment-toggle');
+                if (commentToggle) {
+                    const rankId = commentToggle.dataset.rankId;
+                    if (rankId) {
+                        toggleComments(rankId);
+                    }
+                    return;
+                }
+
+                // 5.1 抽屉关闭按钮
+                const drawerCloseBtn = target.closest('#drawerCloseBtn');
+                if (drawerCloseBtn) {
+                    closeCommentDrawer();
+                    return;
+                }
+
+                // 5.2 抽屉遮罩层点击关闭
+                const drawerOverlay = target.closest('#commentDrawerOverlay');
+                if (drawerOverlay && target === drawerOverlay) {
+                    closeCommentDrawer();
+                    return;
+                }
+
+                // 6. 评论提交按钮（兼容原有 + 抽屉提交）
+                const commentSubmit = target.closest('.comment-submit');
+                const drawerSubmit = target.closest('#drawerSubmitBtn');
+                if (commentSubmit || drawerSubmit) {
+                    let rankId = null;
+                    if (drawerSubmit) {
+                        // 从抽屉面板获取当前 rankId
+                        const panel = document.getElementById('commentDrawerPanel');
+                        rankId = panel ? panel.dataset.currentRankId : null;
+                    } else {
+                        rankId = commentSubmit.dataset.rankId;
+                    }
+                    if (rankId) {
+                        submitComment(rankId);
+                    }
+                    return;
+                }
+
+                // 7. 评论点赞按钮
+                const commentLikeBtn = target.closest('.comment-like-btn');
+                if (commentLikeBtn) {
+                    const comId = commentLikeBtn.dataset.comId;
+                    if (comId) {
+                        toggleCommentLike(comId, commentLikeBtn);
+                    }
+                    return;
+                }
+
+                // 8. 评论删除按钮
+                const commentDeleteBtn = target.closest('.comment-delete-btn');
+                if (commentDeleteBtn) {
+                    const comId = commentDeleteBtn.dataset.comId;
+                    const rankId = commentDeleteBtn.dataset.rankId;
+                    if (comId && rankId) {
+                        deleteComment(comId, rankId);
+                    }
+                    return;
+                }
+
+                // 9. 分页按钮
+                const pageBtn = target.closest('.page-btn');
+                if (pageBtn && !pageBtn.disabled) {
+                    const page = pageBtn.dataset.page;
+                    if (page) {
+                        goToPage(parseInt(page));
+                    }
+                    return;
+                }
+
+                // 10. 加号发布按钮
+                if (target.closest('#addBtn')) {
+                    if (!token || !userId || !category || isNaN(userId) || isNaN(category)) {
+                        showErrorTip("参数缺失，请刷新页面重试！");
+                        return;
+                    }
+                    let addPagePath = category === 1 ? "/music/rank.html" : "/music/workrank.html";
+                    const jumpUrl = `${addPagePath}?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}`;
+                    console.log("发布跳转URL：", jumpUrl);
+                    window.location.href = jumpUrl;
+                    return;
+                }
+
+                // 11. 我的榜单按钮
+                if (target.closest('#myRankBtn')) {
+                    console.log("【进入我的榜单】按钮被点击");
+                    if (!token || !userId || isNaN(userId)) {
+                        showErrorTip("缺少登录信息，请重新登录！");
+                        setTimeout(() => window.location.href = "/login.html", 1500);
+                        return;
+                    }
+                    const targetPath = getTargetPublishPath(category);
+                    const jumpUrl = `${targetPath}?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}&pageNum=1&pageSize=10`;
+                    console.log("跳转URL：", jumpUrl);
+                    window.location.href = jumpUrl;
+                    return;
+                }
+
+                // 12. 热门榜单按钮
+                if (target.closest('#hotRankBtn')) {
+                    console.log("【热门榜单】按钮被点击");
+                    if (!token || !userId || isNaN(userId)) {
+                        showErrorTip("缺少登录信息，请重新登录！");
+                        setTimeout(() => window.location.href = "/login.html", 1500);
+                        return;
+                    }
+                    const hotRankUrl = `/music/hotrank.html?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}`;
+                    console.log("热门榜单跳转URL：", hotRankUrl);
+                    window.location.href = hotRankUrl;
+                    return;
+                }
+
+                // 13. 返回登录按钮
+                if (target.closest('#loginBtn')) {
+                    console.log("【返回登录】按钮被点击");
+                    window.location.href = "/music/login.html";
+                    return;
+                }
+
+                // 14. 侧边栏展开/收起按钮
+                if (target.closest('#slideBtnToggle')) {
+                    const toggleBtn = document.getElementById('slideBtnToggle');
+                    const myRankBtn = document.getElementById('myRankBtn');
+                    const hotRankBtn = document.getElementById('hotRankBtn');
+                    const isExpanded = !toggleBtn.classList.contains('collapsed');
+
+                    if (isExpanded) {
+                        toggleBtn.classList.remove('expanded');
+                        toggleBtn.classList.add('collapsed');
+                        myRankBtn.classList.remove('show');
+                        hotRankBtn.classList.remove('show');
+                    } else {
+                        toggleBtn.classList.remove('collapsed');
+                        toggleBtn.classList.add('expanded');
+                        myRankBtn.classList.add('show');
+                        hotRankBtn.classList.add('show');
+                    }
+                    return;
+                }
+
+                // 15. 登录栏展开/收起按钮
+                if (target.closest('#loginBtnToggle')) {
+                    const toggleBtn = document.getElementById('loginBtnToggle');
+                    const loginBtn = document.getElementById('loginBtn');
+                    const isExpanded = !toggleBtn.classList.contains('collapsed');
+
+                    if (isExpanded) {
+                        toggleBtn.classList.remove('expanded');
+                        toggleBtn.classList.add('collapsed');
+                        loginBtn.classList.remove('show');
+                    } else {
+                        toggleBtn.classList.remove('collapsed');
+                        toggleBtn.classList.add('expanded');
+                        loginBtn.classList.add('show');
+                    }
+                    return;
+                }
+
+                // 16. 左侧导航栏切换按钮
+                if (target.closest('.nav-toggle-btn')) {
+                    const sidebar = document.querySelector('.left-sidebar');
+                    sidebar.classList.toggle('collapsed');
+                    return;
+                }
+
+                // 17. 主页按钮（当前页面，无需跳转）
+                if (target.closest('#navHome')) {
+                    document.querySelectorAll('.nav-circle-btn').forEach(btn => btn.classList.remove('active'));
+                    target.closest('#navHome').classList.add('active');
+                    return;
+                }
+
+                // 17.5 首页按钮（跳转 index.html）
+                if (target.closest('#navIndex')) {
+                    const indexUrl = `/music/index.html?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}`;
+                    window.location.href = indexUrl;
+                    return;
+                }
+
+                // 18. 搜索按钮
+                if (target.closest('#navSearch')) {
+                    openSearch();
+                    return;
+                }
+
+                // 19. 我的榜单按钮
+                if (target.closest('#navMyRank')) {
+                    const myRankBtn = document.getElementById('myRankBtn');
+                    if (myRankBtn) myRankBtn.click();
+                    return;
+                }
+
+                // 20. 热门榜单按钮
+                if (target.closest('#navHotRank')) {
+                    const hotRankBtn = document.getElementById('hotRankBtn');
+                    if (hotRankBtn) hotRankBtn.click();
+                    return;
+                }
+
+                // 21. 我的收藏按钮（跳转 mylove-page.html）
+                if (target.closest('#navMyLove')) {
+                    const myLoveUrl = `/music/api/mine/mylove?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}&pageNum=1`;
+                    window.location.href = myLoveUrl;
+                    return;
+                }
+
+                // 22. 发布榜单按钮
+                if (target.closest('#navAdd')) {
+                    const addBtn = document.getElementById('addBtn');
+                    if (addBtn) addBtn.click();
+                    return;
+                }
+            });
+        }
+
+        // ===================== AI锐评按钮3D悬停效果 =====================
+        function initAiReviewButton3DEffect() {
+            const aiReviewBtns = document.querySelectorAll('.ai-review-btn');
+
+            aiReviewBtns.forEach(btn => {
+                btn.addEventListener('mousemove', function (e) {
+                    const rect = btn.getBoundingClientRect();
+
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+
+                    const rotateX = (centerY - y) / 5;
+                    const rotateY = (x - centerX) / 10;
+
+                    btn.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.05, 1.05, 1.05)`;
+                });
+
+                btn.addEventListener('mouseleave', function () {
+                    btn.style.transform = `rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+                });
+            });
+        }
+
+        // ===================== 页面加载完成后初始化 =====================
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log("DOM加载完成，开始初始化页面");
+
+            // 1. 初始化播放器
+            initMusicPlayer();
+
+            // 2. 绑定所有事件（核心修复）
+            bindAllEvents();
+
+            // 2.5 初始化AI锐评按钮3D悬停效果
+            initAiReviewButton3DEffect();
+
+            // 3. 添加 ESC 键关闭抽屉功能
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' || e.keyCode === 27) {
+                    const panel = document.getElementById('commentDrawerPanel');
+                    if (panel && panel.classList.contains('active')) {
+                        closeCommentDrawer();
+                    }
+                }
+            });
+
+            // 4. 页面加载校验
+            if (!token || token.trim() === '' || !userId || isNaN(userId)) {
+                showErrorTip("登录信息失效，请重新登录！");
+                setTimeout(() => window.location.href = "/music.html", 1500);
+                return;
+            }
+
+            console.log("页面加载成功");
+        });
+
+    </script>
 </body>
+
 </html>

@@ -2,6 +2,7 @@ package com.music.Controller;
 
 import com.music.Service.AiCommentService;
 import com.music.dto.AiCommentVo;
+import com.music.dto.MyRankWithSong;
 import com.music.pojo.PersonalRank;
 import com.music.pojo.RankSong;
 import com.music.pojo.RankTags;
@@ -18,14 +19,17 @@ public class AiCommentController {
     @Autowired
     private AiCommentService aiCommentService;
     @PostMapping("/ai")
-    public Result<String> aiComment(@RequestBody AiCommentVo aiCommentVo, @RequestParam("token")String token) {
-        if(token.isEmpty()||token==null){
+    public Result<String> aiComment(@RequestParam("rankId")Integer rankId,
+                                    @RequestBody MyRankWithSong myRankWithSong, @RequestParam("token")String token) {
+        if(token==null||token.isEmpty()){
         return Result.error("请先登录");
         }
-        String comment = aiCommentService.getAiComment(aiCommentVo.getRankSong(),aiCommentVo.getPersonalRank(),
-                aiCommentVo.getRankTags());
+        if(rankId==null||rankId==0){
+            return Result.error("必须要选中榜单哦");
+        }
+        String comment = aiCommentService.getAiComment(myRankWithSong);
         if (!(comment == null)) {
-            return Result.success("AI锐评即将呈现");
+             return Result.success(comment);
         }else{
             return Result.error("AI锐评生成失败了呢");
         }

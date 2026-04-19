@@ -1758,7 +1758,9 @@
                                         </button>
                                     </div>
                                     <div class="interaction-right">
-                                        <button class="ai-review-btn" th:data-rank-id="${ranking.rankId}">
+                                        <button class="ai-review-btn"
+                                                th:data-rank-id="${ranking.rankId}"
+                                                th:data-rank-name="${ranking.rankName}">
                                             <span>AI 锐评</span>
                                         </button>
                                     </div>
@@ -2507,7 +2509,142 @@
             const minute = padStartCompat(date.getMinutes(), 2, '0');
             return `${year}-${month}-${day} ${hour}:${minute}`;
         }
+        // ===================== AI锐评功能 完全匹配后端接口 =====================
+        function requestAiReview(myRankWithSongs, btn) {
+            console.log('请求AI锐评, 榜单ID:', myRankWithSongs.rankId, '歌曲数:', myRankWithSongs.rankSongList.length);
 
+            if (!token) {
+                showErrorTip("请先登录后再使用AI锐评！");
+                return;
+            }
+
+            // 禁用按钮
+            btn.style.pointerEvents = 'none';
+            btn.style.opacity = '0.7';
+            const originalText = btn.querySelector('span').textContent;
+            btn.querySelector('span').textContent = '分析中...';
+
+            // 调用后端接口
+            axios.post('/music/AiComment/ai', myRankWithSongs, {
+                params: {
+                    rankId: myRankWithSongs.rankId,
+                    token: token
+                }
+            })
+                .then(response => {
+                    console.log('AI锐评响应:', response.data);
+                    if (response.data.code === 200 && response.data.data != null) {
+                        showAiCommentModal(response.data.data, myRankWithSongs.rankName);
+                        showSuccessTip("AI锐评生成成功！");
+                    } else {
+                        showErrorTip("AI锐评失败：" + (response.data.msg || '未知错误'));
+                    }
+                })
+                .catch(error => {
+                    console.error('AI锐评请求失败:', error);
+                    showErrorTip("AI服务异常：" + (error.response?.data?.msg || error.message));
+                })
+                .finally(() => {
+                    btn.style.pointerEvents = 'auto';
+                    btn.style.opacity = '1';
+                    btn.querySelector('span').textContent = originalText;
+                });
+        }
+        // 显示AI评论弹窗
+        function showAiCommentModal(aiComment, rankName, songName) {
+            // 创建或获取弹窗元素
+            let modal = document.getElementById('aiCommentModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'aiCommentModal';
+                modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        `;
+
+                modal.innerHTML = `
+            <div style="
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-radius: 20px;
+                padding: 30px;
+                max-width: 500px;
+                width: 90%;
+                max-height: 80vh;
+                overflow-y: auto;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                transform: scale(0.9);
+                transition: transform 0.3s ease;
+            ">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <span style="font-size: 40px;">🤖</span>
+                    <h3 style="color: white; margin: 10px 0; font-size: 24px;">AI 音乐分析师</h3>
+                    <p style="color: rgba(255,255,255,0.8); font-size: 14px;">为《${songName || '未知歌曲'}》生成的专业锐评</p>
+                </div>
+                <div style="
+                    background: rgba(255,255,255,0.95);
+                    border-radius: 15px;
+                    padding: 20px;
+                    margin: 20px 0;
+                    color: #1a202c;
+                    font-size: 16px;
+                    line-height: 1.6;
+                    min-height: 100px;
+                " id="aiCommentContent">
+                    加载中...
+                </div>
+                <div style="text-align: center;">
+                    <button onclick="closeAiCommentModal()" style="
+                        background: white;
+                        color: #667eea;
+                        border: none;
+                        padding: 12px 30px;
+                        border-radius: 25px;
+                        font-size: 16px;
+                        font-weight: bold;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    ">关闭</button>
+                </div>
+            </div>
+        `;
+
+                document.body.appendChild(modal);
+
+                // 点击遮罩关闭
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        closeAiCommentModal();
+                    }
+                });
+            }
+
+            // 更新内容并显示
+            document.getElementById('aiCommentContent').textContent = aiComment || '暂无评论内容';
+            modal.style.opacity = '1';
+            modal.style.visibility = 'visible';
+            modal.querySelector('div > div').style.transform = 'scale(1)';
+        }
+
+        // 关闭AI评论弹窗
+        function closeAiCommentModal() {
+            const modal = document.getElementById('aiCommentModal');
+            if (modal) {
+                modal.style.opacity = '0';
+                modal.style.visibility = 'hidden';
+                modal.querySelector('div > div').style.transform = 'scale(0.9)';
+            }
+        }
         // ===================== 全局事件委托（核心修复：统一绑定所有按钮事件）=====================
         function bindAllEvents() {
             // 事件委托：处理所有按钮点击
@@ -2548,14 +2685,52 @@
                 }
 
                 // AI锐评按钮点击（预留接口）
+
+                // AI锐评按钮点击（预留接口）
+                // AI锐评按钮点击（最终修复版）
+                // AI锐评按钮点击
+                // AI锐评按钮点击 - 从 DOM 收集数据
                 const aiReviewBtn = target.closest('.ai-review-btn');
                 if (aiReviewBtn) {
                     const rankId = aiReviewBtn.dataset.rankId;
-                    showSuccessTip("AI锐评功能即将上线！");
-                    console.log("AI锐评:", rankId);
+                    const rankName = aiReviewBtn.dataset.rankName;
+
+                    // 找到当前榜单的 DOM 元素
+                    const rankItem = aiReviewBtn.closest('.ranking-item');
+                    if (!rankItem) {
+                        showErrorTip("榜单元素未找到！");
+                        return;
+                    }
+
+                    // 从 DOM 收集歌曲列表
+                    const songRows = rankItem.querySelectorAll('.song-list li');
+                    const rankSongList = [];
+                    songRows.forEach(row => {
+                        const songName = row.querySelector('.song-name')?.textContent?.trim() || '';
+                        const singerName = row.querySelector('.singer-name')?.textContent?.trim() || '';
+                        const rankSpan = row.querySelector('.song-rank')?.textContent?.trim() || '0';
+
+                        rankSongList.push({
+                            songName: songName,
+                            singerName: singerName,
+                            ranking: parseInt(rankSpan) || 0
+                        });
+                    });
+
+                    // 构造 MyRankWithSong 对象
+                    const myRankWithSongs = {
+                        rankId: parseInt(rankId),
+                        rankName: rankName,
+                        rankSongList: rankSongList,
+                        rankTagsList: []  // 页面没显示标签，传空数组
+                    };
+
+                    console.log('从DOM收集的榜单数据:', myRankWithSongs);
+
+                    // 调用 AI 接口
+                    requestAiReview(myRankWithSongs, aiReviewBtn);
                     return;
                 }
-
                 // 5. 评论切换按钮
                 const commentToggle = target.closest('.comment-toggle');
                 if (commentToggle) {

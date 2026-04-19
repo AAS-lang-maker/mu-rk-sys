@@ -5,6 +5,7 @@ class MusicPlayer {
             container: 'music-player-container',
             token: '',
             userId: '',
+            maxPlaySeconds: 30,
             ...options
         };
 
@@ -12,6 +13,9 @@ class MusicPlayer {
         this.isPlaying = false;
         this._currentSong = null; // 核心：仅内存存储，不做本地恢复
         this.container = document.getElementById(this.options.container);
+
+        // 【新增】标记是否已触发过 30 秒上限
+        this.hasReachedMax = false;
 
         // 核心修复：如果 document.body 不存在，延迟初始化
         if (!this.container && !document.body) {
@@ -42,12 +46,12 @@ class MusicPlayer {
 
     createPlayerUI() {
         const playerHTML = `
-            <div class="music-player" style="padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
-                <div class="song-info" style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <img id="player-song-img" src="" alt="封面" style="width: 50px; height: 50px; border-radius: 50%;">
+            <div class="music-player" style="padding: 10px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);background: rgba(255, 255, 255, 0.03); border-radius: 15px; width: 100%; box-sizing: border-box;height:268px;display: flex;flex-direction: column;justify-content: space-between">
+                <div class="song-info" style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;height:120px">
+                    <img class="cover" id="player-song-img" src="" alt="封面" style="width: 55px; height: 55px; border-radius: 50%; position: relative;animation: zhuan 5s infinite linear;animation-play-state: paused;">
                     <div>
-                        <h4 id="player-song-name" style="margin: 0; font-size: 14px;">未播放</h4>
-                        <p id="player-singer-name" style="margin: 0; font-size: 12px; color: #666;">-</p>
+                        <h4 id="player-song-name" style="margin: 0; font-size: 18px;">未播放</h4>
+                        <p id="player-singer-name" style="margin: 0; font-size: 12px; color: #807f7f;">-</p>
                     </div>
                 </div>
                 <div class="player-controls">
@@ -60,8 +64,10 @@ class MusicPlayer {
                             <span id="player-current-time">0:00</span>
                             <span id="player-duration">0:00</span>
                         </div>
-                    </div>
-                    <button id="player-play-btn" style="padding: 8px 16px; border: none; border-radius: 4px; background: #2196F3; color: white; cursor: pointer;">▶ 播放</button>
+                    <div class="controlBar" style="display: flex; justify-content: center; align-items: center; gap: 70px; margin-top: 8px;">
+                    <i class="iconfont icon-a-368793439" style=""></i>
+                    <i class="iconfont icon-a-368793440 big-btn" id="player-play-btn" style=" color: white; cursor: pointer; font-size:35px;"></i>
+                    <i class="iconfont icon-a-368793441" style=""></i>
                 </div>
             </div>
         `;
@@ -84,23 +90,38 @@ class MusicPlayer {
         // 播放/暂停按钮 - 极简核心逻辑（增加playBtn存在性判断）
         if (playBtn) {
             playBtn.addEventListener('click', function() {
-                // 第一步：如果没有当前歌曲，直接提示（排除ID为空）
+                // 第一步：如果没有当前歌曲，直接提示
                 if (!that._currentSong || !that._currentSong.songId) {
                     alert('请先选择一首歌曲播放！');
                     return;
                 }
 
+                // 👈【新增】检查是否已播放满30秒，如果是则重置
+                if (that.hasReachedMax && that.audioElement.currentTime >= that.options.maxPlaySeconds) {
+                    that.audioElement.currentTime = 0;
+                    that.hasReachedMax = false;
+                    // 更新UI到起始位置
+                    const progressFill = document.getElementById('player-progress-fill');
+                    const progressHandle = document.getElementById('player-progress-handle');
+                    const currentTimeEl = document.getElementById('player-current-time');
+                    if (progressFill) progressFill.style.width = '0%';
+                    if (progressHandle) progressHandle.style.left = '0%';
+                    if (currentTimeEl) currentTimeEl.textContent = '0:00';
+                }
+
                 // 第二步：根据状态执行播放/暂停
                 if (that.isPlaying) {
-                    // 暂停逻辑
                     that.audioElement.pause();
                     that.isPlaying = false;
-                    playBtn.textContent = '▶ 播放';
+                    document.getElementById('player-song-img').style.animationPlayState = 'paused';
+                    playBtn.classList.remove('icon-bofangkongjian-bofang');
+                    playBtn.classList.add('icon-a-368793440');
                 } else {
-                    // 播放逻辑（复用已有的音频源）
                     that.audioElement.play().then(() => {
                         that.isPlaying = true;
-                        playBtn.textContent = '⏸ 暂停';
+                        document.getElementById('player-song-img').style.animationPlayState = 'running';
+                        playBtn.classList.remove('icon-a-368793440');
+                        playBtn.classList.add('icon-bofangkongjian-bofang');
                     }).catch(error => {
                         alert('播放失败：' + error.message);
                         console.error('播放异常：', error);
@@ -110,25 +131,147 @@ class MusicPlayer {
         }
 
         // 进度条逻辑（增加progressTrack存在性判断）
+    // 改动 进度条点击 + 拖拽逻辑
         if (progressTrack) {
+            let isDragging = false;
+
+            // 点击跳转（限制在 maxPlaySeconds 内）
             progressTrack.addEventListener('click', (e) => {
                 if (!that._currentSong || !that.audioElement) return;
                 const rect = progressTrack.getBoundingClientRect();
-                const pos = (e.clientX - rect.left) / rect.width;
-                that.audioElement.currentTime = pos * that.audioElement.duration;
+                let pos = (e.clientX - rect.left) / rect.width;
+                let newTime = pos * that.audioElement.duration;
+
+                // 限制不能超过最大播放时长
+                if (newTime > that.options.maxPlaySeconds) {
+                    newTime = that.options.maxPlaySeconds;
+                    pos = newTime / that.audioElement.duration;
+                }
+
+                that.audioElement.currentTime = newTime;
+
+                const progressFill = document.getElementById('player-progress-fill');
+                const progressHandle = document.getElementById('player-progress-handle');
+                const currentTimeEl = document.getElementById('player-current-time');
+
+                if (progressFill) progressFill.style.width = `${pos * 100}%`;
+                if (progressHandle) progressHandle.style.left = `${pos * 100}%`;
+                if (currentTimeEl) currentTimeEl.textContent = that.formatTime(newTime);
+            });
+
+            // 拖拽开始
+            const progressHandle = document.getElementById('player-progress-handle');
+            if (progressHandle) {
+                progressHandle.addEventListener('mousedown', (e) => {
+                    // 👈【改动6】可选：30秒后禁止拖拽
+                    if (that.audioElement.currentTime >= that.options.maxPlaySeconds) {
+                        return;
+                    }
+                    isDragging = true;
+                    e.preventDefault();
+                });
+            }
+
+            // 拖拽移动
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging || !that.audioElement || !that._currentSong) return;
+                const rect = progressTrack.getBoundingClientRect();
+                let pos = (e.clientX - rect.left) / rect.width;
+                if (pos < 0) pos = 0;
+                if (pos > 1) pos = 1;
+
+                let newTime = pos * that.audioElement.duration;
+                if (newTime > that.options.maxPlaySeconds) {
+                    newTime = that.options.maxPlaySeconds;
+                    pos = newTime / that.audioElement.duration;
+                }
+
+                that.audioElement.currentTime = newTime;
+
+                const progressFill = document.getElementById('player-progress-fill');
+                const handle = document.getElementById('player-progress-handle');
+                const currentTimeEl = document.getElementById('player-current-time');
+
+                if (progressFill) progressFill.style.width = `${pos * 100}%`;
+                if (handle) handle.style.left = `${pos * 100}%`;
+                if (currentTimeEl) currentTimeEl.textContent = that.formatTime(newTime);
+            });
+
+            // 拖拽结束
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
             });
         }
 
         // 音频事件（增加audioElement存在性判断）
         if (this.audioElement) {
-            this.audioElement.addEventListener('timeupdate', () => that.updateProgress());
+            this.audioElement.addEventListener('timeupdate', () => {
+                const currentTime = this.audioElement.currentTime;
+                const duration = this.audioElement.duration;
+
+                // 👈【修复】首先检查是否已超限，如果是则直接返回，不重置标志
+                if (duration && !isNaN(duration)) {
+                    if (currentTime >= this.options.maxPlaySeconds) {
+                        if (!this.hasReachedMax) {
+                            this.hasReachedMax = true;
+                            this.audioElement.pause();
+                            this.isPlaying = false;
+
+                            const cover = document.getElementById('player-song-img');
+                            if (cover) cover.style.animationPlayState = 'paused';
+
+                            const playBtn = document.getElementById('player-play-btn');
+                            if (playBtn) {
+                                playBtn.classList.remove('icon-bofangkongjian-bofang');
+                                playBtn.classList.add('icon-a-368793440');
+                            }
+
+                            this.updateProgressToMax();
+                        }
+                        // 👈【修复】移除 return，改为在外部统一处理
+                    }
+                }
+
+                // 👈【修复】只有当未超限时才重置标志并更新进度
+                if (currentTime < this.options.maxPlaySeconds) {
+                    this.hasReachedMax = false;
+                    this.updateProgress();
+                }
+            });
+
             this.audioElement.addEventListener('ended', () => {
                 that.isPlaying = false;
                 if (playBtn) { // 增加playBtn存在性判断
-                    playBtn.textContent = '▶ 播放';
+                    // playBtn.textContent = '▶ 播放';
+                    document.getElementById('player-song-img').style.animationPlayState = 'paused'
+                    playBtn.classList.remove('icon-bofangkongjian-bofang')
+                    playBtn.classList.add('icon-a-368793440')
                 }
             });
             this.audioElement.addEventListener('loadedmetadata', () => that.updateDuration());
+        }
+    }
+
+    // 新增方法：强制进度条停在最大限制位置（30秒）
+    updateProgressToMax() {
+        const progressFill = document.getElementById('player-progress-fill');
+        const progressHandle = document.getElementById('player-progress-handle');
+        const currentTimeEl = document.getElementById('player-current-time');
+
+        const maxTime = this.options.maxPlaySeconds;
+        const duration = this.audioElement.duration;
+
+        if (!duration || isNaN(duration)) return;
+
+        const progress = (maxTime / duration) * 100;
+
+        if (progressFill) progressFill.style.width = `${progress}%`;
+        if (progressHandle) progressHandle.style.left = `${progress}%`;
+        if (currentTimeEl) currentTimeEl.textContent = this.formatTime(maxTime);
+
+        // 👈【新增】确保音频当前时间也被限制在最大值
+        if (this.audioElement.currentTime > maxTime) {
+            this.audioElement.currentTime = maxTime;
         }
     }
 
@@ -170,7 +313,10 @@ class MusicPlayer {
             this.audioElement.play().then(() => {
                 this.isPlaying = true;
                 if (playBtn) { // 增加playBtn存在性判断
-                    playBtn.textContent = '⏸ 暂停';
+                    // playBtn.textContent = '⏸ 暂停';
+                    document.getElementById('player-song-img').style.animationPlayState = 'running';
+                    playBtn.classList.remove('icon-a-368793440')
+                    playBtn.classList.add('icon-bofangkongjian-bofang')
                 }
             }).catch(error => {
                 alert('播放失败：请检查后端接口是否正常！');
@@ -227,10 +373,157 @@ class MusicPlayer {
 // });
 
 // 全局调用方法：前端列表点击时，直接调用这个方法
-window.playSong = function(song) {
-    if (window.musicPlayer) {
-        window.musicPlayer.playSong(song);
-    } else {
-        console.error("播放器未初始化");
-    }
-};
+// window.playSong = function(song) {
+//     if (window.musicPlayer) {
+//         window.musicPlayer.playSong(song);
+//     } else {
+//         console.error("播放器未初始化");
+//     }
+// };
+// const songs = ['纤维', '向日葵朝着夜追', '晴']
+//
+// const audioFiles = [
+//     'https://music.163.com/song/media/outer/url?id=2114419823.mp3',
+//     'https://music.163.com/song/media/outer/url?id=3333130860.mp3',
+//     'https://music.163.com/song/media/outer/url?id=3330453731.mp3'
+// ]
+//
+// const images = [
+//     'http://p2.music.126.net/1uuM5dk6JABG7ksG91osnw==/109951169235274408.jpg?param=300x300',
+//     'http://p2.music.126.net/V34GxyIJdz7vcdptDI_g-g==/109951172495731859.jpg?param=300x300',
+//     'http://p1.music.126.net/9PJAD4ohuWJYr6_WjNATlg==/109951172458960478.jpg?param=300x300'
+// ]
+//
+// const musicInfo = document.querySelector('.music-info')
+// const musicName = document.querySelector('.music-name')
+// const cover = document.querySelector('.cover')
+// const coverImg = document.querySelector('.cover img')
+// const progressContainer = document.querySelector('.progress')
+// const progressLine = document.querySelector('.progress-line')
+// const audio = document.querySelector('audio')
+// const playButton = document.getElementById('play')
+// const prevButton = document.getElementById('prev')
+// const nextButton = document.getElementById('next')
+//
+// let currentIndex = 0
+// let isPlaying = false
+//
+// //加载歌曲函数 加载歌曲名，地址，封面
+// function loadMusic(index) {
+//     currentIndex = index
+//     musicName.textContent = songs[index]
+//     coverImg.src = images[index]
+//     audio.src = audioFiles[index]
+//
+//     // 重置进度条
+//     progressLine.style.width = '0%'
+//
+//     // 重置动画状态
+//     cover.style.animationPlayState = 'paused'
+//
+//     // 如果正在播放，继续播放新歌曲
+//     if (isPlaying) {
+//         // 延迟一下确保音频加载完成
+//         setTimeout(() => {
+//             audio.play().then(() => {
+//                 // 播放成功后开始旋转动画
+//                 cover.style.animationPlayState = 'running'
+//             }).catch(e => {
+//                 console.log('播放失败:', e)
+//                 // 如果播放失败，自动播放下一首
+//                 nextSong()
+//             })
+//         }, 300)
+//     }
+// }
+//
+// loadMusic(currentIndex)
+//
+// function playMusic() {
+//     audio.play().then(() => {
+//         isPlaying = true
+//         cover.style.animationPlayState = 'running'
+//         musicInfo.classList.add('play')
+//         playButton.classList.remove('icon-a-368793440')
+//         playButton.classList.add('icon-Playerpause')
+//     })
+// }
+//
+// function pauseMusic() {
+//     audio.pause()
+//     isPlaying = false
+//     cover.style.animationPlayState = 'paused'
+//     musicInfo.classList.remove('play')
+//     playButton.classList.remove('icon-Playerpause')
+//     playButton.classList.add('icon-a-368793440')
+// }
+//
+// //音乐的暂停/播放
+// function togglePlay() {
+//     if (isPlaying) {
+//         pauseMusic()
+//     } else {
+//         playMusic()
+//     }
+// }
+//
+// function updateProgress(e) {
+//     // 1. 从事件对象中解构出 duration 和 currentTime
+//     const { duration, currentTime } = e.srcElement
+//
+//     // 2. 检查 duration 是否存在且是有效数字
+//     if (duration && !isNaN(duration)) {
+//         // 3. 计算播放进度的百分比
+//         const progressPercent = (currentTime / duration) * 100
+//
+//         // 4. 更新进度条的宽度
+//         progressLine.style.width = `${progressPercent}%`
+//     }
+// }
+//
+// function setProgress(e) {
+//     // 1. 获取进度条元素的位置和大小信息
+//     const rect = this.getBoundingClientRect();
+//
+//     // 2. 计算点击位置相对于进度条左侧的距离
+//     const clickX = e.clientX - rect.left;
+//
+//     // 3. 获取进度条的总宽度
+//     const width = rect.width;
+//
+//     // 4. 获取音频的总时长
+//     const duration = audio.duration;
+//
+//     // 5. 如果音频时长有效，计算并设置新的播放时间
+//     if (duration && !isNaN(duration)) {
+//         audio.currentTime = (clickX / width) * duration;
+//     }
+// }
+//
+// function prevSong() {
+//     currentIndex--
+//     if (currentIndex < 0) {
+//         currentIndex = songs.length - 1
+//     }
+//     loadMusic(currentIndex)
+// }
+//
+// function nextSong() {
+//     currentIndex++
+//     if (currentIndex > songs.length - 1) {
+//         currentIndex = 0
+//     }
+//     loadMusic(currentIndex)
+// }
+//
+// playButton.addEventListener('click', togglePlay)
+// prevButton.addEventListener('click', prevSong)
+// nextButton.addEventListener('click', nextSong)
+// audio.addEventListener('timeupdate', updateProgress)
+// progressContainer.addEventListener('click', setProgress)
+//
+//
+// audio.addEventListener('ended', () => {
+//     nextSong()
+// })
+//

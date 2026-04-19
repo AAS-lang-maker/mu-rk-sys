@@ -62,6 +62,7 @@
             top: 15%;
             left: 15%;
             box-shadow: 0 0 40px rgba(255, 107, 107, 0.5);
+            animation: rotate 30s linear infinite;
         }
         .planet-1::before {
             content: '';
@@ -81,6 +82,7 @@
             bottom: 20%;
             right: 20%;
             box-shadow: 0 0 30px rgba(78, 205, 196, 0.5);
+            animation: rotate 40s linear infinite reverse;
         }
         .planet-2::before {
             content: '';
@@ -92,6 +94,15 @@
             top: 50%;
             left: -25px;
             transform: translateY(-50%);
+        }
+        /* 行星旋转动画 */
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
         }
         .astronaut {
             position: absolute;
@@ -160,8 +171,35 @@
             font-size: 32px;
             font-weight: 700;
             color: #fffa9c;
-            margin-bottom: 50px;
+            margin-bottom: 30px;
             text-align: center;
+        }
+        .login-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .tab-item {
+            padding: 10px 20px;
+            cursor: pointer;
+            color: rgba(247, 250, 252, 0.5);
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .tab-item.active {
+            color: #fffa9c;
+        }
+        .tab-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: #fffa9c;
         }
         .form-group {
             margin-bottom: 30px;
@@ -314,7 +352,11 @@
         </div>
     </div>
     <div class="login-side">
-        <h1 class="login-title">登录</h1>
+        <div class="login-tabs">
+            <div class="tab-item active" id="userTab">用户登录</div>
+            <div class="tab-item" id="adminTab">管理员登录</div>
+        </div>
+        <h1 class="login-title" id="loginTitle">用户登录</h1>
         <form class="login-form">
             <div class="error-alert" id="errorAlert"></div>
             <div class="success-alert" id="successAlert"></div>
@@ -369,6 +411,34 @@
         }, 1500);
     }
 
+    // 切换登录模式逻辑
+    let loginType = 'user'; // 'user' or 'admin'
+    const userTab = document.getElementById('userTab');
+    const adminTab = document.getElementById('adminTab');
+    const loginTitle = document.getElementById('loginTitle');
+    const registerLink = document.querySelector('.register-link');
+
+    userTab.addEventListener('click', () => {
+        loginType = 'user';
+        userTab.classList.add('active');
+        adminTab.classList.remove('active');
+        loginTitle.innerText = '用户登录';
+        registerLink.style.display = 'block';
+        registerLink.querySelector('a').href = '/music/register.html';
+    });
+
+    adminTab.addEventListener('click', () => {
+        loginType = 'admin';
+        adminTab.classList.add('active');
+        userTab.classList.remove('active');
+        loginTitle.innerText = '管理员登录';
+        registerLink.style.display = 'block';
+        // 管理员注册通常也有对应的注册页面，如果路径不同可以修改这里
+        // 鉴于控制器中有 @RequestMapping("/api/role") 的注册方法，
+        // 这里暂时保持和普通用户一致，或者根据需要修改为管理员注册页
+        registerLink.querySelector('a').href = '/music/register.html';
+    });
+
     // 登录按钮点击事件（完整、无语法错误）
     document.getElementById('loginBtn').addEventListener('click', async function () {
         // 1. 检查request是否加载成功
@@ -391,53 +461,61 @@
         }
 
         try {
-            // 3. 调用封装的request实例发起请求
+            // 3. 根据登录模式决定请求路径
+            // 注意：管理员路径根据控制器 @RequestMapping("/api/role") 决定，这里使用 /role/login 以匹配 request.js 的 /music/api 前缀
+            const url = loginType === 'user' ? '/user/login' : '/role/login';
+
+            // 4. 调用封装的request实例发起请求
             const data = await request({
-                url: '/user/login', // 结合request.js的baseURL=/music/api，完整地址是/music/api/user/login
+                url: url, // 结合request.js的baseURL，根据模式选择路径
                 method: 'post',
                 data: { username, password }, // JSON格式传参
                 headers: { 'Content-Type': 'application/json;charset=utf-8' }
             });
 
-            // 4. 处理登录成功逻辑（request拦截器已返回res.data）
+            // 5. 处理登录成功逻辑（request拦截器已返回res.data）
+            // 如果后端返回 code != 200，request 拦截器可能会直接抛出异常或返回特定结构
+            // 如果 data 是后端返回的 Result 对象中的数据部分：
             const { token, userId, userName } = data;
             if (!token || !userId || !userName) {
-                showErrorTip('登录返回参数不完整，请检查后端');
+                // 如果 request.js 没有拦截 code != 200 的情况，这里手动处理
+                if (data.msg) {
+                    showErrorTip(data.msg);
+                } else {
+                    showErrorTip('登录失败，请检查账号或角色权限');
+                }
                 return;
             }
 
-            // 5. 存储登录信息
+            // 6. 存储登录信息
             localStorage.setItem('token', token);
             localStorage.setItem('userId', userId);
             localStorage.setItem('userName', encodeURIComponent(userName));
             localStorage.setItem('category', 'all');
 
-            // 6. 成功提示+跳转
-            showSuccessTip('登录成功，即将跳转首页...');
+            // 7. 成功提示+跳转
+            showSuccessTip(`${loginType === 'user' ? '用户' : '管理员'}登录成功，即将跳转首页...`);
             setTimeout(() => {
-                window.location.href = `/music/index.html?token=${token}&userId=${userId}&userName=${encodeURIComponent(userName)}`;
+                // 如果是管理员登录，跳转到评论审核管理页
+                const targetUrl = loginType === 'admin' ? '/music/admincomment.html' : '/music/index.html';
+                window.location.href = `${targetUrl}?token=${token}&userId=${userId}&userName=${encodeURIComponent(userName)}`;
             }, 1500);
 
         } catch (error) {
-            // 7. 统一处理异常
+            // 7. 统一处理异常（包括后端返回的 4xx/5xx 或 code != 200 被拦截器抛出的错误）
             console.error('登录异常：', error);
-            if (error.response) {
-                // 后端返回错误
-                showErrorTip(`登录失败：${error.response.data?.msg || `服务器错误(${error.response.status})`}`);
-            } else if (error.request) {
-                // 网络错误（没连到后端）
-                showErrorTip('网络异常，无法连接后端服务');
-            } else {
-                // 其他错误（如参数错误）
-                showErrorTip(`请求失败：${error.message}`);
-            }
+            // 如果后端返回了错误信息，如 "您当前还不是管理员"，通常在 error.response.data.msg 中
+            const errorMsg = error.response?.data?.msg || error.message || '网络或服务器异常';
+            showErrorTip(`登录失败：${errorMsg}`);
         }
     });
 
-    // 页面加载时处理URL中的错误提示
+    // 页面加载时处理URL中的提示信息
     window.onload = function () {
         const urlParams = new URLSearchParams(window.location.search);
         const errorMsg = urlParams.get('errormessage');
+        const successMsg = urlParams.get('success');
+
         if (errorMsg) {
             showErrorTip(decodeURIComponent(errorMsg));
             const passwordInput = document.querySelector('input[name="password"]');
@@ -445,6 +523,9 @@
                 passwordInput.value = "";
                 passwordInput.focus();
             }
+        }
+        if (successMsg) {
+            showSuccessTip(decodeURIComponent(successMsg));
         }
     };
 </script>

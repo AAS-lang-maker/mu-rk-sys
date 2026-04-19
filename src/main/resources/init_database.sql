@@ -195,12 +195,12 @@ CREATE TABLE Tags_Dictionary (
                                  use_count INT DEFAULT 0 COMMENT '使用次数（用于排序）',
                                  INDEX idx_name (tag_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-alter table user_behavior change id UB_id bigint
-alter table ai_chat_log change id AI_id bigint
-alter table comment add column risk_score int
-alter table comment add column audit_remark text
+alter table user_behavior change id UB_id bigint;
+alter table ai_chat_log change id AI_id bigint;
+alter table comment add column risk_score int;
+alter table comment add column audit_remark text;
 ALTER TABLE comment DROP COLUMN audit_remark;
-alter table comment add column audit_remark text
+alter table comment add column audit_remark text;
 create table song_demand(
     demand_id int primary key auto_increment comment '主键id',
     demand_songname varchar(500) not null comment '申请歌曲',
