@@ -1,15 +1,13 @@
 package com.music;
 
 
-import com.music.Service.TagsService;
+
 import com.music.Service.impl.TagsServiceImpl;
 import com.music.dto.TagsPageQueryDTO;
 import com.music.Mapper.UserTagsMapper;
 import com.music.utils.ThreadLocalUtil;
 import com.music.pojo.UserTagVO;
 import com.github.pagehelper.Page;
-import com.github.pagehelper.PageHelper;
-import com.music.result.PageResult; // 注意：这里指 PageHelper 自带的 PageResult，或者是你自己定义的
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,7 +24,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class miao {
+class miaoTest {
 
     @Mock
     private UserTagsMapper userTagsMapper;
