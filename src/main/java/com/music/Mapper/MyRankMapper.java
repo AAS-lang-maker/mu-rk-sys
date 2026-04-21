@@ -45,4 +45,6 @@ public interface MyRankMapper {
     @Update("update comment set id_delete=#{idDelete}  where com_id=#{comId}")
     int updateComment(Integer comId, int idDelete);
 
+    @Select("select * from personal_rank where rank_id=#{rankId}")
+    PersonalRank selectRankById(Integer rankId);
 }

@@ -10,7 +10,9 @@ import com.music.pojo.Song;
 import com.music.pojo.UserInfo;
 import com.music.utils.JwtUtils;
 import com.music.utils.Result;
-import org.apache.ibatis.annotations.Delete;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,6 +22,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 
+@Tag(name = "个人榜单模块", description = "个人榜单模块相关接口")
 //数据渲染（查询回显）和页面重定向跳转分开写
 @Controller
 @RequestMapping("/api/mine")
@@ -29,6 +32,7 @@ public class MyRankController {
 
 
     @GetMapping("/my")//没有调用Service，只负责页面跳转，没有要操作数据库的逻辑
+    @Operation(summary = "跳转到个人榜单页面", description = "跳转到个人榜单页面")
     public String myRank(@RequestParam(value = "token",required = true)String token,@RequestParam(value = "userId",required = true)Integer userId
                          ,@RequestParam("category")Integer category,@RequestParam(required = false)String success, RedirectAttributes redirectAttributes){
     System.out.println("========/my接口被调用了========" );
@@ -46,6 +50,7 @@ public class MyRankController {
     //可以保证在个人榜单中心页面刷新的时候数据不丢失，因为每次刷新都是在调用上面的三层架构重新查询后再次重定向
     //在此页面需要重新校验token以及userId
     //pageNum 页码数，pageSize一个页面的展示数
+    @Operation(summary = "获取个人榜单数据", description = "获取个人榜单数据")
     public String myrank(@RequestParam(value = "token",required = false)String token,
                          @RequestParam("userId")Integer paramuserId,RedirectAttributes redirectAttributes,Model model,
                          @RequestParam(defaultValue="1")Integer pageNum, @RequestParam(defaultValue = "3")Integer pageSize){//userId要随着重定向和转发跟随到下一个新页面
@@ -79,6 +84,7 @@ public class MyRankController {
     //编辑功能种重定向和查询回显用的视图需要分开写两个@Getmapping，model在重定向时会消失
     //编辑功能继续阴我，已经修改了10次前后端联调失败就又来改Controller层。
     @GetMapping("/edit/{rankId}")//负责重定向
+    @Operation(summary = "跳转到编辑页面", description = "跳转到编辑页面")
     public String edit(@PathVariable("rankId") Integer rankId, @RequestParam("token")String token, RedirectAttributes redirectAttributes
                        ) throws Exception {
         Integer paramuserId=validateToken(token,redirectAttributes);
@@ -89,6 +95,7 @@ public class MyRankController {
     }
     //负责前端数据渲染的视图
     @GetMapping("/edit-page")
+    @Operation(summary = "获取编辑页面数据", description = "获取编辑页面数据")
     public String editPage(@RequestParam("token")String token,Model model,@RequestParam("rankId")Integer rankId) throws Exception {
         if(token==null||token.isEmpty()){
             return "redirect:/login.html";
@@ -101,7 +108,9 @@ public class MyRankController {
       return  "redirect:/edit.html?token="+token+"&rankId="+rankId+"&userId="+userId;
     }
     @GetMapping("/getRank/{rankId}")
+    @Operation(summary = "获取榜单详情", description = "获取榜单详情")
     @ResponseBody
+    //查看详情
     public MyRankWithSong getRank(@RequestParam("token")String token,@PathVariable("rankId")Integer rankId,
                                   RedirectAttributes redirectAttributes)throws Exception{
         Integer paramuserId=validateToken(token,redirectAttributes);
@@ -112,6 +121,7 @@ public class MyRankController {
     }
 
     @GetMapping("/singer")
+    @Operation(summary = "获取歌手列表", description = "获取歌手列表")
     @ResponseBody
     //点击添加歌曲的按钮不涉及重定向，URL没有变化，页面也没有刷新
     public List<Singer> singer(@RequestParam("token") String token, @RequestParam("userId")Integer userId,// 接收前端的token
@@ -121,6 +131,7 @@ public class MyRankController {
     }
     @GetMapping("/song")
     @ResponseBody
+    @Operation(summary = "获取歌曲列表", description = "获取歌曲列表")
     public List<Song>  song(@RequestParam("token") String token,
                             @RequestParam("userId") Integer userId,
                             @RequestParam("singerId") Integer singerId
@@ -149,6 +160,7 @@ public class MyRankController {
     @PostMapping("/save")
     @ResponseBody
     //和前端配合，不用重定向，实现弹窗关闭
+    @Operation(summary = "保存编辑的榜单", description = "保存编辑的榜单")
     public Result<String> save(@RequestBody EditRank dto,RedirectAttributes redirectAttributes,@RequestParam("token")
                               String token ){
         Integer userId=validateToken(token,redirectAttributes);
@@ -172,6 +184,7 @@ public class MyRankController {
                 }
     }
     @GetMapping("/lv")
+    @Operation(summary = "跳转到我的喜欢页面", description = "跳转到我的喜欢页面")
     public String lv(@RequestParam("userId")Integer userId,@RequestParam("token")String token, RedirectAttributes redirectAttributes){
         Integer paramuserId=validateToken(token,redirectAttributes);
         if(paramuserId==null){
@@ -182,6 +195,7 @@ public class MyRankController {
         return "redirect:/api/mine/mylove?token="+token+"&userId="+paramuserId;
     }
     @GetMapping("/mylove")
+    @Operation(summary = "获取我的喜欢数据", description = "获取我的喜欢数据")
     public String mylove(@RequestParam("token")String token,@RequestParam("userId")Integer userId,Model model,
                          RedirectAttributes redirectAttributes,@RequestParam(value = "pageNum",defaultValue = "1")Integer pageNum,
                          @RequestParam(value = "pageSize",defaultValue = "3")Integer pageSize){
@@ -198,6 +212,7 @@ public class MyRankController {
     }
 
     @GetMapping("/list")
+    @Operation(summary = "获取评论列表", description = "获取评论列表")
     @ResponseBody
     public Result<List<CommentVo>> list(@RequestParam("token")String token
             , @RequestParam("rankId")Integer rankId, @RequestParam("userId")Integer userId){
@@ -213,6 +228,7 @@ public class MyRankController {
         }
     }
     @DeleteMapping("deleteComment")
+    @Operation(summary = "删除评论", description = "删除评论")
     @ResponseBody
     public Result<String> deleteComment(@RequestParam("token")String token,@RequestParam("comId")Integer comId,
                                         @RequestParam("userId")Integer userId){

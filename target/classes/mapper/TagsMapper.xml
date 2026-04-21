@@ -7,18 +7,33 @@
 <mapper namespace="com.music.Mapper.TagsMapper">
 
 
-    <insert id="add" useGeneratedKeys="true" keyProperty="tagsId" parameterType="com.music.pojo.Tags">
+    <insert id="add" useGeneratedKeys="true" keyProperty="tagId" parameterType="com.music.pojo.Tags">
       insert into tags_dictionary(tag_name, use_count)
       values
           (#{tagName},#{useCount})
     </insert>
+    <!--<select id="pageQuery" resultType="com.music.pojo.Tags">
+        select * from tags_dictionary
+        <where>
+            <if test="tagName != null and tagName != ''">
+                and tag_name like concat('%',#{tagName},'%')
+            </if>
+        </where>
+    </select>-->
     <select id="pageQuery" resultType="com.music.pojo.Tags">
         select * from tags_dictionary
         <where>
-            <if test="TagsName != null and TagsName != ''">
-                and tag_name like concat('%',#{TagsName},'%')
+            <if test="dto != null and dto.tagName != null and dto.tagName != ''">
+                and tag_name like concat('%',#{tagName},'%')
             </if>
         </where>
     </select>
+    <select id="selectList" resultType="com.music.pojo.Tags" parameterType="java.lang.Integer">
+select * from tags_dictionary where tag_id in (select tag_id from user_tags where user_id=#{userId})
+order by use_count desc    </select>
+    <select id="planetary" resultType="com.music.pojo.Tags">
+        select tag_name,use_count from tags_dictionary  order by use_count desc limit 10
+    </select>
+
 
 </mapper>

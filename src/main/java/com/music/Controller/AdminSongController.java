@@ -4,6 +4,8 @@ import com.music.Service.AdminSongService;
 import com.music.Service.SongService;
 import com.music.dto.ApplySongVo;
 import com.music.utils.Result;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +16,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/admins")
+@Tag(name = "管理员歌曲管理", description = "管理员歌曲管理")
 public class AdminSongController {
     @Autowired
      private AdminSongService adminSongService;
@@ -33,6 +36,7 @@ public class AdminSongController {
         return "redirect:/selectsong.html?role="+role+"&token="+token;
     }
     @GetMapping("/selectsong")
+    @Operation(summary = "查询所有待审核歌曲", description = "查询所有待审核歌曲")
     public Result<List<ApplySongVo>> selectsong(@RequestParam("token")String token,@RequestParam("role")Integer role) {
         if(token==null||token==""){
             return Result.error("token失效，请重新登录");
@@ -48,6 +52,7 @@ public class AdminSongController {
         return Result.error(e.getMessage());}
     }
     @PostMapping("/upload")
+    @Operation(summary = "管理员上传歌曲", description = "管理员上传歌曲")
     public Result upload(@RequestParam("token")String token,@RequestParam("file") MultipartFile file,
                          @RequestParam("role")Integer role){
         if(token==null||token==""){

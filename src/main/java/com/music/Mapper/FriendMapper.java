@@ -1,8 +1,7 @@
 package com.music.Mapper;
 
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
+import com.music.pojo.UserFollow;
+import org.apache.ibatis.annotations.*;
 
 import java.util.List;
 
@@ -41,5 +40,23 @@ public interface FriendMapper {
     List<String> listMutualFriendLoveRankUsernames(@Param("userId") Integer userId,
                                                    @Param("rankId") Integer rankId,
                                                    @Param("limit") Integer limit);
+
+    @Select("SELECT * FROM user_follow WHERE user_id = #{currentUserId} AND follow_id = #{targetUserId}")
+    UserFollow isFollowed(Integer currentUserId, Integer targetUserId);
+
+    @Insert("INSERT INTO user_follow (user_id, follow_id, is_mutual, create_time) VALUES (#{currentUserId}, #{targetUserId}, #{isMutual}, #{createTime})")
+    void add(UserFollow userFollow);
+
+    @Delete("DELETE FROM user_follow WHERE user_id = #{currentUserId} AND follow_id = #{targetUserId}")
+    void delete(@Param("currentUserId") Integer currentUserId, @Param("targetUserId") Integer targetUserId);
+
+    /**
+     * 获取我的粉丝列表
+     */
+    @Select("SELECT * FROM user_follow WHERE user_id = #{currentUserId}")
+    List<UserFollow> getMyFriends(Integer currentUserId);
+
+    @Select( "SELECT * FROM user_follow WHERE follow_id = #{currentUserId}")
+    List<UserFollow> getMymaster(Integer currentUserId);
 }
 

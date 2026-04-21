@@ -12,6 +12,8 @@ import com.music.pojo.Song;
 import com.music.utils.JwtUtils;
 import com.music.utils.Result;
 import com.music.utils.ThreadLocalUtil;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,12 +28,14 @@ import java.util.List;
 
 @Controller
 @RequestMapping("/api/rank")
+@Tag(name = "榜单管理", description = "榜单管理相关接口")
 public class UserPublishController {
     private static final Logger log = LoggerFactory.getLogger(UserPublishController.class);
     @Resource
     private UserPublishService userPublishService;
 
     @GetMapping("/publish")
+    @Operation(summary = "发布榜单", description = "发布榜单")
     public String publish(@RequestParam("token") String token, RedirectAttributes redirectAttributes, @RequestParam(value = "category",required = false) Integer category,
                           @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum, @RequestParam(value = "pageSize", defaultValue = "4") Integer pageSize, Model model) {
         if (token == null || token.isEmpty()) {
@@ -64,6 +68,7 @@ public class UserPublishController {
     }
 
     @PostMapping("/add/{category}")
+    @Operation(summary = "添加榜单", description = "添加榜单")
     @ResponseBody
     public Result<String> add(@PathVariable("category") Integer category,
                       @RequestBody RankAddRequest rankAddRequestDto,
@@ -100,6 +105,7 @@ public class UserPublishController {
     }
 
     @GetMapping("/singer")
+    @Operation(summary = "获取歌手", description = "获取歌手")
     @ResponseBody
     //点击添加歌曲的按钮不涉及重定向，URL没有变化，页面也没有刷新
     public List<Singer> singer(@RequestParam("token") String token, // 接收前端的token
@@ -111,6 +117,7 @@ public class UserPublishController {
     }
 
     @GetMapping("/song")
+    @Operation(summary = "获取歌曲", description = "获取歌曲")
     @ResponseBody
     public List<Song> song(@RequestParam("token") String token,
                            @RequestParam("userId") Integer userId,
@@ -121,6 +128,7 @@ public class UserPublishController {
     }
 
     @PostMapping("/applysong")
+    @Operation(summary = "申请歌曲", description = "申请歌曲")
     @ResponseBody
     public Result<String> applySong(@RequestParam("token") String token, @RequestParam("songName")String songName,
                                     @RequestParam("singerName")String singerName){
@@ -137,6 +145,7 @@ public class UserPublishController {
 
     @PostMapping("/vote")
     @ResponseBody
+    @Operation(summary = "点赞榜单", description = "点赞榜单")
     public Result<String> vote(@RequestParam("token")String token,@RequestParam("rankId")Integer rankId){
         if(token == null || token.isEmpty()) {
             return Result.error("token不能为空哦");
@@ -160,6 +169,7 @@ public class UserPublishController {
 
 
     @PostMapping("/love")
+    @Operation(summary = "点赞榜单", description = "点赞榜单")
     @ResponseBody
     public Result<String> love(@RequestParam("token")String token,@RequestParam("rankId")Integer rankId){
         if(token == null || token.isEmpty()) {
@@ -170,6 +180,7 @@ public class UserPublishController {
             if(rankId==null){
                 return Result.error("likeId不能为空");
             }
+
             boolean result=userPublishService.insertLove(userId,rankId);
             if(result==true){
                 return Result.success();
@@ -182,6 +193,7 @@ public class UserPublishController {
     }
     @Deprecated
     @PostMapping("deleteVote")
+    @Operation(summary = "取消点赞榜单", description = "取消点赞榜单")
     @ResponseBody
     public Result<String> deleteVote(@RequestParam("token")String token,@RequestParam("rankId")Integer rankId){
 
@@ -205,6 +217,7 @@ public class UserPublishController {
             return Result.error("取消点赞失败"+e.getMessage());
         }
     }
+    @Operation(summary = "取消点赞榜单", description = "取消点赞榜单")
     @PostMapping("deleteLove")
     @ResponseBody
     public Result<String> deleteLove(@RequestParam("token")String token,@RequestParam("rankId")Integer rankId){
@@ -230,6 +243,7 @@ public class UserPublishController {
             return Result.error("取消点赞失败"+e.getMessage());
         }
     }
+    @Operation(summary = "搜索榜单", description = "搜索榜单")
         @GetMapping("/sou")
     public String sou(@RequestParam("token")String token,@RequestParam("category")Integer category,
                       RedirectAttributes redirectAttributes) throws Exception {
@@ -247,6 +261,7 @@ public class UserPublishController {
         redirectAttributes.addFlashAttribute("category", category);
         return  "redirect:/api/rank/search?token=" + token + "&category=" + category+"&userId="+userId;
         }
+    @Operation(summary = "搜索榜单", description = "搜索榜单")
         @GetMapping("/search")
     public String search(@RequestParam("token")String token,@RequestParam("category")Integer category,
                                            @RequestParam(value = "pageNum",defaultValue = "1")Integer pageNum,
@@ -270,6 +285,7 @@ public class UserPublishController {
          model.addAttribute("offset",offset);
          return "search-page";
         }
+      @Operation(summary = "发表评论", description = "发表评论")
       @PostMapping("/pubcomment")
       @ResponseBody
     public Result<String> pubcomment(@RequestParam("token")String token,@RequestParam("rankId")Integer rankId,@RequestParam("userId")Integer userId,
@@ -290,6 +306,7 @@ public class UserPublishController {
           return   Result.error("评论发表失败"+e.getMessage());
       }
       }
+      @Operation(summary = "获取评论列表", description = "获取评论列表")
       @GetMapping("/list")
       @ResponseBody
     public Result<List<CommentVo>> list(@RequestParam("token")String token
@@ -307,6 +324,7 @@ public class UserPublishController {
       }
       @DeleteMapping("deleteComment")
       @ResponseBody
+      @Operation(summary = "删除评论", description = "删除评论")
     public Result<String> deleteComment(@RequestParam("token")String token,@RequestParam("comId")Integer comId,
                                         @RequestParam("userId")Integer userId){
         if(token == null || token.isEmpty()) {
@@ -328,6 +346,7 @@ public class UserPublishController {
       }
       @PostMapping("/like")
       @ResponseBody
+      @Operation(summary = "点赞评论", description = "点赞评论")
     public Result<String> like(@RequestParam("token")String token,@RequestParam("comId")Integer comId){
         if(token == null || token.isEmpty()) {
             return Result.error("token不能为空哦");
@@ -349,6 +368,7 @@ public class UserPublishController {
       }
       @PostMapping("deleteLike")
       @ResponseBody
+      @Operation(summary = "取消点赞评论", description = "取消点赞评论")
     public Result<String> deleteLike(@RequestParam("token")String token,@RequestParam("comId")Integer comId){
 
         if(token == null || token.isEmpty()) {
