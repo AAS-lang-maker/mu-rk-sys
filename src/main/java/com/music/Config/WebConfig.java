@@ -43,7 +43,11 @@ public class WebConfig implements WebMvcConfigurer {
                         "/register.html", // 放行注册页
                         "/index.html",    // 放行首页
                         "/*.css",         // 放行根目录下的 CSS
-                        "/*.js"           // 放行根目录下的 JS
+                        "/*.js",           // 放行根目录下的 JS
+                        // 下面这一行是关键，放行 Swagger 的接口数据
+                        "/v3/api-docs/**",
+                        "/swagger-ui/**"
                 );
     }
+
 }

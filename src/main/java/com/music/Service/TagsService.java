@@ -10,13 +10,18 @@ import org.springframework.stereotype.Service;
 public interface TagsService {
 
 
-    void add(TagsDTO tagsDTO);
+    void cancelFromRanking(Integer rankId,Integer tagId);
+
+    void add(TagsDTO tagsDTO, Integer userId);
 
 
 
-    PageResult pageQueryTags(TagsPageQueryDTO tagsPageQueryDTO);
+    PageResult pageQueryUserTags(TagsPageQueryDTO tagsPageQueryDTO);
 
     void delete(Integer id);
 
     void update(TagsDTO tagsDTO, Integer tagId);
+
+
+    PageResult planetary();
 }

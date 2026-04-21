@@ -4,6 +4,8 @@ import com.music.dto.CommentVo;
 import com.music.dto.MyRankWithSong;
 import com.music.pojo.Comment;
 import com.music.pojo.PersonalRank;
+import com.music.pojo.RankSong;
+import com.music.pojo.VoteRecord;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
@@ -44,4 +46,16 @@ public interface MusicHotRankMapper {
 
     @Delete("delete from like_comment where com_id=#{comId} and user_id=#{userId}")
     int deleteLike(Integer comId, Integer userId);
+
+    @Select("select * from vote_record where user_id= #{userId} and rank_id=#{rankId} and song_id=#{songId}")
+    boolean selectVoteRecord(Integer userId, Integer rankId, Integer songId);
+
+    @Insert("insert into vote_record (user_id,rank_id,song_id) values (#{userId},#{rankId},#{songId})")
+    void insertVoteRecord(VoteRecord voteRecord);
+
+    @Select("select * from rank_song where rank_id=#{rankId} and song_id=#{songId}")
+    RankSong selectRankSongByRankIdAndSongId(Integer rankId, Integer songId);
+
+    @Update("update rank_song set vote_count=vote_count+1 where rank_id=#{rankId} and song_id=#{songId}")
+    void updateSongVoteCount(Integer songId, Integer rankId);
 }

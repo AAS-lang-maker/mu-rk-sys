@@ -12,6 +12,7 @@ public class RankSong {
     private Integer songId;
     private String songName;
     private String singerName;
+    private Integer voteCount;
     private Date rankCreateTime;
     private Date rankUpdateTime;
 

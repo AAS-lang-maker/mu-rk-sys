@@ -6,16 +6,27 @@ import com.music.dto.CommentVo;
 import com.music.dto.MyRankWithSong;
 import com.music.pojo.Comment;
 import com.music.pojo.PersonalRank;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class HotRankServiceImpl implements HotRankService {
@@ -30,9 +41,18 @@ public class HotRankServiceImpl implements HotRankService {
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
 
+
+
     private static final String Love_Key="love:user:%d:rank:%d";
     private static final String Vote_Key="vote:user:%d:rank:%d";
 
+    @Autowired
+    private final RedisTemplate<String, Object> redisTemplate;
+    // 注入 RedisTemplat
+    // 注入 WebSocket 发送工具
+    private final SimpMessagingTemplate messagingTemplate;
+    // 定义脚本对象
+    private DefaultRedisScript<List> rankScript;
     @Autowired
     private MusicHotRankMapper musicHotRankMapper;
     @Override
@@ -45,13 +65,43 @@ public class HotRankServiceImpl implements HotRankService {
         return love+2*vote;
     }
 
+    // 构造函数注入
+    public HotRankServiceImpl(RedisTemplate<String, Object> redisTemplate, SimpMessagingTemplate messagingTemplate) {
+        this.redisTemplate = redisTemplate;
+        this.messagingTemplate = messagingTemplate;
+    }
+
+    // 项目启动时加载 Lua 脚本
+    @PostConstruct
+    public void init() {
+        rankScript = new DefaultRedisScript<>();
+        rankScript.setResultType(List.class); // 返回值是列表
+
+        try {
+            // 读取 resources/lua/rank_update.lua
+            ClassPathResource resource = new ClassPathResource("lua/rank_update.lua");
+            InputStream inputStream = resource.getInputStream();
+            String scriptContent = new BufferedReader(new InputStreamReader(inputStream))
+                    .lines().collect(Collectors.joining("\n"));
+            rankScript.setScriptText(scriptContent);
+            System.out.println("✅ Lua 战报脚本加载成功！");
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("❌ Lua 脚本加载失败！");
+        }
+    }
+
+
+    /**
+     * 更新热度并发送战报
+     */
     @Override
     //第二步的逻辑包括：将新建的Zset集合中添加榜单各项数据+查询榜单排名
     public void updateHotRank(Long rankId) {
-        if(rankId==null){
+        if (rankId == null) {
             //直接抛出空指针异常
             throw new IllegalArgumentException("rankId不能为空");
-        }
+        }/*
         System.out.println("===== 开始写入Redis =====");
         System.out.println("Key：" + Hot_Rank_Key);
         System.out.println("要写入的rankId：" + rankId);
@@ -61,9 +111,105 @@ public class HotRankServiceImpl implements HotRankService {
         stringRedisTemplate.opsForZSet().add(Hot_Rank_Key,rankId.toString(),score);
         Set<String> afterWrite = stringRedisTemplate.opsForZSet().range(Hot_Rank_Key, 0, -1);
         System.out.println("写入后Redis中的数据：" + afterWrite);
-        System.out.println("===== 写入Redis结束 =====");
-    }
+        System.out.println("===== 写入Redis结束 =====");*/
+        // ... 前面的空值判断 ...
 
+        // 1. 计算热度分
+        Long score = caculateHotRank(rankId);
+
+           /* // 2. === 核心改动：执行 Lua 脚本 ===
+            DefaultRedisScript<List> script = new DefaultRedisScript<>();
+            script.setLocation(new ClassPathResource("lua/rank_update.lua"));
+            script.setResultType(List.class);
+
+            List<Long> result = (List<Long>) stringRedisTemplate.execute(
+                    script,
+                    Arrays.asList(Hot_Rank_Key),
+                    rankId.toString(),
+                    String.valueOf(score)
+            );
+
+            // 3. === 处理战报逻辑 ===
+            if (result != null) {
+                Long oldRank = result.get(0);
+                Long newRank = result.get(1);
+
+                // 注意：Redis 排名从 0 开始，所以显示给用户要 +1
+                int displayOld = oldRank == -1 ? 0 : oldRank.intValue() + 1;
+                int displayNew = newRank.intValue() + 1;
+
+                // 如果 旧排名 > 新排名（比如 5 -> 3），说明上升了
+                // 或者 旧排名 == 0 (未上榜) -> 新排名 > 0 (上榜了)
+                if ((oldRank > newRank && oldRank != -1) || (oldRank == -1 && newRank == 0)) {
+                    String msg = "恭喜！你的热度飙升，排名从第 " + displayOld + " 名上升至第 " + displayNew + " 名！";
+                    // TODO: 把这个 msg 返回给前端，或者存入战报表
+                    System.out.println("🔥 触发战报：" + msg);
+                }}*/
+        // 2. 执行 Lua 脚本
+        // KEYS[1] = "rank:hot"
+        // ARGV[1] = rankId
+        // ARGV[2] = incrementScore
+        List<Object> result = (List<Object>) redisTemplate.execute(
+                rankScript,
+                Collections.singletonList("rank:hot"),
+                rankId.toString(),
+                String.valueOf(score)
+        );
+
+        // 3. 解析 Lua 返回的结果
+        if (result != null && result.size() >= 3) {
+            Long oldRank = (Long) result.get(0);
+            Long newRank = (Long) result.get(1);
+            String currentTopUserId = (String) result.get(2); // 拿到当前榜首 ID
+
+            // ==========================================
+            // 逻辑一：判断榜首是否更换 -> 全服广播
+            // ==========================================
+            // 从 Redis 获取“上一次记录的榜首”
+            String lastTopUserId = (String) redisTemplate.opsForValue().get("rank:last_top_user");
+
+            // 如果榜首变了（或者这是第一次）
+            if (lastTopUserId == null || !lastTopUserId.equals(currentTopUserId)) {
+                String publicMsg = "🏆 榜单风云！恭喜用户 " + currentTopUserId + " 成为最热门的榜单！！！";
+
+                // 广播给所有人 (/topic 是公共频道)
+                messagingTemplate.convertAndSend("/topic/public-news", publicMsg);
+
+                // 更新 Redis 里的记录
+                redisTemplate.opsForValue().set("rank:last_top_user", currentTopUserId);
+                System.out.println("📢 全服广播：" + publicMsg);
+            }
+
+            // ==========================================
+            // 逻辑二：判断个人排名上升 -> 私信创建者
+            // ==========================================
+            String personalMsg = null;
+
+            // 首次上榜
+            if (oldRank == -1) {
+                personalMsg = "🎉 恭喜！你的榜单首次上榜，排名第 " + (newRank + 1) + "！";
+            }
+            // 排名上升 (注意：Redis 排名 0 是第一名，数值越小越强)
+            else if (newRank < oldRank) {
+                int diff = oldRank.intValue() - newRank.intValue();
+                personalMsg = "🚀 排名上升！你的榜单提升了 " + diff + " 位，当前第 " + (newRank + 1) + "！";
+            }
+
+            // 假设你有一个榜单实体类 RankEntity
+            PersonalRank personalRank = musicHotRankMapper.selectRankById(Math.toIntExact(rankId));
+            Long authorId = personalRank.getUserId().longValue(); // 拿到真正的作者 ID
+            // 发送私信 (/user 是个人频道)
+            if (personalMsg != null) {
+                // 发送给 rankId 这个用户
+                messagingTemplate.convertAndSendToUser(
+                        authorId.toString(),
+                        "/queue/battle-report",
+                        personalMsg
+                );
+                System.out.println("🔒 私信发送给用户 " + authorId + ": " + personalMsg);
+            }
+        }
+    }
     @Override
     public Set<String> getHotRankId(int start,int end) {
         if(end<=0||start<0){

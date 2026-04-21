@@ -8,6 +8,8 @@ import com.music.dto.UserLoginDTO;
 import com.music.dto.UserRegisterDTO;
 import com.music.pojo.Category;
 import com.music.utils.Result;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.ognl.Token;
@@ -26,6 +28,7 @@ import java.util.Map;
 
 @Controller
 @RequestMapping("/api/user")
+@Tag(name = "用户管理", description = "用户管理相关接口")
 @Validated  //对前端传来的参数实现分组校验
 public class Usercontroller {
     @Autowired//注入service层
@@ -38,6 +41,7 @@ public class Usercontroller {
 
     @PostMapping("/login")
     @ResponseBody
+    @Operation(summary = "用户登录", description = "用户登录接口")
     public Result<LoginSuccessVo> login(@Valid @RequestBody UserLoginDTO userLoginDTO) {
         Result<LoginSuccessVo> result = userInfoService.login(userLoginDTO);
      return result;
@@ -51,6 +55,7 @@ public class Usercontroller {
              5.不存在则继续让用户输入密码
              6.注册完成后可直接重定向到首页*/
      @PostMapping("/register")
+    @Operation(summary = "用户注册", description = "用户注册接口")
         public String register(@Validated UserRegisterDTO userRegisterDTO, RedirectAttributes redirectAttributes) {
             //Model最没用的一集，由于在注册中要重定向，所以用RedirectAttributes传参数
             Result<String> result = userInfoService.register(userRegisterDTO);//让Service层校验用户名是否存在

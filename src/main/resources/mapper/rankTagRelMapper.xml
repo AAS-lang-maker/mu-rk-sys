@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 核心：namespace必须等于UserMapper接口的全限定类名（包名+接口名） -->
+<mapper namespace="com.music.Mapper.rankTagRelMapper">
+
+
+    <insert id="add" useGeneratedKeys="true">
+insert into rank_tags(tag_id,rank_id,user_id,create_time) values(#{tagId},#{rankId},#{userId},#{createTime})
+    </insert>
+    <select id="selectByRankingIdAndUserId" resultType="com.music.pojo.Tags">
+
+select * from tags_dictionary where tag_id in
+                                    (select tag_id from rank_tags where rank_id=#{rankId} and user_id=#{userId})
+                              order by use_count desc
+    </select>
+</mapper>

@@ -800,7 +800,7 @@
 </div>
 
 <!-- 主容器 -->
-<div class="container">
+< class="container">
     <!-- 原有搜索按钮 -->
     <div class="top-right-search">
         <button class="search-button" onclick="openSearch()">
@@ -817,26 +817,25 @@
     </div>
 
     <!-- 热门榜单内容 -->
-    <div class="search-results">
-        <div class="results-header">
-            <h2>🔥 热门榜单</h2>
-            <p>为您展示最受欢迎的音乐榜单</p>
-        </div>
+     <div class="search-results">
+         <div class="results-header">
+             <h2>🔥 热门榜单</h2>
+             <p>为您展示最受欢迎的音乐榜单</p>
+         </div>
 
-        <!-- 加载中 -->
-        <div class="loading" id="loading">加载中...</div>
+         <!-- 加载中 -->
+         <div class="loading" id="loading">加载中...</div>
 
-        <!-- 暂无数据 -->
-        <div class="empty-results" id="emptyState" style="display: none;">
-            <h3>暂无热门榜单数据</h3>
-            <p>暂无相关榜单，请稍后再试</p>
-        </div>
+         <!-- 暂无数据 -->
+         <div class="empty-results" id="emptyState" style="display: none;">
+             <h3>暂无热门榜单数据</h3>
+             <p>暂无相关榜单，请稍后再试</p>
+         </div>
 
-        <!-- 榜单列表 -->
-        <ul class="rankings-list" id="rankList"></ul>
-    </div>
-</div>
-
+         <!-- 榜单列表 -->
+         <ul class="rankings-list" id="rankList"></ul>
+     </div>
+     </div>
 <!-- 加号发布按钮 -->
 <div class="add-button-container">
     <button class="add-button" id="addBtn">+</button>
@@ -961,6 +960,19 @@
             singerName: singerName || "未知歌手"
         });
     }
+
+
+    playButton.addEventListener('click', togglePlay)
+    prevButton.addEventListener('click', prevSong)
+    nextButton.addEventListener('click', nextSong)
+    audio.addEventListener('timeupdate', updateProgress)
+    progressContainer.addEventListener('click', setProgress)
+
+
+    audio.addEventListener('ended', () => {
+        nextSong()
+    })
+
 
     // ===================== 全局变量（和搜索页一致） =====================
     let token = '';

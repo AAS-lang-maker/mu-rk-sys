@@ -2,10 +2,17 @@
 <project version="4">
   <component name="DataSourcePerFileMappings">
     <file url="file://$PROJECT_DIR$/src/main/java/com/music/Mapper/FriendMapper.java" value="b12dfad4-67ab-4bb0-aa92-2c89b822a692" />
+    <file url="file://$PROJECT_DIR$/src/main/java/com/music/Mapper/MusicHotRankMapper.java" value="b12dfad4-67ab-4bb0-aa92-2c89b822a692" />
     <file url="file://$PROJECT_DIR$/src/main/java/com/music/Mapper/MyRankMapper.java" value="b12dfad4-67ab-4bb0-aa92-2c89b822a692" />
     <file url="file://$PROJECT_DIR$/src/main/java/com/music/Mapper/TagsMapper.java" value="b12dfad4-67ab-4bb0-aa92-2c89b822a692" />
+    <file url="file://$PROJECT_DIR$/src/main/java/com/music/Mapper/UserMapper.java" value="b12dfad4-67ab-4bb0-aa92-2c89b822a692" />
+    <file url="file://$PROJECT_DIR$/src/main/java/com/music/Mapper/UserTagsMapper.java" value="b12dfad4-67ab-4bb0-aa92-2c89b822a692" />
     <file url="file://$PROJECT_DIR$/src/main/java/com/music/Mapper/rankTagRelMapper.java" value="b12dfad4-67ab-4bb0-aa92-2c89b822a692" />
+    <file url="file://$PROJECT_DIR$/src/main/java/com/music/Service/FriendService.java" value="b12dfad4-67ab-4bb0-aa92-2c89b822a692" />
+    <file url="file://$PROJECT_DIR$/src/main/resources/mapper/MyRankMapper.xml" value="b12dfad4-67ab-4bb0-aa92-2c89b822a692" />
     <file url="file://$PROJECT_DIR$/src/main/resources/mapper/SongMapper.xml" value="b12dfad4-67ab-4bb0-aa92-2c89b822a692" />
     <file url="file://$PROJECT_DIR$/src/main/resources/mapper/TagsMapper.xml" value="b12dfad4-67ab-4bb0-aa92-2c89b822a692" />
+    <file url="file://$PROJECT_DIR$/src/main/resources/mapper/UserInfoMapper.xml" value="b12dfad4-67ab-4bb0-aa92-2c89b822a692" />
+    <file url="file://$PROJECT_DIR$/src/main/resources/mapper/rankTagRelMapper.xml" value="b12dfad4-67ab-4bb0-aa92-2c89b822a692" />
   </component>
 </project>

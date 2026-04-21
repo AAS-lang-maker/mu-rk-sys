@@ -2,6 +2,8 @@ package com.music.Controller;
 
 import com.music.Service.SongService;
 import com.music.utils.Result;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -17,10 +19,12 @@ import java.io.PrintWriter;
 
 @Controller
 @RequestMapping("/api/songGo")
+@Tag(name = "歌曲播放相关接口", description = "提供歌曲播放的接口")
 public class SongController {
     @Autowired
     private SongService songService;
     @GetMapping("/play/{songId}")
+    @Operation(summary = "播放歌曲", description = "根据歌曲ID播放歌曲")
     public void playSong(@RequestParam("token")String token,@PathVariable("songId")Integer songId,
                                    HttpServletResponse response) throws IOException {
         if(token==null||token.equals("")){

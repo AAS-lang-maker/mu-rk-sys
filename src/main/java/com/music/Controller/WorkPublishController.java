@@ -11,7 +11,10 @@ import com.music.pojo.Song;
 import com.music.pojo.Work;
 import com.music.utils.JwtUtils;
 import com.music.utils.Result;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
+import jdk.jfr.Label;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -23,12 +26,14 @@ import java.util.List;
 
 @Controller
 @RequestMapping("/api/workrank")
+@Tag(name = "WorkPublishController", description = "作品发布控制器")
 public class WorkPublishController {
     @Resource
 
 
     private WorkPublishServiceImpl workPublishServiceImpl;
     @GetMapping("/publish")
+    @Operation(summary = "发布作品", description = "发布作品")
     public String publish(@RequestParam("token")String token,@RequestParam("userId")Integer userId,
                            RedirectAttributes redirectAttributes,@RequestParam("category")Integer category,
                          @RequestParam("pageNum")Integer pageNum, @RequestParam("pageSize")Integer pageSize
@@ -53,7 +58,11 @@ public class WorkPublishController {
        model.addAttribute("offset",offset);
        return "publish-page";
     }
+
+
+
     @PostMapping("/add-work/{category}")
+    @Operation(summary = "添加作品", description = "添加作品")
     public String add(@PathVariable("category") Integer category,
                       @RequestBody RankAddRequest rankAddRequestDto,
                       @RequestHeader("Authorization") String authHeader,
@@ -111,8 +120,13 @@ public class WorkPublishController {
             return "publish-page";
         }
     }
+
+
+
+
     @GetMapping("/work")
     @ResponseBody
+    @Operation(summary = "获取作品", description = "获取作品")
     //点击添加歌曲的按钮不涉及重定向，URL没有变化，页面也没有刷新
     public List<Work> work(@RequestParam("token") String token, // 接收前端的token
                              @RequestParam("userId") Integer userId, // 接收前端的userId
@@ -120,8 +134,13 @@ public class WorkPublishController {
         List<Work> works=workPublishServiceImpl.selectWork(categoryId);
         return works;
     }
+
+
+
+
     @GetMapping("/song")
     @ResponseBody
+    @Operation(summary = "获取歌曲", description = "获取歌曲")
     public List<Song>  song(@RequestParam("token") String token,
                             @RequestParam("userId") Integer userId,
                             @RequestParam("workId") Integer workId
@@ -129,6 +148,7 @@ public class WorkPublishController {
         return songs;
     }
     @PostMapping("/vote")
+    @Operation(summary = "投票", description = "投票")
     public String vote(@RequestParam("token")String token, @RequestParam("rankId")Integer rankId,@RequestParam("category")Integer category,
                        @RequestParam("userId")Integer userId,@RequestParam("pageNum")Integer pageNum, @RequestParam("pageSize")Integer pageSize,
                        RedirectAttributes redirectAttributes, HttpServletRequest request) throws Exception {
@@ -156,7 +176,12 @@ public class WorkPublishController {
             return "redirect:/api/rank/publish?token=" + token + "&userId=" + userId + "&category=" + category+"&pageNum=" + pageNum + "&pageSize=" + pageSize;
         }
     }
+
+
+
+
     @PostMapping("/love")
+    @Operation(summary = "收藏", description = "收藏")
     public String love(@RequestParam("token")String token,@RequestParam("userId")Integer userId,@RequestParam("rankId")Integer rankId,
                        @RequestParam("category")Integer category,@RequestParam("pageNum")Integer pageNum, @RequestParam("pageSize")Integer pageSize,
                        RedirectAttributes redirectAttributes,HttpServletRequest request) throws Exception {
@@ -178,7 +203,12 @@ public class WorkPublishController {
             return "redirect:/api/rank/publish?token=" + token + "&userId=" + userId + "&category=" + category+"&pageNum=" + pageNum + "&pageSize=" + pageSize;
         }
     }
+
+
+
+
     @GetMapping("/sou")
+    @Operation(summary = "搜索", description = "搜索")
     public String sou(@RequestParam("token")String token,@RequestParam("category")Integer category,
                       RedirectAttributes redirectAttributes) throws Exception {
         if (token == null || token.isEmpty()) {
@@ -195,7 +225,15 @@ public class WorkPublishController {
         redirectAttributes.addFlashAttribute("category", category);
         return  "redirect:/api/rank/search?token=" + token + "&category=" + category+"&userId="+userId;
     }
+
+
+
+
+
+
+
     @GetMapping("/search")
+    @Operation(summary = "搜索", description = "搜索")
     public String search(@RequestParam("token")String token,@RequestParam("category")Integer category,
                          @RequestParam(value = "pageNum",defaultValue = "1")Integer pageNum,
                          @RequestParam(value = "pageSize",defaultValue = "3")Integer pageSize
@@ -214,7 +252,13 @@ public class WorkPublishController {
         model.addAttribute("offset",offset);
         return "search-page";
     }
+
+
+
+
+
     @PostMapping("/pubcomment")
+    @Operation(summary = "发表评论", description = "发表评论")
     @ResponseBody
     public Result<String> pubcomment(@RequestParam("token")String token, @RequestParam("rankId")Integer rankId, @RequestParam("userId")Integer userId,
                                      @RequestParam("content")String content, @RequestParam(value = "parentId",required = false)Integer parentId){
@@ -234,7 +278,13 @@ public class WorkPublishController {
             return   Result.error("评论发表失败"+e.getMessage());
         }
     }
+
+
+
+
+
     @GetMapping("/list")
+    @Operation(summary = "评论列表", description = "评论列表")
     @ResponseBody
     public Result<List<CommentVo>> list(@RequestParam("token")String token
             , @RequestParam("rankId")Integer rankId){
@@ -250,7 +300,11 @@ public class WorkPublishController {
             return Result.error("评论展示失败");
         }
     }
+
+
+
     @DeleteMapping("deleteComment")
+    @Operation(summary = "删除评论", description = "删除评论")
     @ResponseBody
     public Result<String> deleteComment(@RequestParam("token")String token,@RequestParam("comId")Integer comId){
         if(token == null || token.isEmpty()) {
@@ -271,7 +325,11 @@ public class WorkPublishController {
             return Result.error("评论删除失败");
         }
     }
+
+
+
     @PostMapping("/like")
+    @Operation(summary = "点赞评论", description = "点赞评论")
     @ResponseBody
     public Result<String> like(@RequestParam("token")String token,@RequestParam("comId")Integer comId){
         if(token == null || token.isEmpty()) {
@@ -292,7 +350,10 @@ public class WorkPublishController {
             return Result.error("点赞该评论失败"+e.getMessage());
         }
     }
+
+
     @PostMapping("deleteLike")
+    @Operation(summary = "取消点赞", description = "取消点赞")
     @ResponseBody
     public Result<String> deleteLike(@RequestParam("token")String token,@RequestParam("comId")Integer comId){
 

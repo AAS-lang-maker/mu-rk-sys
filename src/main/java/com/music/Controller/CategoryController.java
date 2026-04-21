@@ -4,6 +4,8 @@ import com.music.Service.CategoryService;
 import com.music.Service.impl.CategoryServiceImpl;
 import com.music.pojo.Category;
 import com.music.utils.Result;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Service;
@@ -13,6 +15,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.List;
 @Controller
 @RequestMapping("/api/category")
+@Tag(name = "CategoryController", description = "分类管理模块")
 public class CategoryController {
     @Autowired
     private CategoryService categoryService;
@@ -25,6 +28,7 @@ public class CategoryController {
 
 
         @GetMapping("/redirect")
+        @Operation(summary = "根据分类ID重定向", description = "根据分类ID重定向")
         public String selectAllCategoryId(@RequestParam("categoryId") Integer categoryId,
                                           // 从请求头/参数中获取前端传递的Token和UserID（根据你的验证逻辑，从实际存储位置取）
                                           @RequestParam(value = "token", required = true) String token,
