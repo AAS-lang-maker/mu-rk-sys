@@ -4,23 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Digital Conductor</title>
+    <title>音乐排行榜 - 首页</title>
     <script src="js/axios.min.js"></script>
     <script src="js/request.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg: #0f131d;
-            --primary: #dcc66e;
-            --on-surface: #dfe2f1;
-            --surface-low: #151a26;
-            --surface-high: #262a35;
-            --text-gray: #8b92a5;
-            --text-light: #6b7280;
-        }
-
         * {
             margin: 0;
             padding: 0;
@@ -28,504 +15,389 @@
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: var(--bg);
-            color: var(--on-surface);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #0f172a;
             min-height: 100vh;
             position: relative;
             overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
-        /* ===== 导航栏 ===== */
-        .header {
-            position: fixed;
+        body::before {
+            content: '';
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
-            z-index: 100;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255, 250, 205, 0.08)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>') repeat;
+            z-index: -1;
+        }
+
+        .header {
+            background: rgba(26, 32, 44, 0.9);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(255, 250, 205, 0.3);
+            padding: 30px 50px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px 48px;
-            background: rgba(15, 19, 29, 0.8);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 250, 205, 0.08);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
         }
 
-        .header-brand {
-            font-family: 'Manrope', sans-serif;
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--primary);
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-        }
-
-        .header-center {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .trending-btn {
-            font-family: 'Inter', sans-serif;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 20px;
-            border-radius: 9999px;
-            border: 1px solid rgba(220, 198, 110, 0.3);
-            background: rgba(220, 198, 110, 0.06);
-            color: var(--primary);
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .trending-btn:hover {
-            background: rgba(220, 198, 110, 0.12);
-            border-color: rgba(220, 198, 110, 0.5);
-        }
-
-        .trending-icon {
-            font-size: 14px;
-        }
-
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .welcome-text {
-            font-size: 14px;
-            color: var(--text-gray);
-        }
-
-        .welcome-text span#userName {
-            color: var(--on-surface);
-            font-weight: 600;
-            margin-left: 4px;
-        }
-
-        .brand-tag {
-            font-family: 'Manrope', sans-serif;
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--primary);
-            letter-spacing: 2px;
-            opacity: 0.7;
-        }
-
-        .avatar-placeholder {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--surface-high), var(--surface-low));
-            border: 2px solid rgba(220, 198, 110, 0.25);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-            color: var(--primary);
-        }
-
-        /* ===== 主内容区 ===== */
-        .main-content {
-            position: relative;
-            z-index: 1;
-            max-width: 1120px;
-            margin: 0 auto;
-            padding: 120px 24px 60px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        /* ===== Hero 区域 ===== */
-        .hero-section {
-            text-align: center;
-            margin-bottom: 64px;
-        }
-
-        .hero-title {
-            font-family: 'Manrope', sans-serif;
-            font-size: 56px;
-            font-weight: 800;
-            line-height: 1.15;
-            background: linear-gradient(135deg, #ffffff 0%, var(--primary) 50%, #ffffff 100%);
-            background-size: 200% auto;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 20px;
-            letter-spacing: -0.5px;
-        }
-
-        .hero-subtitle {
+        .welcome-user {
+            color: #f7fafc;
             font-size: 18px;
-            color: var(--text-gray);
-            max-width: 520px;
-            margin: 0 auto;
-            line-height: 1.7;
+            font-weight: 500;
         }
 
-        /* ===== 分类卡片容器 ===== */
-        .cards-container {
+        .logo {
+            color: #fffa9c;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        .home-link {
+            color: #f7fafc;
+            font-size: 18px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .home-link:hover {
+            color: #fffa9c;
+        }
+
+        .container {
+            flex: 1;
             display: flex;
-            gap: 40px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-bottom: 48px;
+            padding: 60px 50px;
+            position: relative;
         }
 
-        .category-card {
-            position: relative;
-            width: 480px;
-            height: 420px;
-            border-radius: 24px;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 250, 205, 0.1);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-            padding: 40px 36px;
+        .login-button-container {
+            position: absolute;
+            left: 50px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 10;
+        }
+
+        .login-button {
+            background: #fffa9c;
+            backdrop-filter: blur(10px);
+            border: none;
+            border-radius: 8px;
+            padding: 18px 24px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a202c;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(255, 250, 205, 0.3);
+            transition: all 0.3s ease;
+            transform: translateX(0);
+        }
+
+        .login-button:hover {
+            background: rgba(255, 250, 205, 1);
+            box-shadow: 0 6px 20px rgba(255, 250, 205, 0.4);
+            transform: translateX(5px);
+        }
+
+        .login-button.collapsed {
+            transform: translateX(-85%);
+        }
+
+        .toggle-button {
+            position: absolute;
+            top: 50%;
+            right: -15px;
+            transform: translateY(-50%);
+            background: rgba(255, 250, 205, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #1a202c;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-button:hover {
+            background: rgba(255, 250, 205, 1);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .main-content {
+            flex: 1;
             display: flex;
             flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-left: 120px;
+        }
+
+        .boxes-container {
+            display: flex;
+            gap: 80px;
+            margin-bottom: 50px;
+            width: 100%;
+            max-width: 1100px;
+            justify-content: center;
+        }
+
+        .category-box {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 250, 205, 0.2);
+            border-radius: 16px;
+            width: 500px;
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             cursor: pointer;
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
-                        box-shadow 0.4s ease,
-                        border-color 0.3s ease;
+            position: relative;
             overflow: hidden;
         }
 
-        .category-card::before {
+        .category-box::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            border-radius: 24px;
-            background: linear-gradient(135deg, rgba(220, 198, 110, 0.06), transparent 60%);
+            background: linear-gradient(135deg, rgba(255, 250, 205, 0.1), transparent);
             opacity: 0;
-            transition: opacity 0.4s ease;
-            pointer-events: none;
+            transition: opacity 0.3s ease;
         }
 
-        .category-card:hover {
-            transform: scale(1.02);
-            box-shadow: 0 28px 56px rgba(0, 0, 0, 0.55);
-            border-color: rgba(220, 198, 110, 0.2);
+        .category-box:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 12px 40px rgba(255, 250, 205, 0.2);
+            border-color: rgba(255, 250, 205, 0.4);
         }
 
-        .category-card:hover::before {
+        .category-box:hover::before {
             opacity: 1;
         }
 
-        .card-icon-wrapper {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 30px;
-            margin-bottom: 24px;
-            flex-shrink: 0;
-        }
-
-        .card-icon-wrapper.icon-star {
-            background: linear-gradient(135deg, #1e2230, #141826);
-            color: var(--primary);
-            border: 1px solid rgba(220, 198, 110, 0.2);
-        }
-
-        .card-icon-wrapper.icon-folder {
-            background: linear-gradient(135deg, #162033, #101829);
-            color: #7bd0ff;
-            border: 1px solid rgba(123, 208, 255, 0.2);
-        }
-
-        .card-title {
-            font-family: 'Manrope', sans-serif;
-            font-size: 32px;
+        .box-title {
+            font-size: 48px;
             font-weight: 700;
-            color: #fff;
-            margin-bottom: 6px;
-        }
-
-        .card-subtitle {
-            font-size: 14px;
-            color: var(--text-gray);
-            margin-bottom: 16px;
-            letter-spacing: 0.5px;
-        }
-
-        .card-desc {
-            font-size: 14px;
-            color: var(--text-light);
-            line-height: 1.6;
-            margin-bottom: auto;
-            flex-grow: 1;
-        }
-
-        .card-cta {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 24px;
-            padding: 12px 28px;
-            border-radius: 9999px;
-            font-family: 'Inter', sans-serif;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
+            color: #fffa9c;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
             transition: all 0.3s ease;
-            border: none;
-            outline: none;
-            align-self: flex-start;
-        }
-
-        .card-cta.cta-primary {
-            background: linear-gradient(135deg, var(--primary), #140f00);
-            color: #140f00;
-        }
-
-        .card-cta.cta-primary:hover {
-            filter: brightness(1.1);
-            transform: translateY(-1px);
-        }
-
-        .card-cta.cta-outline {
-            background: transparent;
-            color: #fff;
-            border: 1px solid rgba(255, 255, 255, 0.25);
-        }
-
-        .card-cta.cta-outline:hover {
-            background: rgba(255, 255, 255, 0.06);
-            border-color: rgba(255, 255, 255, 0.4);
-        }
-
-        /* ===== 状态指示器 ===== */
-        .status-indicator {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 32px;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: #7bd0ff;
-            animation: breathe 2s ease-in-out infinite;
-        }
-
-        @keyframes breathe {
-            0%, 100% { opacity: 0.4; }
-            50% { opacity: 1.0; }
-        }
-
-        .status-text {
-            font-size: 14px;
-            color: var(--text-gray);
-        }
-
-        /* ===== 重新登录链接 ===== */
-        .relogin-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 14px;
-            color: var(--text-light);
-            cursor: pointer;
-            transition: color 0.3s ease;
-            margin-bottom: 40px;
-            background: none;
-            border: none;
-            padding: 0;
-            font-family: 'Inter', sans-serif;
-        }
-
-        .relogin-link:hover {
-            color: var(--primary);
-        }
-
-        /* ===== 底部区域 ===== */
-        .footer-area {
-            text-align: center;
-            margin-top: 12px;
-        }
-
-        .footer-hint {
-            font-size: 16px;
-            color: var(--primary);
             margin-bottom: 10px;
+        }
+
+        .box-subtitle {
+            font-size: 24px;
             font-weight: 500;
+            color: rgba(255, 250, 205, 0.8);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
         }
 
-        .footer-copyright {
-            font-size: 12px;
-            color: var(--text-light);
+        .instruction {
+            color: #f7fafc;
+            font-size: 20px;
+            text-align: center;
+            margin-top: 20px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            width: 100%;
         }
 
-        /* ===== 响应式 ===== */
+        @media (max-width: 1200px) {
+            .category-box {
+                width: 420px;
+                height: 350px;
+            }
+
+            .box-title {
+                font-size: 40px;
+            }
+
+            .box-subtitle {
+                font-size: 20px;
+            }
+        }
+
         @media (max-width: 768px) {
             .header {
-                padding: 14px 20px;
-                flex-wrap: wrap;
-                gap: 8px;
+                padding: 25px 30px;
             }
 
-            .header-brand {
-                font-size: 16px;
+            .logo {
+                font-size: 24px;
             }
 
-            .header-center {
-                order: 3;
+            .container {
+                flex-direction: column;
+                padding: 40px 30px;
+            }
+
+            .login-button-container {
+                position: relative;
+                left: 0;
+                top: 0;
+                transform: none;
+                margin-bottom: 40px;
+                align-self: flex-start;
+            }
+
+            .main-content {
+                margin-left: 0;
                 width: 100%;
-                justify-content: center;
             }
 
-            .hero-title {
+            .boxes-container {
+                flex-direction: column;
+                gap: 40px;
+                align-items: center;
+            }
+
+            .category-box {
+                width: 100%;
+                max-width: 450px;
+                height: 320px;
+            }
+
+            .box-title {
                 font-size: 36px;
             }
 
-            .hero-subtitle {
-                font-size: 15px;
-            }
-
-            .cards-container {
-                flex-direction: column;
-                align-items: center;
-                gap: 24px;
-            }
-
-            .category-card {
-                width: 100%;
-                max-width: 420px;
-                height: auto;
-                min-height: 360px;
-                padding: 32px 28px;
-            }
-
-            .card-title {
-                font-size: 26px;
+            .box-subtitle {
+                font-size: 18px;
             }
         }
     </style>
 </head>
 
 <body>
-
-<!-- 导航栏 -->
 <header class="header">
-    <div class="header-brand">THE DIGITAL CONDUCTOR</div>
-    <div class="header-center">
-        <button class="trending-btn">
-            <span class="trending-icon">&#128293;</span>
-            Trending
-        </button>
-    </div>
-    <div class="header-right">
-        <span class="welcome-text">欢迎用户<span id="userName"></span></span>
-        <span class="brand-tag">MUSIC - RANK</span>
-        <div class="avatar-placeholder">&#9878;</div>
-    </div>
+    <!-- 修正：添加span用于渲染用户名 -->
+    <div class="welcome-user">欢迎用户<span id="userName" style="color: #fffa9c; margin-left: 8px;"></span></div>
+    <div class="logo">MUSIC - RANK</div>
+    <!-- 核心修改：把a链接改成普通div，移除跳转功能，保留样式容器 -->
+    <div class="home-text">首页</div>
 </header>
 
-<!-- 主内容 -->
-<main class="main-content">
-
-    <!-- Hero 主视觉 -->
-    <section class="hero-section">
-        <h1 class="hero-title">The Digital Conductor</h1>
-        <p class="hero-subtitle">获取全球最权威的音乐排行榜。通过选择下方的专业数据流来开启您的体验。</p>
-    </section>
-
-    <!-- 分类卡片容器 -->
-    <div class="cards-container">
-
-        <!-- 卡片1：歌手明星 -->
-        <div class="category-card" data-category="1">
-            <div class="card-icon-wrapper icon-star">&#9733;</div>
-            <h2 class="card-title">歌手明星</h2>
-            <p class="card-subtitle">歌手明星</p>
-            <p class="card-desc">国交各流派、榜单冠军歌手以及全球最具影响力的音乐偶像。</p>
-            <div class="card-cta cta-primary">进入分类 &#8594;</div>
-        </div>
-
-        <!-- 卡片2：影视游戏 -->
-        <div class="category-card" data-category="2">
-            <div class="card-icon-wrapper icon-folder">&#128193;</div>
-            <h2 class="card-title">影视游戏</h2>
-            <p class="card-subtitle">Film & Games</p>
-            <p class="card-desc">电影配乐、管弦乐游戏原作以及数字世界的原创声音。</p>
-            <div class="card-cta cta-outline">查看目录 &#9673;</div>
-        </div>
-
+<div class="container">
+    <div class="login-button-container">
+        <button class="login-button" id="loginButton">重新登录</button>
+        <button class="toggle-button" id="toggleButton">↔</button>
     </div>
 
-    <!-- 状态指示器 -->
-    <div class="status-indicator">
-        <span class="status-dot"></span>
-        <span class="status-text">实时排名数据流已激活</span>
+    <div class="main-content">
+        <div class="boxes-container">
+            <div class="category-box">
+                <h2 class="box-title">歌手明星</h2>
+                <p class="box-subtitle">Singers & Celebrities</p >
+            </div>
+            <div class="category-box">
+                <h2 class="box-title">影视游戏</h2>
+                <p class="box-subtitle">Movies & Games</p >
+            </div>
+        </div>
+        <div class="instruction">请选择你心仪的榜单类别</div>
     </div>
-
-    <!-- 重新登录链接 -->
-    <button class="relogin-link" id="reloginLink">&#8635; 重新登录</button>
-
-    <!-- 底部区域 -->
-    <footer class="footer-area">
-        <p class="footer-hint">请选择你心仪的榜单类别</p>
-        <p class="footer-copyright">&copy; 2026 数字指挥家。选择一个类别开始您的旅程。</p>
-    </footer>
-
-</main>
+</div>
 
 <script>
+    // ************************** 新增1：通用URL参数获取函数（核心，解析token/userId/userName） **************************
     function getUrlParam(paramName) {
         const reg = new RegExp("(^|&)" + paramName + "=([^&]*)(&|$)");
         const paramMatch = window.location.search.substr(1).match(reg);
         return paramMatch ? decodeURIComponent(paramMatch[2]) : null;
     }
 
-    let token = getUrlParam("token");
-    let userId = getUrlParam("userId");
-    let userName = getUrlParam("userName") || " ";
+    // ************************** 新增2：全局变量存储登录态参数（从URL解析，登录页跳转时拼接） **************************
+    let token = getUrlParam("token");    // 登录令牌
+    let userId = getUrlParam("userId");  // 用户ID
+    let userName = getUrlParam("userName") || " "; // 用户名，默认未知
 
+    // ************************** 新增3：页面加载时渲染用户名+校验登录态 **************************
     window.onload = function() {
+        // 渲染用户名到页面
         document.getElementById("userName").innerText = userName;
+        // 基础登录态校验：若token/userId缺失，直接引导重新登录
         if (!token || !userId) {
             alert("登录信息失效，请重新登录！");
             window.location.href = "/music/login.html";
         }
-    };
+    }
 
-    document.querySelectorAll('.category-card').forEach(function(card) {
-        card.addEventListener('click', function() {
-            const categoryId = card.getAttribute('data-category');
+    // 获取DOM元素
+    const loginButton = document.getElementById('loginButton');
+    const toggleButton = document.getElementById('toggleButton');
+    let isExpanded = true;
+
+    // 切换登录按钮的展开/收起状态
+    toggleButton.addEventListener('click', function () {
+        isExpanded = !isExpanded;
+        if (isExpanded) {
+            loginButton.classList.remove('collapsed');
+        } else {
+            loginButton.classList.add('collapsed');
+        }
+    });
+
+    // 登录按钮点击事件
+    loginButton.addEventListener('click', function () {
+        // 跳转到登录页面，清空当前登录态
+        token = '';
+        userId = '';
+        window.location.href = '/music/login.html';
+    });
+
+    // 类别盒子点击事件
+    document.querySelectorAll('.category-box').forEach((box, index) => {
+        box.addEventListener('click', function () {
+            // 1. 按顺序分配分类ID：歌手明星=1，影视游戏=2（和后端数据库一致）
+            const categoryId = index + 1;
+            // 2. 二次校验登录态，防止参数被篡改
             if (!token || !userId) {
                 alert("登录信息失效，请重新登录！");
                 window.location.href = "/music/login.html";
                 return;
             }
-            const jumpUrl = '/music/api/category/redirect?categoryId=' + categoryId + '&token=' + encodeURIComponent(token) + '&userId=' + userId;
+            // ************************** 核心修正：拼接token+userId+categoryId三个参数 **************************
+            // 移除冗余的/music前缀，直接拼接后端接口路径，参数之间用&分隔
+            const jumpUrl = `/music/api/category/redirect?categoryId=${categoryId}&token=${encodeURIComponent(token)}&userId=${userId}`;
             window.location.href = jumpUrl;
         });
     });
-
-    document.getElementById('reloginLink').addEventListener('click', function() {
-        token = '';
-        userId = '';
-        window.location.href = '/music/login.html';
-    });
 </script>
 
+<!-- 新增样式：给首页文本设置基础样式，确保视觉和原来一致但无交互 -->
+<style>
+    .home-text {
+        /* 保留原home-link的样式，移除链接相关的交互样式 */
+        color: #f7fafc; /* 文字颜色和原链接一致 */
+        font-size: 16px; /* 字体大小 */
+        margin-right: 20px; /* 右侧间距 */
+        cursor: default; /* 鼠标指针改为默认，不是手型 */
+        text-decoration: none; /* 无下划线 */
+    }
+    /* 确保没有悬浮效果 */
+    .home-text:hover {
+        color: #f7fafc; /* 悬浮时颜色不变 */
+        text-decoration: none; /* 无下划线 */
+    }
+</style>
 </body>
 </html>
