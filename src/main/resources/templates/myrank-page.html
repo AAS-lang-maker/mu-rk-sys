@@ -9,7 +9,20 @@
     <title>个人榜单</title>
     <link rel="icon" href="data:'base:;base64,iVBORw0KGgo=">
     <link rel="stylesheet" th:href="@{/player/music-player.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --surface: #10141a;
+            --surface-container-lowest: #0a0e14;
+            --surface-container: #1c2026;
+            --surface-container-highest: #31353c;
+            --primary: #ffe4a4;
+            --primary-container: #f0c64d;
+            --on-surface: #dfe2eb;
+            --on-primary: #3d2e00;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -17,431 +30,528 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            min-height: 100vh;
-            color: #1a202c;
-            padding: 0;
-            background:
-                linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-                #1a365d;
-            background-size: 50px 50px, 50px 50px, 100% 100%;
-            background-attachment: fixed;
-            position: relative;
-        }
-
-        .page-wrapper {
-            display: flex;
-            min-height: 100vh;
-            gap: 20px;
-            padding: 20px;
-            padding-bottom: 120px;
-        }
-
-        .left-sidebar {
-            width: 100px;
-            background: #fff9c4;
-            border-radius: 16px;
-            padding: 15px;
+            font-family: 'Manrope', sans-serif;
+            background-color: var(--surface);
+            color: var(--on-surface);
+            overflow: hidden;
+            height: 100vh;
             display: flex;
             flex-direction: column;
         }
 
-        .nav-toggle-btn {
-            width: 40px;
+        .font-headline {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .glass-effect {
+            background: rgba(28, 32, 38, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .gold-gradient {
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+        }
+
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(16, 20, 26, 0.1);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(240, 198, 77, 0.2);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(240, 198, 77, 0.5);
+        }
+
+        .audio-wave {
+            display: flex;
+            align-items: flex-end;
+            gap: 3px;
             height: 40px;
-            background: transparent;
-            border: 2px solid #1a365d;
+        }
+        .wave-bar {
+            width: 4px;
+            background: linear-gradient(to top, #f0c64d, #ffe4a4);
+            border-radius: 4px;
+            animation: wave 1.2s ease-in-out infinite;
+        }
+        @keyframes wave {
+            0%, 100% { height: 8px; }
+            50% { height: 32px; }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        .app-layout {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* ========== 左侧导航栏 (288px) ========== */
+        .sidebar-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 288px;
+            height: 100vh;
+            background-color: #0a0b0e;
+            border-right: 1px solid rgba(245,158,11,0.15);
+            display: flex;
+            flex-direction: column;
+            padding: 32px 16px;
+            padding-bottom: calc(96px + 48px);
+            z-index: 40;
+        }
+
+        .nav-brand {
+            padding: 0 16px;
+            margin-bottom: 32px;
+        }
+
+        .nav-brand h1 {
+            font-size: 18px;
+            font-weight: bold;
+            color: #facc15;
+            letter-spacing: -0.9px;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .nav-brand p {
+            font-family: 'Space Grotesk';
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            font-size: 10px;
+            color: #737373;
+            margin-top: 4px;
+        }
+
+        .nav-menu {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 0 8px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 16px;
+            color: #737373;
+            text-decoration: none;
+            transition: all 0.3s ease-in-out;
             border-radius: 8px;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+            font-size: 14px;
         }
 
-        .nav-toggle-btn:hover {
-            background: #1a365d;
+        .nav-item:hover {
+            color: #d4d4d4;
+            background-color: rgba(38,38,38,0.4);
         }
 
-        .nav-toggle-btn:hover svg rect {
-            fill: #fff9c4;
+        .nav-item:hover .nav-icon {
+            color: #facc15;
         }
 
-        .nav-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            flex: 1;
+        .nav-item.active {
+            color: #facc15;
+            background-color: rgba(245,158,11,0.1);
+            border-radius: 0 9999px 9999px 0;
         }
 
-        .nav-circle-btn {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: #fff9c4;
-            border: 2px solid #1a365d;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 2px;
-            transition: all 0.3s ease;
-            padding: 5px;
-        }
-
-        .nav-circle-btn:hover {
-            background: #1a365d;
-            transform: scale(1.05);
-        }
-
-        .nav-circle-btn.active {
-            background: #1a365d;
+        .nav-item.active .nav-icon {
+            font-variation-settings: 'FILL' 1;
         }
 
         .nav-icon {
-            font-size: 18px;
+            font-size: 20px;
+            transition: color 0.3s ease;
         }
 
         .nav-text {
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
             font-size: 10px;
-            color: #1a365d;
+        }
+
+        .nav-footer {
+            padding: 16px 8px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            margin-top: auto;
+        }
+
+        .create-rank-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+            color: #3d2e00;
             font-weight: bold;
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(240,198,77,0.1);
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-size: 14px;
         }
 
-        .nav-circle-btn:hover .nav-text,
-        .nav-circle-btn.active .nav-text {
-            color: #fff9c4;
-        }
-
-        /* 发布按钮的特殊样式 */
-        .nav-add-btn {
-            background: linear-gradient(135deg, #fffa9c, #fff176);
-            border-color: #f57f17;
-        }
-
-        .nav-add-btn:hover {
-            background: linear-gradient(135deg, #fff176, #ffee58);
-            transform: scale(1.1) rotate(90deg);
-        }
-
-        /* 导航栏底部虚线分隔 */
-        .sidebar-divider {
-            margin-top: 5px;
-            border-top: 2px dashed #1a365d;
-        }
-
-        .left-sidebar.collapsed {
-            width: 60px !important;
-        }
-
-        .left-sidebar.collapsed .nav-text {
-            display: none;
-        }
-
-        .left-sidebar.collapsed .nav-circle-btn {
-            width: 45px;
-            height: 45px;
-        }
-
+        /* ========== 主内容区 ========== */
         .main-content {
+            flex: 1;
+            position: relative;
             display: flex;
             flex-direction: column;
-            gap: 20px;
-            padding: 0 15px;
+            height: 100%;
             overflow-y: auto;
-            height: calc(100vh - 40px);
-            flex: 1;
-            max-width: calc(100% - 120px);
+            scroll-behavior: smooth;
+            margin-left: 288px;
         }
 
-        .ranking-list-box {
-            background: linear-gradient(135deg, #fffa9c 0%, #fff9c4 100%);
-            border-radius: 16px;
-            padding: 25px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            border: 2px solid rgba(26, 54, 93, 0.15);
-            flex-shrink: 0;
+        /* Profile Hero Banner */
+        .profile-hero {
+            padding: 28px 48px 20px;
+            position: sticky;
+            top: 0;
+            background: rgba(16, 20, 26, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 30;
         }
-
-        .header {
+        .profile-hero-inner {
             display: flex;
+            gap: 32px;
             align-items: center;
-            margin-bottom: 25px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid rgba(26, 54, 93, 0.15);
         }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            flex: 1;
-        }
-
-        .avatar {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            margin-right: 20px;
-            object-fit: cover;
-            border: 3px solid #1a365d;
-            box-shadow: 0 4px 12px rgba(26, 54, 93, 0.2);
-            transition: all 0.3s ease;
-        }
-
-        .avatar:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 20px rgba(26, 54, 93, 0.35);
-        }
-
-        .user-details h2 {
-            font-size: 22px;
-            color: #1a365d;
-            margin-bottom: 5px;
-        }
-
-        .user-details p {
-            font-size: 14px;
-            color: rgba(26, 54, 93, 0.7);
-        }
-
-        .rankings-container {
-            background: transparent;
-            border-radius: 0;
-            padding: 0;
-            margin-bottom: 0;
-            box-shadow: none;
-            transition: all 0.3s ease;
+        .avatar-wrapper {
             position: relative;
-            z-index: 1;
-            pointer-events: auto;
+        }
+        .avatar-glow {
+            position: absolute;
+            inset: -2px;
+            background: linear-gradient(to top right, var(--primary-container), var(--primary));
+            border-radius: 24px;
+            blur: 12px;
+            opacity: 0.3;
+            transition: opacity 1s ease, filter 0.2s ease;
+        }
+        .avatar-wrapper:hover .avatar-glow {
+            opacity: 0.5;
+        }
+        .avatar-box {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            border-radius: 24px;
+            border: 1px solid rgba(240, 198, 77, 0.2);
+            background: var(--surface-container);
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+        }
+        .avatar-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .user-info-block {
+            padding-bottom: 8px;
+        }
+        .user-name-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        .user-name {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: -0.05em;
+        }
+        .verified-badge .material-symbols-outlined {
+            color: rgba(255, 228, 164, 0.8);
+            font-size: 24px;
+            font-variation-settings: 'FILL' 1;
+        }
+        .user-tags {
+            display: flex;
+            gap: 16px;
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            font-size: 12px;
+            color: #737373;
+        }
+        .tag-badge {
+            background: rgba(38, 38, 38, 0.5);
+            padding: 4px 12px;
+            border-radius: 9999px;
+            border: 1px solid rgba(64, 64, 64, 0.3);
+        }
+        .tag-badge.premium {
+            background: rgba(240, 198, 77, 0.1);
+            color: rgba(255, 228, 164, 0.8);
+            border-color: rgba(240, 198, 77, 0.1);
         }
 
+        /* Data Pulse Indicator */
+        .data-pulse {
+            position: fixed;
+            top: 28px;
+            right: 48px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 16px;
+            background: rgba(23, 23, 23, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 9999px;
+            border: 1px solid rgba(240, 198, 77, 0.1);
+            z-index: 50;
+        }
+        .pulse-bars {
+            display: flex;
+            gap: 2px;
+        }
+        .pulse-bar {
+            width: 4px;
+            border-radius: 9999px;
+            background: var(--primary-container);
+        }
+        .pulse-bar:nth-child(1) {
+            height: 12px;
+            opacity: 0.4;
+            animation: bounce 1s infinite 0ms;
+        }
+        .pulse-bar:nth-child(2) {
+            height: 20px;
+            opacity: 0.8;
+            animation: bounce 1s infinite 200ms;
+        }
+        .pulse-bar:nth-child(3) {
+            height: 8px;
+            opacity: 0.6;
+            animation: bounce 1s infinite 400ms;
+        }
+        .pulse-label {
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            font-size: 9px;
+            color: #a3a3a3;
+        }
+
+        /* Content Card */
+        .content-section {
+            flex: 1;
+            padding: 0 48px 64px;
+        }
+        .glass-card {
+            position: relative;
+            background: rgba(28, 32, 38, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 40px;
+            border: 1px solid rgba(240, 198, 77, 0.1);
+            min-height: 600px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 64px 48px;
+            overflow: hidden;
+        }
+        .card-glow-top {
+            position: absolute;
+            top: -96px;
+            right: -96px;
+            width: 384px;
+            height: 384px;
+            background: rgba(240, 198, 77, 0.05);
+            border-radius: 50%;
+            filter: blur(100px);
+        }
+        .card-glow-bottom {
+            position: absolute;
+            bottom: -96px;
+            left: -96px;
+            width: 384px;
+            height: 384px;
+            background: rgba(240, 198, 77, 0.05);
+            border-radius: 50%;
+            filter: blur(100px);
+        }
+
+        /* Empty State */
+        .empty-state {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+        }
+        .empty-visual {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 40px;
+        }
+        .equalizer-badge {
+            position: absolute;
+            bottom: -16px;
+            padding: 4px 16px;
+            background: rgba(240, 198, 77, 0.1);
+            border-radius: 9999px;
+            border: 1px solid rgba(240, 198, 77, 0.2);
+            backdrop-filter: blur(8px);
+        }
+        .equalizer-badge .material-symbols-outlined {
+            color: var(--primary);
+            font-size: 14px;
+        }
+        .empty-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 30px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 16px;
+            letter-spacing: -0.03em;
+        }
+        .empty-desc {
+            color: #a3a3a3;
+            font-size: 14px;
+            max-width: 384px;
+            margin: 0 auto;
+            line-height: 1.625;
+        }
+
+        /* Rankings Container */
+        .rankings-container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+        }
+
+        /* Ranking Item */
         .ranking-item {
-            background: rgba(255, 255, 255, 0.6);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 16px;
             transition: all 0.3s ease;
+            border: 1px solid rgba(240, 198, 77, 0.06);
             border-left: 4px solid transparent;
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            pointer-events: auto;
-            border: 1px solid rgba(26, 54, 93, 0.1);
         }
-
+        .ranking-item:hover {
+            background: rgba(255, 255, 255, 0.07);
+            transform: translateX(4px);
+            border-left-color: var(--primary-container);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
         .ranking-content {
             flex: 1;
         }
-
-        .edit-btn {
-            background-color: #1a365d;
-            color: #fffa9c;
-            border: none;
-            border-radius: 8px;
-            padding: 6px 14px;
-            font-size: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-left: 15px;
-            align-self: flex-start;
-            pointer-events: auto;
-        }
-
-        .edit-btn:hover {
-            background-color: #2d3748;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(26, 54, 93, 0.3);
-        }
-
-        .ranking-item:hover {
-            background: rgba(255, 255, 255, 0.85);
-            transform: translateX(5px);
-            border-left-color: #1a365d;
-            box-shadow: 0 4px 15px rgba(26, 54, 93, 0.12);
-        }
-
         .ranking-item h3 {
-            color: #1a365d;
+            color: var(--primary);
             font-size: 18px;
-            margin-bottom: 10px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            font-family: 'Space Grotesk', sans-serif;
         }
-
-        .ranking-item p {
-            color: rgba(26, 54, 93, 0.7);
+        .ranking-item > .ranking-content > p {
+            color: rgba(223, 226, 235, 0.55);
             font-size: 14px;
             line-height: 1.5;
         }
 
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-top: 30px;
-            pointer-events: auto;
-        }
-
-        .pagination button {
-            background: #ffffff;
-            border: 1px solid rgba(26, 54, 93, 0.3);
-            color: #1a365d;
-            border-radius: 8px;
-            padding: 8px 16px;
-            margin: 0 5px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            pointer-events: auto;
-        }
-
-        .pagination button:hover:not(:disabled) {
-            background-color: #1a365d;
-            color: #fffa9c;
-            transform: translateY(-2px);
-        }
-
-        .pagination button.active {
-            background-color: #1a365d;
-            color: #fffa9c;
-            font-weight: bold;
-        }
-
-        .pagination button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        @media (max-width: 1024px) {
-            .left-sidebar {
-                width: 70px;
-            }
-
-            .main-content {
-                gap: 15px;
-                padding: 20px 15px;
-                height: calc(100vh - 30px);
-                max-width: calc(100% - 90px);
-            }
-
-            .ranking-list-box {
-                padding: 20px;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .page-wrapper {
-                flex-direction: column;
-            }
-
-            .left-sidebar {
-                display: none;
-            }
-
-            .main-content {
-                gap: 12px;
-                padding: 15px;
-                height: auto;
-                min-height: calc(100vh - 30px);
-                max-width: 100%;
-            }
-
-            .ranking-list-box {
-                padding: 15px;
-                border-radius: 12px;
-            }
-
-            .header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .user-info {
-                margin-bottom: 15px;
-            }
-
-            .avatar {
-                width: 55px;
-                height: 55px;
-            }
-        }
-
+        /* Song List */
         .song-list {
-            margin-top: 15px;
+            margin-top: 16px;
             padding-left: 0;
-            pointer-events: auto;
         }
-
         .song-list h4 {
-            color: #1a365d;
-            font-size: 16px;
+            color: var(--primary);
+            font-size: 15px;
             margin-bottom: 12px;
             font-weight: 500;
+            font-family: 'Space Grotesk', sans-serif;
         }
-
         .song-list ul {
             list-style: none;
             padding: 0;
-            background: rgba(26, 54, 93, 0.05);
-            border-radius: 10px;
+            background: rgba(49, 53, 60, 0.3);
+            border-radius: 12px;
             padding: 10px;
         }
-
         .song-list li {
             margin: 8px 0;
             padding: 10px 15px;
-            border-bottom: 1px solid rgba(26, 54, 93, 0.12);
+            border-bottom: 1px solid rgba(223, 226, 235, 0.08);
             display: flex;
             justify-content: space-between;
             align-items: center;
             transition: all 0.2s ease;
-            pointer-events: auto;
         }
-
         .song-list li:last-child {
             border-bottom: none;
         }
-
         .song-list li:hover {
-            background: rgba(26, 54, 93, 0.06);
+            background: rgba(223, 226, 235, 0.04);
         }
-
         .song-info {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 16px;
             flex: 1;
         }
-
         .song-name {
-            color: #1a365d;
+            color: var(--on-surface);
             font-size: 15px;
         }
-
         .singer-name {
-            color: rgba(26, 54, 93, 0.65);
+            color: rgba(223, 226, 235, 0.5);
             font-size: 14px;
         }
-
         .song-rank {
-            color: #1a365d;
-            font-size: 15px;
+            color: var(--on-surface);
+            font-size: 14px;
             font-weight: 600;
             padding: 4px 10px;
-            background: rgba(26, 54, 93, 0.1);
+            background: rgba(240, 198, 77, 0.08);
             border-radius: 6px;
             margin-right: 10px;
+            font-family: 'Space Grotesk', sans-serif;
         }
-
         .play-btn {
-            background: rgba(26, 54, 93, 0.1);
-            border: 1px solid #1a365d;
-            color: #1a365d;
+            background: rgba(240, 198, 77, 0.1);
+            border: 1px solid rgba(240, 198, 77, 0.3);
+            color: var(--primary);
             border-radius: 50%;
-            width: 30px;
-            height: 30px;
+            width: 32px;
+            height: 32px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -449,259 +559,324 @@
             transition: all 0.3s ease;
             font-size: 12px;
             padding-left: 2px;
-            pointer-events: auto;
             z-index: 2;
         }
-
         .play-btn:hover {
-            background: #1a365d;
-            color: #fffa9c;
+            background: var(--primary-container);
+            color: var(--on-primary);
             transform: scale(1.1);
-            box-shadow: 0 0 8px rgba(26, 54, 93, 0.4);
+            box-shadow: 0 0 12px rgba(240, 198, 77, 0.35);
         }
 
-        .song-actions {
-            display: flex;
-            align-items: center;
+        /* Edit & Delete Buttons */
+        .edit-btn {
+            background-color: var(--surface-container-highest);
+            color: var(--primary);
+            border: 1px solid rgba(240, 198, 77, 0.2);
+            border-radius: 8px;
+            padding: 6px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-left: 12px;
+            align-self: flex-start;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .edit-btn:hover {
+            background-color: var(--primary-container);
+            color: var(--on-primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(240, 198, 77, 0.2);
+        }
+        .delete-btn {
+            background: rgba(246, 141, 141, 0.15);
+            color: #f68d8d;
+            border: 1px solid rgba(246, 141, 141, 0.2);
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-left: 8px;
+            align-self: flex-start;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .delete-btn:hover {
+            background-color: rgba(239, 108, 108, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(246, 141, 141, 0.35);
         }
 
-        #errorAlert {
-            display: none;
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 10px 20px;
-            background: #ff4444;
-            color: #fff;
-            border-radius: 4px;
-            z-index: 9999;
-        }
-
-        #successAlert {
-            display: none;
-            position: fixed;
-            top: 60px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 10px 20px;
-            background: #00C851;
-            color: #fff;
-            border-radius: 4px;
-            z-index: 9999;
-        }
-
-        #music-player-container {
-            position: fixed !important;
-            bottom: 20px !important;
-            right: 20px !important;
-            width: 350px !important;
-            min-height: 90px !important;
-            z-index: 1001;
-        }
-
+        /* Comment Section */
         .comment-section {
             margin-top: 20px;
-            border-top: 1px solid rgba(26, 54, 93, 0.15);
-            padding-top: 15px;
-            pointer-events: auto;
+            border-top: 1px solid rgba(223, 226, 235, 0.1);
+            padding-top: 16px;
         }
-
         .comment-toggle {
-            background: rgba(26, 54, 93, 0.1);
-            border: 1px solid rgba(26, 54, 93, 0.3);
-            color: #1a365d;
-            border-radius: 20px;
-            padding: 6px 16px;
+            background: rgba(49, 53, 60, 0.4);
+            border: 1px solid rgba(223, 226, 235, 0.15);
+            color: var(--on-surface);
+            border-radius: 9999px;
+            padding: 6px 18px;
             cursor: pointer;
             transition: all 0.3s ease;
             font-size: 14px;
-            margin-bottom: 15px;
-            pointer-events: auto;
+            margin-bottom: 16px;
+            font-family: 'Manrope', sans-serif;
         }
-
         .comment-toggle:hover {
-            background: rgba(26, 54, 93, 0.2);
+            background: rgba(49, 53, 60, 0.65);
             transform: translateY(-2px);
         }
-
         .comment-container {
             display: none;
             animation: fadeIn 0.3s ease;
-            pointer-events: auto;
         }
-
         .comment-container.show {
             display: block;
         }
-
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-
         .comment-input-area {
             margin-bottom: 20px;
         }
-
         .comment-input {
             width: 100%;
             padding: 12px;
-            background: rgba(26, 54, 93, 0.04);
-            border: 1px solid rgba(26, 54, 93, 0.25);
-            border-radius: 10px;
-            color: #1a365d;
+            background: rgba(28, 32, 38, 0.6);
+            border: 1px solid rgba(223, 226, 235, 0.15);
+            border-radius: 12px;
+            color: var(--on-surface);
             font-size: 14px;
             resize: vertical;
             min-height: 80px;
             transition: all 0.3s ease;
-            pointer-events: auto;
+            font-family: 'Manrope', sans-serif;
         }
-
         .comment-input:focus {
             outline: none;
-            border-color: #1a365d;
-            box-shadow: 0 0 10px rgba(26, 54, 93, 0.2);
+            border-color: var(--primary-container);
+            box-shadow: 0 0 16px rgba(240, 198, 77, 0.15);
         }
-
         .comment-actions {
             display: flex;
             justify-content: flex-end;
             margin-top: 10px;
         }
-
         .comment-submit {
-            background: #1a365d;
-            color: #fffa9c;
+            background: var(--primary-container);
+            color: var(--on-primary);
             border: none;
             border-radius: 8px;
-            padding: 8px 16px;
+            padding: 8px 20px;
             cursor: pointer;
             transition: all 0.3s ease;
             font-size: 14px;
-            font-weight: bold;
-            pointer-events: auto;
+            font-weight: 700;
+            font-family: 'Space Grotesk', sans-serif;
         }
-
         .comment-submit:hover {
-            background: #2d3748;
+            background: var(--primary);
             transform: translateY(-2px);
         }
-
         .comment-list {
             margin-top: 20px;
         }
-
         .comment-item {
-            background: rgba(26, 54, 93, 0.04);
-            border-radius: 10px;
-            padding: 15px;
+            background: rgba(28, 32, 38, 0.4);
+            border-radius: 12px;
+            padding: 16px;
             margin-bottom: 12px;
             transition: all 0.3s ease;
-            border: 1px solid rgba(26, 54, 93, 0.08);
+            border: 1px solid rgba(223, 226, 235, 0.06);
         }
-
         .comment-item:hover {
-            background: rgba(26, 54, 93, 0.07);
+            background: rgba(28, 32, 38, 0.6);
         }
-
         .comment-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 8px;
         }
-
         .comment-username {
-            color: #1a365d;
-            font-weight: bold;
+            color: var(--primary);
+            font-weight: 700;
             font-size: 14px;
+            font-family: 'Space Grotesk', sans-serif;
         }
-
         .comment-time {
-            color: rgba(26, 54, 93, 0.5);
+            color: rgba(223, 226, 235, 0.4);
             font-size: 12px;
         }
-
         .comment-content {
-            color: #2d3748;
+            color: var(--on-surface);
             font-size: 14px;
-            line-height: 1.4;
+            line-height: 1.45;
             margin-bottom: 10px;
         }
-
         .comment-actions-bar {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 16px;
         }
-
         .comment-delete-btn {
             background: transparent;
             border: none;
             outline: none;
-            color: rgba(255, 99, 71, 0.7);
+            color: rgba(255, 99, 71, 0.6);
             font-size: 13px;
             font-weight: 500;
-            padding: 4px 8px;
-            border-radius: 4px;
+            padding: 4px 10px;
+            border-radius: 6px;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 4px;
             transition: all 0.2s ease;
-            pointer-events: auto;
+            font-family: 'Manrope', sans-serif;
         }
-
         .comment-delete-btn:hover {
             color: #ff6347;
             background-color: rgba(255, 99, 71, 0.1);
             transform: translateY(-1px);
         }
-
-        .comment-delete-btn:active {
-            transform: translateY(0);
-            opacity: 0.8;
-        }
-
         .comment-delete-btn::before {
             content: "🗑️";
             font-size: 12px;
         }
 
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: rgba(26, 54, 93, 0.5);
-            font-size: 16px;
+        /* Pagination */
+        .pagination-wrap {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            padding: 6px;
+            background: rgba(23, 23, 23, 0.6);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-radius: 16px;
+            border: 1px solid rgba(240, 198, 77, 0.1);
+            margin-top: 48px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
         }
-
-        .delete-btn {
-            background: #f68d8d;
-            color: white;
+        .pagination-btn-nav {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            color: #737373;
+            background: transparent;
             border: none;
+            cursor: pointer;
+            transition: color 0.3s ease;
             border-radius: 8px;
-            padding: 6px 12px;
-            font-size: 12px;
-            font-weight: bold;
+        }
+        .pagination-btn-nav:hover {
+            color: var(--primary);
+        }
+        .pagination-btn-nav .material-symbols-outlined {
+            font-size: 20px;
+        }
+        .pagination-numbers {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 0 8px;
+        }
+        .page-num-btn {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            color: rgba(163, 163, 163, 0.75);
+            font-size: 14px;
+            font-weight: 500;
+            background: transparent;
+            border: none;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin-left: 10px;
-            align-self: flex-start;
-            pointer-events: auto;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .page-num-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .page-num-btn.active {
+            background: var(--primary-container);
+            color: var(--on-primary);
+            font-weight: 700;
+            box-shadow: 0 8px 24px rgba(240, 198, 77, 0.2);
+        }
+        .page-num-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
-        .delete-btn:hover {
-            background-color: #ef6c6c;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(246, 141, 141, 0.5);
+        /* Alerts */
+        #errorAlert {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 24px;
+            background: #ff4444;
+            color: #fff;
+            border-radius: 8px;
+            z-index: 9999;
+            font-family: 'Manrope', sans-serif;
+            font-weight: 500;
+        }
+        #successAlert {
+            display: none;
+            position: fixed;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 24px;
+            background: #00C851;
+            color: #fff;
+            border-radius: 8px;
+            z-index: 9999;
+            font-family: 'Manrope', sans-serif;
+            font-weight: 500;
+        }
+
+        #music-player-container {
+            position: fixed !important;
+            min-height: 70px !important;
+            z-index: 1001;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar-nav { width: 72px; }
+            .nav-brand, .nav-text, .nav-footer { display: none; }
+            .nav-item { justify-content: center; padding: 12px; }
+            .profile-hero { padding: 32px 24px 24px; }
+            .content-section { padding: 0 24px 48px; }
+            .glass-card { padding: 40px 24px; }
+            .data-pulse { right: 24px; top: 24px; }
+        }
+
+        @media (max-width: 768px) {
+            .app-layout { flex-direction: column; }
+            .sidebar-nav { display: none; }
+            .content-section { padding: 0 16px 32px; }
+            .glass-card { padding: 32px 16px; border-radius: 24px; }
+            .profile-hero-inner { flex-direction: column; text-align: center; }
+            .avatar-box { width: 120px; height: 120px; }
+            .user-name { font-size: 32px; }
+            .user-tags { justify-content: center; flex-wrap: wrap; }
         }
     </style>
     <script th:src="@{/player/music-player.js}"></script>
@@ -711,149 +886,201 @@
     <div id="errorAlert"></div>
     <div id="successAlert"></div>
 
-    <div class="page-wrapper">
+    <div class="app-layout">
         <!-- ========== 左侧导航栏 ========== -->
-        <div class="left-sidebar">
-            <div class="nav-toggle-btn">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                    <rect x="3" y="3" width="7" height="7" rx="1" fill="#1a365d" />
-                    <rect x="14" y="3" width="7" height="7" rx="1" fill="#1a365d" />
-                    <rect x="3" y="14" width="7" height="7" rx="1" fill="#1a365d" />
-                    <rect x="14" y="14" width="7" height="7" rx="1" fill="#1a365d" />
-                </svg>
+        <aside class="sidebar-nav">
+            <div class="nav-brand">
+                <h1>The Digital Conductor</h1>
+                <p>Premium Music Vault</p>
             </div>
-
-            <nav class="nav-buttons">
-                <button class="nav-circle-btn" id="navIndex" title="首页">
-                    <span class="nav-icon">🏠</span>
+            <nav class="nav-menu">
+                <button class="nav-item" id="navIndex">
+                    <span class="material-symbols-outlined nav-icon">home</span>
                     <span class="nav-text">首页</span>
                 </button>
-                <button class="nav-circle-btn" id="navHome" title="主页">
-                    <span class="nav-icon">📝</span>
+                <button class="nav-item" id="navHome">
+                    <span class="material-symbols-outlined nav-icon">grid_view</span>
                     <span class="nav-text">主页</span>
                 </button>
-                <button class="nav-circle-btn" id="navSearch" title="搜索">
-                    <span class="nav-icon">🔍</span>
-                    <span class="nav-text">搜索</span>
+                <button class="nav-item" id="navSearch">
+                    <span class="material-symbols-outlined nav-icon">search</span>
+                    <span class="nav-text">搜索榜单</span>
                 </button>
-                <button class="nav-circle-btn active" id="navMyRank" title="榜单">
-                    <span class="nav-icon">📋</span>
-                    <span class="nav-text">榜单</span>
+                <button class="nav-item active" id="navMyRank">
+                    <span class="material-symbols-outlined nav-icon">queue_music</span>
+                    <span class="nav-text">我的榜单</span>
                 </button>
-                <button class="nav-circle-btn" id="navHotRank" title="热门">
-                    <span class="nav-icon">🔥</span>
-                    <span class="nav-text">热门</span>
+                <button class="nav-item" id="navHotRank">
+                    <span class="material-symbols-outlined nav-icon">local_fire_department</span>
+                    <span class="nav-text">热门榜单</span>
                 </button>
-                <button class="nav-circle-btn" id="navMyLove" title="收藏">
-                    <span class="nav-icon">❤️</span>
-                    <span class="nav-text">收藏</span>
-                </button>
-                <button class="nav-circle-btn" id="btn-reLogin" title="登录">
-                    <span class="nav-icon">🔑</span>
-                    <span class="nav-text">登录</span>
-                </button>
-                <button class="nav-circle-btn nav-add-btn" id="navAdd" title="发布">
-                    <span class="nav-icon">➕</span>
-                    <span class="nav-text">发布</span>
+                <button class="nav-item" id="navMyLove">
+                    <span class="material-symbols-outlined nav-icon">favorite</span>
+                    <span class="nav-text">我的收藏</span>
                 </button>
             </nav>
+            <div class="nav-footer">
+                <button class="create-rank-btn" id="navAdd">+ 创建榜单</button>
+            </div>
+        </aside>
 
-            <div class="sidebar-divider"></div>
-        </div>
-
-        <!-- ========== 中间主内容区 ========== -->
-        <div class="main-content">
-            <div class="ranking-list-box">
-                <div class="header">
-                    <div class="user-info">
-                        <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=user%20avatar%20profile%20picture%20friendly%20face&image_size=square"
-                            alt="用户头像" class="avatar">
-                        <div class="user-details">
-                            <h2 th:text="${username}">用户名</h2>
-                            <p th:text="${userName}">用户昵称</p>
-                            <p>个人榜单管理</p>
+        <!-- ========== 主内容区 ========== -->
+        <main class="main-content">
+            <!-- Profile Hero Banner -->
+            <section class="profile-hero">
+                <div class="profile-hero-inner">
+                    <div class="avatar-wrapper">
+                        <div class="avatar-glow"></div>
+                        <div class="avatar-box">
+                            <img alt="用户头像" class="avatar-img"
+                                src="https://tse4-mm.cn.bing.net/th/id/OIP-C.YzVD8zb817n7AdFqtsY46wHaHS?w=183&h=180&c=7&r=0&o=5&dpr=2&pid=1.7">
+                        </div>
+                    </div>
+                    <div class="user-info-block">
+                        <div class="user-name-row">
+                            <h2 class="user-name" th:text="${username}">DJ666</h2>
+                            <span class="verified-badge material-symbols-outlined">verified</span>
+                        </div>
+                        <div class="user-tags">
+                            <span class="tag-badge" th:text="|ID: ${userId}|">ID: 882910</span>
+                            <span class="tag-badge premium">Premium Member</span>
                         </div>
                     </div>
                 </div>
+            </section>
 
-                <div class="rankings-container">
-                    <div th:each="ranking, stat : ${personalRanks?.list}" class="ranking-item"
-                        th:data-rank-id="${ranking.rankId}">
-                        <div class="ranking-content">
-                            <h3 th:text="${ranking.rankName}">榜单标题</h3>
-                            <p th:text="|更新于: ${ranking.publishTime}|">最后更新时间</p>
+            <!-- Content Area -->
+            <section class="content-section">
+                <div class="glass-card">
+                    <div class="card-glow-top"></div>
+                    <div class="card-glow-bottom"></div>
 
-                            <div class="song-list">
-                                <h4>歌曲列表</h4>
-                                <ul>
-                                    <li th:each="song : ${ranking.rankSongList}" th:data-song-id="${song.songId}">
-                                        <div class="song-info">
-                                            <span class="song-name" th:text="${song?.songName}">歌曲名称</span>
-                                            <span class="singer-name" th:text="${song.singerName}">歌手名称</span>
-                                        </div>
-                                        <div class="song-actions">
-                                            <span class="song-rank" th:text="${song?.ranking}">排名</span>
-                                            <button class="play-btn" th:data-song-id="${song.songId}"
-                                                th:data-song-name="${song.songName}"
-                                                th:data-singer-name="${song.singerName}">
-                                                &#9658;
-                                            </button>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </div>
+                    <div class="rankings-container" th:if="${!#lists.isEmpty(personalRanks?.list)}">
+                        <div th:each="ranking, stat : ${personalRanks?.list}" class="ranking-item"
+                            th:data-rank-id="${ranking.rankId}">
+                            <div class="ranking-content">
+                                <h3 th:text="${ranking.rankName}">榜单标题</h3>
+                                <p th:text="|更新于: ${ranking.publishTime}|">最后更新时间</p>
 
-                            <div class="comment-section">
-                                <button class="comment-toggle" th:data-rank-id="${ranking.rankId}">
-                                    查看评论
-                                </button>
-                                <div class="comment-container" th:id="|comment-container-${ranking.rankId}|">
-                                    <div class="comment-input-area">
-                                        <textarea class="comment-input" th:id="|comment-input-${ranking.rankId}|"
-                                            placeholder="写下你的评论..."></textarea>
-                                        <div class="comment-actions">
-                                            <button class="comment-submit" th:data-rank-id="${ranking.rankId}">
-                                                发表评论
-                                            </button>
+                                <div class="song-list">
+                                    <h4>歌曲列表</h4>
+                                    <ul>
+                                        <li th:each="song : ${ranking.rankSongList}" th:data-song-id="${song.songId}">
+                                            <div class="song-info">
+                                                <span class="song-rank" th:text="${song?.ranking}">排名</span>
+                                                <span class="song-name" th:text="${song?.songName}">歌曲名称</span>
+                                                <span class="singer-name" th:text="${song.singerName}">歌手名称</span>
+                                            </div>
+                                            <div class="song-actions">
+                                                <button class="play-btn" th:data-song-id="${song.songId}"
+                                                    th:data-song-name="${song.songName}"
+                                                    th:data-singer-name="${song.singerName}">&#9658;</button>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <div class="comment-section">
+                                    <button class="comment-toggle" th:data-rank-id="${ranking.rankId}">
+                                        查看评论
+                                    </button>
+                                    <div class="comment-container" th:id="|comment-container-${ranking.rankId}|">
+                                        <div class="comment-input-area">
+                                            <textarea class="comment-input" th:id="|comment-input-${ranking.rankId}|"
+                                                placeholder="写下你的评论..."></textarea>
+                                            <div class="comment-actions">
+                                                <button class="comment-submit" th:data-rank-id="${ranking.rankId}">
+                                                    发表评论
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="comment-list" th:id="|comment-list-${ranking.rankId}|">
+                                        <div class="comment-list" th:id="|comment-list-${ranking.rankId}|">
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <button class="edit-btn" th:data-rank-id="${ranking.rankId}">编辑</button>
-                            <button class="delete-btn" th:data-rank-id="${ranking.rankId}">
-                                删除
+                                <button class="edit-btn" th:data-rank-id="${ranking.rankId}">编辑</button>
+                                <button class="delete-btn" th:data-rank-id="${ranking.rankId}">删除</button>
+                            </div>
+                        </div>
+
+                        <!-- Pagination -->
+                        <div class="pagination-wrap" th:if="${personalRanks != null}">
+                            <button class="pagination-btn-nav" th:disabled="${personalRanks.pageNum == 1}"
+                                th:data-page="${personalRanks.pageNum - 1}">
+                                <span class="material-symbols-outlined">chevron_left</span>
+                            </button>
+                            <div class="pagination-numbers">
+                                <button class="page-num-btn" th:each="i : ${#numbers.sequence(1, personalRanks?.pages)}"
+                                    th:classappend="${personalRanks.pageNum == i ? 'active' : ''}"
+                                    th:data-page="${i}" th:text="${i}">1</button>
+                            </div>
+                            <button class="pagination-btn-nav" th:disabled="${personalRanks.pageNum == personalRanks.pages}"
+                                th:data-page="${personalRanks.pageNum + 1}">
+                                <span class="material-symbols-outlined">chevron_right</span>
                             </button>
                         </div>
                     </div>
 
-                    <div class="pagination" th:if="${personalRanks !=null}">
-                        <button th:disabled="${personalRanks.pageNum == 1}"
-                            th:data-page="${personalRanks.pageNum - 1}">上一页</button>
-
-                        <button th:each="i : ${#numbers.sequence(1, personalRanks?.pages)}"
-                            th:class="${personalRanks.pageNum == i ? 'active' : ''}" th:data-page="${i}"
-                            th:text="${i}">1</button>
-
-                        <button th:disabled="${personalRanks.pageNum == personalRanks.pages}"
-                            th:data-page="${personalRanks.pageNum + 1}">下一页</button>
+                    <!-- Empty State -->
+                    <div class="empty-state" th:if="${#lists.isEmpty(personalRanks?.list)}">
+                        <div class="empty-visual">
+                            <div class="audio-wave">
+                                <div class="wave-bar" style="animation-delay: 0.1s"></div>
+                                <div class="wave-bar" style="animation-delay: 0.3s"></div>
+                                <div class="wave-bar" style="animation-delay: 0.5s"></div>
+                                <div class="wave-bar" style="animation-delay: 0.2s"></div>
+                                <div class="wave-bar" style="animation-delay: 0.4s"></div>
+                                <div class="wave-bar" style="animation-delay: 0.6s"></div>
+                                <div class="wave-bar" style="animation-delay: 0.3s"></div>
+                            </div>
+                            <div class="equalizer-badge">
+                                <span class="material-symbols-outlined">equalizer</span>
+                            </div>
+                        </div>
+                        <h3 class="empty-title">暂无榜单数据</h3>
+                        <p class="empty-desc">
+                            Your archive is currently a silent canvas. Start curating your first musical masterpiece to bring this space to life.
+                        </p>
                     </div>
-                    <div th:if="${#lists.isEmpty(publishRanks?.list)}" class="empty-state">
-                        暂无榜单数据
+
+                    <!-- Pagination for empty state fallback -->
+                    <div class="pagination-wrap" th:if="${personalRanks != null and !#lists.isEmpty(personalRanks?.list)}" style="margin-top: 48px;">
+                        <button class="pagination-btn-nav" th:disabled="${personalRanks.pageNum == 1}"
+                            th:data-page="${personalRanks.pageNum - 1}">
+                            <span class="material-symbols-outlined">chevron_left</span>
+                        </button>
+                        <div class="pagination-numbers">
+                            <button class="page-num-btn" th:each="i : ${#numbers.sequence(1, personalRanks?.pages)}"
+                                th:classappend="${personalRanks.pageNum == i ? 'active' : ''}"
+                                th:data-page="${i}" th:text="${i}">1</button>
+                        </div>
+                        <button class="pagination-btn-nav" th:disabled="${personalRanks.pageNum == personalRanks.pages}"
+                            th:data-page="${personalRanks.pageNum + 1}">
+                            <span class="material-symbols-outlined">chevron_right</span>
+                        </button>
                     </div>
                 </div>
-            </div>
-        </div>
+            </section>
+        </main>
     </div>
 
-    <!-- 音乐播放器（固定定位在右下角） -->
+    <!-- Data Pulse Indicator -->
+    <div class="data-pulse">
+        <div class="pulse-bars">
+            <div class="pulse-bar"></div>
+            <div class="pulse-bar"></div>
+            <div class="pulse-bar"></div>
+        </div>
+        <span class="pulse-label">Vault Synced</span>
+    </div>
+
+    <!-- 音乐播放器容器 -->
     <div id="music-player-container"></div>
 
 
     <script>
-        // ===================== 全局核心配置（复用主页）=====================
+        // ===================== 全局核心配置 ======================
         function getUrlParam(paramName) {
             const reg = new RegExp("(^|&)" + paramName + "=([^&]*)(&|$)");
             const paramMatch = window.location.search.substr(1).match(reg);
@@ -883,7 +1110,7 @@
             if (!el) {
                 el = document.createElement('div');
                 el.id = 'errorAlert';
-                el.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:10px 20px;background:#ff4444;color:#fff;border-radius:4px;z-index:9999;';
+                el.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:10px 24px;background:#ff4444;color:#fff;border-radius:8px;z-index:9999;font-family:"Manrope",sans-serif;font-weight:500;';
                 document.body.appendChild(el);
             }
             el.innerText = msg;
@@ -896,7 +1123,7 @@
             if (!el) {
                 el = document.createElement('div');
                 el.id = 'successAlert';
-                el.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);padding:10px 20px;background:#00C851;color:#fff;border-radius:4px;z-index:9999;';
+                el.style.cssText = 'position:fixed;top:70px;left:50%;transform:translateX(-50%);padding:10px 24px;background:#00C851;color:#fff;border-radius:8px;z-index:9999;font-family:"Manrope",sans-serif;font-weight:500;';
                 document.body.appendChild(el);
             }
             el.innerText = msg;
@@ -912,7 +1139,7 @@
             return str;
         }
 
-        // ===================== 播放器核心逻辑（完全复用主页）=====================
+        // ===================== 播放器核心逻辑 ======================
         function initMusicPlayer() {
             if (musicPlayer) return;
             try {
@@ -962,7 +1189,7 @@
             });
         }
 
-        // ===================== 评论区功能（新增，和主页一致，不含评论点赞）=====================
+        // ===================== 评论区功能 ======================
         function toggleComments(rankId) {
             const container = document.getElementById(`comment-container-${rankId}`);
             if (!container) {
@@ -987,11 +1214,11 @@
             if (!commentList) return;
 
             if (!token) {
-                commentList.innerHTML = '<p style="color: rgba(26, 54, 93, 0.6); text-align: center;">请先登录后查看评论</p>';
+                commentList.innerHTML = '<p style="color: rgba(223, 226, 235, 0.5); text-align: center;">请先登录后查看评论</p>';
                 return;
             }
 
-            commentList.innerHTML = '<p style="color: rgba(26, 54, 93, 0.6); text-align: center;">加载中...</p>';
+            commentList.innerHTML = '<p style="color: rgba(223, 226, 235, 0.5); text-align: center;">加载中...</p>';
 
             axios.get(`/music/api/rank/list`, {
                 params: {
@@ -1006,19 +1233,19 @@
                         const comments = response.data.data || response.data;
                         renderComments(commentList, comments);
                     } else {
-                        commentList.innerHTML = `<p style="color: rgba(26, 54, 93, 0.6); text-align: center;">查询评论失败：${response.data.msg || '未知错误'}</p>`;
+                        commentList.innerHTML = `<p style="color: rgba(223, 226, 235, 0.5); text-align: center;">查询评论失败：${response.data.msg || '未知错误'}</p>`;
                         console.error('评论查询失败:', response.data);
                     }
                 })
                 .catch(error => {
                     console.error('加载评论失败:', error);
-                    commentList.innerHTML = `<p style="color: rgba(26, 54, 93, 0.6); text-align: center;">加载评论失败：${error.response?.data?.msg || error.message}</p>`;
+                    commentList.innerHTML = `<p style="color: rgba(223, 226, 235, 0.5); text-align: center;">加载评论失败：${error.response?.data?.msg || error.message}</p>`;
                 });
         }
 
         function renderComments(container, comments) {
             if (!comments || comments.length === 0) {
-                container.innerHTML = '<p style="color: rgba(26, 54, 93, 0.6); text-align: center;">暂无评论</p>';
+                container.innerHTML = '<p style="color: rgba(223, 226, 235, 0.5); text-align: center;">暂无评论</p>';
                 return;
             }
 
@@ -1131,7 +1358,7 @@
             return `${year}-${month}-${day} ${hour}:${minute}`;
         }
 
-        // ===================== 原有业务逻辑（保留不变）=====================
+        // ===================== 导航和业务逻辑 =====================
         (function () {
             try {
                 const urlParams = new URLSearchParams(window.location.search);
@@ -1379,7 +1606,7 @@
             window.location.href = `/music/api/mine/myrank?pageNum=${page}&token=${encodeURIComponent(currentToken)}&userId=${encodeURIComponent(currentUserId)}`;
         }
 
-        // ===================== 事件委托绑定（核心修复）=====================
+        // ===================== 事件委托绑定 ====================
         document.addEventListener('DOMContentLoaded', function () {
             initMusicPlayer();
 
@@ -1481,18 +1708,21 @@
                     return;
                 }
 
-                const pageBtn = e.target.closest('.pagination button');
+                const pageBtn = e.target.closest('.pagination-wrap button:not(.pagination-btn-nav)');
                 if (pageBtn && !pageBtn.disabled) {
                     e.preventDefault();
                     e.stopPropagation();
                     const page = pageBtn.dataset.page;
-                    goToPage(page);
+                    if (page) goToPage(page);
                     return;
                 }
 
-                if (target.closest('.nav-toggle-btn')) {
-                    const sidebar = document.querySelector('.left-sidebar');
-                    sidebar.classList.toggle('collapsed');
+                const pageNavBtn = e.target.closest('.pagination-btn-nav');
+                if (pageNavBtn && !pageNavBtn.disabled) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const page = pageNavBtn.dataset.page;
+                    if (page) goToPage(page);
                     return;
                 }
             });

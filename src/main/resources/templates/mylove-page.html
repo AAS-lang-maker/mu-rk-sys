@@ -9,6 +9,8 @@
     <title>我的收藏</title>
     <link rel="icon" href="data:;base64,iVBORw0KGgo">
     <link rel="stylesheet" th:href="@{/player/music-player.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -17,427 +19,1071 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #10141a;
+            color: #dfe2eb;
             min-height: 100vh;
-            color: #1a202c;
-            padding: 0;
-            margin: 0;
-            background: #1a365d;
-            position: relative;
             overflow-x: hidden;
+            position: relative;
         }
 
-        .left-sidebar {
-            top: 50%;
-            transform: translateY(-50%);
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #4d4635;
+            border-radius: 10px;
+        }
+
+        .glass-panel {
+            background: rgba(49, 53, 60, 0.6);
+            backdrop-filter: blur(20px);
+        }
+
+        .gold-gradient {
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+        }
+
+        .gold-glow {
+            box-shadow: 0px 0px 16px rgba(235, 194, 73, 0.3);
+        }
+
+        /* ========== 左侧导航栏 (search-page 标准样式) ========== */
+        .sidebar-nav {
             position: fixed;
-            left: 20px;
-            width: 100px;
-            background: #fff9c4;
-            border-radius: 16px;
-            padding: 15px;
+            top: 0;
+            left: 0;
+            width: 288px;
+            height: 100vh;
+            background-color: #0a0b0e;
+            border-right: 1px solid rgba(245, 158, 11, 0.15);
             display: flex;
             flex-direction: column;
-            z-index: 100;
+            padding: 48px 16px;
+            z-index: 40;
+            padding-bottom: calc(96px + 48px);
         }
 
-        .nav-toggle-btn {
-            width: 40px;
-            height: 40px;
-            background: transparent;
-            border: 2px solid #1e3a5f;
+        .nav-brand {
+            padding: 0 16px;
+            margin-bottom: 32px;
+        }
+
+        .nav-brand h1 {
+            font-size: 18px;
+            font-weight: bold;
+            color: #facc15;
+            letter-spacing: -0.9px;
+            text-transform: none;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .nav-brand p {
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            font-size: 10px;
+            color: #737373;
+            margin-top: 4px;
+        }
+
+        .nav-menu {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 0 8px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 24px;
+            color: #737373;
+            text-decoration: none;
+            transition: all 0.3s ease-in-out;
             border-radius: 8px;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+            font-size: 14px;
         }
 
-        .nav-toggle-btn:hover {
-            background: #1e3a5f;
+        .nav-item:hover {
+            color: #d4d4d4;
+            background-color: rgba(38, 38, 38, 0.4);
         }
 
-        .nav-toggle-btn:hover svg rect {
-            fill: #fff9c4;
+        .nav-item:hover .nav-icon {
+            color: #facc15;
         }
 
-        .nav-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            flex: 1;
+        .nav-item.active {
+            color: #facc15;
+            background-color: rgba(245, 158, 11, 0.1);
+            border-radius: 0 9999px 9999px 0;
         }
 
-        .nav-circle-btn {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: #fff9c4;
-            border: 2px solid #1e3a5f;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 2px;
-            transition: all 0.3s ease;
-            padding: 5px;
-        }
-
-        .nav-circle-btn:hover {
-            background: #1e3a5f;
-            transform: scale(1.05);
-        }
-
-        .nav-circle-btn.active {
-            background: #1e3a5f;
+        .nav-item.active .nav-icon {
+            font-variation-settings: 'FILL' 1;
         }
 
         .nav-icon {
-            font-size: 18px;
+            font-size: 20px;
+            transition: color 0.3s ease;
         }
 
         .nav-text {
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
             font-size: 10px;
-            color: #1e3a5f;
-            font-weight: bold;
         }
 
-        .nav-circle-btn:hover .nav-text,
-        .nav-circle-btn.active .nav-text {
-            color: #fff9c4;
-        }
-
-        .left-sidebar.collapsed {
-            width: 60px !important;
-        }
-
-        .left-sidebar.collapsed .nav-text {
-            display: none;
-        }
-
-        .left-sidebar.collapsed .nav-circle-btn {
-            width: 45px;
-            height: 45px;
-        }
-
-        .left-sidebar.collapsed .sidebar-cloud-tags {
-            display: none;
-        }
-
-        .sidebar-cloud-tags {
+        .nav-footer {
+            padding: 16px 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
             margin-top: auto;
-            padding-top: 15px;
-            border-top: 2px dashed #1e3a5f;
         }
 
-        .nav-add-btn {
-            background: linear-gradient(135deg, #fffa9c, #fff176);
-            border-color: #f57f17;
+        .create-rank-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+            color: #3d2e00;
+            font-weight: bold;
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(240, 198, 77, 0.1);
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-size: 14px;
         }
 
-        .nav-add-btn:hover {
-            background: linear-gradient(135deg, #fff176, #ffee58);
-            transform: scale(1.1) rotate(90deg);
+        .create-rank-btn:hover {
+            transform: scale(0.95);
+            box-shadow: 0 10px 30px rgba(240, 198, 77, 0.2);
         }
 
-        .main-container {
-            margin-left: 140px;
+        .create-rank-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* ==================== Main Content Area ==================== */
+        .main-content-area {
+            margin-left: 271px;
+            margin-right: 0;
+            margin-bottom: 96px;
             min-height: 100vh;
+            padding: 32px;
+            display: grid;
+            grid-template-columns: 7fr 5fr;
+            gap: 32px;
+            overflow-y: auto;
+        }
+
+        .left-section {
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .page-header-left h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: #dfe2eb;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+
+        .page-header-left p {
+            color: rgba(209, 197, 175, 0.6);
+            font-weight: 500;
+            margin-top: 4px;
+        }
+
+        .my-tags-btn {
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+            padding: 12px 20px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #241a00;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            filter: brightness(1);
+        }
+
+        .my-tags-btn:hover {
+            filter: brightness(1.1);
+            transform: scale(0.98);
+        }
+
+        .my-tags-btn .material-symbols-outlined {
+            font-size: 18px;
+        }
+
+        /* ==================== Playlist Card ==================== */
+        .playlist-feed {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .playlist-card {
+            background-color: #1c2026;
+            border-radius: 32px;
+            padding: 32px;
+            border: 1px solid rgba(77, 70, 53, 0.1);
+            transition: all 0.5s ease;
+            position: relative;
+        }
+
+        .playlist-card:hover {
+            border-color: rgba(255, 228, 164, 0.2);
+        }
+
+        .card-header {
+            display: flex;
+            gap: 32px;
+            align-items: flex-start;
+            margin-bottom: 32px;
+        }
+
+        .card-cover {
+            width: 180px;
+            height: 180px;
+            border-radius: 24px;
+            overflow: hidden;
+            flex-shrink: 0;
+            border: 2px solid rgba(255, 228, 164, 0.4);
+            box-shadow: 0 0 15px rgba(240, 198, 77, 0.4);
+            position: relative;
+            cursor: pointer;
+        }
+
+        .card-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .card-cover-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-cover:hover .card-cover-overlay {
+            opacity: 1;
+        }
+
+        .card-cover-overlay .material-symbols-outlined {
+            color: #ffe4a4;
+            font-size: 60px;
+            font-variation-settings: 'FILL' 1;
+        }
+
+        .card-info {
+            flex-grow: 1;
+            padding-top: 8px;
+        }
+
+        .card-info h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: #dfe2eb;
+            margin-bottom: 12px;
+        }
+
+        .card-meta {
+            font-size: 0.875rem;
+            color: #d1c5af;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .action-btn {
+            width: 40px;
+            height: 40px;
+            background-color: #31353c;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(223, 226, 235, 0.6);
+            border: none;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .action-btn:hover {
+            color: #ffe4a4;
+        }
+
+        .action-btn .material-symbols-outlined {
+            font-size: 20px;
+        }
+
+        /* ==================== Action Button Active State ==================== */
+        .action-btn.active {
+            background-color: rgba(255, 228, 164, 0.15);
+        }
+
+        .action-btn.active .material-symbols-outlined {
+            color: #ffe4a4 !important;
+            font-variation-settings: 'FILL' 1;
+        }
+
+        .action-btn.active:hover {
+            transform: scale(1.05);
+        }
+
+        /* ==================== Song List ==================== */
+        .song-list-section {
+            margin-bottom: 48px;
+            padding-left: 8px;
+            padding-right: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .song-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            border-radius: 16px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .song-item:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .song-item-left {
             display: flex;
             flex-direction: column;
         }
 
-        .top-nav {
-            background: #1a365d;
-            padding: 30px 40px;
+        .song-name {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: #dfe2eb;
+        }
+
+        .singer-name {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: rgba(209, 197, 175, 0.5);
+            font-weight: 700;
+        }
+
+        .play-icon-hidden {
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            background:none;
+            border:none;
+        }
+
+        .song-item:hover .play-icon-hidden {
+            opacity: 1;
+            color: #ffe4a4;
+        }
+
+        .play-icon-hidden .material-symbols-outlined {
+            font-size: 20px;
+        }
+
+        /* ==================== View Comments Button ==================== */
+        .view-comments-btn {
+            background-color: rgba(49, 53, 60, 0.5);
+            padding: 12px 20px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #d1c5af;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .view-comments-btn:hover {
+            background-color: #31353c;
+        }
+
+        .view-comments-btn:hover .material-symbols-outlined {
+            color: #ffe4a4;
+        }
+
+        .view-comments-btn .material-symbols-outlined {
+            font-size: 18px;
+            transition: color 0.2s ease;
+        }
+
+        /* ==================== Right Panel (Fixed) ==================== */
+        .right-panel {
+            position: fixed;
+            top: 10px;
+            right: 15px;
+            bottom: 106px;
+            width: calc((100% - 256px - 32px) * 5 / 12);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .panel-module {
+            background-color: #1c2026;
+            border-radius: 32px;
+            border: 1px solid rgba(77, 70, 53, 0.15);
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .panel-module.glass {
+            background: rgba(49, 53, 60, 0.6);
+            backdrop-filter: blur(20px);
+        }
+
+        .module-header {
+            padding: 5px;
+            border-bottom: 1px solid rgba(77, 70, 53, 0.1);
+            background: rgba(38, 42, 49, 0.3);
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
 
-        .top-nav-divider {
-            height: 1px;
-            background: rgba(255, 250, 156, 0.3);
-            margin: 0 40px;
-        }
-
-        .ranking-item {
-            position: relative;
-        }
-
-        .cloud-tag-container {
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            background: #1a365d;
-            padding: 10px 15px;
-            border-radius: 15px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-            max-width: 200px;
-        }
-
-        .cloud-tag-container h4 {
-            color: #fffa9c;
-            margin-top: 0;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-
-        .cloud-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-
-        .cloud-tag {
-            background: #fffa9c;
-            color: #1a365d;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .cloud-tag:hover {
-            background: #ffffff;
-            transform: translateY(-1px);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-
-        .user-profile {
+        .module-header-left {
             display: flex;
             align-items: center;
+            gap: 12px;
         }
 
-        .avatar-container {
-            position: relative;
-            cursor: pointer;
-            margin-right: 20px;
-        }
-
-        .avatar {
-            width: 80px;
-            height: 80px;
+        .module-icon-circle {
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid #fffa9c;
-            transition: all 0.3s ease;
-        }
-
-        .avatar-container:hover .avatar {
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(255, 250, 156, 0.4);
-        }
-
-        .avatar-edit-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(26, 54, 93, 0.7);
-            border-radius: 50%;
+            background-color: rgba(255, 228, 164, 0.1);
             display: flex;
             align-items: center;
             justify-content: center;
-            opacity: 0;
-            transition: all 0.3s ease;
+            color: #ffe4a4;
+            border: 1px solid rgba(255, 228, 164, 0.2);
         }
 
-        .avatar-container:hover .avatar-edit-overlay {
-            opacity: 1;
+        .module-icon-circle .material-symbols-outlined {
+            font-size: 20px !important;
         }
 
-        .avatar-edit-text {
-            color: #fffa9c;
-            font-size: 12px;
-            text-align: center;
-            padding: 0 10px;
+        .module-title {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: #dfe2eb;
         }
 
-        .user-info {
-            color: #fffa9c;
-        }
-
-        .user-info h3 {
-            margin: 0;
-            font-size: 40px;
-        }
-
-        .user-info p {
-            margin: 8px 0 0 0;
-            font-size: 18px;
-            opacity: 0.8;
-        }
-
-        .mutual-friend-recommend {
-            display: flex;
-            background: #ffffff;
-            border-radius: 20px;
-            padding: 25px 30px;
-            width: 30%;
-            font-size: 18px;
-            height: 115px;
-            align-items: center;
-        }
-
-        .tab-btn {
-            padding: 10px 20px;
-            border: none;
-            background: transparent;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s ease;
-        }
-
-        .tab-btn.active {
-            background: #1a365d;
-            color: #fffa9c;
-        }
-
-        .content-area {
-            flex: 1;
-            display: flex;
-            padding: 30px;
-            gap: 30px;
-        }
-
-        .main-content {
-            flex: 1;
-            background: #fffa9c;
-            border-radius: 30px;
-            padding: 30px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .right-sidebar {
-            width: 300px;
+        .module-body {
+            padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 16px;
         }
 
-        .friend-recommendations {
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .comment-section {
-            background: #fffa9c;
-            border-radius: 30px;
-            padding: 20px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            flex: 1;
-        }
-
-        .player-container {
-            padding: 0;
-        }
-
-        .header {
+        .friend-item {
             display: flex;
             align-items: center;
-            margin-bottom: 40px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            justify-content: space-between;
+            gap: 12px;
         }
 
-        .user-info {
-            /*display: flex;*/
+        .friend-left {
+            display: flex;
             align-items: center;
-            flex: 1;
+            gap: 12px;
         }
 
-        .avatar {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            margin-right: 20px;
+        .friend-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 228, 164, 0.2);
+        }
+
+        .friend-avatar img {
+            width: 100%;
+            height: 100%;
             object-fit: cover;
-            border: 3px solid #fffa9c;
-            box-shadow: 0 4px 12px rgba(255, 250, 156, 0.3);
-            transition: all 0.3s ease;
         }
 
-        .avatar:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 20px rgba(255, 250, 156, 0.5);
+        .friend-info p:first-child {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: #dfe2eb;
         }
 
-        .user-details h2 {
-            font-size: 24px;
-            color: #fffa9c;
-            margin-bottom: 5px;
+        .friend-item:hover .friend-info p:first-child {
+            color: #ffe4a4;
+            transition: color 0.2s ease;
         }
 
-        .user-details p {
-            font-size: 14px;
-            color: rgba(247, 250, 252, 0.7);
+        .friend-info p:last-child {
+            font-size: 10px;
+            color: rgba(209, 197, 175, 0.6);
+            font-weight: 700;
+            letter-spacing: 0.05em;
         }
 
-        .ranking-item {
-            background: rgba(255, 255, 255, 0.5);
-            border: 2px solid #1a365d;
-            border-radius: 8px;
+        .add-friend-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background-color: #31353c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffe4a4;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .add-friend-btn:hover {
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+            color: #0a0e14;
+            box-shadow: 0px 0px 16px rgba(235, 194, 73, 0.3);
+        }
+
+        .add-friend-btn .material-symbols-outlined {
+            font-size: 20px;
+        }
+
+        /* AI Module */
+        .ai-module {
+            flex-grow: 1;
+            max-height: 500px;
+            height: 500px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ai-status-dot {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-indicator {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #22c55e;
+            box-shadow: 0 0 8px #22c55e;
+        }
+
+        .status-text {
+            font-size: 9px;
+            color: rgba(209, 197, 175, 0.7);
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+        }
+
+        .ai-chat-area {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        .ai-bubble {
+            max-width: 300px;
+            background-color: #31353c;
+            padding: 16px;
+            border-radius: 32px;
+            border-top-left-radius: 0;
+            border: 1px solid rgba(77, 70, 53, 0.2);
+            text-align: left;
+            position: relative;
+        }
+
+        .ai-bubble p {
+            font-size: 0.875rem;
+            line-height: 1.6;
+            color: #dfe2eb;
+        }
+
+        .ai-input-area {
             padding: 20px;
-            margin-bottom: 15px;
-            transition: all 0.3s ease;
+            background: rgba(24, 28, 34, 0.3);
         }
 
-        .ranking-item:hover {
-            background: rgba(255, 255, 255, 0.8);
-            transform: translateY(-2px);
+        .input-wrapper {
+            position: relative;
         }
 
-        .ranking-item h3 {
-            color: #1a365d;
+        .ai-input {
+            width: 100%;
+            background-color: #31353c;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 56px 14px 20px;
+            font-size: 0.875rem;
+            color: #dfe2eb;
+            font-family: 'Manrope', sans-serif;
+        }
+
+        .ai-input::placeholder {
+            color: rgba(209, 197, 175, 0.3);
+        }
+
+        .ai-input:focus {
+            outline: none;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .send-btn {
+            position: absolute;
+            right: 6px;
+            top: 6px;
+            bottom: 6px;
+            width: 44px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+            color: #241a00;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0px 0px 16px rgba(235, 194, 73, 0.3);
+            transition: transform 0.2s ease;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .send-btn .material-symbols-outlined {
+            font-size: 20px;
+            font-variation-settings: 'FILL' 1;
+        }
+
+        /* ==================== Comment Drawer ==================== */
+        .comment-drawer {
+            position: fixed;
+            top: 0;
+            right: 0;
+            height: 100vh;
+            width: 33.333%;
+            background-color: rgba(16, 20, 26, 0.95);
+            backdrop-filter: blur(40px);
+            border-left: 1px solid rgba(77, 70, 53, 0.2);
+            box-shadow: -10px 0 40px rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            transform: translateX(100%);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .comment-drawer.open {
+            transform: translateX(0);
+        }
+
+        .drawer-header {
+            padding: 24px;
+            border-bottom: 1px solid rgba(77, 70, 53, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .drawer-header h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #ffe4a4;
+            letter-spacing: -0.02em;
+        }
+
+        .drawer-close-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            color: #d1c5af;
+            transition: background-color 0.2s ease;
+        }
+
+        .drawer-close-btn:hover {
+            background-color: #31353c;
+        }
+
+        .drawer-close-btn .material-symbols-outlined {
+            font-size: 20px;
+        }
+
+        .drawer-comments-list {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        .comment-entry {
+            display: flex;
+            gap: 16px;
+        }
+
+        .comment-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+            flex-shrink: 0;
+            border: 1px solid rgba(255, 228, 164, 0.2);
+        }
+
+        .comment-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .comment-body {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .comment-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .comment-user {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: #dfe2eb;
+        }
+
+        .comment-time {
+            font-size: 10px;
+            color: rgba(209, 197, 175, 0.5);
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+        }
+
+        .comment-text {
+            font-size: 0.875rem;
+            color: rgba(209, 197, 175, 0.8);
+            line-height: 1.6;
+        }
+
+        .drawer-footer {
+            padding: 24px;
+            background: rgba(24, 28, 34, 0.5);
+            border-top: 1px solid rgba(77, 70, 53, 0.15);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .comment-textarea {
+            width: 100%;
+            background-color: #31353c;
+            border: 1px solid rgba(77, 70, 53, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 0.875rem;
+            color: #dfe2eb;
+            font-family: 'Manrope', sans-serif;
+            resize: none;
+            height: 96px;
+        }
+
+        .comment-textarea::placeholder {
+            color: rgba(209, 197, 175, 0.4);
+        }
+
+        .comment-textarea:focus {
+            outline: none;
+            box-shadow: 0 0 0 1px rgba(255, 228, 164, 0.4);
+        }
+
+        .submit-comment-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+            color: #241a00;
+            font-weight: 700;
+            font-size: 0.875rem;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0px 0px 16px rgba(235, 194, 73, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .submit-comment-btn:hover {
+            filter: brightness(1.1);
+        }
+
+        .submit-comment-btn:active {
+            transform: scale(0.98);
+        }
+
+        .submit-comment-btn .material-symbols-outlined {
             font-size: 18px;
-            margin-bottom: 10px;
-            font-weight: bold;
+            font-variation-settings: 'FILL' 1;
         }
 
-        .ranking-item p {
-            color: #2d3748;
-            font-size: 14px;
-            line-height: 1.5;
+        /* ==================== Bottom Player Bar ==================== */
+        .bottom-player-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            z-index: 50;
+            height: 96px;
+            background-color: rgba(28, 32, 38, 0.9);
+            backdrop-filter: blur(32px);
+            border-top: 1px solid rgba(77, 70, 53, 0.2);
+            box-shadow: 0px -20px 40px rgba(0, 0, 0, 0.4);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 48px;
         }
 
+        .player-left {
+            width: 23.333%;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .player-cover {
+            width: 56px;
+            height: 56px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid rgba(77, 70, 53, 0.3);
+        }
+
+        .player-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .player-track-info p:first-child {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: #dfe2eb;
+        }
+
+        .player-track-info p:last-child {
+            font-size: 0.75rem;
+            color: rgba(255, 228, 164, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 700;
+            font-family: 'Manrope', sans-serif;
+        }
+
+        .player-center {
+            width: 33.333%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            margin-right: 357px;
+        }
+
+        .player-controls {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .control-btn {
+            color: rgba(223, 226, 235, 0.4);
+            transition: color 0.2s ease, transform 0.2s ease;
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-btn:hover {
+            color: #dfe2eb;
+        }
+
+        .control-btn .material-symbols-outlined {
+            font-size: 28px;
+        }
+
+        .play-main-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: #f0c64d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #241a00;
+            box-shadow: 0 0 20px rgba(240, 198, 77, 0.4);
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .play-main-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .play-main-btn:active {
+            transform: scale(0.95);
+        }
+
+        .play-main-btn .material-symbols-outlined {
+            font-size: 30px;
+            margin-left: 4px;
+            font-variation-settings: 'FILL' 1;
+        }
+
+        .progress-bar-area {
+            width: 100%;
+            max-width: 448px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .time-label {
+            font-size: 10px;
+            color: #d1c5af;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+        }
+
+        .progress-container {
+            height: 4px;
+            flex-grow: 1;
+            background-color: #31353c;
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: #ffe4a4;
+            box-shadow: 0 0 16px rgba(235, 194, 73, 0.3);
+            width: 45%;
+        }
+
+        .player-right {
+            width: 33.333%;
+        }
+
+        /* ==================== Pagination ==================== */
         .pagination {
             display: flex;
             justify-content: center;
             align-items: center;
             margin-top: 40px;
             pointer-events: auto;
+            gap: 8px;
         }
 
         .pagination button {
-            background: #ffffff;
-            border: 1px solid #1a365d;
-            color: #1a365d;
-            border-radius: 6px;
+            background: #1c2026;
+            border: 1px solid rgba(77, 70, 53, 0.3);
+            color: #dfe2eb;
+            border-radius: 8px;
             padding: 8px 16px;
-            margin: 0 5px;
             cursor: pointer;
             transition: all 0.3s ease;
+            font-family: 'Manrope', sans-serif;
+            font-size: 0.875rem;
         }
 
         .pagination button:hover:not(:disabled) {
-            background-color: #1a365d;
-            color: #fffa9c;
+            background-color: #31353c;
+            border-color: rgba(255, 228, 164, 0.3);
             transform: translateY(-2px);
         }
 
         .pagination button.active {
-            background-color: #1a365d;
-            color: #fffa9c;
-            font-weight: bold;
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+            color: #0a0e14;
+            font-weight: 700;
+            border-color: transparent;
         }
 
         .pagination button:disabled {
@@ -445,231 +1091,48 @@
             cursor: not-allowed;
         }
 
-        .song-list {
-            margin-top: 15px;
-            padding-left: 0;
+        /* ==================== Empty State ==================== */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #d1c5af;
         }
 
-        .song-list h4 {
-            color: #1a365d;
-            font-size: 16px;
-            margin-bottom: 12px;
-            font-weight: 500;
+        .empty-state h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #dfe2eb;
         }
 
-        .song-list ul {
-            list-style: none;
-            padding: 0;
-            background: transparent;
-            border: 1px solid #1a365d;
-            border-radius: 6px;
-            padding: 10px;
+        .empty-state p {
+            font-size: 1rem;
         }
 
-        .song-list li {
-            margin: 8px 0;
-            padding: 10px 15px;
-            border-bottom: 1px solid rgba(26, 54, 93, 0.3);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.2s ease;
-        }
-
-        .song-list li:last-child {
-            border-bottom: none;
-        }
-
-        .song-list li:hover {
-            background: rgba(26, 54, 93, 0.1);
-        }
-
-        .song-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            flex: 1;
-        }
-
-        .song-name {
-            color: #1a365d;
-            font-size: 15px;
-            font-weight: 600;
-        }
-
-        .singer-name {
-            color: #2d3748;
-            font-size: 15px;
-        }
-
-        .song-rank {
-            color: #1a365d;
-            font-size: 15px;
-            font-weight: 700;
-            padding: 4px 10px;
-            background: rgba(26, 54, 93, 0.15);
-            border: 2px solid #1a365d;
-            border-radius: 4px;
-            margin-right: 10px;
-        }
-
-        .song-actions {
-            display: flex;
-            align-items: center;
-        }
-
-        .play-btn {
-            background: #1a365d;
-            border: 1px solid #1a365d;
-            color: #fffa9c;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 12px;
-            padding-left: 9px;
-        }
-
-        .play-btn:hover {
-            background: #2a4365;
-            transform: scale(1.1);
-        }
-
-        #errorAlert {
+        /* ==================== Alerts ==================== */
+        #errorAlert,
+        #successAlert {
             display: none;
             position: fixed;
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
             padding: 10px 20px;
+            border-radius: 8px;
+            z-index: 9999;
+            font-family: 'Manrope', sans-serif;
+            font-size: 0.875rem;
+        }
+
+        #errorAlert {
             background: #ff4444;
             color: #fff;
-            border-radius: 4px;
-            z-index: 9999;
         }
 
         #successAlert {
-            display: none;
-            position: fixed;
             top: 60px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 10px 20px;
             background: #00C851;
             color: #fff;
-            border-radius: 4px;
-            z-index: 9999;
-        }
-
-        #music-player-container {
-            width: 100%;
-        }
-
-        .friend-recommendations h4,
-        .comment-section h4,
-        .player-container h4 {
-            color: #1a365d;
-            margin-top: 0;
-            margin-bottom: 15px;
-            font-size: 16px;
-        }
-
-        .friend-recommendations p,
-        .comment-section p {
-            color: #4a5568;
-            font-size: 14px;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #4a5568;
-        }
-
-        .empty-state h3 {
-            font-size: 24px;
-            margin-bottom: 10px;
-            color: #1a365d;
-        }
-
-        .empty-state p {
-            font-size: 16px;
-        }
-
-        @media (max-width: 768px) {
-            .left-sidebar {
-                width: 70px;
-                left: 10px;
-                top: 10px;
-                padding: 10px;
-            }
-
-            .main-container {
-                margin-left: 100px;
-            }
-
-            .top-nav {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 15px;
-                padding: 15px 20px;
-            }
-
-            .content-area {
-                flex-direction: column;
-                padding: 20px;
-                gap: 20px;
-            }
-
-            .right-sidebar {
-                width: 100%;
-            }
-
-            .main-content {
-                padding: 20px;
-            }
-
-            .user-profile {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-
-            .avatar {
-                width: 60px;
-                height: 60px;
-            }
-
-            .user-info h3 {
-                font-size: 28px;
-            }
-
-            .user-info p {
-                font-size: 14px;
-            }
-
-            .mutual-friend-recommend {
-                width: 100%;
-                padding: 15px 20px;
-                font-size: 14px;
-            }
-
-            .cloud-tag-container {
-                position: relative;
-                margin-bottom: 15px;
-                max-width: 100%;
-                top: 0;
-                right: 0;
-            }
-
-            .cloud-tag {
-                font-size: 11px;
-                padding: 3px 8px;
-            }
         }
     </style>
     <script th:src="@{/player/music-player.js}"></script>
@@ -680,156 +1143,256 @@
     <div id="errorAlert"></div>
     <div id="successAlert"></div>
 
-    <div class="left-sidebar">
-        <div class="nav-toggle-btn">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <rect x="3" y="3" width="7" height="7" rx="1" fill="#1e3a5f" />
-                <rect x="14" y="3" width="7" height="7" rx="1" fill="#1e3a5f" />
-                <rect x="3" y="14" width="7" height="7" rx="1" fill="#1e3a5f" />
-                <rect x="14" y="14" width="7" height="7" rx="1" fill="#1e3a5f" />
-            </svg>
+    <!-- ==================== Left Sidebar Navigation ==================== -->
+    <aside class="sidebar-nav">
+        <div class="nav-brand">
+            <h1>The Digital Conductor</h1>
+            <p>Premium Music Vault</p>
         </div>
-        <nav class="nav-buttons">
-            <button class="nav-circle-btn" id="navIndex" title="首页">
-                <span class="nav-icon">🏠</span>
+
+        <nav class="nav-menu">
+            <button class="nav-item" id="navIndex">
+                <span class="material-symbols-outlined nav-icon">home</span>
                 <span class="nav-text">首页</span>
             </button>
-            <button class="nav-circle-btn" id="navHome" title="主页">
-                <span class="nav-icon">📝</span>
+            <button class="nav-item" id="navHome">
+                <span class="material-symbols-outlined nav-icon">grid_view</span>
                 <span class="nav-text">主页</span>
             </button>
-            <button class="nav-circle-btn" id="navSearch" title="搜索">
-                <span class="nav-icon">🔍</span>
-                <span class="nav-text">搜索</span>
+            <button class="nav-item" id="navSearch">
+                <span class="material-symbols-outlined nav-icon">search</span>
+                <span class="nav-text">搜索榜单</span>
             </button>
-            <button class="nav-circle-btn" id="navMyRank" title="我的榜单">
-                <span class="nav-icon">📋</span>
-                <span class="nav-text">榜单</span>
+            <button class="nav-item" id="navMyRank">
+                <span class="material-symbols-outlined nav-icon">queue_music</span>
+                <span class="nav-text">我的榜单</span>
             </button>
-            <button class="nav-circle-btn" id="navHotRank" title="热门榜单">
-                <span class="nav-icon">🔥</span>
-                <span class="nav-text">热门</span>
+            <button class="nav-item" id="navHotRank">
+                <span class="material-symbols-outlined nav-icon">local_fire_department</span>
+                <span class="nav-text">热门榜单</span>
             </button>
-            <button class="nav-circle-btn active" id="navMyLove" title="我的收藏">
-                <span class="nav-icon">❤️</span>
-                <span class="nav-text">收藏</span>
-            </button>
-            <button class="nav-circle-btn nav-add-btn" id="navAdd" title="发布榜单">
-                <span class="nav-icon">➕</span>
-                <span class="nav-text">发布</span>
+            <button class="nav-item active" id="navMyLove">
+                <span class="material-symbols-outlined nav-icon" style="font-variation-settings: 'FILL' 1;">favorite</span>
+                <span class="nav-text">我的收藏</span>
             </button>
         </nav>
-        <div class="sidebar-cloud-tags"></div>
-    </div>
 
-    <div class="main-container">
-        <div class="top-nav">
-            <div class="user-profile">
-                <div class="avatar-container">
-                    <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=user%20avatar%20profile%20picture%20friendly%20face&image_size=square"
-                        alt="用户头像" class="avatar" id="user-avatar">
-                    <div class="avatar-edit-overlay">
-                        <span class="avatar-edit-text">点击更换头像</span>
-                    </div>
-                    <input type="file" id="avatar-upload" accept="image/*" style="display: none;">
-                </div>
-                <div class="user-info">
-                    <h3 th:text="${username}">用户名</h3>
-                    <p th:text="${userName}">用户昵称</p>
-                </div>
-            </div>
-            <div class="mutual-friend-recommend">
-                共同好友推荐
-            </div>
+        <div class="nav-footer">
+            <button class="create-rank-btn" id="navAdd">+ 创建榜单</button>
         </div>
-        <div class="top-nav-divider"></div>
+    </aside>
 
-        <div class="content-area">
-            <div class="main-content">
-                <!-- 收藏的歌单列表 -->
-                <div th:each="ranking, stat : ${myloveSongs.list}" class="ranking-item"
+    <!-- ==================== Main Content Area ==================== -->
+    <main class="main-content-area">
+        <!-- Left Section: Collection List -->
+        <section class="left-section">
+            <!-- Page Header -->
+            <header class="page-header">
+                <div class="page-header-left">
+                    <h2>我的收藏</h2>
+                    <p>您珍藏的所有声音档案都在这里。</p>
+                </div>
+                <button class="my-tags-btn gold-gradient gold-glow">
+                    <span class="material-symbols-outlined">label</span>
+                    My tags
+                </button>
+            </header>
+
+            <!-- Playlist Feed with Thymeleaf Loop -->
+            <div class="playlist-feed">
+                <div th:each="ranking, stat : ${myloveSongs.list}" class="playlist-card"
                     th:data-rank-id="${ranking.rankId}">
-                    <!-- 云标签模块 -->
-                    <div class="cloud-tag-container">
-                        <h4>标签</h4>
-                        <div class="cloud-tags">
-                            <span class="cloud-tag">流行</span>
-                            <span class="cloud-tag">摇滚</span>
-                            <span class="cloud-tag">民谣</span>
-                            <span class="cloud-tag">电子</span>
+                    <!-- Card Header: Cover + Info -->
+                    <div class="card-header">
+                        <div class="card-cover">
+                            <img alt="Publisher" src="https://tse4-mm.cn.bing.net/th/id/OIP-C.YzVD8zb817n7AdFqtsY46wHaHS?w=183&h=180&c=7&r=0&o=5&dpr=2&pid=1.7">
+                            <div class="card-cover-overlay">
+                                <span class="material-symbols-outlined">play_circle</span>
+                            </div>
+                        </div>
+                        <div class="card-info">
+                            <h3 th:text="${ranking.rankName}">榜单标题</h3>
+                            <div class="card-meta">
+                                <p th:text="|发布者: ${ranking.username}|">发布者：用户名</p>
+                                <p th:text="|更新时间: ${ranking.publishTime}|">更新时间：2024-05-20 04:32</p>
+                            </div>
+                            <div class="card-actions">
+                                <button class="action-btn" th:data-rank-id="${ranking.rankId}" onclick="toggleVote(this)">
+                                    <span class="material-symbols-outlined">favorite</span>
+                                </button>
+                                <button class="action-btn" th:data-rank-id="${ranking.rankId}" onclick="toggleLove(this)">
+                                    <span class="material-symbols-outlined">star</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
-                    <div class="ranking-content">
-                        <!-- 榜单基本信息 -->
-                        <h3 th:text="${ranking.rankName}">榜单标题</h3>
-                        <p th:text="|更新于: ${ranking.publishTime}|">最后更新时间</p>
 
-                        <!-- 榜单下的歌曲列表 -->
-                        <div class="song-list">
-
-                            <ul>
-                                <li th:each="song : ${ranking.rankSongList}" th:data-song-id="${song.songId}">
-                                    <div class="song-info">
-                                        <span class="song-name" th:text="${song?.songName}">歌曲名称</span>
-                                        <span class="singer-name" th:text="${song.singerName}">歌手名称</span>
-                                    </div>
-                                    <div class="song-actions">
-                                        <span class="song-rank" th:text="${song?.ranking}">排名</span>
-                                        <button class="play-btn" th:data-song-id="${song.songId}"
-                                            th:data-song-name="${song.songName}"
-                                            th:data-singer-name="${song.singerName}">
-                                            &#9658;
-                                        </button>
-                                    </div>
-                                </li>
-                            </ul>
+                    <!-- Song List -->
+                    <div class="song-list-section">
+                        <div class="song-item" th:each="song : ${ranking.rankSongList}" th:data-song-id="${song.songId}">
+                            <div class="song-item-left">
+                                <span class="song-name" th:text="${song?.songName}">歌曲名称</span>
+                                <span class="singer-name" th:text="${song.singerName}">歌手名称</span>
+                            </div>
+                            <button class="play-btn play-icon-hidden" th:data-song-id="${song.songId}"
+                                th:data-song-name="${song.songName}"
+                                th:data-singer-name="${song.singerName}">
+                                <span class="material-symbols-outlined">play_arrow</span>
+                            </button>
                         </div>
                     </div>
-                </div>
 
-                <!-- 分页 -->
-                <div class="pagination" th:if="${myloveSongs != null}">
-                    <button th:disabled="${myloveSongs.pageNum == 1}"
-                        th:data-page="${myloveSongs.pageNum - 1}">上一页</button>
-
-                    <button th:each="i : ${#numbers.sequence(1, myloveSongs.pages)}"
-                        th:class="${myloveSongs.pageNum == i ? 'active' : ''}" th:data-page="${i}"
-                        th:text="${i}">1</button>
-
-                    <button th:disabled="${myloveSongs.pageNum == myloveSongs.pages}"
-                        th:data-page="${myloveSongs.pageNum + 1}">下一页</button>
-                </div>
-
-                <!-- 空状态 -->
-                <div class="empty-state"
-                    th:if="${myloveSongs == null or myloveSongs.list == null or myloveSongs.list.isEmpty()}">
-                    <h3>暂无收藏</h3>
-                    <p>您还没有收藏任何歌单</p>
+                    <!-- View Comments Button -->
+                    <div style="display: flex; justify-content: flex-start;">
+                        <button class="view-comments-btn" onclick="document.getElementById('comment-drawer').classList.add('open')">
+                            <span class="material-symbols-outlined">chat</span>
+                            查看评论
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <div class="right-sidebar">
-                <!-- 评论区 -->
-                <div class="comment-section">
-                    <h4>评论区</h4>
-                    <div id="comment-container">
-                        <div id="comment-list"></div>
-                        <div class="comment-input-area">
-                            <input type="text" id="comment-input" placeholder="写下你的评论..."
-                                style="width: 100%; padding: 10px; border: 1px solid #1a365d; border-radius: 6px; margin-bottom: 10px;">
-                            <button id="comment-submit"
-                                style="background: #1a365d; color: #fffa9c; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">提交评论</button>
+            <!-- Pagination -->
+            <div class="pagination" th:if="${myloveSongs != null}">
+                <button th:disabled="${myloveSongs.pageNum == 1}"
+                    th:data-page="${myloveSongs.pageNum - 1}">上一页</button>
+
+                <button th:each="i : ${#numbers.sequence(1, myloveSongs.pages)}"
+                    th:class="${myloveSongs.pageNum == i ? 'active' : ''}" th:data-page="${i}"
+                    th:text="${i}">1</button>
+
+                <button th:disabled="${myloveSongs.pageNum == myloveSongs.pages}"
+                    th:data-page="${myloveSongs.pageNum + 1}">下一页</button>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state"
+                th:if="${myloveSongs == null or myloveSongs.list == null or myloveSongs.list.isEmpty()}">
+                <h3>暂无收藏</h3>
+                <p>您还没有收藏任何歌单</p>
+            </div>
+        </section>
+
+        <!-- Right Section: Reserved for fixed panel -->
+        <section style="position: relative;"></section>
+    </main>
+
+    <!-- ==================== Right Fixed Panel ==================== -->
+    <div class="right-panel">
+        <!-- Common Friends Module -->
+        <div class="panel-module glass">
+            <div class="module-header">
+                <div class="module-header-left">
+                    <div class="module-icon-circle">
+                        <span class="material-symbols-outlined">group</span>
+                    </div>
+                    <h3 class="module-title">共同好友推荐</h3>
+                </div>
+            </div>
+            <div class="module-body">
+                <div class="friend-item">
+                    <div class="friend-left">
+
+                        <div class="friend-info">
+                            <p>Cyber_Walker</p>
+                            <p>共同爱好：Techno</p>
+                        </div>
+                    </div>
+                    <button class="add-friend-btn gold-glow">
+                        <span class="material-symbols-outlined">person_add</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Recommendation Assistant Module -->
+        <div class="panel-module ai-module glass">
+            <div class="module-header" style="background: rgba(38, 42, 49, 0.5);">
+                <div class="module-header-left">
+                    <div class="module-icon-circle">
+                        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+                    </div>
+                    <div>
+                        <h3 class="module-title">AI 推荐助手</h3>
+                        <div class="ai-status-dot">
+                            <span class="status-indicator"></span>
+                            <span class="status-text">在线</span>
                         </div>
                     </div>
                 </div>
-
-                <!-- 播放器 -->
-                <div class="player-container">
-                    <div id="music-player-container"></div>
+            </div>
+            <div class="ai-chat-area">
+                <div class="ai-bubble">
+                    <p>你好，KINETIC_USER！我是你的私人音乐策展助手。今天想听点什么？</p>
+                </div>
+            </div>
+            <div class="ai-input-area">
+                <div class="input-wrapper">
+                    <input type="text" class="ai-input" placeholder="描述你想要的心情或风格...">
+                    <button class="send-btn gold-glow">
+                        <span class="material-symbols-outlined">send</span>
+                    </button>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- ==================== Comment Drawer ==================== -->
+    <div class="comment-drawer" id="comment-drawer">
+        <!-- Drawer Header -->
+        <div class="drawer-header">
+            <h3>榜单评论</h3>
+            <button class="drawer-close-btn" onclick="document.getElementById('comment-drawer').classList.remove('open')">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <!-- Comments List -->
+        <div class="drawer-comments-list" id="comment-list">
+            <!-- Comment Item 1 -->
+            <div class="comment-entry">
+                <div class="comment-avatar">
+                    <img alt="avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYFiPONoMVIQKy6-lIS_7xOaziYWSq6p-9TYC79am_RUHavIG6xvPdaA4NP-lhQimzJ-1-q6BJaZ2ldfbLgUoiey6-mF2a1mOpJxaLHplZuMtF85dDBAmARKGrZmThu28t-8JK1HWGmFyE8S-y3TI1gW49vwmImWRfwy8E7VqZywo6AhuHGFpfR2dFycBpLe4ULnP3DNmWjNZM5X54ACuyzBwQOyQDdrdBeVkNUqKoOVmQUtWQcjKCVl9yQKRjrPAA_eqUF4DJIjU">
+                </div>
+                <div class="comment-body">
+                    <div class="comment-top">
+                        <span class="comment-user">Cyber_Walker</span>
+                        <span class="comment-time">2小时前</span>
+                    </div>
+                    <p class="comment-text">这套歌单的深夜氛围感拉满了，特别适合加班的时候听，很有赛博朋克的代入感。</p>
+                </div>
+            </div>
+
+            <!-- Comment Item 2 -->
+            <div class="comment-entry">
+                <div class="comment-avatar">
+                    <img alt="avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4c2H2dN9oBGOhtbhL89Hmj0l0X9EKli74nX9Twua8lo9hnu-IJbBeg-QgUO31cYThfKzrjJKOgrAI3sAVC1rG42P2ax2-ZwHPSNednLQsnYP3TlQ0besuRy4jj3G65gO0JfmtEUIy1EvrNkylGN69txi-Vxojh7G9qmpvwKhazkOYaCibjdlyGTVpXWr9A_T53icclp9gdbCr9Tal-_l4YtBgKweDo3mcofzCtNKAKWmxdRv8y9-8cHRnNUXgPCXrYcAmeXS5Fz8">
+                </div>
+                <div class="comment-body">
+                    <div class="comment-top">
+                        <span class="comment-user">Lofi_Rain</span>
+                        <span class="comment-time">昨天</span>
+                    </div>
+                    <p class="comment-text">太赞了，期待博主更新更多的类似曲目！</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Drawer Footer (Comment Input) -->
+        <div class="drawer-footer">
+            <textarea class="comment-textarea" placeholder="分享你的想法..."></textarea>
+            <button class="submit-comment-btn gold-glow">
+                <span class="material-symbols-outlined">send</span>
+                发布评论
+            </button>
+        </div>
+    </div>
+
+    <!-- ==================== Bottom Player Bar ==================== -->
+
+
+    <!-- Music Player Container (Hidden, for JS initialization) -->
+    <div id="music-player-container"></div>
 
     <script>
         // ===================== 全局核心配置（完全复用我的榜单页）=====================
@@ -965,11 +1528,11 @@
             if (!commentList) return;
 
             if (!token) {
-                commentList.innerHTML = '<p style="color: rgba(247, 250, 252, 0.7); text-align: center;">请先登录后查看评论</p>';
+                commentList.innerHTML = '<p style="color: rgba(209, 197, 175, 0.7); text-align: center;">请先登录后查看评论</p>';
                 return;
             }
 
-            commentList.innerHTML = '<p style="color: rgba(247, 250, 252, 0.7); text-align: center;">加载中...</p>';
+            commentList.innerHTML = '<p style="color: rgba(209, 197, 175, 0.7); text-align: center;">加载中...</p>';
 
             axios.get(`/music/api/rank/list`, {
                 params: {
@@ -984,19 +1547,19 @@
                         const comments = response.data.data || response.data;
                         renderComments(commentList, comments);
                     } else {
-                        commentList.innerHTML = `<p style="color: rgba(247, 250, 252, 0.7); text-align: center;">查询评论失败：${response.data.msg || '未知错误'}</p>`;
+                        commentList.innerHTML = `<p style="color: rgba(209, 197, 175, 0.7); text-align: center;">查询评论失败：${response.data.msg || '未知错误'}</p>`;
                         console.error('评论查询失败:', response.data);
                     }
                 })
                 .catch(error => {
                     console.error('加载评论失败:', error);
-                    commentList.innerHTML = `<p style="color: rgba(247, 250, 252, 0.7); text-align: center;">加载评论失败：${error.response?.data?.msg || error.message}</p>`;
+                    commentList.innerHTML = `<p style="color: rgba(209, 197, 175, 0.7); text-align: center;">加载评论失败：${error.response?.data?.msg || error.message}</p>`;
                 });
         }
 
         function renderComments(container, comments) {
             if (!comments || comments.length === 0) {
-                container.innerHTML = '<p style="color: rgba(247, 250, 252, 0.7); text-align: center;">暂无评论</p>';
+                container.innerHTML = '<p style="color: rgba(209, 197, 175, 0.7); text-align: center;">暂无评论</p>';
                 return;
             }
 
@@ -1008,25 +1571,31 @@
                 }
 
                 const commentItem = document.createElement('div');
-                commentItem.className = 'comment-item';
+                commentItem.className = 'comment-entry';
+                commentItem.style.cssText = 'display:flex;gap:16px;padding:16px 0;border-bottom:1px solid rgba(77,70,53,0.15);';
 
                 commentItem.innerHTML = `
-                <div class="comment-header">
-                    <span class="comment-username">${comment.username || '匿名用户'}</span>
-                    <span class="comment-time">${formatTime(comment.comTime)}</span>
+                <div class="comment-avatar" style="width:40px;height:40px;border-radius:50%;overflow:hidden;flex-shrink:0;border:1px solid rgba(255,228,164,0.2);">
+                    <img alt="avatar" src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=user%20avatar&image_size=square" style="width:100%;height:100%;object-fit:cover;">
                 </div>
-                <div class="comment-content">${comment.comContent || ''}</div>
-                <div class="comment-actions-bar">
-                    ${comment.userId === parseInt(userId) ?
-                        `<button class="comment-delete-btn" data-comment-id="${comment.comId}">删除</button>` : ''
-                    }
+                <div class="comment-body" style="flex-grow:1;display:flex;flex-direction:column;gap:4px;">
+                    <div class="comment-top" style="display:flex;justify-content:space-between;align-items:center;">
+                        <span class="comment-user" style="font-size:0.875rem;font-weight:700;color:#dfe2eb;">${comment.username || '匿名用户'}</span>
+                        <span class="comment-time" style="font-size:10px;color:rgba(209,197,175,0.5);text-transform:uppercase;font-weight:700;letter-spacing:-0.03em;">${formatTime(comment.comTime)}</span>
+                    </div>
+                    <p class="comment-text" style="font-size:0.875rem;color:rgba(209,197,175,0.8);line-height:1.6;">${comment.comContent || ''}</p>
+                    <div class="comment-actions-bar">
+                        ${comment.userId === parseInt(userId) ?
+                            `<button class="comment-delete-btn" data-comment-id="${comment.comId}" style="background:transparent;border:none;color:rgba(209,197,175,0.6);padding:4px 8px;border-radius:8px;font-size:12px;cursor:pointer;">删除</button>` : ''
+                        }
+                    </div>
                 </div>
             `;
 
                 container.appendChild(commentItem);
             });
         }
-        // 发表评论 - 最终修复版（强制所有参数拼在URL里）
+
         function submitComment(rankId) {
             console.log('提交评论,rankId:', rankId);
             const input = document.getElementById(`comment-input-${rankId}`);
@@ -1046,10 +1615,8 @@
                 return;
             }
 
-            // ✅ 核心修复：手动把所有参数拼在URL后面，100%确保后端能收到
             const url = `/music/api/rank/pubcomment?token=${encodeURIComponent(token)}&rankId=${rankId}&userId=${userId}&content=${encodeURIComponent(content)}&parentId=null`;
 
-            // 用POST请求，第二个参数传null（空请求体）
             axios.post(url, null)
                 .then(response => {
                     console.log('提交评论响应:', response.data);
@@ -1066,6 +1633,7 @@
                     showErrorTip("评论发表失败：" + (error.response?.data?.msg || error.message));
                 });
         }
+
         function deleteComment(commentId) {
             console.log('删除评论，commentId:', commentId);
 
@@ -1088,7 +1656,7 @@
                         try {
                             const commentEl = document.querySelector(`[data-comment-id="${commentId}"]`);
                             if (commentEl) {
-                                const commentItem = commentEl.closest('.comment-item');
+                                const commentItem = commentEl.closest('.comment-entry');
                                 const commentContainer = commentItem?.closest('[id^="comment-container-"]');
                                 if (commentContainer) {
                                     const rankId = commentContainer.id.replace('comment-container-', '');
@@ -1130,19 +1698,17 @@
         (function () {
             try {
                 const urlParams = new URLSearchParams(window.location.search);
-                // 关键修复1：仅读取核心参数，跳过分页参数，避免覆盖
                 const urlToken = urlParams.get('token') || '';
                 const urlUid = urlParams.get('user_id') || urlParams.get('userId') || '';
                 const urlUserName = urlParams.get('userName') || urlParams.get('username') || '';
                 const urlCategory = urlParams.get('category') || '';
                 const urlSuccess = urlParams.get('success') || '';
 
-                // 关键修复2：仅当参数不为空时才存储，避免清空已有值
                 if (urlToken) localStorage.setItem('token', urlToken);
                 if (urlUid) localStorage.setItem('user_id', urlUid);
                 if (urlUserName) {
                     localStorage.setItem('userName', urlUserName);
-                    localStorage.setItem('username', urlUserName); // 同时存储username
+                    localStorage.setItem('username', urlUserName);
                 }
                 if (urlCategory) localStorage.setItem('category', urlCategory);
                 if (urlSuccess) localStorage.setItem('success', urlSuccess);
@@ -1155,18 +1721,15 @@
                     success: urlSuccess
                 });
 
-                // 客户端渲染用户名字作为后备方案
                 renderUserNameFromLocalStorage();
             } catch (err) {
                 console.error('❌ 收藏页初始化出错：', err);
             }
         })();
 
-        // 从localStorage渲染用户名字作为后备方案
         function renderUserNameFromLocalStorage() {
             console.log('🔍 开始渲染用户名字');
 
-            // 检查用户配置文件元素
             const userProfileElement = document.querySelector('.user-profile');
             console.log('🔍 用户配置文件元素:', userProfileElement);
 
@@ -1175,11 +1738,8 @@
                     width: userProfileElement.offsetWidth,
                     height: userProfileElement.offsetHeight
                 });
-                console.log('🔍 用户配置文件元素样式:', window.getComputedStyle(userProfileElement));
-                console.log('🔍 用户配置文件元素子元素:', userProfileElement.children);
             }
 
-            // 检查用户信息元素
             const userInfoElement = document.querySelector('.user-info');
             const userNameElement = document.querySelector('.user-info h3');
             const userNicknameElement = document.querySelector('.user-info p');
@@ -1193,35 +1753,22 @@
                     width: userInfoElement.offsetWidth,
                     height: userInfoElement.offsetHeight
                 });
-                console.log('🔍 用户信息元素样式:', window.getComputedStyle(userInfoElement));
             }
 
             if (userNameElement) {
                 console.log('🔍 当前用户名文本:', userNameElement.textContent);
-                console.log('🔍 用户名元素尺寸:', {
-                    width: userNameElement.offsetWidth,
-                    height: userNameElement.offsetHeight
-                });
             }
             if (userNicknameElement) {
                 console.log('🔍 当前用户昵称文本:', userNicknameElement.textContent);
-                console.log('🔍 用户昵称元素尺寸:', {
-                    width: userNicknameElement.offsetWidth,
-                    height: userNicknameElement.offsetHeight
-                });
             }
 
-            // 获取用户名字数据
             const storedUserName = localStorage.getItem('userName') || localStorage.getItem('username') || '';
             const urlParams = new URLSearchParams(window.location.search);
             const urlUserName = urlParams.get('userName') || urlParams.get('username') || '';
             const finalUserName = urlUserName || storedUserName || '测试用户';
 
             console.log('🔍 最终用户名字:', finalUserName);
-            console.log('🔍 localStorage中的用户名字:', storedUserName);
-            console.log('🔍 URL中的用户名字:', urlUserName);
 
-            // 强制设置用户名字
             if (userNameElement) {
                 userNameElement.textContent = finalUserName;
                 console.log('✅ 已设置用户名:', userNameElement.textContent);
@@ -1231,7 +1778,6 @@
                 console.log('✅ 已设置用户昵称:', userNicknameElement.textContent);
             }
 
-            // 确保元素可见
             if (userInfoElement) {
                 userInfoElement.style.display = 'block';
                 userInfoElement.style.visibility = 'visible';
@@ -1247,15 +1793,21 @@
                 console.log('✅ 已确保用户配置文件元素可见');
             }
 
-            // 同时存储到localStorage
             if (finalUserName && finalUserName !== '测试用户') {
                 localStorage.setItem('userName', finalUserName);
                 localStorage.setItem('username', finalUserName);
                 console.log('✅ 已存储用户名字到localStorage');
             }
+
+            const sidebarUserCardInfo = document.querySelector('.user-card-info');
+            if (sidebarUserCardInfo) {
+                const sidebarNameEl = sidebarUserCardInfo.querySelector('p:first-child');
+                if (sidebarNameEl) {
+                    sidebarNameEl.textContent = finalUserName;
+                }
+            }
         }
 
-        // 头像上传功能
         function initAvatarUpload() {
             console.log('🔍 初始化头像上传功能');
 
@@ -1268,13 +1820,11 @@
             console.log('🔍 用户头像:', userAvatar);
 
             if (avatarContainer && avatarUpload) {
-                // 点击头像容器触发文件选择
                 avatarContainer.addEventListener('click', function (e) {
                     console.log('🔍 点击头像容器');
                     avatarUpload.click();
                 });
 
-                // 处理文件选择
                 avatarUpload.addEventListener('change', function (e) {
                     console.log('🔍 文件选择变化');
                     const file = e.target.files[0];
@@ -1285,59 +1835,50 @@
                 });
             }
 
-            // 从localStorage加载头像
             loadAvatarFromLocalStorage();
         }
 
-        // 预览头像
         function previewAvatar(file) {
             console.log('🔍 预览头像:', file);
 
             const reader = new FileReader();
             reader.onload = function (e) {
                 const userAvatar = document.getElementById('user-avatar');
+                const sidebarAvatar = document.getElementById('sidebar-user-avatar');
                 if (userAvatar) {
                     userAvatar.src = e.target.result;
                     console.log('✅ 头像预览成功');
-
-                    // 上传头像
                     uploadAvatar(file);
+                }
+                if (sidebarAvatar) {
+                    sidebarAvatar.src = e.target.result;
                 }
             };
             reader.readAsDataURL(file);
         }
 
-        // 上传头像
         function uploadAvatar(file) {
             console.log('🔍 开始上传头像');
 
-            // 显示上传中状态
             showUploadingStatus();
 
-            // 模拟上传过程
             setTimeout(function () {
-                // 模拟上传成功
                 const mockAvatarUrl = URL.createObjectURL(file);
                 console.log('✅ 头像上传成功:', mockAvatarUrl);
 
-                // 保存头像URL到localStorage
                 localStorage.setItem('avatarUrl', mockAvatarUrl);
 
-                // 显示上传成功提示
                 showSuccessTip('头像上传成功！');
 
-                // 恢复正常状态
                 hideUploadingStatus();
             }, 1000);
         }
 
-        // 显示上传中状态
         function showUploadingStatus() {
             const avatarContainer = document.querySelector('.avatar-container');
             if (avatarContainer) {
                 avatarContainer.style.position = 'relative';
 
-                // 创建上传中覆盖层
                 let uploadingOverlay = document.querySelector('.avatar-uploading-overlay');
                 if (!uploadingOverlay) {
                     uploadingOverlay = document.createElement('div');
@@ -1348,7 +1889,7 @@
                         left: 0;
                         right: 0;
                         bottom: 0;
-                        background: rgba(26, 54, 93, 0.8);
+                        background: rgba(16, 20, 26, 0.8);
                         border-radius: 50%;
                         display: flex;
                         align-items: center;
@@ -1356,14 +1897,13 @@
                         z-index: 10;
                     `;
                     uploadingOverlay.innerHTML = `
-                        <div style="color: #fffa9c; font-size: 12px;">上传中...</div>
+                        <div style="color: #ffe4a4; font-size: 12px;">上传中...</div>
                     `;
                     avatarContainer.appendChild(uploadingOverlay);
                 }
             }
         }
 
-        // 隐藏上传中状态
         function hideUploadingStatus() {
             const uploadingOverlay = document.querySelector('.avatar-uploading-overlay');
             if (uploadingOverlay) {
@@ -1371,17 +1911,20 @@
             }
         }
 
-        // 从localStorage加载头像
         function loadAvatarFromLocalStorage() {
             console.log('🔍 从localStorage加载头像');
             const storedAvatarUrl = localStorage.getItem('avatarUrl');
             const userAvatar = document.getElementById('user-avatar');
+            const sidebarAvatar = document.getElementById('sidebar-user-avatar');
 
             console.log('🔍 localStorage中的头像URL:', storedAvatarUrl);
 
             if (storedAvatarUrl && userAvatar) {
                 userAvatar.src = storedAvatarUrl;
                 console.log('✅ 已从localStorage加载头像');
+            }
+            if (storedAvatarUrl && sidebarAvatar) {
+                sidebarAvatar.src = storedAvatarUrl;
             }
         }
 
@@ -1422,43 +1965,36 @@
             }
         }
 
-        // 关键修复3：重写goToPu函数，解决参数编码和优先级问题
         function goToPu() {
             try {
-                // 强制重新读取最新参数（不从localStorage取，避免脏数据）
                 const urlParams = new URLSearchParams(window.location.search);
                 const token = urlParams.get('token') || localStorage.getItem('token') || '';
                 const userId = urlParams.get('userId') || urlParams.get('user_id') || localStorage.getItem('user_id') || '';
-                // 仅携带核心参数，不携带收藏页的分页参数
                 const category = localStorage.getItem('category') || '';
                 const success = localStorage.getItem('success') || '';
 
                 console.log('📌 收藏页跳转publish参数：', { token, userId, category, success });
 
-                // 严格校验
                 if (!token || !userId) {
-                    showErrorTip('登录信息失效，请重新登录'); // 改用统一提示框
+                    showErrorTip('登录信息失效，请重新登录');
                     setTimeout(() => window.location.href = '/music/login.html', 1500);
                     return;
                 }
 
-                // 关键修复4：参数做URL编码，避免特殊字符导致跳转失败
                 const params = new URLSearchParams();
                 params.append('token', encodeURIComponent(token));
                 params.append('userId', encodeURIComponent(userId));
                 if (category) params.append('category', encodeURIComponent(category));
                 if (success) params.append('success', encodeURIComponent(success));
 
-                // 确保跳转路径和个人榜单页完全一致
                 const targetUrl = `/music/api/rank/publish?${params.toString()}`;
                 console.log('📌 收藏页最终跳转URL：', targetUrl);
 
-                // 强制跳转（用replace避免历史记录问题）
                 window.location.replace(targetUrl);
 
             } catch (err) {
                 console.error('❌ 收藏页跳转publish出错：', err);
-                showErrorTip('跳转失败：' + err.message); // 改用统一提示框
+                showErrorTip('跳转失败：' + err.message);
             }
         }
 
@@ -1474,17 +2010,17 @@
             if (!commentList) return;
 
             if (!token) {
-                commentList.innerHTML = '<p style="color: #4a5568; text-align: center;">请先登录后查看评论</p>';
+                commentList.innerHTML = '<p style="color: rgba(209, 197, 175, 0.7); text-align: center;">请先登录后查看评论</p>';
                 return;
             }
 
-            commentList.innerHTML = '<p style="color: #4a558; text-align: center;">加载中...</p>';
+            commentList.innerHTML = '<p style="color: rgba(209, 197, 175, 0.7); text-align: center;">加载中...</p>';
 
-            const firstRankingItem = document.querySelector('.ranking-item');
+            const firstRankingItem = document.querySelector('.playlist-card');
             const rankId = firstRankingItem ? firstRankingItem.dataset.rankId : null;
 
             if (!rankId) {
-                commentList.innerHTML = '<p style="color: #4a558; text-align: center;">暂无收藏榜单，无法加载评论</p>';
+                commentList.innerHTML = '<p style="color: rgba(209, 197, 175, 0.7); text-align: center;">暂无收藏榜单，无法加载评论</p>';
                 return;
             }
 
@@ -1501,19 +2037,19 @@
                         const comments = response.data.data || response.data;
                         renderGlobalComments(commentList, comments);
                     } else {
-                        commentList.innerHTML = `<p style="color: #4a5568; text-align: center;">查询评论失败：${response.data.msg || '未知错误'}</p>`;
+                        commentList.innerHTML = `<p style="color: rgba(209, 197, 175, 0.7); text-align: center;">查询评论失败：${response.data.msg || '未知错误'}</p>`;
                         console.error('评论查询失败:', response.data);
                     }
                 })
                 .catch(error => {
                     console.error('加载评论失败:', error);
-                    commentList.innerHTML = `<p style="color: #4a5568; text-align: center;">加载评论失败：${error.response?.data?.msg || error.message}</p>`;
+                    commentList.innerHTML = `<p style="color: rgba(209, 197, 175, 0.7); text-align: center;">加载评论失败：${error.response?.data?.msg || error.message}</p>`;
                 });
         }
 
         function renderGlobalComments(container, comments) {
             if (!comments || comments.length === 0) {
-                container.innerHTML = '<p style="color: #4a5568; text-align: center;">暂无评论</p>';
+                container.innerHTML = '<p style="color: rgba(209, 197, 175, 0.7); text-align: center;">暂无评论</p>';
                 return;
             }
 
@@ -1525,19 +2061,23 @@
                 }
 
                 const commentItem = document.createElement('div');
-                commentItem.className = 'comment-item';
-                commentItem.style.cssText = 'padding: 15px; border-bottom: 1px solid rgba(26, 54, 93, 0.2); margin-bottom: 10px;';
+                commentItem.className = 'comment-entry';
 
                 commentItem.innerHTML = `
-                <div class="comment-header" style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                    <span class="comment-username" style="font-weight: bold; color: #1a365d;">${comment.username || '匿名用户'}</span>
-                    <span class="comment-time" style="font-size: 12px; color: #4a5568;">${formatTime(comment.comTime)}</span>
+                <div class="comment-avatar" style="width:40px;height:40px;border-radius:50%;overflow:hidden;flex-shrink:0;border:1px solid rgba(255,228,164,0.2);">
+                    <img alt="avatar" src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=user%20avatar&image_size=square" style="width:100%;height:100%;object-fit:cover;">
                 </div>
-                <div class="comment-content" style="color: #2d3748; margin-bottom: 10px;">${comment.comContent || ''}</div>
-                <div class="comment-actions-bar">
-                    ${comment.userId === parseInt(userId) ?
-                        `<button class="comment-delete-btn" data-comment-id="${comment.comId}" style="background: transparent; border: 1px solid #1a365d; color: #1a365d; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer;">删除</button>` : ''
-                    }
+                <div class="comment-body" style="flex-grow:1;display:flex;flex-direction:column;gap:4px;">
+                    <div class="comment-top" style="display:flex;justify-content:space-between;align-items:center;">
+                        <span class="comment-user" style="font-size:0.875rem;font-weight:700;color:#dfe2eb;">${comment.username || '匿名用户'}</span>
+                        <span class="comment-time" style="font-size:10px;color:rgba(209,197,175,0.5);text-transform:uppercase;font-weight:700;letter-spacing:-0.03em;">${formatTime(comment.comTime)}</span>
+                    </div>
+                    <p class="comment-text" style="font-size:0.875rem;color:rgba(209,197,175,0.8);line-height:1.6;">${comment.comContent || ''}</p>
+                    <div class="comment-actions-bar">
+                        ${comment.userId === parseInt(userId) ?
+                            `<button class="comment-delete-btn" data-comment-id="${comment.comId}" style="background:transparent;border:none;color:rgba(209,197,175,0.6);padding:4px 8px;border-radius:8px;font-size:12px;cursor:pointer;">删除</button>` : ''
+                        }
+                    </div>
                 </div>
             `;
 
@@ -1546,12 +2086,12 @@
         }
 
         function submitGlobalComment() {
-            const input = document.getElementById('comment-input');
-            if (!input) {
+            const drawerTextarea = document.querySelector('.drawer-footer .comment-textarea');
+            if (!drawerTextarea) {
                 showErrorTip("评论输入框未找到！");
                 return;
             }
-            const content = input.value.trim();
+            const content = drawerTextarea.value.trim();
 
             if (!content) {
                 showErrorTip("评论内容不能为空！");
@@ -1563,7 +2103,7 @@
                 return;
             }
 
-            const firstRankingItem = document.querySelector('.ranking-item');
+            const firstRankingItem = document.querySelector('.playlist-card');
             const rankId = firstRankingItem ? firstRankingItem.dataset.rankId : null;
 
             if (!rankId) {
@@ -1584,7 +2124,7 @@
                     console.log('提交评论成功:', response.data);
                     if (response.data.code === 200 || response.data.success) {
                         showSuccessTip("评论发表成功！");
-                        input.value = '';
+                        drawerTextarea.value = '';
                         loadGlobalComments();
                     } else {
                         showErrorTip("评论发表失败：" + (response.data.msg || '未知错误'));
@@ -1598,33 +2138,30 @@
 
         // ===================== 事件委托绑定（修复事件优先级）=====================
         document.addEventListener('DOMContentLoaded', function () {
-            // 初始化播放器
             initMusicPlayer();
 
-            // 加载全局评论
             loadGlobalComments();
 
-            // 渲染用户名字作为后备方案
             renderUserNameFromLocalStorage();
 
-            // 初始化头像上传功能
             initAvatarUpload();
 
-            // 1. 导航栏切换按钮（收起/展开）
-            document.addEventListener('click', function (e) {
-                if (e.target.closest('.nav-toggle-btn')) {
-                    const sidebar = document.querySelector('.left-sidebar');
-                    if (sidebar) {
-                        sidebar.classList.toggle('collapsed');
-                    }
+            // 抽屉外部点击关闭
+            window.addEventListener('click', function(e) {
+                const drawer = document.getElementById('comment-drawer');
+                const openButtons = document.querySelectorAll('[onclick*="comment-drawer"]');
+                let clickedButton = false;
+                openButtons.forEach(btn => { if(btn.contains(e.target)) clickedButton = true; });
+
+                if (!drawer.contains(e.target) && !clickedButton && drawer.classList.contains('open')) {
+                    drawer.classList.remove('open');
                 }
             });
 
-            // 2. 左侧导航按钮绑定
+            // 侧边栏导航按钮绑定
             document.addEventListener('click', function (e) {
                 const target = e.target;
 
-                // 首页
                 if (target.closest('#navIndex')) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -1634,7 +2171,6 @@
                     return;
                 }
 
-                // 主页 -> 跳转到 publish 页面
                 if (target.closest('#navHome')) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -1642,7 +2178,6 @@
                     return;
                 }
 
-                // 搜索
                 if (target.closest('#navSearch')) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -1653,15 +2188,15 @@
                     return;
                 }
 
-                // 我的榜单
                 if (target.closest('#navMyRank')) {
                     e.preventDefault();
                     e.stopPropagation();
-                    goToPu();
+                    let navToken = localStorage.getItem('token') || getUrlParam('token');
+                    let navUserId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
+                    window.location.href = `/music/api/mine/myrank?token=${encodeURIComponent(navToken)}&userId=${encodeURIComponent(navUserId)}`;
                     return;
                 }
 
-                // 热门榜单
                 if (target.closest('#navHotRank')) {
                     e.preventDefault();
                     e.stopPropagation();
@@ -1671,27 +2206,16 @@
                     return;
                 }
 
-                // 我的收藏（当前页面，高亮active）
                 if (target.closest('#navMyLove')) {
                     e.preventDefault();
                     e.stopPropagation();
-                    document.querySelectorAll('.nav-circle-btn').forEach(btn => btn.classList.remove('active'));
+                    document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
                     target.closest('#navMyLove').classList.add('active');
-                    return;
-                }
-
-                // 发布榜单
-                if (target.closest('#navAdd')) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    let navToken = localStorage.getItem('token') || getUrlParam('token');
-                    let navUserId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
-                    window.location.href = `/music/rank.html?token=${encodeURIComponent(navToken)}&userId=${encodeURIComponent(navUserId)}`;
                     return;
                 }
             });
 
-            // 2. 播放按钮绑定（移除捕获阶段，改为冒泡阶段）
+            // 播放按钮绑定
             document.addEventListener('click', function (e) {
                 const playBtn = e.target.closest('.play-btn');
                 if (playBtn) {
@@ -1700,9 +2224,9 @@
                     console.log('播放按钮点击，歌曲ID：', playBtn.dataset.songId);
                     playSongFromData(playBtn);
                 }
-            }); // 移除true，改为冒泡阶段
+            });
 
-            // 3. 评论相关按钮绑定（保持不变）
+            // 评论相关按钮绑定
             document.addEventListener('click', function (e) {
                 const commentToggle = e.target.closest('.comment-toggle');
                 if (commentToggle) {
@@ -1723,9 +2247,9 @@
                 }
             });
 
-            // 全局评论提交按钮
+            // 抽屉内发布评论按钮绑定
             document.addEventListener('click', function (e) {
-                if (e.target.id === 'comment-submit') {
+                if (e.target.closest('.submit-comment-btn')) {
                     e.preventDefault();
                     e.stopPropagation();
                     submitGlobalComment();
@@ -1742,7 +2266,7 @@
                 }
             });
 
-            // 4. 分页按钮绑定（保持不变）
+            // 分页按钮绑定
             document.addEventListener('click', function (e) {
                 const pageBtn = e.target.closest('.pagination button');
                 if (pageBtn && !pageBtn.disabled) {
@@ -1759,6 +2283,106 @@
                 setTimeout(() => window.location.href = '/music/login.html', 1500);
             }
         });
+
+        // ===================== 榜单点赞功能（vote接口）=====================
+        function toggleVote(btn) {
+            const rankId = btn.dataset.rankId;
+
+            if (!rankId) {
+                showErrorTip("榜单ID为空，无法点赞！");
+                return;
+            }
+
+            if (!token || !userId || isNaN(userId)) {
+                showErrorTip("请先登录后再点赞！");
+                return;
+            }
+
+            axios.post(`/music/api/rank/vote`, null, {
+                params: {
+                    token: token,
+                    rankId: rankId,
+                    userId: userId
+                }
+            })
+            .then(response => {
+                console.log('点赞响应:', response.data);
+                if (response.data.code === 200 || response.data.success) {
+                    showSuccessTip("点赞成功！");
+                    btn.classList.add('active');
+                    const icon = btn.querySelector('.material-symbols-outlined');
+                    if (icon) {
+                        icon.style.fontVariationSettings = "'FILL' 1";
+                        icon.style.color = '#ffe4a4';
+                    }
+                } else {
+                    showErrorTip("点赞失败：" + (response.data.msg || '未知错误'));
+                }
+            })
+            .catch(error => {
+                console.error('点赞失败:', error);
+                showErrorTip("点赞失败：" + (error.response?.data?.msg || error.message));
+            });
+        }
+
+        // ===================== 榜单收藏功能（love/deleteLove接口）=====================
+        function toggleLove(btn) {
+            const rankId = btn.dataset.rankId;
+
+            if (!rankId) {
+                showErrorTip("榜单ID为空，无法收藏！");
+                return;
+            }
+
+            if (!token || !userId || isNaN(userId)) {
+                showErrorTip("请先登录后再收藏！");
+                return;
+            }
+
+            const isLoved = btn.dataset.loved === 'true';
+            let url;
+            let successMsg;
+
+            if (isLoved) {
+                url = `/music/api/rank/deleteLove?token=${encodeURIComponent(token)}&rankId=${rankId}&userId=${userId}`;
+                successMsg = "已取消收藏";
+            } else {
+                url = `/music/api/rank/love?token=${encodeURIComponent(token)}&rankId=${rankId}&userId=${userId}`;
+                successMsg = "收藏成功";
+            }
+
+            axios.post(url, null)
+            .then(response => {
+                console.log('收藏操作响应:', response.data);
+                if (response.data.code === 200 || response.data.success) {
+                    showSuccessTip(successMsg);
+
+                    if (isLoved) {
+                        btn.dataset.loved = 'false';
+                        btn.classList.remove('active');
+                        const icon = btn.querySelector('.material-symbols-outlined');
+                        if (icon) {
+                            icon.style.fontVariationSettings = "'FILL' 0";
+                            icon.style.color = '';
+                        }
+                    } else {
+                        btn.dataset.loved = 'true';
+                        btn.classList.add('active');
+                        const icon = btn.querySelector('.material-symbols-outlined');
+                        if (icon) {
+                            icon.style.fontVariationSettings = "'FILL' 1";
+                            icon.style.color = '#ffe4a4';
+                        }
+                    }
+                } else {
+                    showErrorTip("操作失败：" + (response.data.msg || '未知错误'));
+                }
+            })
+            .catch(error => {
+                console.error('收藏操作失败:', error);
+                showErrorTip("操作失败：" + (error.response?.data?.msg || error.message));
+            });
+        }
     </script>
 </body>
 
