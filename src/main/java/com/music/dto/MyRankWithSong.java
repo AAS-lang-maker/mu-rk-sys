@@ -2,6 +2,7 @@ package com.music.dto;
 
 import com.music.pojo.RankSong;
 import com.music.pojo.RankTags;
+import com.music.pojo.UserTags;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -18,5 +19,5 @@ public class MyRankWithSong {
    private LocalDateTime publishTime;//数据库中的datetime对应java类中的localdateTime
     //date对应LocalDate
    private List<RankSong> rankSongList;
-   private List<RankTags> rankTagsList;
+   private List<UserTags> userTagList;
 }

@@ -1,5 +1,5 @@
 create database  music_db character set utf8mb4;
-USE music_db;
+use music_db;
 create table category(
                          category_id int primary key auto_increment comment "分类id",
                          categoty_name varchar(50) not null unique comment "分类名称",
@@ -219,3 +219,10 @@ CREATE TABLE Rank_Tags (
                            INDEX idx_user_id (user_id),
                            INDEX idx_create_time (create_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='榜单标签表';
+ALTER TABLE user_tags ADD COLUMN use_count INT DEFAULT 1;
+
+-- 把 Tag 表里多余的 use_count 删掉
+ALTER TABLE tags_dictionary DROP COLUMN use_count;
+
+-- 给 Tag 表加一个“全站热度”字段
+ALTER TABLE tags_dictionary ADD COLUMN use_count INT DEFAULT 0 COMMENT '全站使用该标签的总热度';

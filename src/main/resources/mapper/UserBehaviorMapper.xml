@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.music.Mapper.UserBehaviorMapper">
+
+
+    <select id="selectUserBehaviorById" resultType="com.music.pojo.UserBehavior">
+        select user_id,UT_id,song_id,ST_id,play_count,last_play_time,source,action_type from music_db.user_behavior as ub
+        left join song as s on s.song_id=ub.song_id
+        left join user_tags as ut on ut.UT_id=ub.UT_id
+        left join user as u on u.user_id=ub.user_id
+        where ub.user_id=#{userId} and ub.UT_id=#{UTId} and ub.song_id=#{songId} and ub.ST_id=#{STId}
+        order by last_play_time desc limit 20
+    </select>
+</mapper>

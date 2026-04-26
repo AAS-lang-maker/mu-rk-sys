@@ -1,13 +1,15 @@
-//package com.music.Service;
-//
-//import dev.langchain4j.service.AiService;
-//import dev.langchain4j.service.SystemMessage;
-//@AiService
-//public interface MusicAgent {
-//    @SystemMessage({
-//            "你现在是‘小gemini音乐榜单’的首席管家——deepseek。",
-//            "你的任务是根据用户的喜好推荐音乐。回答要活泼，多用表情符号！✨"
-//    })
-//    String chat(String message);
-//
-//}
+package com.music.Service;
+
+
+import dev.langchain4j.service.*;
+import dev.langchain4j.service.spring.AiService;
+
+@AiService
+public interface MusicAgent {
+    @SystemMessage("{{systemPrompt}}") // 1. 定义一个模板变量
+    TokenStream chat(
+            @MemoryId int userId,
+            @V("systemPrompt") String systemPrompt, // 2. 用 @V 把参数填进模板
+            @UserMessage String userMessage
+    );
+}

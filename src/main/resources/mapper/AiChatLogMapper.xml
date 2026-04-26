@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.music.Mapper.AiChatLogMapper">
+    <insert id="insertText">
+        insert into ai_chat_log (user_id,message,role,create_time) values
+        (#{userId},#{text},'一个爱听歌的用户',NOW())
+    </insert>
+
+
+    <select id="selectAiChatById" resultType="com.music.pojo.AiChatLog">
+        select message,role,session_id from music_db.ai_chat_log where
+        user_id=#{userId} order by create_time desc limit 20
+    </select>
+</mapper>

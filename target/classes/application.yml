@@ -59,14 +59,18 @@ pagehelper:
 music:
   file:
     path: D:/music/music_files/
+langchain4j:
+  open-ai:
+# 1. 基础对话配置
+    chat-model:
+      base-url: https://api.siliconflow.cn/v1
+      api-key: ${siliconflow.api-key}
+      model-name: deepseek-ai/DeepSeek-V3
+# 2. 流式跳动配置 (必须配这个，大管家才能“蹦字”)
+    streaming-chat-model:
+      base-url: https://api.siliconflow.cn/v1
+      api-key: ${siliconflow.api-key}
+      model-name: deepseek-ai/DeepSeek-V3
 
-## AI
-#langchain4j:
-#  open-ai:
-#    chat-model:
-#      base-url: https://api.siliconflow.cn/v1
-#      api-key: ${SILICONFLOW_API_KEY}
-#      model-name: deepseek-ai/DeepSeek-V3
-## application.yml
 siliconflow:
   api-key: sk-scfyywuvogbtzbjclasankvpfxwzccdvecbfkuaksmxjbgam

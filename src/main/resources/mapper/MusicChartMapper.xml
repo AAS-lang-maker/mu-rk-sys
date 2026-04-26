@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.music.Mapper.MusicChartMapper">
+    <select id="selectChart" resultMap="MyRankWithSongResultMap">
+       select pr.*,rs.rank_id,rs.ranking,rs.song_id,s.song_name,si.singer_name,
+              ut.tag_id,td.tag_name from (
+       select p.rank_name,p.user_id,p.rank_id from personal_rank as p
+              left join rank_song as rs on p.rank_id=rs.rank_id
+              left join song as s on s.song_id=rs.song_id
+              left join singer as si on s.singer_id = si.singer_id
+              left join user as u on p.user_id = u.user_id
+              left join user_tags as ut on ut.user_id=u.user_id
+              left join tags_dictionary as td on td.tag_id=ut.tag_id
+              where (p.rank_name like concat('%',#{keyword},'%') or s.song_name
+              like concat('%',#{keyword},'%') or si.singer_name like
+              concat('%',#{keyword},'%') or td.tag_name like concat('%',#{keyword},'%')) and p.user_id=#{userId}
+              group by p.rank_id
+              order by p.rank_id
+              limit 20) as pr
+              left join rank_song as rs on pr.rank_id=rs.rank_id
+              left join song as s on s.song_id=rs.song_id
+              left join singer as si on s.singer_id = si.singer_id
+              left join user as u on pr.user_id = u.user_id
+              left join user_tags as ut on ut.user_id=u.user_id
+              left join tags_dictionary as td on td.tag_id=ut.tag_id
+              order by pr.rank_id,rs.ranking
+    </select>
+    <resultMap id="MyRankWithSongResultMap" type="com.music.dto.MyRankWithSong">
+        <id property="rankId" column="rank_id"/>
+        <result property="rankName" column="rank_name"/>
+        <result property="publishTime" column="publish_time"/>
+        <!-- 子查询映射：把同一个榜单下的歌曲映射到songList列表 -->
+        <collection property="rankSongList" ofType="com.music.pojo.RankSong">
+            <id property="rsId" column="rs_id"/>
+            <result property="songId" column="song_id"/>
+            <result property="songName" column="song_name"/>
+            <result property="singerName" column="singer_name"/>
+            <result property="ranking" column="ranking"/>
+        </collection>
+        <collection property="userTagList" ofType="com.music.pojo.UserTags">
+            <id property="UTId" column="UT_id"/>
+            <result property="userId" column="user_id"/>
+            <result property="tagId" column="tag_id"/>
+            <result property="createTime" column="create_time"/>
+            <result property="status" column="status"/>
+        </collection>
+    </resultMap>
+</mapper>
