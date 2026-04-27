@@ -123,13 +123,19 @@ public class HotRankServiceImpl implements HotRankService {
         int oldScore = currentScore == null ? 0 : currentScore.intValue();
         int scoreDelta = targetScore - oldScore;别算了会覆盖 次次新上榜 你撑得住？
         */
+
+
+        //小兔子乖乖 把门开开  爱情像纠结的毛线 ~最后还是失眠 别管我了☺️ ε=(´ο｀*)))唉 现在是2026年 4月25日 00:02:41
+        //当世界崩塌  我们 still here
+        //发牢骚来了 verdurous mountain 最好听的一集 谁会不喜欢在深夜听上一首纯音乐呢
+
         Integer increment = caculateHotRank(rankId);
         if (increment <= 0) {
             log.warn("增量小于等于0，不执行更新");
             return;
         }
 
-        long timestamp = System.currentTimeMillis() / 1000;
+        long timestamp = System.currentTimeMillis()/1000;
 
         double currentScore = stringRedisTemplate.opsForZSet().score(Hot_Rank_Key, rankId.toString());
 
@@ -171,23 +177,20 @@ public class HotRankServiceImpl implements HotRankService {
 
             Long newRank = newRankNum == null ? -1L : newRankNum.longValue();
 
+            log.info("✅ 热度更新完成，rankId={}, oldRank={}, newRank={}", rankId, oldRank, newRank);
             String currentTopRankIdStr = String.valueOf(result.get(2));
 
-
-            // ==========================================
-            // 逻辑一：全服广播 (榜首更换) -> 改用原生 WebSocket
-            // ==========================================
+                        // 逻辑一：全服广播 (榜首更换) -> 用原生 WebSocket
             if (newRank == 0) {
                 String lastTopRankId = (String) redisTemplate.opsForValue().get("rank:last_top_user");
 
                 if (lastTopRankId == null ||
                         !lastTopRankId.equals(currentTopRankIdStr)) {
-                    // 查询榜单信息
+
                     PersonalRank topRank = musicHotRankMapper.selectRankById(Integer.valueOf(currentTopRankIdStr));
                     String displayName = (topRank != null && topRank.getRankName() != null)
                             ? topRank.getRankName() : "榜单#" + currentTopRankIdStr;
 
-                    // 【修改点 1】构造战报 JSON 对象 (复用你之前的 BattleReport 类)
                     BattleReport publicReport = new BattleReport(
                             "SUCCESS",
                             "🏆 榜单风云",
@@ -196,22 +199,15 @@ public class HotRankServiceImpl implements HotRankService {
 
                     String jsonPublicMsg = JSON.toJSONString(publicReport);
 
-                    // 【修改点 2】直接调用原生工具类发送 JSON
                     NativeWebSocketServer.sendMessageToAll(jsonPublicMsg);
 
                     log.info("📢 全服广播发送：{}", publicReport.getTitle());
 
-                    // 更新 Redis 记录
                     redisTemplate.opsForValue().set("rank:last_top_user", currentTopRankIdStr);
                 }
             }
 
-            // ==========================================
-            // 逻辑二：私信战报 (排名上升) -> 改用原生 WebSocket
-            // ==========================================
-            // 注意：原生 WebSocket 广播是发给“所有连接的人”。
-            // 如果要实现“私信”，你需要在前端收到消息后，根据消息里的字段判断是否显示。
-            // 或者，你的 NativeWebSocketServer 需要支持“指定用户发送”。
+//喵
 
             String personalMsg = null;
             if (oldRank == -1) {
@@ -233,9 +229,6 @@ public class HotRankServiceImpl implements HotRankService {
                                 personalMsg
                         );
 
-                        // 【关键】这里不能发给所有人，要发给特定用户
-                        // 假设你的 NativeWebSocketServer 有个方法叫 sendToUser(userId, msg)
-                        // 如果没有，你需要加上这个方法（参考下面的补充代码）
                         String jsonPersonalMsg = JSON.toJSONString(personalReport);
 
                         NativeWebSocketServer.sendToUser(targetUserId.toString(), jsonPersonalMsg);
