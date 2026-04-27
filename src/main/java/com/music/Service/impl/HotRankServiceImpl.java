@@ -128,42 +128,34 @@ public class HotRankServiceImpl implements HotRankService {
             log.warn("增量小于等于0，不执行更新");
             return;
         }
-        // 1. 定义基数 (用 double)
-// 注意：这里用 100亿 (10^10) 配合秒级时间戳，绝对安全
-        final double BASE = 10000000000d;
 
-// 2. 获取秒级时间戳
         long timestamp = System.currentTimeMillis() / 1000;
 
-// 3. 获取旧分数
-        Double currentScore = stringRedisTemplate.opsForZSet().score(Hot_Rank_Key, rankId.toString());
+        double currentScore = stringRedisTemplate.opsForZSet().score(Hot_Rank_Key, rankId.toString());
 
-// 4. 解析旧的热度分 (注意要转成 double 运算)
-// 如果 currentScore 是 null，默认为 0
-        double oldScoreValue = (currentScore == null) ? 0 : currentScore;
-        long oldRankScore = (long) (oldScoreValue / BASE);
+        final long BASE = 10000000000L;
 
-// 5. 计算新热度分
-        long newRankScore = oldRankScore + increment;
+        long oldScoreValue = currentScore==0? 0L : (long) currentScore;
 
-// 6. 【关键修改】直接用 double 计算最终分数
-// 这样生成的数字类似 123456789.1714123456，Redis 处理这种浮点数最拿手
-        double finalScore = newRankScore * BASE + timestamp;
+        long oldRankScore = oldScoreValue / BASE;
 
-// 打印看看 (可选)
-        String scoreStr = new BigDecimal(finalScore).toPlainString();
+        long newRankScore = oldRankScore + increment.longValue();
 
-// 【调试】打印一下看看，确保没有 "E"
+
+        long finalScore = newRankScore * BASE + timestamp;
+
+        String scoreStr = String.valueOf(finalScore);
+
         System.out.println(">>> 最终传给 Redis 的分数: " + scoreStr);
         System.out.println("最终计算出的 Score: " + finalScore);
 
         List<Object> result = null;
         try {
-            result = (List<Object>) redisTemplate.execute(
+            result = (List<Object>) stringRedisTemplate.execute(
                     rankScript,
                     Collections.singletonList(Hot_Rank_Key),
                             rankId.toString(),
-                            scoreStr// ARGV[2]: 直接传算好的最终分数！
+                            scoreStr // ARGV[2]: 直接传算好的最终分数！
 
                     );
         } catch (Exception e) {
