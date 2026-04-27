@@ -8,7 +8,7 @@ public class UserContext {
     }
 
     public static Integer getUserId() {
-        return userHolder.get();
+        return (Integer) ThreadLocalUtil.get();
     }
 
     public static void remove() {
