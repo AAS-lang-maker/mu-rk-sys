@@ -54,7 +54,7 @@ public class Usercontroller {
              4.存在则重定向到登录界面并返回信息：您已经注册，请重新登录
              5.不存在则继续让用户输入密码
              6.注册完成后可直接重定向到首页*/
-    /* @PostMapping("/register")
+     @PostMapping("/register")
     @Operation(summary = "用户注册", description = "用户注册接口")
         public String register(@Validated UserRegisterDTO userRegisterDTO, RedirectAttributes redirectAttributes) {
             //Model最没用的一集，由于在注册中要重定向，所以用RedirectAttributes传参数
@@ -68,11 +68,11 @@ public class Usercontroller {
                 redirectAttributes.addFlashAttribute("errormessage", s2 + result.getMsg());
                 return "redirect:/login.html";
             }
-        }*/
+        }
 
     // 这是一个专门给 Apifox/前后端分离用的注册接口
 // 路径加了 /api 前缀，和原来的区分开
-    @PostMapping("/register")
+  /*  @PostMapping("/register")
     @ResponseBody // 关键：告诉Spring Boot，我要返回JSON，不要跳页面！
     public Result<String> registerApi(@Validated @RequestBody UserRegisterDTO userRegisterDTO) {
         // 直接调用Service，逻辑和原来一模一样
@@ -87,7 +87,7 @@ public class Usercontroller {
             // 注册失败，返回错误的 JSON
             return Result.error(result.getMsg());
         }
-    }
+    }*/
     }
 
 
