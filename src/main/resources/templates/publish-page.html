@@ -9,9 +9,53 @@
     <title>榜单页</title>
     <link rel="icon" href="data:'base:;base64,iVBORw0KGgo=">
     <link rel="stylesheet" th:href="@{/player/music-player.css}">
-    <link rel="stylesheet" href="../static/player/iconfont/iconfont.css">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet">
+
     <style>
-        /* 全局样式统一 - 与搜索页保持一致 */
+        /* ==================== Design System - CSS Variables ==================== */
+        :root {
+            /* Surface 层级 */
+            --surface: #10141a;
+            --surface-container-lowest: #0a0e14;
+            --surface-container-low: #181c22;
+            --surface-container: #1c2026;
+            --surface-container-high: #262a31;
+            --surface-container-highest: #31353c;
+
+            /* On-surface 色 */
+            --on-surface: #dfe2eb;
+            --on-surface-variant: #a8adb8;
+
+            /* Primary 强调色 */
+            --primary: #ffe4a4;
+            --primary-container: #f0c64d;
+            --primary-fixed-dim: #ebc249;
+            --surface-tint: #ebc249;
+
+            /* 边框 */
+            --outline-variant: #4d4635;
+
+            /* 字体 */
+            --font-headline: 'Space Grotesk', sans-serif;
+            --font-body: 'Manrope', sans-serif;
+
+            /* 圆角 */
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --radius-xl: 16px;
+            --radius-full: 9999px;
+        }
+
+        /* ==================== Global Reset & Base Styles ==================== */
         * {
             margin: 0;
             padding: 0;
@@ -19,1940 +63,1576 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: var(--font-body);
             min-height: 100vh;
-            color: #1a202c;
-            padding: 0;
-            background:
-                linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-                #1e3a5f;
-            background-size: 50px 50px, 50px 50px, 100% 100%;
-            background-attachment: fixed;
+            color: var(--on-surface);
+            background: var(--surface);
             position: relative;
+            overflow-x: hidden;
         }
 
-        .container {
-            padding: 40px;
-            max-width: 100%;
-            margin: 0 auto;
+        h1,
+        h2,
+        h3 {
+            font-family: var(--font-headline);
         }
 
-        .page-wrapper {
-            display: flex;
-            min-height: 100vh;
-            gap: 20px;
-            padding: 20px;
-            padding-bottom: 20px;
+        /* ==================== Material Icons Configuration ==================== */
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
 
-        .left-sidebar {
+        /* ==================== Utility Classes ==================== */
+
+        /* Gold Gradient */
+        .gold-gradient {
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+        }
+
+        .text-gold-gradient {
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Glass Card Effect */
+        .glass-card {
+            background: rgba(49, 53, 60, 0.6);
+            backdrop-filter: blur(20px);
+            border-radius: var(--radius-xl);
+            border: 1px solid rgba(77, 70, 53, 0.1);
+        }
+
+        /* Custom Scrollbar (Gold Theme) */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(240, 198, 77, 0.2);
+            border-radius: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(240, 198, 77, 0.5);
+        }
+
+        /* Hide Scrollbar */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* ==================== Left Sidebar Navigation ==================== */
+        .sidebar-nav {
             position: fixed;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 100px;
-            background: #fff9c4;
-            border-radius: 16px;
-            padding: 15px;
+            top: 0;
+            left: 0;
+            width: 288px;
+            height: 100vh;
+            background-color: #0a0b0e;
+            border-right: 1px solid rgba(245, 158, 11, 0.15);
             display: flex;
             flex-direction: column;
+            padding: 48px 16px;
+            z-index: 40;
+            padding-bottom: calc(96px + 48px);
         }
 
-        /* 左侧导航栏样式 */
-        .nav-toggle-btn {
-            width: 40px;
-            height: 40px;
-            background: transparent;
-            border: 2px solid #1e3a5f;
+        .nav-brand {
+            padding: 0 16px;
+            margin-bottom: 32px;
+        }
+
+        .nav-brand h1 {
+            font-size: 18px;
+            font-weight: bold;
+            color: #facc15;
+            letter-spacing: -0.9px;
+            text-transform: none;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .nav-brand p {
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            font-size: 10px;
+            color: #737373;
+            margin-top: 4px;
+        }
+
+        .nav-menu {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 0 8px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 16px;
+            color: #737373;
+            text-decoration: none;
+            transition: all 0.3s ease-in-out;
             border-radius: 8px;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+            font-size: 14px;
         }
 
-        .nav-toggle-btn:hover {
-            background: #1e3a5f;
+        .nav-item:hover {
+            color: #d4d4d4;
+            background-color: rgba(38, 38, 38, 0.4);
         }
 
-        .nav-toggle-btn:hover svg rect {
-            fill: #fff9c4;
+        .nav-item:hover .nav-icon {
+            color: #facc15;
         }
 
-        .nav-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            flex: 1;
+        .nav-item.active {
+            color: #facc15;
+            background-color: rgba(245, 158, 11, 0.1);
+            border-radius: 0 9999px 9999px 0;
         }
 
-        .nav-circle-btn {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: #fff9c4;
-            border: 2px solid #1e3a5f;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 2px;
-            transition: all 0.3s ease;
-            padding: 5px;
-        }
-
-        .nav-circle-btn:hover {
-            background: #1e3a5f;
-            transform: scale(1.05);
-        }
-
-        .nav-circle-btn.active {
-            background: #1e3a5f;
+        .nav-item.active .nav-icon {
+            font-variation-settings: 'FILL' 1;
         }
 
         .nav-icon {
-            font-size: 18px;
+            font-size: 20px;
+            transition: color 0.3s ease;
         }
 
         .nav-text {
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
             font-size: 10px;
-            color: #1e3a5f;
-            font-weight: bold;
         }
 
-        .nav-circle-btn:hover .nav-text,
-        .nav-circle-btn.active .nav-text {
-            color: #fff9c4;
-        }
-
-        /* 收起状态 */
-        .left-sidebar.collapsed {
-            width: 60px !important;
-        }
-
-        .left-sidebar.collapsed .nav-text {
-            display: none;
-        }
-
-        .left-sidebar.collapsed .nav-circle-btn {
-            width: 45px;
-            height: 45px;
-        }
-
-        .left-sidebar.collapsed .sidebar-cloud-tags {
-            display: none;
-        }
-
-        .sidebar-cloud-tags {
+        .nav-footer {
+            padding: 16px 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
             margin-top: auto;
-            padding-top: 15px;
-            border-top: 2px dashed #1e3a5f;
         }
 
-        /* ========== 中间内容区三盒布局样式 ========== */
-
-        .main-content {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            padding: 0 25px 0 170px;
-            overflow-y: auto;
-            height: calc(453vh - 40px);
-        }
-
-        /* 盒子1：榜单列表盒 */
-        .ranking-list-box {
-            background: #fffa9c;
-            border-radius: 16px;
-            padding: 0 25px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            border: 2px solid rgba(30, 58, 95, 0.1);
-            flex-shrink: 0;
-        }
-
-        /* 盒子2：云标签盒 */
-        .cloud-tag-box-container {
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 18px 22px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-            border: 2px solid rgba(30, 58, 95, 0.15);
-            flex-shrink: 0;
-        }
-
-        .cloud-tag-box-container .cloud-tag-label {
-            display: block;
-            font-size: 15px;
-            color: #1e3a5f;
+        .create-rank-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+            color: #3d2e00;
             font-weight: bold;
-            margin-bottom: 12px;
-            text-align: center;
-        }
-
-        .cloud-tag-box-container .cloud-tag-content {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
-        }
-
-        .cloud-tag-box-container .tag-item {
-            background: rgba(30, 58, 95, 0.12);
-            color: #1e3a5f;
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
-            border: 1px solid rgba(30, 58, 95, 0.25);
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .cloud-tag-box-container .tag-item:hover {
-            background: #1e3a5f;
-            color: #fff9c4;
-            transform: scale(1.08);
-            box-shadow: 0 2px 8px rgba(30, 58, 95, 0.3);
-        }
-
-        /* 盒子3：音乐播放器盒 */
-        .music-player-box {
-            background: linear-gradient(135deg, rgba(30, 58, 95, 0.95) 0%, rgba(30, 58, 95, 0.98) 100%);
-            backdrop-filter: blur(10px);
+            padding: 12px 24px;
             border-radius: 12px;
-            padding: 15px 20px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            border: 2px solid rgba(255, 250, 156, 0.3);
-            flex-shrink: 0;
-            min-height: 100px;
-        }
-
-        /* 底部双盒并排容器 */
-        .bottom-dual-boxes {
-            display: flex;
-            gap: 20px;
-            flex-shrink: 0;
-        }
-
-        .bottom-dual-boxes .cloud-tag-box-container {
-            flex: 1;
-        }
-
-        .bottom-dual-boxes .music-player-box {
-            flex: 1.5;
-            /* 播放器盒稍宽一些 */
-        }
-
-        /* ========== 子元素在新盒子内的优化样式 ========== */
-
-        .ranking-list-box .container {
-            max-width: 100%;
-            padding: 0;
-            margin: 0;
-        }
-
-        .ranking-list-box .main-header {
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid rgba(30, 58, 95, 0.15);
-        }
-
-        .ranking-list-box .main-title {
-            font-size: 28px;
-            color: #1e3a5f;
-        }
-
-        .ranking-list-box .content {
-            background: transparent;
             border: none;
-            border-radius: 0;
-            padding: 0;
-            margin-top: 15px;
-        }
-
-        .right-sidebar {
-            width: 280px;
-            /*background: #fff9c4;*/
-            border-radius: 16px;
-            /*padding:0 20px;*/
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        /*
-         * 以下样式已不再使用（.bottom-player-area 已从HTML中移除）
-         * 保留以备将来使用，或可删除以减少代码量
-         */
-        .bottom-player-area {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 120px;
-            background: linear-gradient(180deg, rgba(30, 58, 95, 0.9) 0%, rgba(30, 58, 95, 0.98) 100%);
-            backdrop-filter: blur(15px);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 15px 40px;
-            gap: 30px;
-            z-index: 1000;
-            border-top: 2px solid rgba(255, 250, 156, 0.3);
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
-        }
-
-        .player-cloud-tags {
-            display: flex;
-            gap: 20px;
-            flex-shrink: 0;
-        }
-
-        .cloud-tag-box {
-            background: linear-gradient(135deg, #fff9c4 0%, #fff59d 100%);
-            border-radius: 12px;
-            padding: 12px 20px;
-            min-width: 180px;
-            max-width: 250px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-            border: 2px solid rgba(30, 58, 95, 0.2);
-            transition: all 0.3s ease;
-        }
-
-        .cloud-tag-box:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-            border-color: #1e3a5f;
-        }
-
-        .cloud-tag-label {
-            display: block;
-            font-size: 11px;
-            color: #1e3a5f;
-            font-weight: bold;
-            margin-bottom: 6px;
-            text-align: center;
-        }
-
-        .cloud-tag-content {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-            justify-content: center;
-        }
-
-        .tag-item {
-            background: rgba(30, 58, 95, 0.15);
-            color: #1e3a5f;
-            padding: 3px 10px;
-            border-radius: 10px;
-            font-size: 11px;
-            font-weight: 500;
-            border: 1px solid rgba(30, 58, 95, 0.25);
-            transition: all 0.2s ease;
             cursor: pointer;
-        }
-
-        .tag-item:hover {
-            background: #1e3a5f;
-            color: #fff9c4;
-            transform: scale(1.05);
-        }
-
-        #music-player-container {
-            flex: 1;
-            max-width: 400px;
-            min-height: 90px !important;
-            position: relative !important;
-            bottom: auto !important;
-            right: auto !important;
-            width: 100% !important;
-            z-index: 1001;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 60px;
-        }
-
-        .header h1 {
-            font-size: 36px;
-            color: #1a202c;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-        }
-
-        .header p {
-            font-size: 18px;
-            color: rgba(26, 32, 44, 0.7);
-        }
-
-        /* 左上角搜索按钮样式 - 统一视觉 */
-        .top-right-search {
-            position: absolute;
-            top: 60px;
-            left: 60px;
-            z-index: 100;
-        }
-
-        .search-button {
-            width: 70px;
-            height: 70px;
-            background: #fff9c4;
-            border: 2px solid #1e3a5f;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            box-shadow: 0 10px 25px rgba(240, 198, 77, 0.1);
             transition: all 0.3s ease;
-            overflow: hidden;
+            font-family: inherit;
+            font-size: 14px;
         }
 
-        .search-button:hover {
-            transform: scale(1.1);
-            background: rgba(30, 58, 95, 0.15);
-            border-color: #1e3a5f;
-            box-shadow: 0 0 20px rgba(30, 58, 95, 0.4);
+        .create-rank-btn:hover {
+            transform: scale(0.95);
+            box-shadow: 0 10px 30px rgba(240, 198, 77, 0.2);
         }
 
-        .search-button img {
-            width: 70%;
-            height: 70%;
-            object-fit: contain;
-        }
-
-        .content {
-            background: rgba(255, 255, 255, 0.6);
-            backdrop-filter: blur(10px);
-            border-radius: 16px;
-            padding: 40px;
-            margin-bottom: 100px;
-        }
-
-        .content h2 {
-            font-size: 24px;
-            color: #1a202c;
-            margin-bottom: 30px;
-        }
-
-        .content p {
-            font-size: 16px;
-            line-height: 1.6;
-            margin-bottom: 20px;
-            color: rgba(26, 32, 44, 0.8);
-        }
-
-        /* 加号按钮样式统一 - 固定底部中央 */
-        .add-button-container {
-            position: fixed;
-            bottom: 40px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 100;
-        }
-
-        .add-button {
-            width: 80px;
-            height: 80px;
-            background-color: #fffa9c;
-            color: #1a202c;
-            border: none;
-            border-radius: 50%;
-            font-size: 40px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 16px rgba(255, 250, 205, 0.4);
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .add-button:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 20px rgba(255, 250, 205, 0.6);
-        }
-
-        .add-button:active {
+        .create-rank-btn:active {
             transform: scale(0.95);
         }
 
-        .ranking-header {
+        /* ==================== Main Content Grid Layout ==================== */
+        .main-grid {
+            margin-left: 288px;
+            padding: 32px 32px 90px;
+            display: grid;
+            grid-template-columns: 8fr 4fr;
+            gap: 32px;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .content-area {
+            grid-column: 1 / 2;
+            overflow-y: auto;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
+            padding-right: 8px;
+        }
+
+        .right-sidebar {
+            grid-column: 2 / 3;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+
+        /* Page Header */
+        .page-header {
             margin-bottom: 10px;
+            padding-left: 8px;
         }
 
-        .publisher-btn {
-            background: rgba(26, 54, 93, 0.1);
-            border: 1px solid rgba(255, 250, 156, 0.3);
-            color: #1a365d;
-            border-radius: 6px;
-            padding: 6px 12px;
-            font-size: 14px;
-            cursor: default;
-            transition: all 0.3s ease;
-        }
-
-        .publisher-btn:hover {
-            background-color: #1a365d;
-            color: #fffa9c;
-            transform: translateY(-2px);
-        }
-
-        .rankings-list {
-            margin-bottom: 30px;
-        }
-
-        .ranking-item {
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 15px;
-            transition: all 0.3s ease;
-            border-left: 4px solid transparent;
-        }
-
-        .ranking-item:hover {
-            background: rgba(255, 255, 255, 0.8);
-            transform: translateX(10px);
-            border-left-color: #1e3a5f;
-        }
-
-        .ranking-item h3 {
-            color: #1e3a5f;
-            font-size: 18px;
-            margin-bottom: 10px;
-        }
-
-        .ranking-item p {
-            color: rgba(26, 32, 44, 0.7);
-            font-size: 14px;
-            line-height: 1.5;
+        .page-header-label {
+            display: block;
+            font-size: 10px;
+            color: var(--primary-fixed-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
             margin-bottom: 8px;
+            font-family: var(--font-body);
         }
 
-        .ranking-meta {
-            display: flex;
-            gap: 20px;
-            font-size: 13px;
-            color: rgba(30, 58, 95, 0.8);
-        }
-
-        /* 分页样式统一 */
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-top: 40px;
-        }
-
-        .pagination button {
-            background: rgba(26, 32, 44, 0.1);
-            border: 1px solid rgba(26, 32, 44, 0.3);
-            color: #1a202c;
-            border-radius: 8px;
-            padding: 8px 16px;
-            margin: 0 5px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .pagination button:hover:not(:disabled) {
-            background-color: #1e3a5f;
-            color: #fff9c4;
-            transform: translateY(-2px);
-        }
-
-        .pagination button.active {
-            background-color: #1e3a5f;
-            color: #fff9c4;
+        .page-header-title {
+            font-size: 36px;
             font-weight: bold;
+            color: var(--on-surface);
+            letter-spacing: -0.02em;
         }
 
-        .pagination button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+        /* ==================== Playlist Card Component ==================== */
+        .playlist-card {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            border-radius: var(--radius-xl);
+            background: var(--surface-container-low);
+            border: 1px solid rgba(77, 70, 53, 0.05);
+            margin-bottom: 24px;
+            transition: transform 300ms ease;
         }
 
-        /* 歌曲列表样式统一 */
+        .card-main {
+            display: flex;
+            gap: 24px;
+        }
+
+        /* Cover Image Area */
+        .card-cover {
+            width: 160px;
+            height: 160px;
+            flex-shrink: 0;
+            border-radius: var(--radius-lg);
+            border: 2px solid rgba(255, 228, 164, 0.3);
+            box-shadow: 0 0 20px rgba(240, 198, 77, 0.2);
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+            transition: transform 700ms ease;
+        }
+
+        .card-cover img,
+        .card-cover .cover-placeholder {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 700ms ease;
+        }
+
+        .playlist-card:hover .card-cover img,
+        .playlist-card:hover .card-cover .cover-placeholder {
+            transform: scale(1.1);
+        }
+
+        .cover-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: bold;
+            color: white;
+        }
+
+        /* Play Button Overlay */
+        .play-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 300ms ease;
+        }
+
+        .card-cover:hover .play-overlay {
+            opacity: 1;
+        }
+
+        .play-overlay-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #241a00;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            transform: translateY(8px);
+            transition: transform 300ms ease;
+        }
+
+        .card-cover:hover .play-overlay-btn {
+            transform: translateY(0);
+        }
+
+        .play-overlay-btn .material-symbols-outlined {
+            font-size: 28px;
+            font-variation-settings: 'FILL' 1;
+        }
+
+        /* Card Info Area */
+        .card-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .card-title {
+            font-size: 24px;
+            font-family: var(--font-headline);
+            font-weight: bold;
+            color: var(--on-surface);
+            transition: color 300ms ease;
+            line-height: 1.2;
+        }
+
+        .playlist-card:hover .card-title {
+            color: var(--primary);
+        }
+
+        .card-meta {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--on-surface-variant);
+            margin-top: 4px;
+        }
+
+        .card-meta span {
+            color: rgba(212, 215, 220, 0.7);
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 16px;
+            margin-top: 12px;
+        }
+
+        .action-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-lg);
+            background: var(--surface-container-highest);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            transition: all 200ms ease;
+            color: var(--on-surface);
+        }
+
+        .action-btn:hover {
+            color: var(--primary);
+            transform: scale(1.05);
+        }
+
+        .action-btn .material-symbols-outlined {
+            font-size: 20px;
+        }
+
+        /* Song List */
         .song-list {
-            margin-top: 15px;
-            padding-left: 0;
+            margin-top: 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
 
-        .song-list h4 {
-            color: #1e3a5f;
-            font-size: 16px;
-            margin-bottom: 12px;
-            font-weight: 500;
-        }
-
-        .song-list ul {
-            list-style: none;
-            padding: 0;
-            background: rgba(26, 32, 44, 0.05);
-            border-radius: 12px;
-            padding: 10px;
-        }
-
-        .song-list li {
-            margin: 8px 0;
-            padding: 10px 15px;
-            border-bottom: 1px solid rgba(30, 58, 95, 0.15);
+        .song-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: all 0.2s ease;
+            padding: 12px;
+            border-radius: var(--radius-md);
+            transition: background 200ms ease;
         }
 
-        .song-list li:last-child {
-            border-bottom: none;
+        .song-item:hover {
+            background: rgba(49, 53, 60, 0.5);
         }
 
-        .song-list li:hover {
-            background: rgba(30, 58, 95, 0.08);
+        .song-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
         }
 
         .song-name {
-            color: #1a202c;
-            font-size: 15px;
-            flex: 1;
-        }
-
-        .singer-name {
-            color: rgba(26, 32, 44, 0.7);
             font-size: 14px;
-            margin: 0 15px;
+            font-weight: bold;
+            color: var(--on-surface);
         }
 
-        .song-rank {
-            margin-left: 20px;
-            color: #1a365d;
-            font-size: 15px;
-            font-weight: 700;
-            padding: 4px 10px;
-            background: rgba(26, 54, 93, 0.15);
-            border: 2px solid #1a365d;
-            border-radius: 4px;
-            margin-right: 10px;
+        .song-artist {
+            font-size: 10px;
+            text-transform: uppercase;
+            color: #6b7280;
+            letter-spacing: 0.03em;
         }
 
-        /* 交互按钮样式统一 */
-        .interaction-section {
+        .play-song-btn {
+            opacity: 0;
+            color: var(--on-surface-variant);
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 4px;
+            transition: all 200ms ease;
+        }
+
+        .song-item:hover .play-song-btn {
+            opacity: 1;
+        }
+
+        .play-song-btn:hover {
+            color: var(--primary);
+        }
+
+        .play-song-btn .material-symbols-outlined {
+            font-size: 20px;
+        }
+
+        /* Card Footer */
+        .card-footer {
+            margin-top: 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 15px;
-            padding-left: 0;
+            gap: 16px;
         }
 
-        .interaction-left,
-        .interaction-right {
+        .btn-view-comments {
             display: flex;
-            gap: 12px;
             align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: var(--radius-md);
+            background: rgba(49, 53, 60, 0.5);
+            border: 1px solid rgba(77, 70, 53, 0.1);
+            color: #9ca3af;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 200ms ease;
+            font-family: var(--font-body);
         }
 
-        /* AI锐评按钮样式 */
-        .ai-review-btn {
-            position: relative;
-            width: 100px;
-            height: 42px;
-            background: linear-gradient(90deg, #0A73FD, #72BCFF, #B2C7FE, #FFDDB7);
-            border-radius: 40px;
+        .btn-view-comments:hover {
+            border-color: rgba(255, 228, 164, 0.4);
+            color: var(--primary);
+        }
+
+        .btn-view-comments .material-symbols-outlined {
+            font-size: 14px;
+        }
+
+        /* AI Review FAB Button */
+        .ai-fab {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+            box-shadow: 0 0 15px rgba(240, 198, 77, 0.4);
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: transform 0.1s ease-out;
-            transform-style: preserve-3d;
-            box-shadow: inset 0 0 30px rgba(255, 221, 183, 0.5), inset 0 0 60px rgba(178, 199, 254, 0.8), 0 20px 40px rgb(0 0 0 / 3%);
-            border:none;
-        }
-
-        .ai-review-btn::before {
-            content: "";
-            position: absolute;
-            top: 5px;
-            width: 80%;
-            height: 40%;
-            background: rgba(255, 255, 255, 0.4);
-            filter: blur(15px);
-            border-radius: 50%;
-            pointer-events: none;
-        }
-
-        .ai-review-btn span {
-            font-family: "Inter", sans-serif;
-            font-size: 16px;
-            font-weight: 700;
-            color: #1a1a1a;
-            transform: translateZ(30px);
-        }
-
-        /* 云标签区域 */
-        .card-cloud-tags {
-            margin-top: 12px;
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .cloud-tag {
-            background: rgba(30, 58, 95, 0.1);
-            color: #1e3a5f;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 500;
-            border: 1px solid rgba(30, 58, 95, 0.2);
-        }
-
-        /* 主标题区域 */
-        .main-header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid rgba(30, 58, 95, 0.2);
-        }
-
-        .main-title {
-            font-size: 32px;
-            color: #1e3a5f;
-            font-weight: bold;
-            margin: 0;
-        }
-
-        /* 隐藏原有的 header h1 "音乐排行榜" */
-        .header {
-            display: none;
-        }
-
-        .vote-btn,
-        .collect-btn {
-            background: transparent;
             border: none;
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            padding: 8px 15px;
-            border-radius: 20px;
-            /* 移除禁用样式的默认覆盖 */
-            opacity: 1 !important;
+            transition: all 300ms ease;
+            color: #241a00;
         }
 
-        .vote-btn:hover {
-            background: rgba(255, 182, 193, 0.2);
-        }
-
-        .collect-btn:hover {
-            background: rgba(192, 192, 192, 0.2);
-        }
-
-        .heart-icon {
-            color: #ffb6c1;
-            font-size: 18px;
-            margin-right: 5px;
-            transition: all 0.3s ease;
-        }
-
-        .vote-btn:hover .heart-icon {
-            color: #ff69b4;
+        .ai-fab:hover {
             transform: scale(1.1);
         }
 
-        .vote-btn.voted .heart-icon {
-            color: #ff69b4;
+        .ai-fab .material-symbols-outlined {
+            font-size: 22px;
+            font-variation-settings: 'FILL' 1;
         }
 
-        .star-icon {
-            color: #e68181;
-            font-size: 18px;
-            margin-right: 5px;
-            transition: all 0.3s ease;
-        }
-
-        .collect-btn:hover .star-icon {
-            color: #ffffff;
-            transform: scale(1.1);
-        }
-
-        .collect-btn.collected .star-icon {
-            color: #ffffff;
-        }
-
-        .vote-count,
-        .collect-count {
-            font-size: 14px;
-            font-weight: bold;
-        }
-
-        .vote-count {
-            color: rgba(255, 182, 193, 0.9);
-        }
-
-        .collect-count {
-            color: rgba(192, 192, 192, 0.9);
-        }
-
-        /* 响应式样式统一 */
-        @media (max-width: 1024px) {
-            .right-sidebar {
-                display: none;
-            }
-
-            .left-sidebar {
-                width: 70px;
-            }
-
-            /* 三盒布局响应式 - 1024px */
-            .main-content {
-                gap: 15px;
-                padding: 20px;
-                height: calc(100vh - 30px);
-            }
-
-            .ranking-list-box {
-                padding: 20px;
-            }
-
-            .cloud-tag-box-container {
-                padding: 15px 18px;
-            }
-
-            .music-player-box {
-                padding: 12px 15px;
-            }
-
-            /* 底部双盒并排 - 1024px */
-            .bottom-dual-boxes {
-                gap: 15px;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .page-wrapper {
-                flex-direction: column;
-            }
-
-            .left-sidebar {
-                width: 100%;
-                height: auto;
-                flex-direction: row;
-                justify-content: space-around;
-            }
-
-            /* 三盒布局响应式 - 768px */
-            .main-content {
-                gap: 12px;
-                padding: 15px;
-                height: auto;
-                min-height: calc(100vh - 30px);
-            }
-
-            .ranking-list-box {
-                padding: 15px;
-                border-radius: 12px;
-            }
-
-            .cloud-tag-box-container {
-                padding: 12px 15px;
-            }
-
-            .cloud-tag-box-container .tag-item {
-                font-size: 12px;
-                padding: 5px 12px;
-            }
-
-            .music-player-box {
-                padding: 10px 12px;
-                min-height: 80px;
-            }
-
-            /* 底部双盒 - 移动端垂直堆叠 */
-            .bottom-dual-boxes {
-                flex-direction: column;
-                gap: 12px;
-            }
-
-            .bottom-dual-boxes .cloud-tag-box-container,
-            .bottom-dual-boxes .music-player-box {
-                flex: none;
-            }
-
-            #music-player-container {
-                width: 100% !important;
-                max-width: 100%;
-            }
-
-            .container {
-                padding: 20px;
-            }
-
-            .header h1 {
-                font-size: 28px;
-            }
-
-            .content {
-                padding: 30px;
-            }
-
-            .add-button {
-                width: 70px;
-                height: 70px;
-                font-size: 36px;
-            }
-        }
-
-        /* 提示框样式统一 */
-        #errorAlert {
-            display: none;
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 10px 20px;
-            background: #ff4444;
-            color: #fff;
-            border-radius: 4px;
-            z-index: 9999;
-        }
-
-        #successAlert {
-            display: none;
-            position: fixed;
-            top: 60px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 10px 20px;
-            background: #00C851;
-            color: #fff;
-            border-radius: 4px;
-            z-index: 9999;
-        }
-
-        /* 侧边按钮样式统一 */
-        .slide-btn-container {
-            position: fixed;
-            right: 0;
+        /* AI FAB Tooltip */
+        .ai-fab-tooltip {
+            position: absolute;
+            right: calc(100% + 12px);
             top: 50%;
             transform: translateY(-50%);
-            z-index: 999;
-            display: flex;
-            align-items: center;
-        }
-
-        .slide-btn-toggle {
-            width: 120px;
-            height: 50px;
-            border-radius: 25px 0 0 25px;
-            background: #fffa9c;
-            color: #1a202c;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s;
-            font-size: 16px;
-            font-weight: bold;
-            box-shadow: -2px 0 10px rgba(255, 250, 156, 0.3);
-        }
-
-        .slide-btn-toggle:hover {
-            background: #fff780;
-            box-shadow: -2px 0 15px rgba(255, 250, 156, 0.5);
-        }
-
-        .slide-btn-toggle.collapsed {
-            width: 50px;
-            background: rgba(255, 250, 156, 0.8);
-        }
-
-        .slide-btn-toggle.collapsed .toggle-icon {
-            display: none;
-        }
-
-        .toggle-icon {
-            display: inline;
-            font-size: 14px;
-            margin-left: 5px;
-        }
-
-        .slide-btn-content {
-            height: 50px;
-            padding: 0 20px;
-            background: #fffa9c;
-            color: #1a202c;
-            border: none;
-            cursor: pointer;
-            border-radius: 4px 0 0 4px;
-            margin-right: -1px;
-            transform: translateX(100%);
+            background: var(--surface-container-highest);
+            color: var(--primary);
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 6px 12px;
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(255, 228, 164, 0.2);
+            white-space: nowrap;
             opacity: 0;
-            transition: all 0.3s;
-            font-size: 14px;
-            font-weight: bold;
+            pointer-events: none;
+            transition: opacity 200ms ease;
+            font-family: var(--font-body);
         }
 
-        .slide-btn-content.show {
-            transform: translateX(0);
+        .ai-fab:hover .ai-fab-tooltip {
             opacity: 1;
         }
 
-        .slide-btn-content:hover {
-            background: #fff780;
-        }
+        /* ==================== Right Sidebar Modules ==================== */
 
-        /* 登录按钮样式统一 */
-        .login-btn-container {
-            position: fixed;
-            left: 0;
-            top: 70%;
-            transform: translateY(-50%);
-            z-index: 999;
+        /* AI Critique Module */
+        .ai-critique-module {
+            height: 320px;
             display: flex;
-            align-items: center;
+            flex-direction: column;
+            padding: 12px;
+            overflow: hidden;
         }
 
-        .login-btn-toggle {
-            width: 120px;
-            height: 50px;
-            border-radius: 0 25px 25px 0;
-            background: #fffa9c;
-            color: #1a202c;
-            border: none;
-            cursor: pointer;
+        .module-header {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            transition: all 0.3s;
-            font-size: 16px;
-            font-weight: bold;
-            box-shadow: 2px 0 10px rgba(255, 250, 156, 0.3);
+            /*margin-bottom: 24px;*/
         }
 
-        .login-btn-toggle:hover {
-            background: #fff780;
-            box-shadow: 2px 0 15px rgba(255, 250, 156, 0.5);
-        }
-
-        .login-btn-toggle.collapsed {
-            width: 50px;
-            height: 50px;
-            border-radius: 0 25px 25px 0;
-            background: #fffa9c;
-        }
-
-        .login-btn-toggle.collapsed .toggle-icon {
-            display: none;
-        }
-
-        .login-btn-content {
-            height: 50px;
-            padding: 0 20px;
-            background: #fffa9c;
-            color: #1a202c;
-            border: none;
-            cursor: pointer;
-            border-radius: 25px 0 0 25px;
-            margin-right: -1px;
-            transform: translateX(-100%);
-            opacity: 0;
-            transition: all 0.3s;
-            font-size: 14px;
-            font-weight: bold;
-        }
-
-        .login-btn-content.show {
-            transform: translateX(0);
-            opacity: 1;
-        }
-
-        .login-btn-content:hover {
-            background: #fff780;
-        }
-
-        /* 暂无数据样式统一 */
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: rgba(26, 32, 44, 0.6);
+        .module-title {
             font-size: 18px;
+            font-family: var(--font-headline);
+            font-weight: bold;
+            color: var(--on-surface);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        /* 评论区样式统一 */
-        .comment-section {
-            margin-top: 20px;
-            border-top: 1px solid rgba(30, 58, 95, 0.15);
-            padding-top: 15px;
+        .module-title .material-symbols-outlined {
+            color: var(--primary);
+            animation: pulse 2s infinite;
         }
 
-        .comment-toggle {
-            background: rgba(30, 58, 95, 0.1);
-            border: 1px solid rgba(30, 58, 95, 0.3);
-            color: #1e3a5f;
-            border-radius: 20px;
-            padding: 6px 16px;
-            cursor: pointer;
-            transition: all 0.3s ease;
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .module-badge {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: #6b7280;
+            font-family: var(--font-body);
+        }
+
+        .module-content {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .empty-state {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 16px;
+        }
+
+        .empty-state p {
+            font-size: 12px;
+            color: #6b7280;
+            font-style: italic;
+            line-height: 1.6;
+            font-family: var(--font-body);
+        }
+
+        /* Friends Recommendation Module */
+        .friends-module {
+            padding: 12px;
+        }
+
+        .friend-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            /*margin-bottom: 16px;*/
+        }
+
+        .friend-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 228, 164, 0.2);
+            padding: 2px;
+            overflow: hidden;
+        }
+
+        .friend-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            background: var(--surface-container-highest);
+        }
+
+        .friend-info {
+            flex: 1;
+        }
+
+        .friend-name {
             font-size: 14px;
+            font-weight: bold;
+            color: var(--on-surface);
+        }
+
+        .friend-desc {
+            font-size: 10px;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+
+        .btn-add-friend {
+            color: var(--primary);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            transition: color 200ms ease;
+        }
+
+        .btn-add-friend:hover {
+            color: white;
+        }
+
+        .btn-add-friend .material-symbols-outlined {
+            font-size: 20px;
+        }
+
+        /* AI Assistant Chat Module */
+        .ai-assistant-module {
+            height: 380px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
             margin-bottom: 15px;
         }
 
-        .comment-toggle:hover {
-            background: rgba(30, 58, 95, 0.2);
-            transform: translateY(-2px);
-        }
-
-        .comment-container {
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .comment-container.show {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .comment-input-area {
-            margin-bottom: 20px;
-        }
-
-        .comment-input {
-            width: 100%;
-            padding: 12px;
-            background: rgba(26, 32, 44, 0.05);
-            border: 1px solid rgba(30, 58, 95, 0.3);
-            border-radius: 12px;
-            color: #1a202c;
-            font-size: 14px;
-            resize: vertical;
-            min-height: 80px;
-            transition: all 0.3s ease;
-        }
-
-        .comment-input:focus {
-            outline: none;
-            border-color: #1e3a5f;
-            box-shadow: 0 0 10px rgba(30, 58, 95, 0.2);
-        }
-
-        .comment-actions {
+        .chat-header {
+            padding: 9px;
+            border-bottom: 1px solid rgba(77, 70, 53, 0.1);
+            background: var(--surface-container-low);
             display: flex;
-            justify-content: flex-end;
-            margin-top: 10px;
+            align-items: center;
+            gap: 12px;
         }
 
-        .comment-submit {
-            background: #1e3a5f;
-            color: #fff9c4;
-            border: none;
-            border-radius: 8px;
-            padding: 8px 16px;
-            cursor: pointer;
-            transition: all 0.3s ease;
+        .ai-avatar-wrapper {
+            position: relative;
+            width: 40px;
+            height: 40px;
+        }
+
+        .ai-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 228, 164, 0.3);
+            overflow: hidden;
+        }
+
+        .ai-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: var(--surface-container-highest);
+        }
+
+        .online-indicator {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 12px;
+            height: 12px;
+            background: #22c55e;
+            border: 2px solid var(--surface-container-low);
+            border-radius: 50%;
+        }
+
+        .chat-header-info h4 {
             font-size: 14px;
             font-weight: bold;
+            color: var(--on-surface);
         }
 
-        .comment-submit:hover {
-            background: #1a365d;
-            transform: translateY(-2px);
+        .chat-header-info p {
+            font-size: 10px;
+            color: #6b7280;
+            margin-top: 2px;
         }
 
-        .comment-list {
-            margin-top: 20px;
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            background: rgba(16, 20, 26, 0.4);
+        }
+
+        .chat-prompt {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            opacity: 0.4;
+        }
+
+        .chat-prompt .material-symbols-outlined {
+            font-size: 36px;
+            color: var(--primary);
+            margin-bottom: 8px;
+            font-variation-settings: 'FILL' 1;
+        }
+
+        .chat-prompt p {
+            font-size: 10px;
+            color: #9ca3af;
+            text-align: center;
+            font-family: var(--font-body);
+        }
+
+        .chat-bubble {
+            background: rgba(49, 53, 60, 0.5);
+            border-radius: var(--radius-xl);
+            padding: 16px;
+            max-width: 90%;
+            border: 1px solid rgba(77, 70, 53, 0.1);
+        }
+
+        .chat-bubble p {
+            font-size: 12px;
+            color: var(--on-surface);
+            line-height: 1.6;
+            font-style: italic;
+            font-family: var(--font-body);
+        }
+
+        .chat-input-area {
+            padding: 5px;
+            border-top: 1px solid rgba(77, 70, 53, 0.1);
+            background: var(--surface-container-low);
+        }
+
+        .chat-input-wrapper {
+            display: flex;
+            align-items: center;
+            background: var(--surface-container-highest);
+            border-radius: var(--radius-full);
+            padding: 4px 16px;
+            gap: 8px;
+        }
+
+        .chat-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: 12px;
+            color: var(--on-surface);
+            font-family: var(--font-body);
+        }
+
+        .chat-input::placeholder {
+            color: #4b5563;
+        }
+
+        .btn-send-message {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            color: #241a00;
+            box-shadow: 0 2px 8px rgba(240, 198, 77, 0.3);
+            transition: all 200ms ease;
+        }
+
+        .btn-send-message:hover {
+            transform: scale(1.05);
+        }
+
+        .btn-send-message .material-symbols-outlined {
+            font-size: 14px;
+        }
+
+        /* ==================== Comment Drawer Sidebar ==================== */
+        #comments-sidebar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 400px;
+            height: 100vh;
+            background: rgba(49, 53, 60, 0.6);
+            backdrop-filter: blur(20px);
+            border-left: 1px solid rgba(255, 228, 164, 0.2);
+            z-index: 10000;
+            box-shadow: -20px 0 50px rgba(0, 0, 0, 0.5);
+            transform: translateX(100%);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-open #comments-sidebar {
+            transform: translateX(0);
+        }
+
+        .drawer-header {
+            padding: 24px;
+            border-bottom: 1px solid rgba(77, 70, 53, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .drawer-title {
+            font-size: 20px;
+            font-family: var(--font-headline);
+            font-weight: bold;
+            color: var(--on-surface);
+        }
+
+        .btn-close-drawer {
+            color: #9ca3af;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            transition: color 200ms ease;
+        }
+
+        .btn-close-drawer:hover {
+            color: var(--primary);
+        }
+
+        .btn-close-drawer .material-symbols-outlined {
+            font-size: 24px;
+        }
+
+        .drawer-comments {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
         }
 
         .comment-item {
-            background: rgba(26, 32, 44, 0.05);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 12px;
-            transition: all 0.3s ease;
+            display: flex;
+            gap: 16px;
         }
 
-        .comment-item:hover {
-            background: rgba(26, 32, 44, 0.1);
+        .comment-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 228, 164, 0.2);
+            padding: 2px;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .comment-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            background: var(--surface-container-highest);
+        }
+
+        .comment-content {
+            flex: 1;
         }
 
         .comment-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
-        }
-
-        .comment-username {
-            color: #1e3a5f;
-            font-weight: bold;
-            font-size: 14px;
-        }
-
-        .comment-time {
-            color: rgba(26, 32, 44, 0.5);
-            font-size: 12px;
-        }
-
-        .comment-content {
-            color: #1a202c;
-            font-size: 14px;
-            line-height: 1.4;
-            margin-bottom: 10px;
-        }
-
-        .comment-actions-bar {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .comment-like-btn {
-            background: transparent;
-            border: none;
-            color: rgba(26, 32, 44, 0.7);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 13px;
-        }
-
-        .comment-like-btn:hover {
-            color: #ff69b4;
-        }
-
-        .comment-like-btn.liked {
-            color: #ff69b4;
-        }
-
-        .comment-like-btn:hover .comment-heart-icon {
-            transform: scale(1.1);
-        }
-
-        .comment-heart-icon {
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
-
-        .comment-like-count {
-            font-size: 13px;
-        }
-
-        .comment-reply {
-            margin-left: 30px;
-            background: rgba(26, 32, 44, 0.03);
-            border-left: 2px solid rgba(30, 58, 95, 0.3);
-        }
-
-        /* 评论删除按钮样式统一 */
-        .comment-delete-btn {
-            background: transparent;
-            border: none;
-            outline: none;
-            color: rgba(255, 99, 71, 0.7);
-            font-size: 13px;
-            font-weight: 500;
-            padding: 4px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            transition: all 0.2s ease;
-        }
-
-        .comment-delete-btn:hover {
-            color: #ff6347;
-            background-color: rgba(255, 99, 71, 0.1);
-            transform: translateY(-1px);
-        }
-
-        .comment-delete-btn:active {
-            transform: translateY(0);
-            opacity: 0.8;
-        }
-
-        .comment-delete-btn::before {
-            content: "🗑️";
-            font-size: 12px;
-        }
-
-        /* 播放按钮样式统一 */
-        .play-btn {
-            background: rgba(30, 58, 95, 0.15);
-            border: 1px solid #1e3a5f;
-            color: #1e3a5f;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 12px;
-            z-index: 2;
-            pointer-events: auto;
-            flex-shrink: 0;
-        }
-
-        .play-btn:hover {
-            background: #1e3a5f;
-            color: #fff9c4;
-            transform: scale(1.1);
-            box-shadow: 0 0 8px rgba(30, 58, 95, 0.5);
-        }
-
-        /* 右侧信息栏通用样式 */
-        .right-sidebar {
-            overflow-y: auto;
-            max-height: calc(136vh - 140px);
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid rgba(30, 58, 95, 0.15);
-        }
-
-        .section-title {
-            font-size: 16px;
-            color: #1e3a5f;
-            font-weight: bold;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .title-icon {
-            font-size: 18px;
-        }
-
-        .ai-badge {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            font-size: 10px;
-            padding: 3px 8px;
-            border-radius: 10px;
-            font-weight: bold;
-        }
-
-        .section-content {
-            padding: 10px 0;
-        }
-
-        .placeholder-text {
-            font-size: 13px;
-            color: #4a5568;
-            line-height: 1.5;
-            margin-bottom: 12px;
-            padding: 10px;
-            background: rgba(30, 58, 95, 0.05);
-            border-radius: 8px;
-            border-left: 3px solid #1e3a5f;
-        }
-
-        /* 迷你卡片样式 */
-        .placeholder-cards {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .mini-card {
-            background: white;
-            border-radius: 10px;
-            padding: 12px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-            border: 1px solid rgba(30, 58, 95, 0.1);
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .mini-card:hover {
-            transform: translateX(3px);
-            box-shadow: 0 3px 10px rgba(30, 58, 95, 0.15);
-            border-color: #1e3a5f;
-        }
-
-        .mini-card-title {
-            font-size: 14px;
-            color: #1e3a5f;
-            font-weight: 600;
             margin-bottom: 4px;
         }
 
-        .mini-card-meta {
-            font-size: 12px;
-            color: #718096;
-        }
-
-        /* AI特性列表 */
-        .ai-feature-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .ai-feature-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-            border-radius: 8px;
-            font-size: 13px;
-            color: #1e3a5f;
-            transition: all 0.3s ease;
-        }
-
-        .ai-feature-item:hover {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
-            transform: translateX(3px);
-        }
-
-        .feature-icon {
-            font-size: 18px;
-        }
-
-        .feature-text {
-            flex: 1;
-            font-weight: 500;
-        }
-
-        /* 各区域的特殊样式 */
-        .live-report-section {
-            background: linear-gradient(180deg, #fff9c4 0%, #fff59d 100%);
-            border-radius: 16px;
-            padding: 18px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-        }
-
-        .friend-recommend-section {
-            background: linear-gradient(180deg, #fff9c4 0%, #fef3c7 100%);
-            border-radius: 16px;
-            padding: 18px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-        }
-
-        .ai-recommend-section {
-            background: linear-gradient(135deg, #e0e7ff 0%, #fce7f3 100%);
-            border-radius: 16px;
-            padding: 18px;
-            box-shadow: 0 3px 10px rgba(102, 126, 234, 0.2);
-            border: 2px solid rgba(102, 126, 234, 0.3);
-        }
-
-        /* 隐藏旧的固定定位按钮（已整合到左侧导航栏） */
-        .top-right-search,
-        .slide-btn-container,
-        .login-btn-container,
-        .add-button-container {
-            display: none !important;
-        }
-
-        /* ========== 评论抽屉弹窗样式 ========== */
-        .comment-drawer-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1002;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .comment-drawer-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .comment-drawer-panel {
-            position: fixed;
-            top: 0;
-            right: 0;
-            width: 420px;
-            height: 100vh;
-            background: #f8f9fa;
-            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
-            z-index: 1003;
-            transform: translateX(100%);
-            transition: transform 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .comment-drawer-panel.active {
-            transform: translateX(0);
-        }
-
-        .drawer-close-btn {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            width: 32px;
-            height: 32px;
-            background: transparent;
-            border: 1px solid #ddd;
-            border-radius: 50%;
-            font-size: 24px;
-            color: #666;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-            z-index: 10;
-            line-height: 1;
-        }
-
-        .drawer-close-btn:hover {
-            background: #eee;
-            color: #333;
-            transform: rotate(90deg);
-        }
-
-        .drawer-title {
-            padding: 20px 20px 10px;
-            font-size: 20px;
-            color: #1e3a5f;
+        .comment-author {
+            font-size: 14px;
             font-weight: bold;
-            margin: 0;
-            border-bottom: 2px solid rgba(30, 58, 95, 0.1);
+            color: var(--primary);
+        }
+
+        .comment-time {
+            font-size: 10px;
+            text-transform: uppercase;
+            color: #6b7280;
+            letter-spacing: 0.03em;
+        }
+
+        .comment-delete-btn {
+            color: #9ca3af;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            transition: color 200ms ease;
+            margin-left: auto;
+        }
+
+        .comment-delete-btn:hover {
+            color: #ef4444;
+        }
+
+        .comment-delete-btn .material-symbols-outlined {
+            font-size: 16px;
+        }
+
+        .comment-text {
+            font-size: 14px;
+            color: rgba(212, 215, 220, 0.85);
+            line-height: 1.5;
         }
 
         .drawer-input-area {
-            padding: 20px;
-            border-bottom: 1px solid #e0e0e0;
+            padding: 24px;
+            border-top: 1px solid rgba(77, 70, 53, 0.1);
+            background: var(--surface-container-low);
+            flex-shrink: 0;
         }
 
-        .drawer-comment-input {
+        .input-wrapper {
+            position: relative;
+        }
+
+        .comment-textarea {
             width: 100%;
-            min-height: 80px;
+            min-height: 96px;
             padding: 12px;
-            background: #fff;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            color: #1a202c;
+            border-radius: var(--radius-lg);
+            background: var(--surface-container-highest);
+            border: 1px solid rgba(77, 70, 53, 0.2);
+            resize: none;
             font-size: 14px;
-            resize: vertical;
-            transition: all 0.3s ease;
-            font-family: inherit;
-        }
-
-        .drawer-comment-input:focus {
+            color: var(--on-surface);
+            font-family: var(--font-body);
             outline: none;
-            border-color: #1e3a5f;
-            box-shadow: 0 0 8px rgba(30, 58, 95, 0.2);
+            transition: border-color 200ms ease;
         }
 
-        .drawer-input-actions {
-            margin-top: 10px;
-            text-align: right;
+        .comment-textarea:focus {
+            border-color: rgba(255, 228, 164, 0.5);
         }
 
-        .drawer-submit-btn {
-            background: #1e3a5f;
-            color: #fff9c4;
+        .comment-textarea::placeholder {
+            color: #6b7280;
+        }
+
+        .btn-submit-comment {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            padding: 6px 16px;
+            border-radius: var(--radius-md);
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+            color: #241a00;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
             border: none;
-            border-radius: 8px;
-            padding: 8px 20px;
             cursor: pointer;
+            font-family: var(--font-body);
+            transition: all 200ms ease;
+        }
+
+        .btn-submit-comment:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(240, 198, 77, 0.3);
+        }
+
+
+
+        .player-now-playing {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            width: 25%;
+        }
+
+        .player-album-art {
+            width: 56px;
+            height: 56px;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            border: 1px solid rgba(77, 70, 53, 0.1);
+        }
+
+        .player-album-art img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .player-track-info h5 {
             font-size: 14px;
             font-weight: bold;
-            transition: all 0.3s ease;
+            color: var(--on-surface);
+            letter-spacing: -0.01em;
         }
 
-        .drawer-submit-btn:hover {
-            background: #1a365d;
-            transform: translateY(-2px);
+        .player-track-info p {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #6b7280;
+            margin-top: 2px;
         }
 
-        .drawer-comment-list {
+        .player-controls {
             flex: 1;
-            overflow-y: auto;
-            padding: 15px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
         }
 
-        .drawer-comment-list .comment-item {
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 15px;
+        .control-buttons {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .control-btn {
+            color: var(--on-surface);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            transition: color 200ms ease;
+        }
+
+        .control-btn:hover {
+            color: var(--primary);
+        }
+
+        .control-btn .material-symbols-outlined {
+            font-size: 24px;
+        }
+
+        .btn-play-main {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            color: #241a00;
+            box-shadow: 0 0 15px rgba(240, 198, 77, 0.3);
+            transition: all 200ms ease;
+        }
+
+        .btn-play-main:hover {
+            transform: scale(1.05);
+        }
+
+        .btn-play-main:active {
+            transform: scale(0.95);
+        }
+
+        .btn-play-main .material-symbols-outlined {
+            font-size: 24px;
+            font-variation-settings: 'FILL' 1;
+        }
+
+        .progress-bar-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            max-width: 512px;
+        }
+
+        .time-label {
+            font-size: 9px;
+            color: #6b7280;
+            font-family: var(--font-body);
+            min-width: 32px;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 4px;
+            background: var(--surface-container-highest);
+            border-radius: 2px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .progress-fill {
+            width: 45%;
+            height: 100%;
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+            border-radius: 2px;
+            box-shadow: 0 0 8px #f0c64d;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 25px;
             margin-bottom: 12px;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(30, 58, 95, 0.08);
+            gap: 8px;
         }
 
-        .drawer-comment-list .comment-item:hover {
-            background: #f8f9fa;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        .page-btn {
+            padding: 8px 16px;
+            border-radius: var(--radius-md);
+            background: var(--surface-container-highest);
+            border: 1px solid rgba(77, 70, 53, 0.15);
+            color: var(--on-surface);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 200ms ease;
+            font-family: var(--font-body);
         }
 
-        /* 响应式：平板端 */
-        @media (max-width: 1024px) {
-            .comment-drawer-panel {
-                width: 350px;
-            }
+        .page-btn:hover:not(:disabled) {
+            background: var(--primary-container);
+            color: #10141a;
         }
 
-        /* 响应式：移动端 */
-        @media (max-width: 768px) {
-            .comment-drawer-panel {
-                width: 90vw;
-            }
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
-        /* 新增发布按钮的特殊样式 */
-        .nav-add-btn {
-            /*margin-top: auto;*/
-            background: linear-gradient(135deg, #fffa9c, #fff176);
-            border-color: #f57f17;
+        .page-btn.active {
+            background: var(--primary-container);
+            color: #10141a;
+            font-weight: bold;
         }
 
-        .nav-add-btn:hover {
-            background: linear-gradient(135deg, #fff176, #ffee58);
-            transform: scale(1.1) rotate(90deg);
+        /* Error/Success Alerts */
+        #errorAlert,
+        #successAlert {
+            position: fixed;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
+            z-index: 9999;
+            display: none;
+            font-size: 14px;
+            font-family: var(--font-body);
+        }
+
+        #errorAlert {
+            background: #ff4444;
+            color: white;
+            top: 80px;
+        }
+
+        #successAlert {
+            background: #00C851;
+            color: white;
+            top: 120px;
+        }
+
+        /* Empty State */
+        .empty-data {
+            text-align: center;
+            padding: 80px 20px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        /* Rank Tags Container */
+        .rank-tags-container {
+            display: flex;
+            gap: 8px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        /* Rank Tag Item */
+        .rank-tag-item {
+            flex: 1;
+            padding: 6px 12px;
+            background: rgba(49, 53, 60, 0.5);
+            border: 1px solid rgba(77, 70, 53, 0.15);
+            border-radius: var(--radius-md);
+            font-size: 10px;
+            color: var(--on-surface-variant);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: default;
+            transition: all 200ms ease;
+            font-family: var(--font-body);
+            min-width: 0;
+        }
+
+        .rank-tag-item:hover {
+            border-color: rgba(255, 228, 164, 0.4);
+            color: var(--primary);
+            background: rgba(49, 53, 60, 0.8);
         }
     </style>
+
 </head>
 
-<body>
-    <!-- ==================== 三栏布局主容器 ==================== -->
-    <div class="page-wrapper">
-        <!-- ========== 左侧导航栏 ========== -->
-        <div class="left-sidebar">
-            <div class="nav-toggle-btn">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                    <rect x="3" y="3" width="7" height="7" rx="1" fill="#1e3a5f" />
-                    <rect x="14" y="3" width="7" height="7" rx="1" fill="#1e3a5f" />
-                    <rect x="3" y="14" width="7" height="7" rx="1" fill="#1e3a5f" />
-                    <rect x="14" y="14" width="7" height="7" rx="1" fill="#1e3a5f" />
-                </svg>
-            </div>
+<body class="sidebar-closed" data-mode="connect">
 
-            <nav class="nav-buttons">
-                <button class="nav-circle-btn" id="navIndex" title="首页">
-                    <span class="nav-icon">🏠</span>
-                    <span class="nav-text">首页</span>
-                </button>
-                <button class="nav-circle-btn active" id="navHome" title="主页">
-                    <span class="nav-icon">📝</span>
-                    <span class="nav-text">主页</span>
-                </button>
-                <button class="nav-circle-btn" id="navSearch" title="搜索">
-                    <span class="nav-icon">🔍</span>
-                    <span class="nav-text">搜索</span>
-                </button>
-                <button class="nav-circle-btn" id="navMyRank" title="我的榜单">
-                    <span class="nav-icon">📋</span>
-                    <span class="nav-text">榜单</span>
-                </button>
-                <button class="nav-circle-btn" id="navHotRank" title="热门榜单">
-                    <span class="nav-icon">🔥</span>
-                    <span class="nav-text">热门</span>
-                </button>
-                <button class="nav-circle-btn" id="navMyLove" title="我的收藏">
-                    <span class="nav-icon">❤️</span>
-                    <span class="nav-text">收藏</span>
-                </button>
-                <button class="nav-circle-btn nav-add-btn" id="navAdd" title="发布榜单">
-                    <span class="nav-icon">➕</span>
-                    <span class="nav-text">发布</span>
-                </button>
-            </nav>
-
-            <div class="sidebar-cloud-tags"></div>
+    <!-- ==================== Left Sidebar Navigation ==================== -->
+    <aside class="sidebar-nav">
+        <div class="nav-brand">
+            <h1>The Digital Conductor</h1>
+            <p>Premium Music Vault</p>
         </div>
 
-        <!-- ========== 中间主内容区 ========== -->
-        <div class="main-content">
-            <div class="ranking-list-box">
+        <nav class="nav-menu">
+            <button class="nav-item" id="navIndex" title="首页">
+                <span class="material-symbols-outlined nav-icon">home</span>
+                <span class="nav-text">首页</span>
+            </button>
+            <button class="nav-item active" id="navHome" title="主页">
+                <span class="material-symbols-outlined nav-icon">grid_view</span>
+                <span class="nav-text">主页</span>
+            </button>
+            <button class="nav-item" id="navSearch" title="搜索榜单">
+                <span class="material-symbols-outlined nav-icon">search</span>
+                <span class="nav-text">搜索榜单</span>
+            </button>
+            <button class="nav-item" id="navMyRank" title="我的榜单">
+                <span class="material-symbols-outlined nav-icon">queue_music</span>
+                <span class="nav-text">我的榜单</span>
+            </button>
+            <button class="nav-item" id="navHotRank" title="热门榜单">
+                <span class="material-symbols-outlined nav-icon">local_fire_department</span>
+                <span class="nav-text">热门榜单</span>
+            </button>
+            <button class="nav-item" id="navMyLove" title="我的收藏">
+                <span class="material-symbols-outlined nav-icon">favorite</span>
+                <span class="nav-text">我的收藏</span>
+            </button>
+        </nav>
 
-                <div class="container">
-                    <div class="top-right-search">
-                        <button class="search-button" id="searchButton">
-                            <svg width="40" height="40" viewBox="0 0 32 32" fill="none"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <circle cx="14" cy="14" r="10" stroke="#fffa9c" stroke-width="3" />
-                                <line x1="21" y1="21" x2="28" y2="28" stroke="#fffa9c" stroke-width="3"
-                                    stroke-linecap="round" />
-                            </svg>
+        <div class="nav-footer">
+            <button class="create-rank-btn" id="navAdd">+ 创建榜单</button>
+        </div>
+    </aside>
+
+    <!-- ==================== Main Content Grid ==================== -->
+    <main class="main-grid">
+
+        <!-- Center Column: Playlist Cards -->
+        <section class="content-area custom-scrollbar">
+            <!-- Page Header -->
+            <div class="page-header">
+                <span class="page-header-label">Editor's Choice</span>
+                <h2 class="page-header-title">音乐榜单发现</h2>
+            </div>
+
+            <!-- Error/Success Alerts -->
+            <div id="errorAlert" th:text="${errormessage}" style="display:none;"></div>
+            <div id="successAlert" th:text="${success}" style="display:none;"></div>
+
+            <!-- Playlist Cards Container -->
+            <div class="custom-scrollbar" style="flex: 1; overflow-y: auto;scrollbar-width: none">
+
+                <!-- Thymeleaf Loop for Playlists -->
+                <div th:each="ranking, stat : ${publishRanks?.list}" class="playlist-card"
+                    data-rank-id="${ranking.rankId}">
+
+                    <!-- Main Content: Cover + Info -->
+                    <div class="card-main">
+                        <!-- Cover Image with Play Overlay -->
+                        <div class="card-cover">
+                            <div class="cover-placeholder"
+                                th:text="${ranking.rankName != null ? ranking.rankName.substring(0,1) : '榜'}"
+                                th:style="'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);'">
+                                榜
+                            </div>
+                            <div class="play-overlay">
+                                <div class="play-overlay-btn">
+                                    <span class="material-symbols-outlined">play_arrow</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Info Section -->
+                        <div class="card-info">
+                            <h3 class="card-title" th:text="${ranking.rankName}">午夜赛博霓虹</h3>
+                            <div class="card-meta">
+                                发布者: <span th:text="${ranking.username}">零度脉冲</span>
+                            </div>
+                            <div class="card-meta">
+                                更新时间：<span th:text="${ranking.publishTime}">2024-05-20 04:32</span>
+                            </div>
+
+                            <!-- Action Buttons: Like & Collect -->
+                            <div class="action-buttons">
+                                <button class="action-btn vote-btn" th:data-rank-id="${ranking.rankId}">
+                                    <span class="material-symbols-outlined">favorite</span>
+                                </button>
+                                <button class="action-btn collect-btn" th:data-rank-id="${ranking.rankId}">
+                                    <span class="material-symbols-outlined">star</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Song List -->
+                    <div class="song-list">
+                        <th:block th:if="${ranking.rankSongList != null and ranking.rankSongList.size() > 0}">
+                            <div th:each="song : ${ranking.rankSongList}" class="song-item">
+                                <div class="song-info">
+                                    <span class="song-name" th:text="${song?.songName}">Neon District</span>
+                                    <span class="song-artist" th:text="${song?.singerName}">Lazerhawk</span>
+                                </div>
+                                <button class="play-song-btn play-btn" th:data-song-id="${song?.songId}"
+                                    th:data-song-name="${song?.songName}" th:data-singer-name="${song?.singerName}">
+                                    <span class="material-symbols-outlined">play_arrow</span>
+                                </button>
+                            </div>
+                        </th:block>
+                        <th:block th:unless="${ranking.rankSongList != null and ranking.rankSongList.size() > 0}">
+                            <div style="padding: 12px; font-size: 14px; color: #6b7280;">暂无歌曲</div>
+                        </th:block>
+                    </div>
+
+                    <!-- Footer: Tags + View Comments Button -->
+                    <div class="card-footer">
+                        <!-- Rank Tags Container -->
+                        <div class="rank-tags-container"
+                            th:if="${ranking.rankTagsList != null and ranking.rankTagsList.size() > 0}">
+                            <th:block th:each="tag, tagStat : ${ranking.rankTagsList}" th:if="${tagStat.index < 3}">
+                                <span class="rank-tag-item" th:text="${tag.tagId}" th:title="'标签ID: ' + ${tag.tagId}"
+                                    th:data-tag-index="${tagStat.index}" th:data-tag-id="${tag.tagId}">标签</span>
+                            </th:block>
+                        </div>
+
+                        <!-- View Comments Button -->
+                        <button class="btn-view-comments comment-toggle" th:data-rank-id="${ranking.rankId}"
+                            onclick="document.body.classList.replace('sidebar-closed', 'sidebar-open')">
+                            <span class="material-symbols-outlined">chat_bubble</span>
+                            查看评论
                         </button>
                     </div>
-                    <div id="errorAlert" th:text="${errormessage}"></div>
-                    <div id="successAlert" th:text="${success}"></div>
 
-                    <div class="header">
-                        <h1>音乐排行榜</h1>
-                        <p>探索热门音乐和艺术家</p>
+                    <!-- AI Review FAB Button -->
+                    <button class="ai-fab ai-review-btn" th:data-rank-id="${ranking.rankId}"
+                        th:data-rank-name="${ranking.rankName}">
+                        <span class="material-symbols-outlined">auto_awesome</span>
+                        <div class="ai-fab-tooltip">AI 锐评</div>
+                    </button>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination" th:if="${publishRanks != null}">
+                    <button class="page-btn" th:data-page="${publishRanks.pageNum - 1}"
+                        th:disabled="${publishRanks.pageNum == 1}">上一页</button>
+                    <button th:each="i : ${#numbers.sequence(1, publishRanks?.pages ?: 1)}"
+                        th:class="${publishRanks.pageNum == i ? 'active page-btn' : 'page-btn'}" th:data-page="${i}"
+                        th:text="${i}">1</button>
+                    <button class="page-btn" th:data-page="${publishRanks.pageNum + 1}"
+                        th:disabled="${publishRanks.pageNum == publishRanks.pages}">下一页</button>
+                </div>
+
+                <!-- Empty State -->
+                <div th:if="${#lists.isEmpty(publishRanks?.list)}" class="empty-data">
+                    暂无榜单数据
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Column: Information Modules -->
+        <aside class="right-sidebar custom-scrollbar scrollbar-hide">
+
+            <!-- AI Critique Module -->
+            <div class="glass-card ai-critique-module">
+                <div class="module-header">
+                    <h3 class="module-title">
+                        <span class="material-symbols-outlined">auto_awesome</span>
+                        AI 锐评
+                    </h3>
+                    <span class="module-badge">Powered by AI</span>
+                </div>
+                <div class="module-content ai-review-cards custom-scrollbar">
+                    <div class="empty-state ai-review-empty">
+                        <p>请点击AI锐评按钮生成属于您的专属锐评</p>
                     </div>
+                </div>
+            </div>
 
-                    <div class="content">
-                        <div class="rankings-list">
-                            <div th:each="ranking, stat : ${publishRanks?.list}" class="ranking-item"
-                                data-rank-id="${ranking.rankId}">
-                                <div class="ranking-header">
-                                    <h3 th:text="${ranking.rankName}">榜单标题</h3>
-                                    <button class="publisher-btn"
-                                        th:text="'发布人：' + ${ranking.username}">发布人：用户名</button>
-                                </div>
-                                <p class="ranking-meta">
-                                    <span th:text="'更新时间：' + ${ranking.publishTime}">更新时间</span>
-                                </p>
-                                <div class="song-list">
-                                    <h4>歌曲列表</h4>
-                                    <ul>
-                                        <li th:each="song : ${ranking.rankSongList}">
-                                            <span class="song-name" th:text="${song?.songName}">歌曲名称</span>
-                                            <span class="singer-name" th:text="${song.singerName}">歌手名称</span>
-                                            <span class="song-rank" th:text="${song?.ranking}">排名</span>
-                                            <button class="play-btn" th:data-song-id="${song.songId}"
-                                                th:data-song-name="${song.songName}"
-                                                th:data-singer-name="${song.singerName}">
-                                                &#9658;
-                                            </button>
-                                        </li>
-                                    </ul>
-                                </div>
-                                <div class="interaction-section">
-                                    <div class="interaction-left">
-                                        <button class="vote-btn" th:data-rank-id="${ranking.rankId}">
-                                            <span class="heart-icon">♡</span>
-                                            <span class="vote-count" th:text="${ranking.voteCount}">0</span>
-                                        </button>
-                                        <button class="collect-btn" th:data-rank-id="${ranking.rankId}">
-                                            <span class="star-icon">★</span>
-                                            <span class="collect-count" th:text="${ranking.loveCount}">0</span>
-                                        </button>
-                                    </div>
-                                    <div class="interaction-right">
-                                        <button class="ai-review-btn"
-                                                th:data-rank-id="${ranking.rankId}"
-                                                th:data-rank-name="${ranking.rankName}">
-                                            <span>AI 锐评</span>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="card-cloud-tags">
-                                    <span class="cloud-tag">#流行</span>
-                                    <span class="cloud-tag">#摇滚</span>
-                                </div>
-                                <div class="comment-section">
-                                    <button class="comment-toggle" th:data-rank-id="${ranking.rankId}">
-                                        查看评论
-                                    </button>
-                                    <div class="comment-container" th:id="|comment-container-${ranking.rankId}|">
-                                        <div class="comment-input-area">
-                                            <textarea class="comment-input" th:id="|comment-input-${ranking.rankId}|"
-                                                placeholder="写下你的评论..."></textarea>
-                                            <div class="comment-actions">
-                                                <button class="comment-submit" th:data-rank-id="${ranking.rankId}">
-                                                    发表评论
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div class="comment-list" th:id="|comment-list-${ranking.rankId}|">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+            <!-- Friends Recommendations Module -->
+            <div class="glass-card friends-module">
+                <h3 class="module-title" style="margin-bottom: 7px;">推荐好友</h3>
+                <div class="friend-item">
 
-                            <div class="pagination" th:if="${publishRanks != null}">
-                                <button class="page-btn" th:data-page="${publishRanks.pageNum - 1}"
-                                    th:disabled="${publishRanks.pageNum == 1}">上一页</button>
+                    <div class="friend-info">
+                        <div class="friend-name">Echo.Wav</div>
+                        <div class="friend-desc">共同爱好: Techno</div>
+                    </div>
+                    <button class="btn-add-friend">
+                        <span class="material-symbols-outlined">person_add</span>
+                    </button>
+                </div>
+            </div>
 
-                                <button th:each="i : ${#numbers.sequence(1, publishRanks?.pages ?: 1)}"
-                                    th:class="${publishRanks.pageNum == i ? 'active page-btn' : 'page-btn'}"
-                                    th:data-page="${i}" th:text="${i}">1</button>
-
-                                <button class="page-btn" th:data-page="${publishRanks.pageNum + 1}"
-                                    th:disabled="${publishRanks.pageNum == publishRanks.pages}">下一页</button>
-                            </div>
-
-                            <div th:if="${#lists.isEmpty(publishRanks?.list)}" class="empty-state">
-                                暂无榜单数据
-                            </div>
+            <!-- AI Assistant Chat Module -->
+            <div class="glass-card ai-assistant-module">
+                <!-- Chat Header -->
+                <div class="chat-header">
+                    <div class="ai-avatar-wrapper">
+                        <div class="ai-avatar">
+                            <img alt="AI Assistant"
+                                src="https://lh3.googleusercontent.com/aida/ADBb0ujtGbWvQ-vX-Pc1ElqsyISOCtbUDGLapHiTkNl07nTNG-p8FUclNlnwVeZF8_5TrKesXqHILsWz-yeY0tRJT37ottSK6GGyFDDZD02-zS8oTy9qrHTeM7hWbnLRHGNTZO1IGX6a_1JO4cyULFIuxBKkhH2zZrS3B92E3NU0aoWkdCYmO_mO-wpY8iNEmsrn3kQ9rkqw9ZeWxhWpEbi65RSUJwCqxiXfkWAt1BMxMIYMWxZJfm8ENHvNK0ghtEKj2Dwc4CNG6BKx0w" />
                         </div>
+                        <div class="online-indicator"></div>
                     </div>
-                </div>
-            </div>
-
-            <!-- 底部双盒区域：云标签 + 播放器 并排 -->
-            <div class="bottom-dual-boxes">
-                <div class="cloud-tag-box-container">
-                    <span class="cloud-tag-label">🏷️ 云标签</span>
-                    <div class="cloud-tag-content">
-                        <span class="tag-item">#今日推荐</span>
-                        <span class="tag-item">#热门</span>
-                        <span class="tag-item">#新品</span>
-                        <span class="tag-item">#流行</span>
-                        <span class="tag-item">#摇滚</span>
+                    <div class="chat-header-info">
+                        <h4>AI 推荐助手</h4>
+                        <p>在线 - 随时为您服务</p>
                     </div>
                 </div>
 
+                <!-- Chat Messages Area -->
+                <div class="chat-messages scrollbar-hide">
+                    <!-- Prompt Icon -->
+                    <div class="chat-prompt">
+                        <span class="material-symbols-outlined">auto_awesome</span>
+                        <p>告诉您的喜好，我为您推荐精彩内容</p>
+                    </div>
 
-                <div id="music-player-container"
-                    style="position:relative!important;bottom:auto!important;right:auto!important;width:100%!important;min-height:90px!important;z-index:1001;">
+                    <!-- Welcome Message Bubble -->
+                    <div class="chat-bubble">
+                        <p>你好！我是你的AI推荐助手。告诉我你想听什么歌、看什么电影，或者点击上方标签浏览推荐内容。</p>
+                    </div>
                 </div>
 
+                <!-- Input Area -->
+                <div class="chat-input-area">
+                    <div class="chat-input-wrapper">
+                        <input type="text" class="chat-input" placeholder="输入你的喜好或需求...">
+                        <button class="btn-send-message">
+                            <span class="material-symbols-outlined">send</span>
+                        </button>
+                    </div>
+                </div>
             </div>
+        </aside>
+
+    </main>
+
+    <!-- ==================== Comments Drawer Sidebar ==================== -->
+    <div id="comments-sidebar">
+        <!-- Drawer Header -->
+        <div class="drawer-header">
+            <h3 class="drawer-title">榜单评论</h3>
+            <button class="btn-close-drawer"
+                onclick="document.body.classList.replace('sidebar-open', 'sidebar-closed')">
+                <span class="material-symbols-outlined">close</span>
+            </button>
         </div>
 
-        <!-- ========== 右侧信息栏 ========== -->
-        <div class="right-sidebar">
-            <!-- 实时战报推送区域 -->
-            <div class="live-report-section">
-                <div class="section-header">
-                    <h3 class="section-title">
-                        <span class="title-icon">🔥</span>
-                        实时战报推送
-                    </h3>
-                </div>
-                <div class="section-content">
-
-                    <div class="placeholder-cards">
-                        <div class="mini-card">
-                            <div class="mini-card-title">热门榜单一</div>
-                            <div class="mini-card-meta">👥 1.2k 点赞</div>
-                        </div>
-                        <div class="mini-card">
-                            <div class="mini-card-title">热门榜单二</div>
-                            <div class="mini-card-meta">👥 980 点赞</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- 好友社交推荐区域 -->
-            <div class="friend-recommend-section">
-                <div class="section-header">
-                    <h3 class="section-title">
-                        <span class="title-icon">👥</span>
-                        共同好友社交推荐
-                    </h3>
-                </div>
-                <div class="section-content">
-
-                    <div class="placeholder-cards">
-                        <div class="mini-card">
-                            <div class="mini-card-title">好友都在听</div>
-                            <div class="mini-card-meta">👫 3位好友</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- AI智能推荐区域 -->
-            <div class="ai-recommend-section">
-                <div class="section-header">
-                    <h3 class="section-title">
-                        <span class="title-icon">🤖</span>
-                        音乐智能推荐
-                    </h3>
-                    <span class="ai-badge">AI 智能体</span>
-                </div>
-                <div class="section-content">
-
-                    <div class="ai-feature-list">
-                        <div class="ai-feature-item">
-                            <span class="feature-icon">🎵</span>
-                            <span class="feature-text">智能匹配您的音乐口味</span>
-                        </div>
-                        <div class="ai-feature-item">
-                            <span class="feature-icon">📊</span>
-                            <span class="feature-text">分析全球音乐趋势</span>
-                        </div>
-                        <div class="ai-feature-item">
-                            <span class="feature-icon">💡</span>
-                            <span class="feature-text">发现隐藏的音乐宝藏</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <!-- Comments List -->
+        <div class="drawer-comments drawerCommentList custom-scrollbar" id="drawerCommentList">
+            <!-- Comments will be loaded dynamically here -->
         </div>
-    </div>
 
-
-
-    <!-- 加号发布榜单按钮：移除onclick，使用事件委托 -->
-    <div class="add-button-container">
-        <button class="add-button" id="addBtn">+</button>
-    </div>
-
-    <!-- 我的榜单按钮：移除onclick，使用事件委托 -->
-    <div class="slide-btn-container">
-        <button class="slide-btn-toggle expanded" id="slideBtnToggle">
-            <span class="toggle-icon">我的榜单</span>
-        </button>
-        <button class="slide-btn-content show" id="myRankBtn">进入我的榜单</button>
-        <button class="slide-btn-content show" id="hotRankBtn">热门榜单</button>
-    </div>
-
-    <!-- 返回登录按钮：移除onclick，使用事件委托 -->
-    <div class="login-btn-container">
-        <button class="login-btn-toggle expanded" id="loginBtnToggle">
-            <span class="toggle-icon">登录</span>
-        </button>
-        <button class="login-btn-content show" id="loginBtn">返回登录页面</button>
-    </div>
-
-    <!-- ==================== 全局评论抽屉弹窗 ==================== -->
-    <div class="comment-drawer-overlay" id="commentDrawerOverlay"></div>
-    <div class="comment-drawer-panel" id="commentDrawerPanel" data-current-rank-id="">
-        <button class="drawer-close-btn" id="drawerCloseBtn">×</button>
-        <h3 class="drawer-title">评论区</h3>
+        <!-- Input Area -->
         <div class="drawer-input-area">
-            <textarea class="drawer-comment-input" id="drawerCommentInput" placeholder="写下你的评论..."></textarea>
-            <div class="drawer-input-actions">
-                <button class="drawer-submit-btn" id="drawerSubmitBtn">发表评论</button>
+            <div class="input-wrapper">
+                <textarea class="comment-textarea custom-scrollbar" id="drawerCommentInput"
+                    placeholder="分享你的听后感..."></textarea>
+                <button class="btn-submit-comment" id="drawerSubmitBtn">发布评论</button>
             </div>
         </div>
-        <div class="drawer-comment-list" id="drawerCommentList"></div>
     </div>
 
-    <!-- 先引入播放器JS（核心修复：移到body底部） -->
+
+
+    <!-- Music Player Container (Required for existing JS) -->
+    <div id="music-player-container"></div>
+
+    <!-- ==================== JavaScript Code (Complete Preservation) ==================== -->
     <script th:src="@{/player/music-player.js}"></script>
 
     <script>
         // ===================== 全局核心配置（统一初始化）=====================
-        // 1. 工具函数：获取URL参数
         function getUrlParam(paramName) {
             const reg = new RegExp("(^|&)" + paramName + "=([^&]*)(&|$)");
             const paramMatch = window.location.search.substr(1).match(reg);
             return paramMatch ? decodeURIComponent(paramMatch[2]) : null;
         }
 
-        // 新增：从JWT Token解析userId（解决URL无userId的核心）
         function getUserIdFromToken(token) {
             if (!token) return null;
             try {
@@ -1966,17 +1646,15 @@
             }
         }
 
-        // 2. 全局变量（补充缺失的 musicPlayer 声明）
         let token = getUrlParam("token");
         let userId = getUrlParam("userId") || getUserIdFromToken(token);
         let category = parseInt(getUrlParam("category")) || 1;
         let pageNum = parseInt(getUrlParam("pageNum")) || 1;
         let pageSize = parseInt(getUrlParam("pageSize")) || 4;
-        let musicPlayer = null; // 显式声明播放器变量
+        let musicPlayer = null;
 
         console.log("初始化参数：", { token, userId, category, pageNum, pageSize });
 
-        // 3. 动态路径工具
         function getTargetPublishPath(category) {
             return "/music/api/mine/my";
         }
@@ -1987,7 +1665,6 @@
             return category === 1 ? "/music/api/rank/love" : "/music/api/workrank/love";
         }
 
-        // 4. 提示框工具
         function showErrorTip(msg) {
             let el = document.getElementById('errorAlert');
             if (!el) {
@@ -2014,7 +1691,6 @@
             setTimeout(() => el.style.display = 'none', 2000);
         }
 
-        // ===================== 兼容工具函数（修复 padStart 兼容问题）=====================
         function padStartCompat(str, length, padChar) {
             str = str.toString();
             while (str.length < length) {
@@ -2023,12 +1699,9 @@
             return str;
         }
 
-        // ===================== 播放器核心逻辑（全局可访问）=====================
-        // 初始化播放器（全局函数）
         function initMusicPlayer() {
-            if (musicPlayer) return; // ✅ 现在变量已声明
+            if (musicPlayer) return;
             try {
-                // 兼容播放器未定义的情况
                 if (typeof MusicPlayer === 'undefined') {
                     console.warn("MusicPlayer未定义，跳过播放器初始化");
                     return;
@@ -2045,7 +1718,6 @@
             }
         }
 
-        // 播放歌曲（全局函数）
         function playSong(song) {
             if (!song) {
                 showErrorTip("歌曲信息为空！");
@@ -2063,7 +1735,6 @@
             }
         }
 
-        // 播放按钮点击处理（全局函数）
         function playSongFromData(btn) {
             const songId = btn.dataset.songId;
             const songName = btn.dataset.songName;
@@ -2081,21 +1752,17 @@
             });
         }
 
-        // ===================== 页面交互逻辑 =====================
-        // 5. 搜索功能
         function openSearch() {
             const searchUrl = `/music/api/rank/sou?token=${encodeURIComponent(token)}&category=${category}&userId=${userId}`;
             window.location.href = searchUrl;
         }
 
-        // 6. 分页
         function goToPage(page) {
             if (isNaN(page) || page < 1) return;
             const jumpUrl = `/music/api/rank/publish?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}&pageNum=${page}&pageSize=${pageSize}`;
             window.location.href = jumpUrl;
         }
 
-        // ===================== 榜单点赞/收藏（修复 POST 参数格式）=====================
         function voteForRanking(rankId, btn) {
             console.log('切换榜单投票状态，rankId:', rankId);
             if (!token) {
@@ -2103,18 +1770,13 @@
                 return;
             }
 
-            const voteCountEl = btn.querySelector('.vote-count');
-            const originalCount = Number(voteCountEl.textContent) || 0;
-
-            // 临时禁用按钮，添加加载状态
             btn.style.pointerEvents = 'none';
             btn.style.opacity = '0.7';
 
-            // ✅ 修复：POST 参数放在 data 中，params 只传通用参数
-            axios.post(getTargetVotePath(category), null, { // 将 data 设为 null
+            axios.post(getTargetVotePath(category), null, {
                 params: {
                     token: token,
-                    rankId: rankId, // 将 rankId 也移到 params 中
+                    rankId: rankId,
                     userId: userId
                 }
             })
@@ -2122,26 +1784,21 @@
                     if (response.data.code === 200 || response.data.success) {
                         if (btn.classList.contains('voted')) {
                             btn.classList.remove('voted');
-                            voteCountEl.textContent = Math.max(0, originalCount - 1);
-                            btn.querySelector('.heart-icon').textContent = '♡';
+                            btn.querySelector('.material-symbols-outlined').style.fontVariationSettings = "'FILL' 0";
                             showSuccessTip("取消点赞成功！");
                         } else {
                             btn.classList.add('voted');
-                            voteCountEl.textContent = originalCount + 1;
-                            btn.querySelector('.heart-icon').textContent = '♥';
+                            btn.querySelector('.material-symbols-outlined').style.fontVariationSettings = "'FILL' 1";
                             showSuccessTip("点赞成功！");
                         }
                     } else {
-                        voteCountEl.textContent = originalCount;
                         showErrorTip("操作失败：" + (response.data.msg || "后端处理失败"));
                     }
                 })
                 .catch(error => {
-                    voteCountEl.textContent = originalCount;
                     showErrorTip("操作失败：" + (error.response?.data?.msg || "接口异常"));
                 })
                 .finally(() => {
-                    // 无论成功失败，都恢复按钮状态
                     btn.style.pointerEvents = 'auto';
                     btn.style.opacity = '1';
                 });
@@ -2154,112 +1811,74 @@
                 return;
             }
 
-            const collectCountEl = btn.querySelector('.collect-count');
-            const originalCount = Number(collectCountEl.textContent) || 0;
-
-            // 临时禁用按钮，添加加载状态
             btn.style.pointerEvents = 'none';
             btn.style.opacity = '0.7';
 
-            // ✅ 修复：POST 参数放在 data 中
-            axios.post(getTargetLovePath(category), {
-                rankId: rankId,
-                userId: userId
-            }, {
-                params: { token: token }
+            axios.post(getTargetLovePath(category), null, {
+                params: {
+                    token: token,
+                    rankId: rankId,
+                    userId: userId
+                }
             })
                 .then(response => {
                     if (response.data.code === 200 || response.data.success) {
                         if (btn.classList.contains('collected')) {
                             btn.classList.remove('collected');
-                            collectCountEl.textContent = Math.max(0, originalCount - 1);
-                            btn.querySelector('.star-icon').style.color = '';
+                            btn.querySelector('.material-symbols-outlined').style.fontVariationSettings = "'FILL' 0";
                             showSuccessTip("取消收藏成功！");
                         } else {
                             btn.classList.add('collected');
-                            collectCountEl.textContent = originalCount + 1;
-                            btn.querySelector('.star-icon').style.color = '#fffa9c';
+                            btn.querySelector('.material-symbols-outlined').style.fontVariationSettings = "'FILL' 1";
                             showSuccessTip("收藏成功！");
                         }
                     } else {
-                        collectCountEl.textContent = originalCount;
                         showErrorTip("操作失败：" + (response.data.msg || "后端处理失败"));
                     }
                 })
                 .catch(error => {
-                    collectCountEl.textContent = originalCount;
-                    showErrorTip("操作失败：" + (error.response?.data?.msg || "接口异常"));
+                    showErrorTip("操作失败：" + (error.response?.data?.msg || error.message));
                 })
                 .finally(() => {
-                    // 无论成功失败，都恢复按钮状态
                     btn.style.pointerEvents = 'auto';
                     btn.style.opacity = '1';
                 });
         }
 
-        // ===================== 评论功能（修复时间格式化兼容）=====================
-
-        // 新增：打开评论抽屉
         function openCommentDrawer(rankId) {
             console.log('打开评论抽屉, rankId:', rankId);
-            const overlay = document.getElementById('commentDrawerOverlay');
-            const panel = document.getElementById('commentDrawerPanel');
-            const input = document.getElementById('drawerCommentInput');
+            const panel = document.getElementById('comments-sidebar');
 
-            if (!overlay || !panel) {
+            if (!panel) {
                 showErrorTip("评论抽屉组件未找到！");
                 return;
             }
 
-            // 设置当前 rankId
             panel.dataset.currentRankId = rankId;
 
-            // 清空输入框
+            const input = document.getElementById('drawerCommentInput');
             if (input) input.value = '';
 
-            // 显示遮罩和面板
-            overlay.classList.add('active');
-            panel.classList.add('active');
+            document.body.classList.replace('sidebar-closed', 'sidebar-open');
 
-            // 禁止背景滚动
-            document.body.style.overflow = 'hidden';
-
-            // 加载评论数据
             loadCommentsToDrawer(rankId);
         }
 
-        // 新增：关闭评论抽屉
         function closeCommentDrawer() {
             console.log('关闭评论抽屉');
-            const overlay = document.getElementById('commentDrawerOverlay');
-            const panel = document.getElementById('commentDrawerPanel');
-
-            if (overlay && panel) {
-                overlay.classList.remove('active');
-                panel.classList.remove('active');
-            }
-
-            // 恢复背景滚动
-            document.body.style.overflow = '';
-
-            // 清除当前 rankId
-            if (panel) panel.dataset.currentRankId = '';
+            document.body.classList.replace('sidebar-open', 'sidebar-closed');
         }
 
-        // 修改：toggleComments 改为调用抽屉
         function toggleComments(rankId) {
-            const panel = document.getElementById('commentDrawerPanel');
+            const panel = document.getElementById('comments-sidebar');
 
-            if (panel && panel.classList.contains('active') && panel.dataset.currentRankId === String(rankId)) {
-                // 如果当前已经打开且是同一个榜单，则关闭
+            if (panel && document.body.classList.contains('sidebar-open') && panel.dataset.currentRankId === String(rankId)) {
                 closeCommentDrawer();
             } else {
-                // 否则打开/切换到该榜单的评论
                 openCommentDrawer(rankId);
             }
         }
 
-        // 修改：加载评论到抽屉容器
         function loadCommentsToDrawer(rankId) {
             console.log('加载评论列表到抽屉, rankId:', rankId);
             const commentList = document.getElementById('drawerCommentList');
@@ -2286,7 +1905,6 @@
                         renderCommentsToDrawer(commentList, comments);
                     } else {
                         commentList.innerHTML = `<p style="color: #ff4444; text-align: center; padding: 20px;">查询评论失败：${response.data.msg || '未知错误'}</p>`;
-                        console.error('评论查询失败:', response.data);
                     }
                 })
                 .catch(error => {
@@ -2295,12 +1913,6 @@
                 });
         }
 
-        // 兼容原有函数名（保留以防其他地方调用）
-        function loadComments(rankId) {
-            loadCommentsToDrawer(rankId);
-        }
-
-        // 修改：渲染评论到抽屉容器
         function renderCommentsToDrawer(container, comments) {
             if (!comments || comments.length === 0) {
                 container.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">暂无评论</p>';
@@ -2315,46 +1927,27 @@
                 commentItem.dataset.rankId = comment.rankId;
                 commentItem.dataset.userId = comment.userId;
                 commentItem.innerHTML = `
-                <div class="comment-header">
-                    <span class="comment-username">${comment.username || '匿名用户'}</span>
-                    <span class="comment-time">${formatTime(comment.comTime)}</span>
-                </div>
-                <div class="comment-content">${comment.comContent || ''}</div>
-                <div class="comment-actions-bar">
-                    <button class="comment-like-btn ${comment.isLiked === 1 ? 'liked' : ''}" data-com-id="${comment.comId}">
-                        <span class="comment-heart-icon">♥</span>
-                        <span class="comment-like-count">${comment.likeCount || 0}</span>
-                    </button>
-                    ${comment.userId === parseInt(userId) ?
-                        `<button class="comment-delete-btn" data-com-id="${comment.comId}" data-rank-id="${comment.rankId}">删除</button>` : ''
-                    }
-                </div>
-            `;
+<div class="comment-avatar">
+<img alt="User Avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKeToot9FaAXFlRaHCuFqG8cG3GJ3dogc8OAeXUbWq3KIkC93g_uwNi9o1RGHhDUnzr_Doc6wu2YReCrwZHGSSD-WKVEj4BjLZousm7Wt_OVxvQ-hxVW1gRv6Qnr9yU0Bv_H1PgXrHbNYvsBVj1zafwVAFV-5MYQWzKU5XmDsAnSnhl1Xy1nDHBFG7qTm8T9oHCtLjM_-0ZKjKCRwlkUiJahXs1PTCYX38nPWIX5ONmF3kRwA_MNnl0OnregTXTFHfyM8qrPUuolk"/>
+</div>
+<div class="comment-content">
+<div class="comment-header">
+<span class="comment-author">${comment.username || '匿名用户'}</span>
+<span class="comment-time">${formatTime(comment.comTime)}</span>
+${userId && String(comment.userId) === String(userId) ? '<button class="comment-delete-btn" data-com-id="' + comment.comId + '" data-rank-id="' + comment.rankId + '"><span class="material-symbols-outlined">delete</span></button>' : ''}
+</div>
+<p class="comment-text">${comment.comContent || ''}</p>
+</div>
+`;
 
                 container.appendChild(commentItem);
             });
         }
 
-        // 兼容原有函数名
-        function renderComments(container, comments) {
-            renderCommentsToDrawer(container, comments);
-        }
-
-        // 修改：从抽屉输入框提交评论
         function submitComment(rankId) {
             console.log('提交评论, rankId:', rankId);
 
-            // 优先从抽屉输入框获取内容
-            let input = null;
-            const panel = document.getElementById('commentDrawerPanel');
-            if (panel && panel.classList.contains('active')) {
-                input = document.getElementById('drawerCommentInput');
-            }
-
-            // 如果抽屉未打开或输入框不存在，尝试使用原有的输入框（降级方案）
-            if (!input) {
-                input = document.getElementById(`comment-input-${rankId}`);
-            }
+            const input = document.getElementById('drawerCommentInput');
 
             if (!input) {
                 showErrorTip("评论输入框未找到！");
@@ -2387,7 +1980,7 @@
                     if (response.data.code === 200 || response.data.success) {
                         showSuccessTip("评论发表成功！");
                         input.value = '';
-                        loadComments(rankId);
+                        loadCommentsToDrawer(rankId);
                     } else {
                         showErrorTip("评论发表失败：" + (response.data.msg || '未知错误'));
                     }
@@ -2398,7 +1991,6 @@
                 });
         }
 
-        // ✅ 核心修复：评论点赞接口参数格式（后端要求@RequestParam，所以参数要放在params里）
         function toggleCommentLike(commentId, btn) {
             console.log('切换评论点赞状态，commentId:', commentId);
 
@@ -2410,54 +2002,47 @@
             const likeCountEl = btn.querySelector('.comment-like-count');
             const originalCount = Number(likeCountEl.textContent) || 0;
 
-            // 临时禁用按钮
             btn.style.pointerEvents = 'none';
 
             if (btn.classList.contains('liked')) {
-                // 取消点赞 - ✅ 修复：参数放在params中（后端@RequestParam要求）
                 axios.post(`/music/api/rank/deleteLike`, null, {
                     params: {
                         token: token,
-                        comId: commentId // 后端参数名是comId，必须匹配
+                        comId: commentId
                     }
                 })
                     .then(response => {
-                        console.log('取消点赞完整响应:', response.data);
                         if (response.data.code === 200 || response.data.success) {
                             btn.classList.remove('liked');
                             likeCountEl.textContent = Math.max(0, originalCount - 1);
                             showSuccessTip("取消点赞成功！");
                         } else {
-                            showErrorTip("取消点赞失败：" + (response.data.msg || '未知错误'));
+                            showErrorTip("取消点赞失败：" + (response.data.msg || "未知错误"));
                         }
                     })
                     .catch(error => {
-                        console.error('取消点赞失败:', error);
                         showErrorTip("取消点赞失败：" + (error.response?.data?.msg || error.message));
                     })
                     .finally(() => {
                         btn.style.pointerEvents = 'auto';
                     });
             } else {
-                // 点赞 - ✅ 修复：参数放在params中（后端@RequestParam要求）
                 axios.post(`/music/api/rank/like`, null, {
                     params: {
                         token: token,
-                        comId: commentId // 后端参数名是comId，必须匹配
+                        comId: commentId
                     }
                 })
                     .then(response => {
-                        console.log('点赞成功:', response.data);
                         if (response.data.code === 200 || response.data.success) {
                             btn.classList.add('liked');
                             likeCountEl.textContent = originalCount + 1;
                             showSuccessTip("点赞成功！");
                         } else {
-                            showErrorTip("点赞失败：" + (response.data.msg || '未知错误'));
+                            showErrorTip("点赞失败：" + (response.data.msg || "未知错误"));
                         }
                     })
                     .catch(error => {
-                        console.error('点赞失败:', error);
                         showErrorTip("点赞失败：" + (error.response?.data?.msg || error.message));
                     })
                     .finally(() => {
@@ -2481,23 +2066,20 @@
                 }
             })
                 .then(response => {
-                    console.log('删除评论成功:', response.data);
                     if (response.data.code === 200 || response.data.success) {
                         showSuccessTip("删除评论成功！");
                         if (rankId) {
-                            loadComments(rankId);
+                            loadCommentsToDrawer(rankId);
                         }
                     } else {
-                        showErrorTip("删除评论失败：" + (response.data.msg || '未知错误'));
+                        showErrorTip("删除评论失败：" + (response.data.msg || "未知错误"));
                     }
                 })
                 .catch(error => {
-                    console.error('删除评论失败:', error);
                     showErrorTip("删除评论失败：" + (error.response?.data?.msg || error.message));
                 });
         }
 
-        // ✅ 修复：时间格式化兼容低版本浏览器
         function formatTime(time) {
             if (!time) return '';
             const date = new Date(time);
@@ -2509,22 +2091,55 @@
             const minute = padStartCompat(date.getMinutes(), 2, '0');
             return `${year}-${month}-${day} ${hour}:${minute}`;
         }
-        // ===================== AI锐评功能 完全匹配后端接口 =====================
+
+        function renderAiReviewToSidebar(aiContent, rankName) {
+            console.log('渲染AI锐评到侧边栏, 榜单:', rankName);
+
+            const cardsContainer = document.querySelector('.ai-review-cards');
+            if (!cardsContainer) {
+                console.error('AI锐评卡片容器未找到！');
+                return;
+            }
+
+            cardsContainer.innerHTML = `
+<div style=" padding-left: 2px; padding-top: 4px; padding-bottom: 4px; margin-bottom: 2px;">
+<p style="font-size: 14px; color: #dfe2eb; line-height: 1.6; font-family: Manrope, sans-serif;border-top:solid 1px grey;padding-top:5px">${aiContent || '暂无锐评内容'}</p>
+</div>
+`;
+
+            console.log('AI锐评内容已渲染到侧边栏');
+        }
+
+        function showAiReviewLoading(rankName) {
+            const cardsContainer = document.querySelector('.ai-review-cards');
+            if (!cardsContainer) return;
+
+            cardsContainer.innerHTML = `
+<div style="flex: 1; display: flex; align-items: center; justify-content: center; text-align: center; padding: 16px;">
+<p style="font-size: 12px; color: #6b7280; font-style: italic; line-height: 1.6; font-family: Manrope, sans-serif;">
+AI正在分析「${rankName || '未知榜单'}」，请稍候...
+</p>
+</div>
+`;
+        }
+
+        function hideAiReviewLoading() {
+            // Loading state is replaced when content is rendered
+        }
+
         function requestAiReview(myRankWithSongs, btn) {
-            console.log('请求AI锐评, 榜单ID:', myRankWithSongs.rankId, '歌曲数:', myRankWithSongs.rankSongList.length);
+            console.log('请求AI锐评, 榜单ID:', myRankWithSongs.rankId);
 
             if (!token) {
                 showErrorTip("请先登录后再使用AI锐评！");
                 return;
             }
 
-            // 禁用按钮
             btn.style.pointerEvents = 'none';
             btn.style.opacity = '0.7';
-            const originalText = btn.querySelector('span').textContent;
-            btn.querySelector('span').textContent = '分析中...';
 
-            // 调用后端接口
+            showAiReviewLoading(myRankWithSongs.rankName);
+
             axios.post('/music/AiComment/ai', myRankWithSongs, {
                 params: {
                     rankId: myRankWithSongs.rankId,
@@ -2534,10 +2149,10 @@
                 .then(response => {
                     console.log('AI锐评响应:', response.data);
                     if (response.data.code === 200 && response.data.data != null) {
-                        showAiCommentModal(response.data.data, myRankWithSongs.rankName);
+                        renderAiReviewToSidebar(response.data.data, myRankWithSongs.rankName);
                         showSuccessTip("AI锐评生成成功！");
                     } else {
-                        showErrorTip("AI锐评失败：" + (response.data.msg || '未知错误'));
+                        showErrorTip("AI锐评失败：" + (response.data.msg || "未知错误"));
                     }
                 })
                 .catch(error => {
@@ -2547,124 +2162,28 @@
                 .finally(() => {
                     btn.style.pointerEvents = 'auto';
                     btn.style.opacity = '1';
-                    btn.querySelector('span').textContent = originalText;
+                    hideAiReviewLoading();
                 });
         }
-        // 显示AI评论弹窗
-        function showAiCommentModal(aiComment, rankName, songName) {
-            // 创建或获取弹窗元素
-            let modal = document.getElementById('aiCommentModal');
-            if (!modal) {
-                modal = document.createElement('div');
-                modal.id = 'aiCommentModal';
-                modal.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.6);
-            z-index: 2000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        `;
 
-                modal.innerHTML = `
-            <div style="
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                border-radius: 20px;
-                padding: 30px;
-                max-width: 500px;
-                width: 90%;
-                max-height: 80vh;
-                overflow-y: auto;
-                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-                transform: scale(0.9);
-                transition: transform 0.3s ease;
-            ">
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <span style="font-size: 40px;">🤖</span>
-                    <h3 style="color: white; margin: 10px 0; font-size: 24px;">AI 音乐分析师</h3>
-                    <p style="color: rgba(255,255,255,0.8); font-size: 14px;">为《${songName || '未知歌曲'}》生成的专业锐评</p>
-                </div>
-                <div style="
-                    background: rgba(255,255,255,0.95);
-                    border-radius: 15px;
-                    padding: 20px;
-                    margin: 20px 0;
-                    color: #1a202c;
-                    font-size: 16px;
-                    line-height: 1.6;
-                    min-height: 100px;
-                " id="aiCommentContent">
-                    加载中...
-                </div>
-                <div style="text-align: center;">
-                    <button onclick="closeAiCommentModal()" style="
-                        background: white;
-                        color: #667eea;
-                        border: none;
-                        padding: 12px 30px;
-                        border-radius: 25px;
-                        font-size: 16px;
-                        font-weight: bold;
-                        cursor: pointer;
-                        transition: all 0.3s ease;
-                    ">关闭</button>
-                </div>
-            </div>
-        `;
-
-                document.body.appendChild(modal);
-
-                // 点击遮罩关闭
-                modal.addEventListener('click', function(e) {
-                    if (e.target === modal) {
-                        closeAiCommentModal();
-                    }
-                });
-            }
-
-            // 更新内容并显示
-            document.getElementById('aiCommentContent').textContent = aiComment || '暂无评论内容';
-            modal.style.opacity = '1';
-            modal.style.visibility = 'visible';
-            modal.querySelector('div > div').style.transform = 'scale(1)';
-        }
-
-        // 关闭AI评论弹窗
-        function closeAiCommentModal() {
-            const modal = document.getElementById('aiCommentModal');
-            if (modal) {
-                modal.style.opacity = '0';
-                modal.style.visibility = 'hidden';
-                modal.querySelector('div > div').style.transform = 'scale(0.9)';
-            }
-        }
-        // ===================== 全局事件委托（核心修复：统一绑定所有按钮事件）=====================
         function bindAllEvents() {
-            // 事件委托：处理所有按钮点击
             document.addEventListener('click', function (e) {
                 const target = e.target;
 
-                // 1. 搜索按钮
-                if (target.closest('#searchButton')) {
+                // Search button
+                if (target.closest('#navSearch')) {
                     openSearch();
                     return;
                 }
 
-                // 2. 播放按钮
+                // Play button
                 const playBtn = target.closest('.play-btn');
                 if (playBtn) {
                     playSongFromData(playBtn);
                     return;
                 }
 
-                // 3. 投票按钮
+                // Vote button
                 const voteBtn = target.closest('.vote-btn');
                 if (voteBtn) {
                     const rankId = voteBtn.dataset.rankId;
@@ -2674,7 +2193,7 @@
                     return;
                 }
 
-                // 4. 收藏按钮
+                // Collect button
                 const collectBtn = target.closest('.collect-btn');
                 if (collectBtn) {
                     const rankId = collectBtn.dataset.rankId;
@@ -2684,54 +2203,43 @@
                     return;
                 }
 
-                // AI锐评按钮点击（预留接口）
-
-                // AI锐评按钮点击（预留接口）
-                // AI锐评按钮点击（最终修复版）
-                // AI锐评按钮点击
-                // AI锐评按钮点击 - 从 DOM 收集数据
+                // AI Review button
                 const aiReviewBtn = target.closest('.ai-review-btn');
                 if (aiReviewBtn) {
                     const rankId = aiReviewBtn.dataset.rankId;
                     const rankName = aiReviewBtn.dataset.rankName;
 
-                    // 找到当前榜单的 DOM 元素
-                    const rankItem = aiReviewBtn.closest('.ranking-item');
+                    const rankItem = aiReviewBtn.closest('[data-rank-id]');
                     if (!rankItem) {
                         showErrorTip("榜单元素未找到！");
                         return;
                     }
 
-                    // 从 DOM 收集歌曲列表
-                    const songRows = rankItem.querySelectorAll('.song-list li');
+                    const songRows = rankItem.querySelectorAll('.song-item');
                     const rankSongList = [];
                     songRows.forEach(row => {
-                        const songName = row.querySelector('.song-name')?.textContent?.trim() || '';
-                        const singerName = row.querySelector('.singer-name')?.textContent?.trim() || '';
-                        const rankSpan = row.querySelector('.song-rank')?.textContent?.trim() || '0';
+                        const songNameCol = row.querySelector('.song-name');
+                        const artistNameCol = row.querySelector('.song-artist');
 
                         rankSongList.push({
-                            songName: songName,
-                            singerName: singerName,
-                            ranking: parseInt(rankSpan) || 0
+                            songName: songNameCol ? songNameCol.textContent.trim() : '',
+                            singerName: artistNameCol ? artistNameCol.textContent.trim() : '',
+                            ranking: 0
                         });
                     });
 
-                    // 构造 MyRankWithSong 对象
                     const myRankWithSongs = {
                         rankId: parseInt(rankId),
                         rankName: rankName,
                         rankSongList: rankSongList,
-                        rankTagsList: []  // 页面没显示标签，传空数组
+                        rankTagsList: []
                     };
 
-                    console.log('从DOM收集的榜单数据:', myRankWithSongs);
-
-                    // 调用 AI 接口
                     requestAiReview(myRankWithSongs, aiReviewBtn);
                     return;
                 }
-                // 5. 评论切换按钮
+
+                // Comment toggle button
                 const commentToggle = target.closest('.comment-toggle');
                 if (commentToggle) {
                     const rankId = commentToggle.dataset.rankId;
@@ -2741,39 +2249,24 @@
                     return;
                 }
 
-                // 5.1 抽屉关闭按钮
-                const drawerCloseBtn = target.closest('#drawerCloseBtn');
-                if (drawerCloseBtn) {
+                // Drawer close button
+                if (target.closest('.btn-close-drawer')) {
                     closeCommentDrawer();
                     return;
                 }
 
-                // 5.2 抽屉遮罩层点击关闭
-                const drawerOverlay = target.closest('#commentDrawerOverlay');
-                if (drawerOverlay && target === drawerOverlay) {
-                    closeCommentDrawer();
-                    return;
-                }
-
-                // 6. 评论提交按钮（兼容原有 + 抽屉提交）
-                const commentSubmit = target.closest('.comment-submit');
+                // Comment submit
                 const drawerSubmit = target.closest('#drawerSubmitBtn');
-                if (commentSubmit || drawerSubmit) {
-                    let rankId = null;
-                    if (drawerSubmit) {
-                        // 从抽屉面板获取当前 rankId
-                        const panel = document.getElementById('commentDrawerPanel');
-                        rankId = panel ? panel.dataset.currentRankId : null;
-                    } else {
-                        rankId = commentSubmit.dataset.rankId;
-                    }
+                if (drawerSubmit) {
+                    const panel = document.getElementById('comments-sidebar');
+                    const rankId = panel ? panel.dataset.currentRankId : null;
                     if (rankId) {
                         submitComment(rankId);
                     }
                     return;
                 }
 
-                // 7. 评论点赞按钮
+                // Comment like
                 const commentLikeBtn = target.closest('.comment-like-btn');
                 if (commentLikeBtn) {
                     const comId = commentLikeBtn.dataset.comId;
@@ -2783,7 +2276,7 @@
                     return;
                 }
 
-                // 8. 评论删除按钮
+                // Comment delete
                 const commentDeleteBtn = target.closest('.comment-delete-btn');
                 if (commentDeleteBtn) {
                     const comId = commentDeleteBtn.dataset.comId;
@@ -2794,7 +2287,7 @@
                     return;
                 }
 
-                // 9. 分页按钮
+                // Pagination
                 const pageBtn = target.closest('.page-btn');
                 if (pageBtn && !pageBtn.disabled) {
                     const page = pageBtn.dataset.page;
@@ -2804,178 +2297,44 @@
                     return;
                 }
 
-                // 10. 加号发布按钮
-                if (target.closest('#addBtn')) {
-                    if (!token || !userId || !category || isNaN(userId) || isNaN(category)) {
-                        showErrorTip("参数缺失，请刷新页面重试！");
-                        return;
-                    }
-                    let addPagePath = category === 1 ? "/music/rank.html" : "/music/workrank.html";
-                    const jumpUrl = `${addPagePath}?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}`;
-                    console.log("发布跳转URL：", jumpUrl);
-                    window.location.href = jumpUrl;
+                // Navigation buttons
+                if (target.closest('#navIndex')) {
+                    window.location.href = `/music/index.html?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}`;
                     return;
                 }
 
-                // 11. 我的榜单按钮
-                if (target.closest('#myRankBtn')) {
-                    console.log("【进入我的榜单】按钮被点击");
-                    if (!token || !userId || isNaN(userId)) {
-                        showErrorTip("缺少登录信息，请重新登录！");
-                        setTimeout(() => window.location.href = "/login.html", 1500);
-                        return;
-                    }
+                if (target.closest('#navMyRank')) {
                     const targetPath = getTargetPublishPath(category);
                     const jumpUrl = `${targetPath}?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}&pageNum=1&pageSize=10`;
-                    console.log("跳转URL：", jumpUrl);
                     window.location.href = jumpUrl;
                     return;
                 }
 
-                // 12. 热门榜单按钮
-                if (target.closest('#hotRankBtn')) {
-                    console.log("【热门榜单】按钮被点击");
-                    if (!token || !userId || isNaN(userId)) {
-                        showErrorTip("缺少登录信息，请重新登录！");
-                        setTimeout(() => window.location.href = "/login.html", 1500);
-                        return;
-                    }
+                if (target.closest('#navHotRank')) {
                     const hotRankUrl = `/music/hotrank.html?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}`;
-                    console.log("热门榜单跳转URL：", hotRankUrl);
                     window.location.href = hotRankUrl;
                     return;
                 }
 
-                // 13. 返回登录按钮
-                if (target.closest('#loginBtn')) {
-                    console.log("【返回登录】按钮被点击");
-                    window.location.href = "/music/login.html";
-                    return;
-                }
-
-                // 14. 侧边栏展开/收起按钮
-                if (target.closest('#slideBtnToggle')) {
-                    const toggleBtn = document.getElementById('slideBtnToggle');
-                    const myRankBtn = document.getElementById('myRankBtn');
-                    const hotRankBtn = document.getElementById('hotRankBtn');
-                    const isExpanded = !toggleBtn.classList.contains('collapsed');
-
-                    if (isExpanded) {
-                        toggleBtn.classList.remove('expanded');
-                        toggleBtn.classList.add('collapsed');
-                        myRankBtn.classList.remove('show');
-                        hotRankBtn.classList.remove('show');
-                    } else {
-                        toggleBtn.classList.remove('collapsed');
-                        toggleBtn.classList.add('expanded');
-                        myRankBtn.classList.add('show');
-                        hotRankBtn.classList.add('show');
-                    }
-                    return;
-                }
-
-                // 15. 登录栏展开/收起按钮
-                if (target.closest('#loginBtnToggle')) {
-                    const toggleBtn = document.getElementById('loginBtnToggle');
-                    const loginBtn = document.getElementById('loginBtn');
-                    const isExpanded = !toggleBtn.classList.contains('collapsed');
-
-                    if (isExpanded) {
-                        toggleBtn.classList.remove('expanded');
-                        toggleBtn.classList.add('collapsed');
-                        loginBtn.classList.remove('show');
-                    } else {
-                        toggleBtn.classList.remove('collapsed');
-                        toggleBtn.classList.add('expanded');
-                        loginBtn.classList.add('show');
-                    }
-                    return;
-                }
-
-                // 16. 左侧导航栏切换按钮
-                if (target.closest('.nav-toggle-btn')) {
-                    const sidebar = document.querySelector('.left-sidebar');
-                    sidebar.classList.toggle('collapsed');
-                    return;
-                }
-
-                // 17. 主页按钮（当前页面，无需跳转）
-                if (target.closest('#navHome')) {
-                    document.querySelectorAll('.nav-circle-btn').forEach(btn => btn.classList.remove('active'));
-                    target.closest('#navHome').classList.add('active');
-                    return;
-                }
-
-                // 17.5 首页按钮（跳转 index.html）
-                if (target.closest('#navIndex')) {
-                    const indexUrl = `/music/index.html?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}`;
-                    window.location.href = indexUrl;
-                    return;
-                }
-
-                // 18. 搜索按钮
-                if (target.closest('#navSearch')) {
-                    openSearch();
-                    return;
-                }
-
-                // 19. 我的榜单按钮
-                if (target.closest('#navMyRank')) {
-                    const myRankBtn = document.getElementById('myRankBtn');
-                    if (myRankBtn) myRankBtn.click();
-                    return;
-                }
-
-                // 20. 热门榜单按钮
-                if (target.closest('#navHotRank')) {
-                    const hotRankBtn = document.getElementById('hotRankBtn');
-                    if (hotRankBtn) hotRankBtn.click();
-                    return;
-                }
-
-                // 21. 我的收藏按钮（跳转 mylove-page.html）
                 if (target.closest('#navMyLove')) {
                     const myLoveUrl = `/music/api/mine/mylove?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}&pageNum=1`;
                     window.location.href = myLoveUrl;
                     return;
                 }
 
-                // 22. 发布榜单按钮
                 if (target.closest('#navAdd')) {
-                    const addBtn = document.getElementById('addBtn');
-                    if (addBtn) addBtn.click();
+                    if (!token || !userId || isNaN(userId)) {
+                        showErrorTip("参数缺失，请刷新页面重试！");
+                        return;
+                    }
+                    let addPagePath = category === 1 ? "/music/rank.html" : "/music/workrank.html";
+                    const jumpUrl = `${addPagePath}?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}`;
+                    window.location.href = jumpUrl;
                     return;
                 }
             });
         }
 
-        // ===================== AI锐评按钮3D悬停效果 =====================
-        function initAiReviewButton3DEffect() {
-            const aiReviewBtns = document.querySelectorAll('.ai-review-btn');
-
-            aiReviewBtns.forEach(btn => {
-                btn.addEventListener('mousemove', function (e) {
-                    const rect = btn.getBoundingClientRect();
-
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
-
-                    const centerX = rect.width / 2;
-                    const centerY = rect.height / 2;
-
-                    const rotateX = (centerY - y) / 5;
-                    const rotateY = (x - centerX) / 10;
-
-                    btn.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.05, 1.05, 1.05)`;
-                });
-
-                btn.addEventListener('mouseleave', function () {
-                    btn.style.transform = `rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
-                });
-            });
-        }
-
-        // ===================== 页面加载完成后初始化 =====================
         document.addEventListener('DOMContentLoaded', function () {
             console.log("DOM加载完成，开始初始化页面");
 
@@ -2985,14 +2344,10 @@
             // 2. 绑定所有事件（核心修复）
             bindAllEvents();
 
-            // 2.5 初始化AI锐评按钮3D悬停效果
-            initAiReviewButton3DEffect();
-
             // 3. 添加 ESC 键关闭抽屉功能
             document.addEventListener('keydown', function (e) {
                 if (e.key === 'Escape' || e.keyCode === 27) {
-                    const panel = document.getElementById('commentDrawerPanel');
-                    if (panel && panel.classList.contains('active')) {
+                    if (document.body.classList.contains('sidebar-open')) {
                         closeCommentDrawer();
                     }
                 }
@@ -3009,6 +2364,7 @@
         });
 
     </script>
+
 </body>
 
 </html>
