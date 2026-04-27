@@ -16,9 +16,9 @@ public class HotRankInitTest {
     private TagsService tagsService;
   @Test
     public void hotRankInitTest(){
-        hotRankService.updateHotRank(12L);
-        hotRankService.updateHotRank(13L);
-        hotRankService.updateHotRank(14L);
+        hotRankService.updateHotRank(12);
+        hotRankService.updateHotRank(13);
+        hotRankService.updateHotRank(14);
     }
 
     @Test

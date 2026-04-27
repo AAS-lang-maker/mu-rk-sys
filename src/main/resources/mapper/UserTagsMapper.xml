@@ -7,11 +7,11 @@
 <mapper namespace="com.music.Mapper.UserTagsMapper">
     <select id="selectUserTagsWithDetail" resultType="com.music.pojo.UserTagVO">
         SELECT
-        ut.id,
-        ut.user_id,
-        ut.tag_id,
+        ut.UT_id AS UTId,
+        ut.user_id AS userId,
+        ut.tag_id AS tagId,
         ut.use_count,   -- 选取热度字段
-        ut.create_time,
+        ut.create_time AS createTime,
         t.tag_name      -- 选取标签名称用于展示和搜索
         FROM user_tags ut
         LEFT JOIN tags_dictionary t ON ut.tag_id = t.tag_id
@@ -22,6 +22,6 @@
         </if>
 
         <!-- 排序逻辑：按 user_tags 表中的热度降序排列 -->
-        ORDER BY ut.use_count DESC, ut.id DESC
+        ORDER BY ut.use_count DESC, ut.UT_id DESC
     </select>
 </mapper>

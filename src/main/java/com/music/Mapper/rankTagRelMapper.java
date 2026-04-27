@@ -3,10 +3,7 @@ package com.music.Mapper;
 
 import com.music.pojo.RankTag;
 import com.music.pojo.Tags;
-import org.apache.ibatis.annotations.Delete;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -29,4 +26,7 @@ public interface rankTagRelMapper {
 
 
      List<Tags> selectByRankingIdAndUserId(Integer rankId, Integer userId);
+
+     @Update("UPDATE rank_tags SET tag_id = #{targetTagId} WHERE user_id = #{userId} AND tag_id = #{oldTagId}")
+     int updateRankTagAssociation(Integer userId, Integer oldTagId, Integer targetTagId);
 }

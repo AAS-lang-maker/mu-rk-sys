@@ -47,4 +47,7 @@ public interface MyRankMapper {
 
     @Select("select * from personal_rank where rank_id=#{rankId}")
     PersonalRank selectRankById(Integer rankId);
+
+    @Select("select user_id from personal_rank where rank_id=#{rankId}")
+    Integer selectCreatorIdByRankId(Integer rankId);
 }

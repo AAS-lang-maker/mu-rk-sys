@@ -9,6 +9,7 @@ import com.music.pojo.UserFollow;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -48,21 +49,46 @@ public class FriendServiceImpl implements FriendService {
     }
 
     @Override
-    public boolean isFollowed(Integer currentUserId, Integer targetUserId) {
-        UserFollow userFollow = friendMapper.isFollowed(currentUserId, targetUserId);
+    @Transactional
+    public boolean isFollowed(Integer UserId, Integer targetUserId) {
+        UserFollow userFollow = friendMapper.isFollowed(UserId, targetUserId);
         if(userFollow == null){
             UserFollow userFollow1 = new UserFollow();
-            userFollow1.setUserId(currentUserId);
+            userFollow1.setUserId(UserId);
             userFollow1.setFollowId(targetUserId);
             userFollow1.setIsMutual(0);
             userFollow1.setCreateTime(LocalDateTime.now());
             friendMapper.add(userFollow1);
+
+            UserFollow userFollow2 = friendMapper.isFollowed(targetUserId, UserId);
+            if(userFollow2 != null){
+                userFollow2.setIsMutual(1);
+                friendMapper.update(userFollow2);
+                userFollow1.setIsMutual(1);
+                friendMapper.update(userFollow1);
+            }
             return true;
 
         } else {
-            friendMapper.delete(currentUserId, targetUserId);
+            friendMapper.delete(UserId, targetUserId);
             return false;
         }
+    }
+
+    @Override
+    public UserSimpleVO getMymaster(Integer currentUserId) {
+        UserSimpleVO userSimpleVO = new UserSimpleVO();
+        userSimpleVO.setUserId(currentUserId);
+        userSimpleVO.setUsername(userMapper.getUsernameById(currentUserId));
+        // 核心改动：直接调用我们刚才写的 SQL 方法
+        // 参数1：查谁的列表？查 currentUserId 的
+        // 参数2：当前是谁在看？也是 currentUserId（用来计算互关）
+        userSimpleVO.setMasterList(friendMapper.selectFollowList(currentUserId, currentUserId)
+                .stream().
+                map(userFollow -> userMapper.getUsernameById(userFollow.getUserId()))
+
+                .collect(Collectors.toList()));
+        return userSimpleVO;
     }
 
     @Override
@@ -71,24 +97,10 @@ public class FriendServiceImpl implements FriendService {
         userSimpleVO.setUserId(currentUserId);
         userSimpleVO.setUsername(userMapper.getUsernameById(currentUserId));
         userSimpleVO.setFanList(
-                friendMapper.getMyFriends(currentUserId).
+                friendMapper.selectFanList(currentUserId,currentUserId).
                         stream().
                         map(
-                                userFollow -> userMapper.getUsernameById(userFollow.getFollowId())
-                        ).collect(Collectors.toList()));
-        return userSimpleVO;
-    }
-
-    @Override
-    public UserSimpleVO getMymaster(Integer currentUserId) {
-        UserSimpleVO userSimpleVO = new UserSimpleVO();
-        userSimpleVO.setUserId(currentUserId);
-        userSimpleVO.setUsername(userMapper.getUsernameById(currentUserId));
-        userSimpleVO.setMasterList(
-                friendMapper.getMymaster(currentUserId).
-                        stream().
-                        map(
-                                userFollow -> userMapper.getUsernameById(userFollow.getFollowId())
+                                userFollow -> userMapper.getUsernameById(userFollow.getUserId())
                         ).collect(Collectors.toList()));
         return userSimpleVO;
     }

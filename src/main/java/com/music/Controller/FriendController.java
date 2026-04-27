@@ -60,16 +60,16 @@ public class FriendController {
                                      @RequestParam("targetUserId") Integer targetUserId) {
         // 1. 解析 Token
         if (token.startsWith("Bearer ")) token = token.substring(7);
-        Integer currentUserId;
+        Integer UserId;
         try {
-            currentUserId = JwtUtils.getUserIdFromToken(token);
+            UserId = JwtUtils.getUserIdFromToken(token);
         } catch (Exception e) {
             return Result.badRequest("Token无效");
         }
 
         // 2. 调用 Service 进行切换（如果已关注则取消，未关注则关注）
         // 你需要在 Service 里实现这个逻辑
-        boolean isFollowed = friendService.isFollowed(currentUserId, targetUserId);
+        boolean isFollowed = friendService.isFollowed(UserId, targetUserId);
         //数据库有了
         if (isFollowed) {
             return Result.success("关注成功");
@@ -118,6 +118,8 @@ public class FriendController {
 
         return Result.success(master);
     }
+
+
 
 }
 

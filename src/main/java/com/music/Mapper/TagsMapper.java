@@ -18,8 +18,8 @@ public interface TagsMapper {
 
     Page<Tags> pageQuery(@Param("dto")TagsPageQueryDTO tagsPageQueryDTO);
 
-    @Update("UPDATE tags_dictionary SET tag_name = #{tagName} WHERE tag_id = #{tagId}")
-    void update(Tags tags, Integer tagId);
+    @Update("UPDATE tags_dictionary SET tag_name = #{tagName},use_count = #{useCount} WHERE tag_id = #{tagId}")
+    void update(Tags tags, @Param("tagId") Integer tagId);
 
     @Select("SELECT * FROM tags_dictionary WHERE tag_name = #{tagName}")
     Tags selectTagsByName(String tagName);
@@ -45,4 +45,12 @@ public interface TagsMapper {
     List<Tags> planetary();
 
 
+    @Select("SELECT rank_id FROM personal_rank WHERE user_id = #{userId}")
+    List<Integer> selectRankIdsByUserId(Integer userId);
+
+    @Update("UPDATE tags_dictionary SET use_count = use_count -1 WHERE tag_id = #{tagId}")
+    void updateUseCountfu(Integer tagId);
+
+    @Select("SELECT tag_id FROM user_tags WHERE user_id = #{userId}")
+    List<Integer> selectTagIdsByUserId(Integer userId);
 }

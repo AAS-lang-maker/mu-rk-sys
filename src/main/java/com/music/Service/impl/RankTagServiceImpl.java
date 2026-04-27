@@ -65,8 +65,8 @@ public class RankTagServiceImpl implements RankTagService {
             log.warn("【获取标签】榜单不存在！rankId={}", rankId);
             return null;
         }
-        Integer userId= ThreadLocalUtil.get();
-        List<Tags> tagsList =  rankTagRelMapper.selectByRankingIdAndUserId(rankId,userId);
+        Integer creatorId= myRankMapper.selectCreatorIdByRankId(rankId);
+        List<Tags> tagsList =  rankTagRelMapper.selectByRankingIdAndUserId(rankId,creatorId);
         return tagsList;
     }
 }

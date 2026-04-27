@@ -67,18 +67,23 @@ public class TagsController {
     @GetMapping("/selectpage")
     @Operation(summary = "获取用户自定义云标签", description = "获取用户自定义云标签")
     //个人标签库查询展示
-    public Result<PageResult> selectpage(TagsPageQueryDTO tagsPageQueryDTO) {
+    public Result<PageResult> selectpage( TagsPageQueryDTO tagsPageQueryDTO) {
         log.info("获取用户自定义云标签");
         PageResult pageResult = tagsService.pageQueryUserTags(tagsPageQueryDTO);
         return Result.success(pageResult);
     }
 
-    @DeleteMapping("/planet/{id}")
+    @DeleteMapping("/planet/{tagId}")
     @Operation(summary = "删除用户自定义云标签", description = "删除用户自定义云标签")
-    public Result delete(@PathVariable Integer id) {
+    public Result delete(@PathVariable Integer tagId) {
         log.info("删除用户自定义云标签");
-        //在星球删了 不是在榜单删除 ！！！所以所有关联关系全删
-        tagsService.delete(id);
+        //在用户个人标签星球删了 不是在榜单删除 ！！！所以所有关联关系全删
+
+        // 1. 参数校验（可选，防止空指针）
+        if (tagId == null) {
+            return Result.error("标签ID不能为空");
+        }
+        tagsService.delete(tagId);
         log.info("删除成功");
         return Result.success();
     }

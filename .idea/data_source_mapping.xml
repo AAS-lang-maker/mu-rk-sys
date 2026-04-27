@@ -10,6 +10,8 @@
     <file url="file://$PROJECT_DIR$/src/main/java/com/music/Mapper/rankTagRelMapper.java" value="b12dfad4-67ab-4bb0-aa92-2c89b822a692" />
     <file url="file://$PROJECT_DIR$/src/main/java/com/music/Service/FriendService.java" value="b12dfad4-67ab-4bb0-aa92-2c89b822a692" />
     <file url="file://$PROJECT_DIR$/src/main/resources/init_database.sql" value="b12dfad4-67ab-4bb0-aa92-2c89b822a692" />
+    <file url="file://$PROJECT_DIR$/src/main/resources/mapper/FriendMapper.xml" value="b12dfad4-67ab-4bb0-aa92-2c89b822a692" />
+    <file url="file://$PROJECT_DIR$/src/main/resources/mapper/MusicHotRankMapper.xml" value="b12dfad4-67ab-4bb0-aa92-2c89b822a692" />
     <file url="file://$PROJECT_DIR$/src/main/resources/mapper/MyRankMapper.xml" value="b12dfad4-67ab-4bb0-aa92-2c89b822a692" />
     <file url="file://$PROJECT_DIR$/src/main/resources/mapper/SongMapper.xml" value="b12dfad4-67ab-4bb0-aa92-2c89b822a692" />
     <file url="file://$PROJECT_DIR$/src/main/resources/mapper/TagsMapper.xml" value="b12dfad4-67ab-4bb0-aa92-2c89b822a692" />

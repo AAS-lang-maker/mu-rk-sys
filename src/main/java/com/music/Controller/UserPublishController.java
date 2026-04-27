@@ -1,6 +1,7 @@
 package com.music.Controller;
 
 import com.github.pagehelper.PageInfo;
+import com.music.Service.HotRankService;
 import com.music.Service.UserPublishService;
 import com.music.dto.ApplySongVo;
 import com.music.dto.CommentVo;
@@ -34,6 +35,8 @@ public class UserPublishController {
     @Resource
     private UserPublishService userPublishService;
 
+    @Resource
+    private HotRankService hotRankService;
     @GetMapping("/publish")
     @Operation(summary = "发布榜单", description = "发布榜单")
     public String publish(@RequestParam("token") String token, RedirectAttributes redirectAttributes, @RequestParam(value = "category",required = false) Integer category,
@@ -155,9 +158,14 @@ public class UserPublishController {
             if(rankId==null){
                 return Result.error("likeId不能为空");
             }
-            boolean result=userPublishService.insertVote(userId,rankId);
+            // 和热门榜单接口保持同一套投票计分逻辑：
+            // 统一走 HotRankService，确保计数、ZSet、排名战报一致
+            boolean result=hotRankService.insertVote(userId,rankId);
             if(result==true){
-                return Result.success();
+                log.info("投票成功 ");
+                hotRankService.updateHotRank(rankId);
+                return Result.success("点赞成功，战报正在后台生成...");
+
             }else {
                 return Result.error("点赞榜单失败");
             }
@@ -169,7 +177,7 @@ public class UserPublishController {
 
 
     @PostMapping("/love")
-    @Operation(summary = "点赞榜单", description = "点赞榜单")
+    @Operation(summary = "收藏榜单", description = "收藏榜单")
     @ResponseBody
     public Result<String> love(@RequestParam("token")String token,@RequestParam("rankId")Integer rankId){
         if(token == null || token.isEmpty()) {
@@ -185,10 +193,10 @@ public class UserPublishController {
             if(result==true){
                 return Result.success();
             }else {
-                return Result.error("点赞榜单失败");
+                return Result.error("收藏榜单失败");
             }
         }catch (Exception e){
-            return Result.error("点赞该榜单失败"+e.getMessage());
+            return Result.error("收藏该榜单失败"+e.getMessage());
         }
     }
     @Deprecated
@@ -217,7 +225,7 @@ public class UserPublishController {
             return Result.error("取消点赞失败"+e.getMessage());
         }
     }
-    @Operation(summary = "取消点赞榜单", description = "取消点赞榜单")
+    @Operation(summary = "取消收藏榜单", description = "取消收藏榜单")
     @PostMapping("deleteLove")
     @ResponseBody
     public Result<String> deleteLove(@RequestParam("token")String token,@RequestParam("rankId")Integer rankId){

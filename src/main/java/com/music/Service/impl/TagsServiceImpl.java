@@ -60,7 +60,6 @@ public class TagsServiceImpl implements TagsService {
     @Transactional
     public void add(TagsDTO tagsDTO, Integer userId) {
 //在库里面添加
-        log.info("添加啦 tag ： {}", tagsDTO);
         String tagName = tagsDTO.getTagName();
         Tags tags = tagsMapper.selectTagsByName(tagName);
         if (tags == null) {
@@ -69,6 +68,7 @@ public class TagsServiceImpl implements TagsService {
             tags.setUseCount(1);//新建又添加 加一！
             //"审核成功再添加 或者不审核直接加 现在要跑通就直接加吧 hhh去死"
             tagsMapper.add(tags);
+            log.info("添加啦 tag ： {}", tagsDTO);
             if (tags.getTagId() == null) {
                 log.error("好小子！！阴我");
                 throw new RuntimeException("添加标签失败");
@@ -108,8 +108,11 @@ public class TagsServiceImpl implements TagsService {
         }
 
         PageHelper.startPage(tagsPageQueryDTO.getPageNum(), tagsPageQueryDTO.getPageSize());
-
-        List<UserTagVO> userTagVOList = userTagsMapper.selectUserTagsWithDetail(userId,tagsPageQueryDTO.getTagName());
+        String tagName = null;
+        if (tagsPageQueryDTO != null) {
+            tagName = tagsPageQueryDTO.getTagName();
+        }
+        List<UserTagVO> userTagVOList = userTagsMapper.selectUserTagsWithDetail(userId, tagName);
 
         Page<UserTagVO> page =(Page<UserTagVO>) userTagVOList;
 
@@ -143,14 +146,21 @@ public class TagsServiceImpl implements TagsService {
             throw new RuntimeException("无权删除他人的云标签！");
         }*/
         Tags tags= tagsMapper.selectById(tagId);
-        tags.setUseCount(tags.getUseCount()-1);
+        if (tags == null) {
+            log.warn("尝试删除不存在的标签: {}", tagId);
+            return; // 或者抛出自定义异常
+        }
+        // 防止 useCount 减成负数
+        if (tags.getUseCount() > 0) {
+            tags.setUseCount(tags.getUseCount() - 1);
+        }
         log.info("删除标签：{}", tagId);
         // 第一步：删除歌曲榜单中与该标签相关的所有记录
         // 即：从关联表中删除 tag_id = #{tagId} 的所有行
         rankTagRelMapper.deleteByTagIdinuser(tagId,currentUserId);
         userTagsMapper.deleteByTagIdinuser(tagId,currentUserId);
         //不删除大表 只是一个用户不要了 热度-1
-        tagsMapper.update(tags,tagId);
+        tagsMapper.updateUseCountfu(tagId);
         log.info("删除成功");
     }
 /*
@@ -188,11 +198,17 @@ public class TagsServiceImpl implements TagsService {
             // --- 第三步：修改关联 (换) ---
             // 将 user_tags 表中的 oldTagId 替换为 targetTagId
             int rows = tagsMapper.updateUserTagAssociation(userId, oldTagId, targetTagId);
+            log.info("用户 [{}] 的标签 [{}] 已更新为 [{}]", userId, oldTagId, targetTagId);
+            int rows2 = rankTagRelMapper.updateRankTagAssociation(userId, oldTagId, targetTagId);
+            log.info("用户 [{}] 的榜单标签 [{}] 已更新为 [{}]", userId, oldTagId, targetTagId);
 
 
         if (rows == 0) {
             // 可选：如果没有更新任何行，说明该用户没有这个旧标签，可以抛出异常或忽略
             throw new RuntimeException("用户未拥有该标签");
+        }
+        if(rows2==0) {
+            log.warn("用户 [{}] 没有该榜单标签 [{}]", userId, oldTagId);
         }
     }
 

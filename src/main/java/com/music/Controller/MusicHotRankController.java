@@ -1,6 +1,8 @@
 package com.music.Controller;
 
+import com.music.Config.NativeWebSocketServer;
 import com.music.Service.HotRankService;
+import com.music.dto.BattleReport;
 import com.music.dto.CommentVo;
 import com.music.dto.MyRankWithSong;
 import com.music.utils.JwtUtils;
@@ -11,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 import java.util.Set;
@@ -25,6 +26,7 @@ public class MusicHotRankController {
 
     @Autowired
     private HotRankService hotRankService;
+
     //热门榜单整体逻辑写在纸上
     @GetMapping("/hotrank")
     @Operation(summary = "获取热门榜单", description = "获取热门榜单")
@@ -56,9 +58,14 @@ public class MusicHotRankController {
             if(rankId==null){
                 return Result.error("likeId不能为空");
             }
-            boolean result=hotRankService.insertVote(userId,rankId);
-            if(result==true){
-                return Result.success();
+            boolean result = hotRankService.insertVote(userId, rankId);
+
+            if(result){
+                // 这里调用后，主线程会立刻继续往下走，不会等战报发完
+                // 记得转成 Long
+                hotRankService.updateHotRank(rankId);
+
+                return Result.success("点赞成功，战报正在后台生成...");
             }else {
                 return Result.error("点赞榜单失败");
             }
@@ -66,7 +73,6 @@ public class MusicHotRankController {
             return Result.error("点赞该榜单失败"+e.getMessage());
         }
     }
-
 
 
     @PostMapping("/love")
