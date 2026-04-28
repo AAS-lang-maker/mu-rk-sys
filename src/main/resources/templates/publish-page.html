@@ -2,22 +2,24 @@
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script th:src="@{/js/axios.min.js}"></script>
     <script th:src="@{/js/request.js}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script th:src="@{/js/music-ai-agent.js}"></script>
     <title>榜单页</title>
-    <link rel="icon" href="data:'base:;base64,iVBORw0KGgo=">
-    <link rel="stylesheet" th:href="@{/player/music-player.css}">
+    <link rel="icon" href="data:'base:;base64,iVBORw0KGgo=" />
+    <link rel="stylesheet" th:href="@{/player/music-player.css}" />
 
     <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
         href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet">
+        rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-        rel="stylesheet">
+        rel="stylesheet" />
 
     <style>
         /* ==================== Design System - CSS Variables ==================== */
@@ -865,6 +867,36 @@
             font-family: var(--font-body);
         }
 
+        .ai-bubble {
+            max-width: 300px;
+            background-color: #31353c;
+            padding: 16px;
+            border-radius: 32px;
+            border-top-left-radius: 0;
+            border: 1px solid rgba(77, 70, 53, 0.2);
+            text-align: left;
+            position: relative;
+        }
+
+        .ai-bubble p {
+            font-size: 0.875rem;
+            line-height: 1.6;
+            color: #dfe2eb;
+        }
+
+        .ai-bubble.user-bubble {
+            background-color: rgba(240, 198, 77, 0.15);
+            border-color: rgba(240, 198, 77, 0.3);
+            border-radius: 32px;
+            border-top-right-radius: 0;
+            border-top-left-radius: 32px;
+            align-self: flex-end;
+        }
+
+        .ai-bubble.user-bubble p {
+            color: #ffe4a4;
+        }
+
         .chat-input-area {
             padding: 5px;
             border-top: 1px solid rgba(77, 70, 53, 0.1);
@@ -1343,6 +1375,22 @@
             color: var(--primary);
             background: rgba(49, 53, 60, 0.8);
         }
+        .typing-cursor {
+            display: inline-block;
+            margin-left: 2px;
+            animation: blink 1s infinite;
+            color: #999;
+            font-weight: bold;
+        }
+
+        @keyframes blink {
+            0%,50% {
+                opacity: 1;
+            }
+            51%,100% {
+                opacity: 0;
+            }
+        }
     </style>
 
 </head>
@@ -1471,8 +1519,8 @@
                     <div class="card-footer">
                         <!-- Rank Tags Container -->
                         <div class="rank-tags-container"
-                            th:if="${ranking.rankTagsList != null and ranking.rankTagsList.size() > 0}">
-                            <th:block th:each="tag, tagStat : ${ranking.rankTagsList}" th:if="${tagStat.index < 3}">
+                            th:if="${ranking.userTagList != null and ranking.userTagList.size() > 0}">
+                            <th:block th:each="tag, tagStat : ${ranking.userTagList}" th:if="${tagStat.index < 3}">
                                 <span class="rank-tag-item" th:text="${tag.tagId}" th:title="'标签ID: ' + ${tag.tagId}"
                                     th:data-tag-index="${tagStat.index}" th:data-tag-id="${tag.tagId}">标签</span>
                             </th:block>
@@ -1580,7 +1628,7 @@
                 <!-- Input Area -->
                 <div class="chat-input-area">
                     <div class="chat-input-wrapper">
-                        <input type="text" class="chat-input" placeholder="输入你的喜好或需求...">
+                        <input type="text" class="chat-input" placeholder="输入你的喜好或需求..." />
                         <button class="btn-send-message">
                             <span class="material-symbols-outlined">send</span>
                         </button>
@@ -2232,7 +2280,7 @@ AI正在分析「${rankName || '未知榜单'}」，请稍候...
                         rankId: parseInt(rankId),
                         rankName: rankName,
                         rankSongList: rankSongList,
-                        rankTagsList: []
+                        userTagList: []
                     };
 
                     requestAiReview(myRankWithSongs, aiReviewBtn);
@@ -2341,7 +2389,19 @@ AI正在分析「${rankName || '未知榜单'}」，请稍候...
             // 1. 初始化播放器
             initMusicPlayer();
 
-            // 2. 绑定所有事件（核心修复）
+            // 2. 初始化 AI 助手
+            if (typeof MusicAIAgent !== 'undefined') {
+                const publishAgent = new MusicAIAgent({
+                    input: '.chat-input',
+                    sendButton: '.btn-send-message',
+                    messageContainer: '.chat-messages'
+                });
+                console.log('MusicAIAgent 初始化成功');
+            } else {
+                console.warn('MusicAIAgent 未定义，跳过 AI 助手初始化');
+            }
+
+            // 3. 绑定所有事件（核心修复）
             bindAllEvents();
 
             // 3. 添加 ESC 键关闭抽屉功能

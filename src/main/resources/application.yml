@@ -9,13 +9,6 @@ server:
 debug: true
 
 spring:
-  thymeleaf:
-    prefix: classpath:/templates/
-    suffix: .html
-    encoding: UTF-8
-    cache: false
-    mode: HTML
-
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver  # MySQL8.0驱动（5.7用com.mysql.jdbc.Driver）
     url: jdbc:mysql://localhost:3306/music_db?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
@@ -23,6 +16,10 @@ spring:
     # 解释：localhost=本地数据库，3306=MySQL默认端口，music_db=你的数据库名（需自己在MySQL中建）
     password: 280939  # 你的MySQL密码
 
+  thymeleaf:
+    mode: HTML
+    cache: false
+    encoding: UTF-8
 
 
   # 文件上传配置（正确！）

@@ -10,11 +10,11 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+//import dev.langchain4j.service.spring.AiServiceScan;
 
 import javax.sql.DataSource;
-//import dev.langchain4j.service.spring.AiServiceScan;
 @SpringBootApplication
-//@AiServiceScan("com.music.Service")
+//@AiServiceScan("com.music.Service")  // 等Maven依赖加载后再启用
 @MapperScan("com.music.Mapper")
 @EnableTransactionManagement(proxyTargetClass=true)
 @EnableAsync
