@@ -46,28 +46,48 @@ class MusicPlayer {
 
     createPlayerUI() {
         const playerHTML = `
-            <div class="music-player" style="padding: 10px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);background: rgba(255, 255, 255, 0.03); border-radius: 15px; width: 100%; box-sizing: border-box;height:268px;display: flex;flex-direction: column;justify-content: space-between">
-                <div class="song-info" style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;height:120px">
-                    <img class="cover" id="player-song-img" src="" alt="封面" style="width: 55px; height: 55px; border-radius: 50%; position: relative;animation: zhuan 5s infinite linear;animation-play-state: paused;">
-                    <div>
-                        <h4 id="player-song-name" style="margin: 0; font-size: 18px;">未播放</h4>
-                        <p id="player-singer-name" style="margin: 0; font-size: 12px; color: #807f7f;">-</p>
+            <div class="music-player">
+                <!-- 左侧：歌曲信息 -->
+                <div class="player-left">
+                    <div class="song-cover">
+                        <img id="player-song-img" src="" alt="封面">
+                    </div>
+                    <div class="song-info-text">
+                        <h4 id="player-song-name" class="song-title">未播放</h4>
+                        <p id="player-singer-name" class="song-artist">-</p>
                     </div>
                 </div>
-                <div class="player-controls">
-                    <div class="progress-bar" style="margin-bottom: 8px;">
-                        <div id="player-progress-track" style="height: 6px; background: #eee; border-radius: 3px; cursor: pointer; position: relative;">
-                            <div id="player-progress-fill" style="position: absolute; left: 0; top: 0; height: 100%; width: 0%; background: #2196F3; border-radius: 3px;"></div>
-                            <div id="player-progress-handle" style="position: absolute; left: 0%; top: 50%; width: 12px; height: 12px; background: #2196F3; border-radius: 50%; transform: translate(-50%, -50%);"></div>
+
+                <!-- 中间：播放控制 + 进度条（垂直两行） -->
+                <div class="player-center">
+                    <!-- 第一行：控制按钮 -->
+                    <div class="controls-row">
+                        <button class="control-btn" id="player-prev-btn">
+                            <span class="material-symbols-outlined">skip_previous</span>
+                        </button>
+                        <button class="play-pause-btn control-btn" id="player-play-btn" style="background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);">
+                            <span class="material-symbols-outlined" style="color:black;">play_arrow</span>
+                        </button>
+                        <button class="control-btn" id="player-next-btn">
+                            <span class="material-symbols-outlined">skip_next</span>
+                        </button>
+                    </div>
+
+                    <!-- 第二行：进度条 -->
+                    <div class="progress-row">
+                        <span id="player-current-time" class="time-display">0:00</span>
+                        <div class="progress-container">
+                            <div id="player-progress-track" class="progress-bar-wrapper">
+                                <div id="player-progress-fill" class="progress-fill"></div>
+                                <div id="player-progress-handle" class="progress-handle"></div>
+                            </div>
                         </div>
-                        <div class="time-info" style="display: flex; justify-content: space-between; font-size: 12px;">
-                            <span id="player-current-time">0:00</span>
-                            <span id="player-duration">0:00</span>
-                        </div>
-                    <div class="controlBar" style="display: flex; justify-content: center; align-items: center; gap: 70px; margin-top: 8px;">
-                    <i class="iconfont icon-a-368793439" style=""></i>
-                    <i class="iconfont icon-a-368793440 big-btn" id="player-play-btn" style=" color: white; cursor: pointer; font-size:35px;"></i>
-                    <i class="iconfont icon-a-368793441" style=""></i>
+                        <span id="player-duration" class="time-display">0:00</span>
+                    </div>
+                </div>
+
+                <!-- 右侧：隐藏 -->
+                <div class="player-right" style="display: none;">
                 </div>
             </div>
         `;
@@ -114,14 +134,12 @@ class MusicPlayer {
                     that.audioElement.pause();
                     that.isPlaying = false;
                     document.getElementById('player-song-img').style.animationPlayState = 'paused';
-                    playBtn.classList.remove('icon-bofangkongjian-bofang');
-                    playBtn.classList.add('icon-a-368793440');
+                    playBtn.querySelector('.material-symbols-outlined').textContent = 'play_arrow';
                 } else {
                     that.audioElement.play().then(() => {
                         that.isPlaying = true;
                         document.getElementById('player-song-img').style.animationPlayState = 'running';
-                        playBtn.classList.remove('icon-a-368793440');
-                        playBtn.classList.add('icon-bofangkongjian-bofang');
+                        playBtn.querySelector('.material-symbols-outlined').textContent = 'pause';
                     }).catch(error => {
                         alert('播放失败：' + error.message);
                         console.error('播放异常：', error);
@@ -222,8 +240,7 @@ class MusicPlayer {
 
                             const playBtn = document.getElementById('player-play-btn');
                             if (playBtn) {
-                                playBtn.classList.remove('icon-bofangkongjian-bofang');
-                                playBtn.classList.add('icon-a-368793440');
+                                playBtn.querySelector('.material-symbols-outlined').textContent = 'play_arrow';
                             }
 
                             this.updateProgressToMax();
@@ -241,11 +258,9 @@ class MusicPlayer {
 
             this.audioElement.addEventListener('ended', () => {
                 that.isPlaying = false;
-                if (playBtn) { // 增加playBtn存在性判断
-                    // playBtn.textContent = '▶ 播放';
+                if (playBtn) {
                     document.getElementById('player-song-img').style.animationPlayState = 'paused'
-                    playBtn.classList.remove('icon-bofangkongjian-bofang')
-                    playBtn.classList.add('icon-a-368793440')
+                    playBtn.querySelector('.material-symbols-outlined').textContent = 'play_arrow'
                 }
             });
             this.audioElement.addEventListener('loadedmetadata', () => that.updateDuration());
@@ -312,11 +327,9 @@ class MusicPlayer {
             // 4. 自动播放（增加audioElement存在性判断）
             this.audioElement.play().then(() => {
                 this.isPlaying = true;
-                if (playBtn) { // 增加playBtn存在性判断
-                    // playBtn.textContent = '⏸ 暂停';
+                if (playBtn) {
                     document.getElementById('player-song-img').style.animationPlayState = 'running';
-                    playBtn.classList.remove('icon-a-368793440')
-                    playBtn.classList.add('icon-bofangkongjian-bofang')
+                    playBtn.querySelector('.material-symbols-outlined').textContent = 'pause'
                 }
             }).catch(error => {
                 alert('播放失败：请检查后端接口是否正常！');

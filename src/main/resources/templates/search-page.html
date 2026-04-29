@@ -5,310 +5,1458 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>搜索结果 - 音乐排行榜</title>
-    <link rel="icon" href="data:;base64,iVBORw0KGgo">
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
     <link rel="stylesheet" th:href="@{/player/music-player.css}">
+
+    <!-- 引入AI助手相关依赖 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script th:src="@{/js/music-ai-agent.js}"></script>
+
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Manrope:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet">
+
     <style>
-        /* 全局样式重置 - 与主页保持一致 */
+        /* ========== Task 1: 基础样式系统 ========== */
+        :root {
+            /* 核心色彩变量 */
+            --background: #10141a;
+            --surface: #10141a;
+            --surface-dim: #10141a;
+            --surface-bright: #353940;
+            --surface-container-lowest: #0a0e14;
+            --surface-container-low: #181c22;
+            --surface-container: #1c2026;
+            --surface-container-high: #262a31;
+            --surface-container-highest: #31353c;
+
+            /* 主色调 - 金色系 */
+            --primary: #ffe4a4;
+            --primary-container: #f0c64d;
+            --primary-fixed: #ffe08f;
+            --primary-fixed-dim: #ebc249;
+            --on-primary: #3d2e00;
+            --on-primary-container: #6a5200;
+            --surface-tint: #ebc249;
+
+            /* 辅助色 */
+            --secondary: #dbc48d;
+            --secondary-container: #544519;
+            --on-secondary: #3c2f05;
+            --on-secondary-container: #c9b37d;
+            --tertiary: #ccebff;
+            --tertiary-container: #84d4ff;
+            --outline: #99907c;
+            --outline-variant: #4d4635;
+
+            /* 文字色 */
+            --on-surface: #dfe2eb;
+            --on-surface-variant: #d1c5af;
+            --inverse-surface: #dfe2eb;
+            --inverse-on-surface: #2d3137;
+            --inverse-primary: #755b00;
+
+            /* 错误色 */
+            --error: #ffb4ab;
+            --error-container: #93000a;
+            --on-error: #690005;
+            --on-error-container: #ffdad6;
+
+            /* 间距系统 */
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --space-2xl: 48px;
+            --space-3xl: 64px;
+
+            /* 圆角 */
+            --radius-sm: 0.25rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1.5rem;
+            --radius-2xl: 2rem;
+            --radius-full: 9999px;
+
+            /* 导航栏宽度 */
+            --sidebar-width: 288px;
+            --header-height: 80px;
+            --player-height: 96px;
+            --right-sidebar-width: 384px;
+        }
+
+        /* 全局样式重置 */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Microsoft YaHei', 'Arial', sans-serif;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        html::-webkit-scrollbar,
+        body::-webkit-scrollbar {
+            width: 0;
+            background: transparent;
         }
 
         body {
-            background-color: #1a365d;
-            color: #f1f5f9;
+            font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--background);
+            color: var(--on-surface);
             min-height: 100vh;
-            padding-bottom: 120px;
-            position: relative;
-            margin: 0;
-            padding: 0;
             overflow-x: hidden;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            line-height: 1.5;
         }
 
-        /* 顶部搜索区域 */
-        .top-section {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            padding: 40px 40px 20px 140px;
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        .font-headline {
+            font-family: 'Space Grotesk', sans-serif;
         }
 
-        /* 搜索框样式 */
-        .search-container {
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+
+        /* 工具类 */
+        .gold-gradient {
+            background: linear-gradient(135deg, var(--primary-container) 0%, var(--primary) 100%);
+        }
+
+        .glass-panel {
+            background: rgba(49, 53, 60, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(240, 198, 77, 0.1);
+            border-radius: 20px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(240, 198, 77, 0.2);
+        }
+
+        /* 隐藏滚动条（用于特定模块） */
+        .hide-scrollbar::-webkit-scrollbar,
+        #ai-review-module::-webkit-scrollbar,
+        #ai-assistant-module::-webkit-scrollbar {
+            width: 0;
+            background: transparent;
+        }
+
+        .hide-scrollbar,
+        #ai-review-module,
+        #ai-assistant-module {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .center-content.custom-scrollbar::-webkit-scrollbar {
+            width: 0 !important;
+            background: transparent;
+        }
+
+        .center-content.custom-scrollbar {
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+        }
+
+        /* ========== Task 2: 左侧导航栏 ========== */
+        .sidebar-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background-color: #0a0b0e;
+            border-right: 1px solid rgba(245, 158, 11, 0.15);
+            display: flex;
+            flex-direction: column;
+            padding: var(--space-2xl) var(--space-md);
+            z-index: 40;
+            padding-bottom: calc(var(--player-height) + var(--space-2xl));
+        }
+
+        .nav-brand {
+            padding: 0 var(--space-md);
+            margin-bottom: var(--space-2xl);
+        }
+
+        .nav-brand h1 {
+            font-size: 18px;
+            font-weight: bold;
+            color: #facc15;
+            letter-spacing: -0.9px;
+            text-transform: none;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .nav-brand p {
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            font-size: 10px;
+            color: #737373;
+            margin-top: var(--space-xs);
+        }
+
+        .nav-menu {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+            padding: 0 var(--space-sm);
+        }
+
+        .nav-item {
             display: flex;
             align-items: center;
-            gap: 20px;
-            position: relative;
+            gap: var(--space-md);
+            padding: 12px var(--space-md);
+            color: #737373;
+            text-decoration: none;
+            transition: all 0.3s ease-in-out;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            border: none;
+            background: transparent;
             width: 100%;
-            max-width: 700px;
+            text-align: left;
+            font-family: inherit;
+            font-size: 14px;
         }
 
-        /* 放大镜图标圆形 */
-        .search-icon-circle {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: #fffa9c;
+        .nav-item:hover {
+            color: #d4d4d4;
+            background-color: rgba(38, 38, 38, 0.4);
+        }
+
+        .nav-item:hover .nav-icon {
+            color: #facc15;
+        }
+
+        .nav-item.active {
+            color: #facc15;
+            background-color: rgba(245, 158, 11, 0.1);
+            border-radius: 0 var(--radius-full) var(--radius-full) 0;
+        }
+
+        .nav-item.active .nav-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+
+        .nav-icon {
+            font-size: 20px;
+            transition: color 0.3s ease;
+        }
+
+        .nav-text {
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            font-size: 10px;
+        }
+
+        .nav-footer {
+            padding: var(--space-md) var(--space-sm);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            margin-top: auto;
+        }
+
+        .create-rank-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary-container) 0%, var(--primary) 100%);
+            color: var(--on-primary);
+            font-weight: bold;
+            padding: 12px var(--space-md);
+            border-radius: var(--radius-lg);
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(240, 198, 77, 0.1);
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        .create-rank-btn:hover {
+            transform: scale(0.95);
+            box-shadow: 0 10px 30px rgba(240, 198, 77, 0.2);
+        }
+
+        .create-rank-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* ========== Task 3: 顶部搜索栏 ========== */
+        .top-header {
+            position: fixed;
+            top: 0;
+            left: var(--sidebar-width);
+            right: 0;
+            height: var(--header-height);
+            z-index: 50;
+            background-color: rgba(23, 23, 23, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 var(--space-2xl);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .search-bar-wrapper {
+            flex: 1;
+            max-width: 42rem;
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+
+        .search-input-wrapper {
+            position: relative;
+            flex: 1;
+        }
+
+        .search-icon-left {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--outline);
+            font-size: 20px;
+        }
+
+        .search-input-field {
+            width: 100%;
+            background-color: var(--surface-container-highest);
+            border: none;
+            border-radius: var(--radius-full);
+            padding: 12px 16px 12px 48px;
+            font-size: 14px;
+            color: var(--on-surface);
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .search-input-field:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(240, 198, 77, 0.3);
+        }
+
+        .search-input-field::placeholder {
+            color: rgba(153, 144, 124, 0.5);
+        }
+
+        .search-submit-btn {
+            background: linear-gradient(135deg, var(--primary-container) 0%, var(--primary) 100%);
+            color: var(--on-primary);
+            font-weight: bold;
+            padding: 12px 32px;
+            border-radius: var(--radius-full);
+            border: none;
+            cursor: pointer;
+            letter-spacing: 0.05em;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        .search-submit-btn:hover {
+            filter: brightness(1.1);
+            transform: scale(0.98);
+        }
+
+        .search-submit-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* ========== 主内容区域 ========== */
+        .main-content-wrapper {
+            margin-left: var(--sidebar-width);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding-bottom: var(--player-height);
+        }
+
+        .content-scroll-area {
+            padding-top: var(--header-height);
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* 中间内容区 */
+        .center-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            max-width: 38rem;
+        }
+
+        .content-inner {
+            max-width: 56rem;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        /* 页面标题区域 */
+        .page-heading {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(77, 70, 53, 0.2);
+            padding-bottom: var(--space-md);
+        }
+
+        .page-title {
+            font-size: 36px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: bold;
+            color: var(--primary);
+            letter-spacing: -0.02em;
+        }
+
+        .page-subtitle {
+            color: var(--outline);
+            font-size: 12px;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            font-family: 'Manrope', sans-serif;
+        }
+
+        /* ========== Task 4: Best Match 卡片 ========== */
+        .best-match-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: var(--radius-2xl);
+            background-color: var(--surface-container);
+            border: 1px solid rgba(77, 70, 53, 0.1);
+            padding: 4px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .best-match-card:hover {
+            background-color: var(--surface-container-high);
+        }
+
+        .best-match-badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            padding: var(--space-md);
+        }
+
+        .badge-best-match {
+            background-color: rgba(255, 228, 164, 0.1);
+            color: var(--primary);
+            padding: 4px 12px;
+            border-radius: var(--radius-full);
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        .match-cover-wrapper {
+            width: 192px;
+            height: 192px;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            flex-shrink: 0;
+            margin: var(--space-md);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .match-cover-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.7s ease;
+        }
+
+        .best-match-card:hover .match-cover-img {
+            transform: scale(1.1);
+        }
+
+        .match-info {
+            flex: 1;
+            padding: var(--space-2xl) 0;
+        }
+
+        .match-tag {
+            color: rgba(255, 228, 164, 0.6);
+            font-size: 10px;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            margin-bottom: var(--space-sm);
+            font-family: 'Manrope', sans-serif;
+        }
+
+        .match-title {
+            font-size: 48px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: bold;
+            color: var(--on-surface);
+            margin-bottom: var(--space-md);
+        }
+
+        .match-author {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            color: var(--outline);
+            margin-bottom: var(--space-md);
+            font-size: 14px;
+        }
+
+        .match-time {
+            font-size: 10px;
+            color: #a3a3a3;
+            font-family: 'Manrope', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: var(--space-md);
+        }
+
+        .match-actions {
+            display: flex;
+            gap: var(--space-md);
+        }
+
+        .play-now-btn {
+            background: linear-gradient(135deg, var(--primary-container) 0%, var(--primary) 100%);
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-sm);
+            padding: 0 10px;
+            border-radius: var(--radius-lg);
+            color: var(--on-primary);
+            font-weight: bold;
+            box-shadow: 0 10px 25px rgba(240, 198, 77, 0.2);
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        .play-now-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .play-now-btn:active {
+            transform: scale(0.95);
+        }
+
+        .icon-action-btn {
+            background-color: var(--surface-container-highest);
             display: flex;
             align-items: center;
             justify-content: center;
-            flex-shrink: 0;
-            box-shadow: 0 2px 8px rgba(255, 250, 156, 0.3);
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-lg);
+            color: var(--on-surface);
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
 
-        /* 搜索框容器 */
-        .search-box {
+        .icon-action-btn:hover {
+            color: var(--primary);
+        }
+
+        /* ========== Task 5: 歌曲列表 ========== */
+        .song-list-section {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+        }
+
+        .section-label {
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--outline);
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            padding: 0 var(--space-md);
+            font-family: 'Manrope', sans-serif;
+        }
+
+        .song-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-md);
+            border-radius: var(--radius-lg);
+            transition: background-color 0.3s ease;
+            border-bottom: 1px solid rgba(77, 70, 53, 0.05);
+        }
+
+        .song-item:hover {
+            background-color: var(--surface-container-low);
+        }
+
+        .song-index {
+            color: var(--outline);
+            font-family: 'Space Grotesk', sans-serif;
+            width: 24px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .song-cover {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-md);
+            background-color: var(--surface-container);
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .song-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .song-details {
             flex: 1;
+            min-width: 0;
+        }
+
+        .song-name-text {
+            font-weight: bold;
+            color: var(--on-surface);
+            font-size: 15px;
+            transition: color 0.3s ease;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .song-item:hover .song-name-text {
+            color: var(--primary);
+        }
+
+        .song-meta {
+            font-size: 12px;
+            color: var(--outline);
+            font-family: 'Manrope', sans-serif;
+        }
+
+        .song-duration {
+            display: flex;
+            font-size: 12px;
+            color: var(--outline);
+            font-family: 'Manrope', sans-serif;
+            font-variant-numeric: tabular-nums;
+        }
+
+        @media (min-width: 768px) {
+            .song-duration {
+                display: block;
+            }
+        }
+
+        .song-play-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(255, 228, 164, 0);
+            color: transparent;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 20px;
+        }
+
+        .song-item:hover .song-play-btn {
+            background-color: rgba(255, 228, 164, 0.1);
+            color: var(--primary);
+        }
+
+        /* 其他榜单卡片容器 */
+        .other-rank-card {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            margin-bottom: var(--space-lg);
+            position: relative;
+        }
+
+        .other-rank-card .best-match-card {
+            border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+            border-bottom: none;
+        }
+
+        .other-rank-card .song-list-section {
+            background-color: var(--surface-container);
+            border: 1px solid rgba(77, 70, 53, 0.1);
+            border-top: none;
+            border-radius: 0 0 var(--radius-2xl) var(--radius-2xl);
+            padding: var(--space-md) var(--space-lg);
+        }
+
+        .other-rank-card .rank-social-actions {
+            padding: var(--space-md) var(--space-lg);
+            background-color: var(--surface-container);
+            border: 1px solid rgba(77, 70, 53, 0.08);
+            border-top: none;
+            border-radius: 0 0 var(--radius-2xl) var(--radius-2xl);
+        }
+
+        .other-rank-card .comment-section {
+            padding: var(--space-md) var(--space-lg) var(--space-lg);
+            background-color: var(--surface-container);
+            border: 1px solid rgba(77, 70, 53, 0.08);
+            border-top: 1px solid rgba(255, 228, 164, 0.06);
+            border-radius: 0 0 var(--radius-2xl) var(--radius-2xl);
+        }
+
+        /* AI按钮区域 */
+        .ai-trigger-area {
+            display: flex;
+            justify-content: flex-end;
+            padding-top: var(--space-md);
+        }
+
+        .ai-magic-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-container) 0%, var(--primary) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            box-shadow: 0 0 20px rgba(240, 198, 77, 0.4);
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .ai-magic-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .ai-magic-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* ========== Task 6 & 7: 右侧边栏 ========== */
+        .right-sidebar {
+            width: 372px;
+            min-width: 372px;
+            background-color: var(--surface-container-low);
+            border-left: 1px solid rgba(77, 70, 53, 0.1);
+            padding: 10px 25px;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            gap: var(--space-md);
+            overflow-y: auto;
+            /*padding-bottom: calc(var(--player-height) + var(--space-2xl));*/
+            position: fixed;
+            top: var(--header-height);
+            bottom: var(--player-height);
+            right: 0;
+            height: calc(100vh - var(--header-height));
+        }
+
+        /* AI锐评模块 */
+        .ai-review-card {
+            background-color: rgba(49, 53, 60, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: var(--radius-2xl);
+            padding: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+            overflow: hidden;
+            height: 200px;
+            overflow-y: auto;
+        }
+
+        .ai-review-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .ai-review-title-group {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            color: var(--on-surface);
+        }
+
+        .ai-review-icon {
+            color: var(--primary);
+            font-size: 20px;
+            font-variation-settings: 'FILL' 1;
+        }
+
+        .ai-review-title {
+            font-size: 20px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: bold;
+            letter-spacing: -0.02em;
+        }
+
+        .ai-powered-badge {
+            font-size: 10px;
+            color: var(--outline);
+            font-family: 'Manrope', sans-serif;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            opacity: 0.5;
+        }
+
+        .ai-review-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px 0 20px 0;
+            text-align: center;
+        }
+
+        .ai-review-placeholder p {
+            font-size: 14px;
+            color: var(--outline);
+            line-height: 1.6;
+            max-width: 200px;
+            margin-bottom: var(--space-lg);
+        }
+
+        .ai-glow-effect {
+            position: absolute;
+            bottom: -16px;
+            right: -16px;
+            width: 96px;
+            height: 96px;
+            background-color: rgba(255, 228, 164, 0.05);
+            border-radius: 50%;
+            filter: blur(40px);
+        }
+
+        /* AI推荐助手聊天界面 */
+        .ai-assistant-card {
+            background-color: rgba(49, 53, 60, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: var(--radius-2xl);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            height: 260px;
+        }
+
+        .chat-header {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-md);
+        }
+
+        .ai-avatar-wrapper {
+            position: relative;
+        }
+
+        .ai-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: var(--surface-container-highest);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 228, 164, 0.2);
+        }
+
+        .ai-avatar img {
+            width: 32px;
+            height: 32px;
+            opacity: 0.8;
+            filter: invert(1) sepia(1) saturate(5) hue-rotate(10deg);
+        }
+
+        .online-indicator {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 12px;
+            height: 12px;
+            background-color: #22c55e;
+            border-radius: 50%;
+            border: 2px solid #1c2026;
+            animation: pulse-dot 2s infinite;
+        }
+
+        @keyframes pulse-dot {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .chat-info h4 {
+            font-size: 18px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: bold;
+            color: var(--on-surface);
+        }
+
+        .chat-status {
+            font-size: 10px;
+            color: var(--outline);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+        }
+
+        .chat-messages-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--space-md);
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+        }
+
+        .welcome-message {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-md) 0;
+            opacity: 0.4;
+        }
+
+        .welcome-message .material-symbols-outlined {
+            font-size: 36px;
+            color: var(--primary);
+            margin-bottom: var(--space-sm);
+            font-variation-settings: 'FILL' 1;
+        }
+
+        .welcome-message p {
+            font-size: 10px;
+            color: var(--outline);
+            text-align: center;
+            padding: 0 var(--space-lg);
+        }
+
+        .ai-bubble {
+            max-width: 300px;
+            background-color: #31353c;
+            padding: 16px;
+            border-radius: 32px;
+            border-top-left-radius: 0;
+            border: 1px solid rgba(77, 70, 53, 0.2);
+            text-align: left;
+            position: relative;
+        }
+
+        .ai-bubble p {
+            font-size: 0.875rem;
+            line-height: 1.6;
+            color: #dfe2eb;
+        }
+
+        .ai-bubble.user-bubble {
+            background-color: rgba(240, 198, 77, 0.15);
+            border-color: rgba(240, 198, 77, 0.3);
+            border-radius: 32px;
+            border-top-right-radius: 0;
+            border-top-left-radius: 32px;
+            align-self: flex-end;
+        }
+
+        .ai-bubble.user-bubble p {
+            color: #ffe4a4;
+        }
+
+        .typing-cursor {
+            display: inline-block;
+            margin-left: 2px;
+            animation: blink 1s infinite;
+            color: #999;
+            font-weight: bold;
+        }
+
+        @keyframes blink {
+
+            0%,
+            50% {
+                opacity: 1;
+            }
+
+            51%,
+            100% {
+                opacity: 0;
+            }
+        }
+
+        .chat-input-area {
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            background-color: rgba(10, 14, 20, 0.3);
+            padding: var(--space-md);
+        }
+
+        .chat-input-wrapper {
             position: relative;
             display: flex;
             align-items: center;
         }
 
-        /* 主内容区域 */
-        .main-content {
+        .chat-input-field {
+            width: 100%;
+            background-color: var(--surface-container-highest);
+            border: none;
+            border-radius: var(--radius-lg);
+            padding: 12px 52px 12px 16px;
+            font-size: 14px;
+            color: var(--on-surface);
+            font-family: inherit;
+        }
+
+        .chat-input-field:focus {
+            outline: none;
+            box-shadow: 0 0 0 1px rgba(240, 198, 77, 0.3);
+        }
+
+        .chat-input-field::placeholder {
+            color: rgba(153, 144, 124, 0.5);
+        }
+
+        .chat-send-btn {
+            position: absolute;
+            right: 8px;
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-md);
+            background: linear-gradient(135deg, var(--primary-container) 0%, var(--primary) 100%);
             display: flex;
-            gap: 20px;
-            position: relative;
-            margin-left: 140px;
-            padding-top: 20px;
-            align-items: flex-start;
+            align-items: center;
+            justify-content: center;
+            color: var(--on-primary);
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(240, 198, 77, 0.1);
         }
 
-        /* 中间黄色主区域 */
-        .content-area {
-            flex: 1;
-            background: #fffa9c;
-            border-radius: 20px;
-            padding: 30px;
-            min-height: 600px;
-            position: relative;
+        /* ========== Task 8: 底部音乐播放器 ========== */
+        .music-player-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: var(--player-height);
+            z-index: 50;
+            background-color: #0a0e14;
+            border-top: 1px solid rgba(77, 70, 53, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 var(--space-lg);
+            box-shadow: 0 -20px 40px rgba(0, 0, 0, 0.4);
         }
 
-        /* 容器样式调整 */
-        .container {
-            margin-left: 0;
-            padding: 30px 40px;
-            background: #fffa9c;
-            border-radius: 20px;
-            min-height: 600px;
-            position: relative;
+        .player-current-track {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            width: 25%;
+            min-width: 0;
+        }
+
+        .player-album-art {
+            width: 56px;
+            height: 56px;
+            border-radius: var(--radius-md);
+            background-color: var(--surface-container);
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(77, 70, 53, 0.1);
+            flex-shrink: 0;
+        }
+
+        .player-album-art img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .player-track-info {
+            min-width: 0;
+        }
+
+        .player-track-name {
+            color: var(--on-surface);
+            font-weight: bold;
+            font-size: 14px;
+            letter-spacing: 0.03em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .player-artist-name {
+            color: #737373;
+            font-size: 10px;
+            font-family: 'Manrope', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .player-controls-center {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--space-sm);
             flex: 1;
         }
+
+        .control-buttons {
+            display: flex;
+            align-items: center;
+            gap: var(--space-lg);
+        }
+
+        .ctrl-btn {
+            color: var(--on-surface);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: color 0.3s ease;
+            padding: 4px;
+        }
+
+        .ctrl-btn:hover {
+            color: var(--primary);
+        }
+
+        .play-pause-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-container) 0%, var(--primary) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--on-primary);
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(240, 198, 77, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .play-pause-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .play-pause-btn:active {
+            transform: scale(0.95);
+        }
+
+        .progress-bar-wrapper {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            width: 100%;
+            max-width: 512px;
+        }
+
+        .time-display {
+            font-size: 9px;
+            color: #737373;
+            font-family: 'Manrope', sans-serif;
+            min-width: 32px;
+        }
+
+        .progress-track {
+            flex: 1;
+            height: 4px;
+            background-color: var(--surface-container-highest);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            width: 33%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary-container) 0%, var(--primary) 100%);
+            border-radius: var(--radius-full);
+            box-shadow: 0 0 8px #f0c64d;
+        }
+
+        .player-right-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: var(--space-lg);
+            width: 25%;
+        }
+
+        /* ========== Task 9: 功能样式迁移 ========== */
 
         /* 搜索结果容器 */
         .search-results {
             background: transparent;
-            border-radius: 15px;
+            border-radius: var(--radius-lg);
             padding: 0;
-            margin-bottom: 30px;
             position: relative;
-            z-index: 1;
-            border: none;
         }
 
-        /* 头部样式 */
-        .header {
+        /* 榜单项样式（保持原有结构但适配新主题） */
+        .ranking-item {
+            background-color: var(--surface-container);
+            border-radius: var(--radius-2xl);
+            padding: var(--space-lg);
+            margin-bottom: var(--space-md);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(77, 70, 53, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ranking-item:hover {
+            background-color: var(--surface-container-high);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 榜单按钮区域 */
+        .ranking-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: var(--space-md);
+            padding-top: var(--space-md);
+            border-top: 1px solid rgba(77, 70, 53, 0.1);
+        }
+
+        /* 查看评论按钮 */
+        .view-comments-btn {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            background-color: var(--surface-container-highest);
+            color: var(--on-surface);
+            border: none;
+            border-radius: var(--radius-lg);
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .view-comments-btn:hover {
+            color: var(--primary);
+            background-color: rgba(49, 53, 60, 0.6);
+        }
+
+        /* AI锐评按钮 */
+        .ai-review-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-container) 0%, var(--primary) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            box-shadow: 0 0 15px rgba(240, 198, 77, 0.4);
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .ai-review-btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* AI FAB Button */
+        .ai-fab {
             position: absolute;
-            top: 30px;
-            right: 40px;
-            background: #fffa9c;
-            color: #1a365d;
-            padding: 10px 15px;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 18px;
+            bottom: 16px;
+            right: 16px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+            box-shadow: 0 0 15px rgba(240, 198, 77, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            transition: all 300ms ease;
+            color: #241a00;
             z-index: 10;
         }
 
-        /* 搜索框样式 */
-        .search-box {
-            position: relative;
-            width: 600px;
-            max-width: 100%;
-            display: flex;
-            align-items: center;
+        .ai-fab:hover {
+            transform: scale(1.1);
         }
 
-        .search-input {
-            flex: 1;
-            padding: 18px 130px 18px 25px;
-            font-size: 16px;
-            border: none;
-            border-radius: 15px;
-            background: rgba(186, 197, 230, 0.5);
-            color: #1e293b;
-            transition: all 0.3s ease;
-            min-height: 60px;
+        .ai-fab .material-symbols-outlined {
+            font-size: 22px;
+            font-variation-settings: 'FILL' 1;
         }
 
-        .search-input:focus {
-            outline: none;
-            background: rgba(186, 197, 230, 0.7);
-            box-shadow: 0 0 20px rgba(148, 163, 184, 0.4);
-        }
-
-        .search-input::placeholder {
-            color: #64748b;
-        }
-
-        .search-button {
+        /* AI FAB Tooltip */
+        .ai-fab-tooltip {
             position: absolute;
-            right: 8px;
+            right: calc(100% + 12px);
             top: 50%;
             transform: translateY(-50%);
-            padding: 12px 28px;
-            font-size: 15px;
-            background: #fffa9c;
-            color: #1a365d;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: bold;
-            z-index: 2;
+            background: var(--surface-container-highest);
+            color: var(--primary);
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 6px 12px;
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(255, 228, 164, 0.2);
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 200ms ease;
+            font-family: var(--font-body);
         }
 
-        .search-button:hover {
-            transform: translateY(-50%) scale(1.05);
-            background: #fff76a;
-            box-shadow: 0 0 20px rgba(255, 250, 156, 0.5);
+        .ai-fab:hover .ai-fab-tooltip {
+            opacity: 1;
         }
 
-        /* 搜索结果容器 - 同步主页样式 */
-        .search-results {
-            background: transparent;
-            border-radius: 15px;
-            padding: 0;
-            margin-bottom: 40px;
-            position: relative;
-            z-index: 1;
-            border: none;
-        }
-
-        .results-header {
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .results-header h2 {
-            font-size: 24px;
-            color: #1a365d;
-            margin-bottom: 10px;
-            font-weight: 600;
-        }
-
-        .results-header p {
-            color: #1a365d;
-            font-size: 15px;
-        }
-
-        /* 榜单头部 - 与主页统一 */
         .ranking-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .publisher-btn {
-            background: rgba(26, 54, 93, 0.1);
-            border: 1px solid rgba(26, 54, 93, 0.3);
-            color: #1a365d;
-            border-radius: 6px;
-            padding: 6px 12px;
-            font-size: 14px;
-            cursor: default;
-            transition: all 0.3s ease;
-            z-index: 1;
-        }
-
-        .publisher-btn:hover {
-            background-color: #1a365d;
-            color: #fffa9c;
-            transform: translateY(-2px);
-        }
-
-        /* 榜单列表样式 */
-        .rankings-list {
-            margin-bottom: 30px;
-        }
-
-        .ranking-item {
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 15px;
-            transition: all 0.3s ease;
-            border-left: 4px solid transparent;
-            position: relative;
-            z-index: 1;
-            border: 1px solid rgba(26, 54, 93, 0.1);
-        }
-
-        .ranking-item:hover {
-            background: rgba(255, 255, 255, 0.8);
-            transform: translateX(10px);
-            border-left-color: #1a365d;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: var(--space-sm);
         }
 
         .ranking-item h3 {
-            color: #1a365d;
+            color: var(--on-surface);
             font-size: 18px;
-            margin-bottom: 10px;
+            margin-bottom: var(--space-sm);
             font-weight: 600;
+            font-family: 'Space Grotesk', sans-serif;
         }
 
         .ranking-item p {
-            color: #1a365d;
+            color: var(--on-surface-variant);
             font-size: 14px;
             line-height: 1.5;
-            margin-bottom: 8px;
+            margin-bottom: var(--space-sm);
+        }
+
+        .publisher-btn {
+            background-color: rgba(49, 53, 60, 0.4);
+            border: 1px solid rgba(77, 70, 53, 0.3);
+            color: var(--on-surface-variant);
+            border-radius: var(--radius-sm);
+            padding: 6px 12px;
+            font-size: 12px;
+            cursor: default;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .publisher-btn:hover {
+            background-color: var(--surface-container-highest);
+            color: var(--primary);
+            transform: translateY(-2px);
         }
 
         .ranking-meta {
             display: flex;
-            gap: 20px;
+            gap: var(--space-md);
             font-size: 13px;
-            color: #1a365d;
+            color: var(--on-surface-variant);
         }
 
-        /* 歌曲列表 */
+        /* 歌曲列表（适配新样式） */
         .song-list {
-            margin-top: 15px;
+            margin-top: var(--space-md);
             padding-left: 0;
         }
 
         .song-list h4 {
-            color: #1a365d;
-            font-size: 16px;
-            margin-bottom: 12px;
-            font-weight: 500;
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--outline);
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            padding: 0 var(--space-md);
+            font-family: 'Manrope', sans-serif;
+            margin-bottom: var(--space-md);
         }
 
         .song-list ul {
             list-style: none;
             padding: 0;
-            background: rgba(26, 54, 93, 0.05);
-            border-radius: 6px;
-            padding: 10px;
-            border: 1px solid rgba(26, 54, 93, 0.1);
         }
 
         .song-list li {
-            margin: 8px 0;
-            padding: 10px 15px;
-            border-bottom: 1px solid rgba(26, 54, 93, 0.1);
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            transition: all 0.2s ease;
+            gap: var(--space-md);
+            padding: var(--space-md);
+            border-radius: var(--radius-lg);
+            transition: background-color 0.3s ease;
+            border-bottom: 1px solid rgba(77, 70, 53, 0.05);
             position: relative;
-            z-index: 1;
         }
 
         .song-list li:last-child {
@@ -316,114 +1464,108 @@
         }
 
         .song-list li:hover {
-            background: rgba(26, 54, 93, 0.1);
-            border-radius: 4px;
+            background-color: var(--surface-container-low);
+        }
+
+        .song-rank {
+            color: var(--outline);
+            font-family: 'Space Grotesk', sans-serif;
+            width: 24px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 500;
         }
 
         .song-info {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: var(--space-md);
             width: 100%;
         }
 
         .song-name {
-            color: #1a365d;
+            font-weight: bold;
+            color: var(--on-surface);
             font-size: 15px;
+            transition: color 0.3s ease;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
             flex: 1;
         }
 
-        .singer-name {
-            color: #1a365d;
-            font-size: 15px;
-            margin-right: 10px;
+        .song-list li:hover .song-name {
+            color: var(--primary);
         }
 
-        .song-rank {
-            /*color: #1a365d;*/
-            /*font-size: 15px;*/
-            /*font-weight: 600;*/
-            /*padding: 4px 10px;*/
-            /*background: rgba(26, 54, 93, 0.1);*/
-            /*border-radius: 4px;*/
-            /*margin-right: 10px;*/
-            min-width: 40px;
-            text-align: center;
-            color: #1a365d;
-            font-size: 15px;
-            font-weight: 700;
-            padding: 4px 10px;
-            background: rgba(26, 54, 93, 0.15);
-            border: 2px solid #1a365d;
-            border-radius: 4px;
-            margin-right: 10px;
+        .singer-name {
+            font-size: 12px;
+            color: var(--outline);
+            font-family: 'Manrope', sans-serif;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-right: var(--space-sm);
         }
 
         /* 播放按钮 */
         .play-btn {
-            background: rgba(26, 54, 93, 0.2);
-            border: 1px solid #1a365d;
-            color: #1a365d;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
-            width: 30px;
-            height: 30px;
             display: flex;
             align-items: center;
             justify-content: center;
+            background-color: rgba(255, 228, 164, 0);
+            color: transparent;
+            border: none;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-size: 12px;
-            z-index: 2;
-            pointer-events: auto;
-            flex-shrink: 0;
+            font-size: 20px;
         }
 
-        .play-btn:hover {
-            background: #1a365d;
-            color: #fffa9c;
-            transform: scale(1.1);
-            box-shadow: 0 0 8px rgba(26, 54, 93, 0.5);
+        .song-list li:hover .play-btn {
+            background-color: rgba(255, 228, 164, 0.1);
+            color: var(--primary);
         }
 
         /* 投票/收藏按钮 */
-        .rank-actions {
-            margin-top: 15px;
+        .rank-social-actions {
+            margin-top: var(--space-md);
             padding-left: 15px;
             display: flex;
-            gap: 15px;
+            gap: var(--space-md);
             align-items: center;
             flex-wrap: nowrap;
             width: fit-content;
             position: relative;
-            z-index: 1;
         }
 
-        .vote-btn,
-        .collect-btn {
-            background: transparent;
-            border: none;
-            display: inline-flex;
-            align-items: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            padding: 8px 15px;
-            border-radius: 20px;
-            white-space: nowrap;
-            z-index: 1;
-            pointer-events: auto;
-            font-size: 14px;
-            color: #1a365d;
-        }
+        /*.vote-btn,*/
+        /*.collect-btn {*/
+        /*    background: transparent;*/
+        /*    border: none;*/
+        /*    display: inline-flex;*/
+        /*    align-items: center;*/
+        /*    cursor: pointer;*/
+        /*    transition: all 0.3s ease;*/
+        /*    padding: 8px 15px;*/
+        /*    border-radius: var(--radius-full);*/
+        /*    white-space: nowrap;*/
+        /*    font-size: 14px;*/
+        /*    color: var(--on-surface);*/
+        /*    font-family: inherit;*/
+        /*}*/
 
-        .vote-btn:hover {
-            background: rgba(255, 182, 193, 0.2);
-            transform: translateY(-2px);
-        }
+        /*.vote-btn:hover {*/
+        /*    background-color: rgba(255, 105, 180, 0.15);*/
+        /*    transform: translateY(-2px);*/
+        /*}*/
 
-        .collect-btn:hover {
-            background: rgba(192, 192, 192, 0.2);
-            transform: translateY(-2px);
-        }
+        /*.collect-btn:hover {*/
+        /*    background-color: rgba(192, 192, 192, 0.15);*/
+        /*    transform: translateY(-2px);*/
+        /*}*/
 
         .heart-icon {
             color: #ff69b4;
@@ -432,74 +1574,73 @@
             transition: color 0.3s ease;
         }
 
-        .vote-btn:hover .heart-icon {
-            color: #ff1493;
-        }
+        /*.vote-btn:hover .heart-icon {*/
+        /*    color: #ff1493;*/
+        /*}*/
 
-        .vote-btn.voted .heart-icon {
-            color: #ff1493;
-            font-size: 18px;
-        }
+        /*.vote-btn.voted .heart-icon {*/
+        /*    color: #ff1493;*/
+        /*    font-size: 18px;*/
+        /*}*/
 
         .star-icon {
-            color: #1a365d;
+            color: var(--on-surface);
             font-size: 18px;
             margin-right: 5px;
             transition: color 0.3s ease;
         }
 
-        .collect-btn:hover .star-icon {
-            color: #000000;
-        }
+        /*.collect-btn:hover .star-icon {*/
+        /*    color: var(--primary);*/
+        /*}*/
 
-        .collect-btn.collected .star-icon {
-            color: #000000;
-            font-size: 18px;
-        }
+        /*.collect-btn.collected .star-icon {*/
+        /*    color: var(--primary);*/
+        /*    font-size: 18px;*/
+        /*}*/
 
-        .vote-count,
-        .collect-count {
-            font-size: 14px;
-            font-weight: bold;
-            white-space: nowrap;
-            color: #1a365d;
-        }
+        /*.vote-count,*/
+        /*.collect-count {*/
+        /*    font-size: 14px;*/
+        /*    font-weight: bold;*/
+        /*    white-space: nowrap;*/
+        /*    color: var(--on-surface);*/
+        /*}*/
 
         /* 分页样式 */
         .pagination {
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-top: 40px;
+            margin-top: var(--space-lg);
             position: relative;
-            z-index: 1;
         }
 
         .pagination button {
-            background: rgba(26, 54, 93, 0.1);
-            border: 1px solid rgba(26, 54, 93, 0.3);
-            color: #1a365d;
-            border-radius: 6px;
+            background-color: rgba(49, 53, 60, 0.4);
+            border: 1px solid rgba(77, 70, 53, 0.3);
+            color: var(--on-surface);
+            border-radius: var(--radius-sm);
             padding: 8px 16px;
             margin: 0 5px;
             cursor: pointer;
             transition: all 0.3s ease;
-            z-index: 1;
             font-size: 14px;
+            font-family: inherit;
         }
 
         .pagination button:hover:not(:disabled) {
-            background-color: #1a365d;
-            color: #fffa9c;
+            background-color: var(--surface-container-highest);
+            color: var(--primary);
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(26, 54, 93, 0.3);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
 
         .pagination button.active {
-            background-color: #1a365d;
-            color: #fffa9c;
+            background-color: var(--surface-container-highest);
+            color: var(--primary);
             font-weight: bold;
-            box-shadow: 0 2px 6px rgba(26, 54, 93, 0.4);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
         }
 
         .pagination button:disabled {
@@ -508,9 +1649,9 @@
         }
 
         .pagination button:disabled:hover {
-            background: rgba(26, 54, 93, 0.1);
-            color: #1a365d;
-            border: 1px solid rgba(26, 54, 93, 0.3);
+            background-color: rgba(49, 53, 60, 0.4);
+            color: var(--on-surface);
+            border: 1px solid rgba(77, 70, 53, 0.3);
             transform: none;
             box-shadow: none;
         }
@@ -519,16 +1660,21 @@
         .empty-results {
             text-align: center;
             padding: 60px 20px;
-            color: #1a365d;
-            background: rgba(26, 54, 93, 0.1);
-            border-radius: 12px;
+            color: var(--on-surface);
+            background-color: rgba(28, 32, 38, 0.3);
+            border-radius: var(--radius-lg);
             margin: 20px 0;
         }
 
         .empty-results h3 {
             font-size: 20px;
             margin-bottom: 10px;
-            color: #1a365d;
+            color: var(--on-surface);
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .empty-results p {
+            color: var(--on-surface-variant);
         }
 
         /* 返回按钮 */
@@ -536,51 +1682,76 @@
             display: inline-block;
             margin-top: 20px;
             padding: 12px 24px;
-            background: rgba(26, 54, 93, 0.8);
-            color: #fffa9c;
-            border: 1px solid #1a365d;
-            border-radius: 50px;
+            background-color: rgba(28, 32, 38, 0.8);
+            color: var(--primary);
+            border: 1px solid var(--surface-container-highest);
+            border-radius: var(--radius-full);
             text-decoration: none;
             transition: all 0.3s ease;
             position: relative;
-            z-index: 1;
             font-size: 14px;
+            font-family: inherit;
         }
 
         .back-button:hover {
-            background: rgba(26, 54, 93, 1);
-            border-color: #1a365d;
-            color: #fffa9c;
+            background-color: var(--surface-container-highest);
+            border-color: var(--surface-container-highest);
+            color: var(--primary);
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(26, 54, 93, 0.2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
-        /* 评论区样式 - 完全同步主页 */
+        /* 评论区域样式 */
         .comment-section {
-            margin-top: 20px;
-            border-top: 1px solid rgba(255, 250, 156, 0.1);
+            margin-top: var(--space-md);
+            border-top: 1px solid rgba(255, 228, 164, 0.08);
             padding-top: 15px;
             position: relative;
-            z-index: 1;
         }
 
         .comment-toggle {
-            background: rgba(30, 58, 95, 0.1);
+            background-color: rgba(30, 58, 95, 0.15);
             border: 1px solid rgba(30, 58, 95, 0.3);
-            color:#1e3a5f;
-            border-radius: 20px;
+            color: var(--on-surface-variant);
+            border-radius: var(--radius-full);
             padding: 6px 16px;
             cursor: pointer;
             transition: all 0.3s ease;
             font-size: 14px;
             margin-bottom: 15px;
-            z-index: 1;
+            font-family: inherit;
         }
 
         .comment-toggle:hover {
-            background: rgba(30, 58, 95, 0.2);
+            background-color: rgba(30, 58, 95, 0.25);
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(255, 250, 156, 0.2);
+            box-shadow: 0 4px 8px rgba(255, 228, 164, 0.15);
+        }
+
+        .btn-view-comments {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: var(--radius-md);
+            background: rgba(49, 53, 60, 0.5);
+            border: 1px solid rgba(77, 70, 53, 0.1);
+            color: #9ca3af;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 200ms ease;
+            font-family: var(--font-body);
+        }
+
+        .btn-view-comments:hover {
+            border-color: rgba(255, 228, 164, 0.4);
+            color: var(--primary);
+        }
+
+        .btn-view-comments .material-symbols-outlined {
+            font-size: 14px;
         }
 
         .comment-container {
@@ -611,20 +1782,21 @@
         .comment-input {
             width: 100%;
             padding: 12px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 250, 156, 0.3);
-            border-radius: 8px;
-            color: #f7fafc;
+            background-color: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 228, 164, 0.2);
+            border-radius: var(--radius-md);
+            color: var(--on-surface);
             font-size: 14px;
             resize: vertical;
             min-height: 80px;
             transition: all 0.3s ease;
+            font-family: inherit;
         }
 
         .comment-input:focus {
             outline: none;
-            border-color: #fffa9c;
-            box-shadow: 0 0 10px rgba(255, 250, 156, 0.3);
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(255, 228, 164, 0.2);
         }
 
         .comment-actions {
@@ -634,22 +1806,22 @@
         }
 
         .comment-submit {
-            background: #fffa9c;
+            background: var(--primary);
             color: #1a202c;
             border: none;
-            border-radius: 6px;
+            border-radius: var(--radius-sm);
             padding: 8px 16px;
             cursor: pointer;
             transition: all 0.3s ease;
             font-size: 14px;
             font-weight: bold;
-            z-index: 1;
+            font-family: inherit;
         }
 
         .comment-submit:hover {
             background: #fff780;
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(255, 250, 156, 0.3);
+            box-shadow: 0 4px 8px rgba(255, 228, 164, 0.2);
         }
 
         .comment-list {
@@ -657,20 +1829,19 @@
         }
 
         .comment-item {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.02);
+            border-radius: var(--radius-md);
             padding: 15px;
             margin-bottom: 12px;
             transition: all 0.3s ease;
             position: relative;
-            z-index: 1;
             border: 1px solid rgba(255, 255, 255, 0.02);
         }
 
         .comment-item:hover {
-            background: rgba(255, 255, 255, 0.05);
+            background-color: rgba(255, 255, 255, 0.04);
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
         }
 
         .comment-header {
@@ -681,18 +1852,18 @@
         }
 
         .comment-username {
-            color: #fffa9c;
+            color: var(--primary);
             font-weight: bold;
             font-size: 14px;
         }
 
         .comment-time {
-            color: rgba(247, 250, 252, 0.5);
+            color: rgba(223, 226, 235, 0.5);
             font-size: 12px;
         }
 
         .comment-content {
-            color: #f7fafc;
+            color: var(--on-surface);
             font-size: 14px;
             line-height: 1.4;
             margin-bottom: 10px;
@@ -707,14 +1878,14 @@
         .comment-like-btn {
             background: transparent;
             border: none;
-            color: rgba(247, 250, 252, 0.7);
+            color: rgba(223, 226, 235, 0.7);
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
             gap: 5px;
             font-size: 13px;
-            z-index: 1;
+            font-family: inherit;
         }
 
         .comment-like-btn:hover {
@@ -726,19 +1897,18 @@
             color: #ff69b4;
         }
 
-        .comment-like-btn:hover .comment-heart-icon {
-            transform: scale(1.1);
-        }
-
         .comment-heart-icon {
             transition: transform 0.3s ease;
+        }
+
+        .comment-like-btn:hover .comment-heart-icon {
+            transform: scale(1.1);
         }
 
         .comment-like-count {
             font-weight: bold;
         }
 
-        /* 评论删除按钮 - 同步主页核心样式 */
         .comment-delete-btn {
             background: transparent;
             border: none;
@@ -747,13 +1917,13 @@
             font-size: 13px;
             font-weight: 500;
             padding: 4px 8px;
-            border-radius: 4px;
+            border-radius: var(--radius-sm);
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 4px;
             transition: all 0.2s ease;
-            z-index: 2;
+            font-family: inherit;
         }
 
         .comment-delete-btn:hover {
@@ -772,285 +1942,21 @@
             font-size: 12px;
         }
 
-        /* 左侧导航栏样式 - 与主页统一 */
-        .left-sidebar {
-            position: fixed;
-            top: 50%;
-            transform: translateY(-50%);
-            left: 20px;
-            width: 100px;
-            background: #fff9c4;
-            border-radius: 16px;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            z-index: 100;
-        }
-
-        .nav-toggle-btn {
-            width: 40px;
-            height: 40px;
-            background: transparent;
-            border: 2px solid #1e3a5f;
-            border-radius: 8px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .nav-toggle-btn:hover {
-            background: #1e3a5f;
-        }
-
-        .nav-toggle-btn:hover svg rect {
-            fill: #fff9c4;
-        }
-
-        .nav-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            flex: 1;
-        }
-
-        .nav-circle-btn {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: #fff9c4;
-            border: 2px solid #1e3a5f;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 2px;
-            transition: all 0.3s ease;
-            padding: 5px;
-        }
-
-        .nav-circle-btn:hover {
-            background: #1e3a5f;
-            transform: scale(1.05);
-        }
-
-        .nav-circle-btn.active {
-            background: #1e3a5f;
-        }
-
-        .nav-icon {
-            font-size: 18px;
-        }
-
-        .nav-text {
-            font-size: 10px;
-            color: #1e3a5f;
-            font-weight: bold;
-        }
-
-        .nav-circle-btn:hover .nav-text,
-        .nav-circle-btn.active .nav-text {
-            color: #fff9c4;
-        }
-
-        /* 收起状态 */
-        .left-sidebar.collapsed {
-            width: 60px !important;
-        }
-
-        .left-sidebar.collapsed .nav-text {
-            display: none;
-        }
-
-        .left-sidebar.collapsed .nav-circle-btn {
-            width: 45px;
-            height: 45px;
-        }
-
-        .left-sidebar.collapsed .sidebar-cloud-tags {
-            display: none;
-        }
-
-        .sidebar-cloud-tags {
-            margin-top: auto;
-            padding-top: 15px;
-            border-top: 2px dashed #1e3a5f;
-        }
-
-        /* 发布按钮特殊样式 */
-        .nav-add-btn {
-            background: linear-gradient(135deg, #fffa9c, #fff176);
-            border-color: #f57f17;
-        }
-
-        .nav-add-btn:hover {
-            background: linear-gradient(135deg, #fff176, #ffee58);
-            transform: scale(1.1) rotate(90deg);
-        }
-
-        /* 右侧信息区域 */
-        .sidebar-right {
-            position: sticky;
-            top: 20px;
-            margin-right: 10px;
-            width: 280px;
-            z-index: 100;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            flex-shrink: 0;
-            align-self: flex-start;
-            max-height: calc(100vh - 40px);
-            transition: all 0.3s ease;
-        }
-
-        .sidebar-right::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .sidebar-right::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 10px;
-        }
-
-        .sidebar-right::-webkit-scrollbar-thumb {
-            background: #cbd5e0;
-            border-radius: 10px;
-        }
-
-        .sidebar-right::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
-
-        /* 右侧大盒子 */
-        .right-container {
-            background: #ffffff;
-            border-radius: 20px;
-            padding: 20px;
-            border: 1px solid #e0e0e0;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        /* 音乐播放器盒子 */
-        .sidebar-right>.right-container:last-child {
-            background: #ffffff;
-            border: 1px solid #e0e0e0;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        /* 实时战报推送 */
-        .realtime-report {
-            background: #fffa9c;
-            border-radius: 10px;
-            padding: 15px;
-            text-align: center;
-        }
-
-        .realtime-report h3 {
-            color: #1a365d;
-            font-size: 16px;
-            margin: 0;
-            font-weight: 600;
-            text-align: center;
-        }
-
-        .report-item {
-            padding: 6px 0;
-            border-bottom: 1px solid rgba(26, 54, 93, 0.1);
-        }
-
-        .report-item:last-child {
-            border-bottom: none;
-        }
-
-        .report-item p {
-            font-size: 12px;
-            color: #1a365d;
-            margin: 0;
-            line-height: 1.3;
-        }
-
-        /* 音乐智能推荐AI */
-        .ai-recommendation {
-            background: #fffa9c;
-            border-radius: 20px;
-            padding: 15px;
-            margin-top: 10px;
-            text-align: center;
-        }
-
-        .ai-recommendation h3 {
-            color: #1a365d;
-            font-size: 16px;
-            margin: 0;
-            font-weight: 600;
-            text-align: center;
-        }
-
-        .ai-suggestion {
-            padding: 10px;
-            background: rgba(26, 54, 93, 0.05);
-            border-radius: 4px;
-            margin-bottom: 10px;
-            border: 1px solid rgba(26, 54, 93, 0.1);
-        }
-
-        .ai-suggestion p {
-            font-size: 12px;
-            color: #1a365d;
-            margin: 0;
-            line-height: 1.5;
-        }
-
-        /* 音乐播放器 */
-        .music-player {
-            background: #ffffff;
-            border-radius: 20px;
-            padding: 15px;
-            border: 1px solid #e0e0e0;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            position: relative;
-        }
-
-        .music-player::before {
-            content: '';
-            position: absolute;
-            top: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80px;
-            height: 20px;
-            background: #fffa9c;
-            border-radius: 10px;
-        }
-
-        .music-player h3 {
-            color: #1a365d;
-            font-size: 16px;
-            margin: 0;
-            font-weight: 600;
-            text-align: center;
-            padding-top: 10px;
-        }
-
-        /* 提示框样式 - 完全同步主页 */
+        /* 提示框样式 */
         #errorAlert,
         #successAlert {
             position: fixed;
             left: 50%;
             transform: translateX(-50%);
             padding: 12px 24px;
-            border-radius: 8px;
+            border-radius: var(--radius-md);
             z-index: 9999;
             display: none;
             font-size: 14px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
             min-width: 280px;
             text-align: center;
+            font-family: 'Manrope', sans-serif;
         }
 
         #errorAlert {
@@ -1067,108 +1973,6 @@
             border: 1px solid #00e059;
         }
 
-        /* 响应式样式 - 同步主页 */
-        @media (max-width: 768px) {
-            body {
-                padding: 0;
-            }
-
-            .container {
-                margin-left: 0;
-                margin-right: 0;
-                padding: 20px;
-                border-radius: 15px;
-            }
-
-            .top-section {
-                padding: 20px 20px 20px 20px;
-                flex-direction: column;
-                gap: 15px;
-            }
-
-            .search-container {
-                flex-direction: column;
-                max-width: 100%;
-                gap: 15px;
-            }
-
-            .search-icon-circle {
-                width: 50px;
-                height: 50px;
-            }
-
-            .search-icon-circle svg {
-                width: 20px;
-                height: 20px;
-            }
-
-            .search-box {
-                width: 100%;
-            }
-
-            .search-input {
-                padding: 14px 110px 14px 20px;
-                font-size: 14px;
-                min-height: 50px;
-            }
-
-            .search-button {
-                padding: 10px 20px;
-                font-size: 13px;
-            }
-
-            .header {
-                position: static;
-                margin-bottom: 20px;
-                text-align: center;
-            }
-
-            .header h1 {
-                font-size: 24px;
-            }
-
-            .rank-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-
-            .rank-stats {
-                width: 100%;
-                justify-content: space-between;
-            }
-
-            .rank-actions {
-                flex-wrap: nowrap;
-                overflow-x: auto;
-                padding-bottom: 5px;
-            }
-
-            #music-player-container {
-                width: 100% !important;
-                right: 0 !important;
-                bottom: 0 !important;
-            }
-
-            .left-sidebar,
-            .sidebar-right {
-                display: none;
-            }
-
-            .main-content {
-                margin-left: 0;
-                flex-direction: column;
-            }
-
-            .empty-results {
-                padding: 40px 20px;
-            }
-
-            .results-header h2 {
-                font-size: 20px;
-            }
-        }
-
         /* ========== 评论抽屉弹窗样式 ========== */
         .comment-drawer-overlay {
             position: fixed;
@@ -1194,7 +1998,7 @@
             right: 0;
             width: 420px;
             height: 100vh;
-            background: #f8f9fa;
+            background: #1c2026;
             box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
             z-index: 1003;
             transform: translateX(100%);
@@ -1215,10 +2019,10 @@
             width: 32px;
             height: 32px;
             background: transparent;
-            border: 1px solid #ddd;
+            border: 1px solid rgba(153, 144, 124, 0.3);
             border-radius: 50%;
             font-size: 24px;
-            color: #666;
+            color: #737373;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -1229,33 +2033,34 @@
         }
 
         .drawer-close-btn:hover {
-            background: #eee;
-            color: #333;
+            background-color: rgba(212, 212, 212, 0.1);
+            color: #d4d4d4;
             transform: rotate(90deg);
         }
 
         .drawer-title {
             padding: 20px 20px 10px;
             font-size: 20px;
-            color: #1e3a5f;
+            color: var(--on-surface);
             font-weight: bold;
             margin: 0;
-            border-bottom: 2px solid rgba(30, 58, 95, 0.1);
+            border-bottom: 2px solid rgba(28, 32, 38, 0.15);
+            font-family: 'Space Grotesk', sans-serif;
         }
 
         .drawer-input-area {
             padding: 20px;
-            border-bottom: 1px solid #e0e0e0;
+            border-bottom: 1px solid rgba(77, 70, 53, 0.1);
         }
 
         .drawer-comment-input {
             width: 100%;
             min-height: 80px;
             padding: 12px;
-            background: #fff;
-            border: 1px solid #ddd;
+            background-color: var(--surface-container);
+            border: 1px solid rgba(153, 144, 124, 0.2);
             border-radius: 10px;
-            color: #1a202c;
+            color: var(--on-surface);
             font-size: 14px;
             resize: vertical;
             transition: all 0.3s ease;
@@ -1264,8 +2069,8 @@
 
         .drawer-comment-input:focus {
             outline: none;
-            border-color: #1e3a5f;
-            box-shadow: 0 0 8px rgba(30, 58, 95, 0.2);
+            border-color: var(--outline);
+            box-shadow: 0 0 8px rgba(28, 32, 38, 0.2);
         }
 
         .drawer-input-actions {
@@ -1274,19 +2079,20 @@
         }
 
         .drawer-submit-btn {
-            background: #1e3a5f;
-            color: #fff9c4;
+            background-color: var(--surface-container-highest);
+            color: var(--primary);
             border: none;
-            border-radius: 8px;
+            border-radius: var(--radius-md);
             padding: 8px 20px;
             cursor: pointer;
             font-size: 14px;
             font-weight: bold;
             transition: all 0.3s ease;
+            font-family: inherit;
         }
 
         .drawer-submit-btn:hover {
-            background: #1a365d;
+            background-color: var(--surface-container);
             transform: translateY(-2px);
         }
 
@@ -1297,21 +2103,21 @@
         }
 
         .drawer-comment-list .comment-item {
-            background: #ffffff;
+            background-color: var(--surface-container);
             border-radius: 12px;
             padding: 15px;
             margin-bottom: 12px;
             transition: all 0.3s ease;
-            border: 1px solid rgba(30, 58, 95, 0.08);
+            border: 1px solid rgba(28, 32, 38, 0.1);
         }
 
         .drawer-comment-list .comment-item:hover {
-            background: #f8f9fa;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background-color: var(--surface-container-high);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
         }
 
         .drawer-comment-list .comment-username {
-            color: #1e3a5f;
+            color: var(--on-surface);
             font-weight: bold;
             font-size: 14px;
         }
@@ -1322,7 +2128,7 @@
         }
 
         .drawer-comment-list .comment-content {
-            color: #1a202c;
+            color: var(--on-surface);
             font-size: 14px;
             line-height: 1.4;
             margin-bottom: 10px;
@@ -1338,6 +2144,7 @@
             align-items: center;
             gap: 5px;
             font-size: 13px;
+            font-family: inherit;
         }
 
         .drawer-comment-list .comment-like-btn:hover {
@@ -1348,147 +2155,84 @@
             color: #ff69b4;
         }
 
-        @media (max-width: 1024px) {
-            .comment-drawer-panel {
-                width: 350px;
+        /* ========== Task 10: 响应式设计 ========== */
+
+        /* 大屏幕隐藏右侧边栏断点 */
+        @media (max-width: 1280px) {
+            .right-sidebar {
+                /*display: none !important;*/
             }
         }
 
+        /* 平板及以下隐藏左侧导航栏 */
         @media (max-width: 768px) {
+            .sidebar-nav {
+                display: none !important;
+            }
+
+            .top-header {
+                left: 0;
+            }
+
+            .main-content-wrapper {
+                margin-left: 0;
+            }
+
+            .center-content {
+                padding: var(--space-md);
+            }
+
+            .content-inner {
+                max-width: 100%;
+            }
+
+            .page-title {
+                font-size: 28px;
+            }
+
+            .best-match-card {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .match-cover-wrapper {
+                width: 160px;
+                height: 160px;
+                margin: var(--space-md) auto;
+            }
+
+            .match-info {
+                padding: var(--space-md);
+            }
+
+            .match-title {
+                font-size: 32px;
+            }
+
+            .match-actions {
+                justify-content: center;
+            }
+
+            .music-player-bar {
+                padding: 0 var(--space-md);
+            }
+
+            .player-current-track {
+                width: auto;
+                flex: 1;
+            }
+
+            .player-controls-center {
+                display: none;
+            }
+
+            .player-right-actions {
+                display: none;
+            }
+
             .comment-drawer-panel {
                 width: 90vw;
             }
-        }
-        /* ========== 评论抽屉弹窗样式 ========== */
-        .comment-drawer-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1002;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .comment-drawer-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .comment-drawer-panel {
-            position: fixed;
-            top: 0;
-            right: 0;
-            width: 420px;
-            height: 100vh;
-            background: #f8f9fa;
-            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15);
-            z-index: 1003;
-            transform: translateX(100%);
-            transition: transform 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .comment-drawer-panel.active {
-            transform: translateX(0);
-        }
-
-        .drawer-close-btn {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            width: 32px;
-            height: 32px;
-            background: transparent;
-            border: 1px solid #ddd;
-            border-radius: 50%;
-            font-size: 24px;
-            color: #666;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-            z-index: 10;
-            line-height: 1;
-        }
-
-        .drawer-close-btn:hover {
-            background: #eee;
-            color: #333;
-            transform: rotate(90deg);
-        }
-
-        .drawer-title {
-            padding: 20px 20px 10px;
-            font-size: 20px;
-            color: #1e3a5f;
-            font-weight: bold;
-            margin: 0;
-            border-bottom: 2px solid rgba(30, 58, 95, 0.1);
-        }
-
-        .drawer-input-area {
-            padding: 20px;
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        .drawer-comment-input {
-            width: 100%;
-            min-height: 80px;
-            padding: 12px;
-            background: #fff;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            color: #1a202c;
-            font-size: 14px;
-            resize: vertical;
-            transition: all 0.3s ease;
-            font-family: inherit;
-        }
-
-        .drawer-comment-input:focus {
-            outline: none;
-            border-color: #1e3a5f;
-            box-shadow: 0 0 8px rgba(30, 58, 95, 0.2);
-        }
-
-        .drawer-input-actions {
-            margin-top: 10px;
-            text-align: right;
-        }
-
-        .drawer-submit-btn {
-            background: #1e3a5f;
-            color: #fff9c4;
-            border: none;
-            border-radius: 8px;
-            padding: 8px 20px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-            transition: all 0.3s ease;
-        }
-
-        .drawer-submit-btn:hover {
-            background: #1a365d;
-            transform: translateY(-2px);
-        }
-
-        .drawer-comment-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 15px 20px;
-        }
-
-        .drawer-comment-list .comment-item {
-            background: #ffffff;
-            margin-bottom: 15px;
         }
 
         @media (max-width: 1024px) {
@@ -1497,12 +2241,44 @@
             }
         }
 
-        @media (max-width: 768px) {
-            .comment-drawer-panel {
-                width: 90vw;
+        /* 加载动画 */
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* 高亮关键词样式 */
+        mark {
+            background: linear-gradient(135deg, var(--primary-container), var(--primary));
+            color: #1a365d;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        .typing-cursor {
+            display: inline-block;
+            margin-left: 2px;
+            animation: blink 1s infinite;
+            color: #999;
+            font-weight: bold;
+        }
+
+        @keyframes blink {
+            0%,50% {
+                opacity: 1;
+            }
+            51%,100% {
+                opacity: 0;
             }
         }
     </style>
+
     <script th:src="@{/player/music-player.js}"></script>
 </head>
 
@@ -1511,228 +2287,421 @@
     <div id="errorAlert"></div>
     <div id="successAlert"></div>
 
-    <!-- 左侧导航栏 -->
-    <div class="left-sidebar">
-        <div class="nav-toggle-btn">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <rect x="3" y="3" width="7" height="7" rx="1" fill="#1e3a5f" />
-                <rect x="14" y="3" width="7" height="7" rx="1" fill="#1e3a5f" />
-                <rect x="3" y="14" width="7" height="7" rx="1" fill="#1e3a5f" />
-                <rect x="14" y="14" width="7" height="7" rx="1" fill="#1e3a5f" />
-            </svg>
+    <!-- ========== Task 2: 左侧导航栏 ========== -->
+    <aside class="sidebar-nav">
+        <div class="nav-brand">
+            <h1>The Digital Conductor</h1>
+            <p>Premium Music Vault</p>
         </div>
 
-        <nav class="nav-buttons">
-            <button class="nav-circle-btn" id="navIndex" title="首页">
-                <span class="nav-icon">🏠</span>
+        <nav class="nav-menu">
+            <button class="nav-item" id="navIndex" title="首页">
+                <span class="material-symbols-outlined nav-icon">home</span>
                 <span class="nav-text">首页</span>
             </button>
-            <button class="nav-circle-btn" id="navHome" title="主页">
-                <span class="nav-icon">📝</span>
+            <button class="nav-item" id="navHome" title="主页">
+                <span class="material-symbols-outlined nav-icon">grid_view</span>
                 <span class="nav-text">主页</span>
             </button>
-            <button class="nav-circle-btn active" id="navSearch" title="搜索">
-                <span class="nav-icon">🔍</span>
-                <span class="nav-text">搜索</span>
+            <button class="nav-item active" id="navSearch" title="搜索榜单">
+                <span class="material-symbols-outlined nav-icon">search</span>
+                <span class="nav-text">搜索榜单</span>
             </button>
-            <button class="nav-circle-btn" id="navMyRank" title="我的榜单">
-                <span class="nav-icon">📋</span>
-                <span class="nav-text">榜单</span>
+            <button class="nav-item" id="navMyRank" title="我的榜单">
+                <span class="material-symbols-outlined nav-icon">queue_music</span>
+                <span class="nav-text">我的榜单</span>
             </button>
-            <button class="nav-circle-btn" id="navHotRank" title="热门榜单">
-                <span class="nav-icon">🔥</span>
-                <span class="nav-text">热门</span>
+            <button class="nav-item" id="navHotRank" title="热门榜单">
+                <span class="material-symbols-outlined nav-icon">local_fire_department</span>
+                <span class="nav-text">热门榜单</span>
             </button>
-            <button class="nav-circle-btn" id="navMyLove" title="我的收藏">
-                <span class="nav-icon">❤️</span>
-                <span class="nav-text">收藏</span>
-            </button>
-            <button class="nav-circle-btn nav-add-btn" id="navAdd" title="发布榜单">
-                <span class="nav-icon">➕</span>
-                <span class="nav-text">发布</span>
+            <button class="nav-item" id="navMyLove" title="我的收藏">
+                <span class="material-symbols-outlined nav-icon">favorite</span>
+                <span class="nav-text">我的收藏</span>
             </button>
         </nav>
 
-        <div class="sidebar-cloud-tags"></div>
-    </div>
-
-    <!-- 顶部搜索区域 -->
-    <div class="top-section">
-        <div class="search-container">
-            <!-- 放大镜图标圆形 -->
-            <div class="search-icon-circle">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="11" cy="11" r="7" stroke="#1a365d" stroke-width="2" />
-                    <path d="M16 16L20 20" stroke="#1a365d" stroke-width="2" stroke-linecap="round" />
-                </svg>
-            </div>
-            <!-- 搜索框 -->
-            <div class="search-box">
-                <input type="text" class="search-input" id="searchInput" placeholder="搜索音乐、歌手、榜单...">
-                <button class="search-button" onclick="performSearch()">搜索</button>
-            </div>
+        <div class="nav-footer">
+            <button class="create-rank-btn" id="navAdd">+ 创建榜单</button>
         </div>
-    </div>
+    </aside>
 
-    <!-- 主内容区域（包含中间内容和右侧栏） -->
-    <div class="main-content">
-        <!-- 主容器 -->
-        <div class="container">
+    <!-- ========== Task 3: 顶部搜索栏 ========== -->
+    <header class="top-header">
+        <div class="search-bar-wrapper">
+            <div class="search-input-wrapper">
+                <span class="material-symbols-outlined search-icon-left">search</span>
+                <input type="text" class="search-input-field" id="searchInput"
+                    placeholder="Search for tracks, artists, or archives...">
+            </div>
+            <button class="search-submit-btn" onclick="performSearch()">搜索</button>
+        </div>
+    </header>
 
+    <!-- 主内容包装器 -->
+    <div class="main-content-wrapper">
+        <div class="content-scroll-area">
+            <!-- 中间主内容区 -->
+            <section class="center-content custom-scrollbar">
+                <div class="content-inner">
+                    <!-- 页面标题 -->
+                    <div class="page-heading">
+                        <h2 class="page-title">搜索结果</h2>
+                        <span class="page-subtitle" th:if="${keyword}">寻找到与 "<span th:text="${keyword}"></span>"
+                            相关的内容</span>
+                        <span class="page-subtitle" th:unless="${keyword}">请输入关键词进行搜索</span>
+                    </div>
 
+                    <!-- 搜索结果容器 -->
+                    <div class="search-results">
 
+                        <!-- TOKEN和category校验 -->
+                        <div th:if="${token == null or token == ''}" class="empty-results">
+                            <h3>错误</h3>
+                            <p>请先登录获取访问权限</p>
+                            <a href="/login" class="back-button">去登录</a>
+                        </div>
 
-            <!-- 搜索结果 -->
-            <div class="search-results">
-                <div class="results-header">
-                    <h2>搜索结果</h2>
-                    <p th:if="${keyword}">为您找到与 "<span th:text="${keyword}"></span>" 相关的内容</p>
-                    <p th:unless="${keyword}">请输入关键词进行搜索</p>
-                </div>
+                        <div th:if="${category == null}" class="empty-results">
+                            <h3>错误</h3>
+                            <p>请选择正确的分类</p>
+                            <a href="/publish-page" class="back-button">返回首页</a>
+                        </div>
 
-                <!-- TOKEN和category校验 -->
-                <div th:if="${token == null or token == ''}" class="empty-results">
-                    <h3>错误</h3>
-                    <p>请先登录获取访问权限</p>
-                    <a href="/login" class="back-button">去登录</a>
-                </div>
+                        <!-- 搜索结果列表 -->
+                        <div th:if="${token != null and token != '' and category != null}">
+                            <!-- 有搜索结果时显示 -->
+                            <div
+                                th:if="${searchRank != null and searchRank.list != null and not searchRank.list.isEmpty()}">
 
-                <div th:if="${category == null}" class="empty-results">
-                    <h3>错误</h3>
-                    <p>请选择正确的分类</p>
-                    <a href="/publish-page" class="back-button">返回首页</a>
-                </div>
-
-                <!-- 搜索结果列表 -->
-                <div th:if="${token != null and token != '' and category != null}">
-                    <!-- 有搜索结果时显示 -->
-                    <div th:if="${searchRank != null and searchRank.list != null and not searchRank.list.isEmpty()}">
-                        <div th:each="ranking, stat : ${ searchRank.list}" class="ranking-item">
-                            <div class="ranking-header">
-                                <h3 th:text="${ranking.rankName}">榜单标题</h3>
-                                <button class="publisher-btn" th:text="'发布人：' + ${ranking.username}">发布人：用户名</button>
-                            </div>
-                            <p class="ranking-meta">
-                                <span th:text="'更新时间：' + ${ranking.publishTime}">更新时间</span>
-                            </p>
-                            <div class="song-list">
-                                <h4>歌曲列表</h4>
-                                <ul>
-                                    <li th:each="song : ${ranking.rankSongList}">
-                                        <div class="song-info">
-                                            <span class="song-rank" th:text="${song?.ranking}">排名</span>
-                                            <span class="song-name" th:text="${song?.songName}">歌曲名称</span>
-                                            <span class="singer-name" th:text="${song.singerName}">歌手名称</span>
-                                            <!-- 播放按钮 -->
-                                            <button class="play-btn" th:data-song-id="${song.songId}"
-                                                th:data-song-name="${song.songName}"
-                                                th:data-singer-name="${song.singerName}">
-                                                &#9658;
-                                            </button>
+                                <div class="other-rank-card">
+                                    <!-- Task 4: Best Match 卡片（使用第一个结果） -->
+                                    <div th:if="${searchRank.list.size() > 0}" class="best-match-card"
+                                        th:with="firstRank=${searchRank.list[0]}">
+                                        <div class="best-match-badge">
+                                            <span class="badge-best-match">Best Match</span>
                                         </div>
-                                    </li>
-                                </ul>
-                            </div>
-                            <!-- 投票和收藏按钮 -->
-                            <div class="rank-actions">
-                                <button class="vote-btn" th:data-rank-id="${ranking.rankId}">
-                                    <span class="heart-icon">♡</span>
-                                    <span class="vote-count" th:text="${ranking.voteCount}">0</span>
-                                </button>
-                                <button class="collect-btn" th:data-rank-id="${ranking.rankId}">
-                                    <span class="star-icon">★</span>
-                                    <span class="collect-count" th:text="${ranking.loveCount}">0</span>
-                                </button>
-                            </div>
-                            <!-- 评论区 -->
-                            <div class="comment-section">
-                                <button class="comment-toggle" th:data-rank-id="${ranking.rankId}">
-                                    查看评论
-                                </button>
-                                <div class="comment-container" th:id="|comment-container-${ranking.rankId}|">
-                                    <div class="comment-input-area">
-                                        <textarea class="comment-input" th:id="|comment-input-${ranking.rankId}|"
-                                            placeholder="写下你的评论..."></textarea>
-                                        <div class="comment-actions">
-                                            <button class="comment-submit" th:data-rank-id="${ranking.rankId}">
-                                                发表评论
-                                            </button>
+                                        <div class="match-cover-wrapper">
+                                            <img alt="Album Art" class="match-cover-img"
+                                                src="https://tse4-mm.cn.bing.net/th/id/OIP-C.YzVD8zb817n7AdFqtsY46wHaHS?w=183&h=180&c=7&r=0&o=5&dpr=2&pid=1.7"
+                                                onerror="this.style.display='none'">
                                         </div>
+                                        <div class="match-info">
+                                            <p class="match-tag">Exclusive Release</p>
+                                            <h3 class="match-title" th:text="${firstRank.rankName}">榜单名称</h3>
+                                            <div class="match-author">
+                                                <span class="material-symbols-outlined"
+                                                    style="font-size: 14px;">person</span>
+                                                <span th:text="${firstRank.username}">作者名</span>
+                                            </div>
+                                            <p class="match-time">更新时间：<span
+                                                    th:text="${firstRank.publishTime}">时间</span>
+                                            </p>
+                                            <div class="match-actions">
+                                                <button class="play-now-btn" th:data-rank-id="${firstRank.rankId}"
+                                                    onclick="playFirstRank(this)">
+                                                    <span class="material-symbols-outlined"
+                                                        style='font-variation-settings: "FILL" 1;'>play_arrow</span>
+                                                    立即播放
+                                                </button>
+                                                <button class="icon-action-btn" th:data-rank-id="${firstRank.rankId}"
+                                                    onclick="toggleFavorite(this)">
+                                                    <span class="material-symbols-outlined">favorite</span>
+                                                </button>
+                                                <button class="icon-action-btn" th:data-rank-id="${firstRank.rankId}"
+                                                    onclick="toggleStar(this)">
+                                                    <span class="material-symbols-outlined">star</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <!-- AI Review FAB Button -->
+                                        <button class="ai-fab ai-review-btn" th:data-rank-id="${firstRank.rankId}"
+                                            th:data-rank-name="${firstRank.rankName}">
+                                            <span class="material-symbols-outlined">auto_awesome</span>
+                                            <div class="ai-fab-tooltip">AI 锐评</div>
+                                        </button>
                                     </div>
-                                    <div class="comment-list" th:id="|comment-list-${ranking.rankId}|">
+
+                                    <!-- Task 5: 歌曲列表 -->
+                                    <div class="song-list-section">
+                                        <h4 class="section-label">榜单内容</h4>
+
+                                        <!-- 遍历第一个榜单的歌曲 -->
+                                        <div
+                                            th:if="${searchRank.list[0].rankSongList != null and not searchRank.list[0].rankSongList.isEmpty()}">
+                                            <div th:each="song, stat : ${searchRank.list[0].rankSongList}"
+                                                class="song-item">
+                                                <span class="song-index"
+                                                    th:text="${stat.count < 10 ? '0' + stat.count : stat.count}">01</span>
+
+                                                <div class="song-details">
+                                                    <h5 class="song-name-text" th:text="${song.songName}">歌曲名称</h5>
+                                                    <p class="song-meta"><span th:text="${song.singerName}">歌手</span>
+                                                    </p>
+                                                </div>
+                                                <div class="song-duration">03:39</div>
+                                                <div class="flex items-center gap-4">
+                                                    <button class="song-play-btn material-symbols-outlined"
+                                                        th:data-song-id="${song.songId}"
+                                                        th:data-song-name="${song.songName}"
+                                                        th:data-singer-name="${song.singerName}">
+                                                        play_circle
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
+
+
+                                <!-- 其他榜单列表（best-match-card + song-list-section 样式） -->
+                                <div th:each="ranking, stat : ${searchRank.list}" th:if="${stat.index > 0}"
+                                    class="other-rank-card">
+                                    <div class="best-match-card">
+                                        <div class="match-cover-wrapper">
+                                            <img alt="Album Art" class="match-cover-img"
+                                                src="https://tse4-mm.cn.bing.net/th/id/OIP-C.YzVD8zb817n7AdFqtsY46wHaHS?w=183&h=180&c=7&r=0&o=5&dpr=2&pid=1.7"
+                                                onerror="this.style.display='none'">
+                                        </div>
+                                        <div class="match-info">
+                                            <p class="match-tag">Exclusive Release</p>
+                                            <h3 class="match-title" th:text="${ranking.rankName}">榜单名称</h3>
+                                            <div class="match-author">
+                                                <span class="material-symbols-outlined"
+                                                    style="font-size: 14px;">person</span>
+                                                <span th:text="${ranking.username}">作者名</span>
+                                            </div>
+                                            <p class="match-time">更新时间：<span th:text="${ranking.publishTime}">时间</span>
+                                            </p>
+                                            <div class="match-actions">
+                                                <button class="play-now-btn" th:data-rank-id="${ranking.rankId}"
+                                                    onclick="playFirstRank(this)">
+                                                    <span class="material-symbols-outlined"
+                                                        style='font-variation-settings: "FILL" 1;'>play_arrow</span>
+                                                    立即播放
+                                                </button>
+                                                <button class="icon-action-btn vote-btn"
+                                                    th:data-rank-id="${ranking.rankId}" onclick="toggleFavorite(this)">
+                                                    <span class="material-symbols-outlined">favorite</span>
+                                                </button>
+                                                <button class="icon-action-btn collect-btn"
+                                                    th:data-rank-id="${ranking.rankId}" onclick="toggleStar(this)">
+                                                    <span class="material-symbols-outlined">star</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="song-list-section">
+                                        <h4 class="section-label">榜单内容</h4>
+                                        <div
+                                            th:if="${ranking.rankSongList != null and not ranking.rankSongList.isEmpty()}">
+                                            <div th:each="song, songStat : ${ranking.rankSongList}" class="song-item">
+                                                <span class="song-index"
+                                                    th:text="${songStat.count < 10 ? '0' + songStat.count : songStat.count}">01</span>
+                                                <div class="song-details">
+                                                    <h5 class="song-name-text" th:text="${song.songName}">歌曲名称</h5>
+                                                    <p class="song-meta"><span th:text="${song.singerName}">歌手</span>
+                                                    </p>
+                                                </div>
+                                                <div class="song-duration">03:39</div>
+                                                <button class="song-play-btn material-symbols-outlined"
+                                                    th:data-song-id="${song.songId}"
+                                                    th:data-song-name="${song.songName}"
+                                                    th:data-singer-name="${song.singerName}">
+                                                    play_circle
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="comment-section">
+                                            <button class="btn-view-comments comment-toggle"
+                                                th:data-rank-id="${ranking.rankId}"
+                                                onclick="document.body.classList.replace('sidebar-closed', 'sidebar-open')">
+                                                <span class="material-symbols-outlined">chat_bubble</span>
+                                                查看评论
+                                            </button>
+                                            <div class="comment-container"
+                                                th:id="|comment-container-${ranking.rankId}|">
+                                                <div class="comment-input-area">
+                                                    <textarea class="comment-input"
+                                                        th:id="|comment-input-${ranking.rankId}|"
+                                                        placeholder="写下你的评论..."></textarea>
+                                                    <div class="comment-actions">
+                                                        <button class="comment-submit"
+                                                            th:data-rank-id="${ranking.rankId}">
+                                                            发表评论
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div class="comment-list" th:id="|comment-list-${ranking.rankId}|">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- AI Review FAB Button -->
+                                    <button class="ai-fab ai-review-btn" th:data-rank-id="${ranking.rankId}"
+                                        th:data-rank-name="${ranking.rankName}">
+                                        <span class="material-symbols-outlined">auto_awesome</span>
+                                        <div class="ai-fab-tooltip">AI 锐评</div>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 无搜索结果时显示 -->
+                            <div th:if="${(searchRank == null) or (searchRank.list == null) or searchRank.list.isEmpty()}"
+                                class="empty-results">
+                                <h3>未找到相关内容</h3>
+                                <p>请尝试使用其他关键词进行搜索</p>
+                            </div>
+
+                            <!-- 分页 -->
+                            <div class="pagination" th:if="${searchRank != null}">
+                                <button th:disabled="${searchRank.pageNum == 1}"
+                                    th:data-page="${searchRank.pageNum - 1}" class="page-btn">上一页</button>
+                                <button th:each="i : ${#numbers.sequence(1, searchRank.pages)}"
+                                    th:class="${searchRank.pageNum == i ? 'active' : ''}" th:data-page="${i}"
+                                    class="page-btn" th:text="${i}">1</button>
+                                <button th:disabled="${searchRank.pageNum == searchRank.pages}"
+                                    th:data-page="${searchRank.pageNum + 1}" class="page-btn">下一页</button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 无搜索结果时显示 -->
-                    <div th:if="${(searchRank == null) or (searchRank.list == null) or searchRank.list.isEmpty()}"
+                    <!-- 空结果提示（当token有效但无结果时） -->
+                    <div th:if="${token != null and token != '' and category != null and (searchRank == null or searchRank.list == null or searchRank.list.isEmpty())}"
                         class="empty-results">
                         <h3>未找到相关内容</h3>
                         <p>请尝试使用其他关键词进行搜索</p>
                     </div>
+                </div>
+            </section>
 
-                    <!-- 分页 -->
-                    <div class="pagination" th:if="${searchRank != null}">
-                        <button th:disabled="${searchRank.pageNum == 1}" th:data-page="${searchRank.pageNum - 1}"
-                            class="page-btn">上一页</button>
+            <!-- ========== Task 6 & 7: 右侧边栏 ========== -->
+            <aside class="right-sidebar custom-scrollbar hide-scrollbar" style="display: flex;">
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <!-- Task 6: AI锐评模块 -->
+                    <div class="ai-review-card" id="ai-review-module">
+                        <div class="ai-review-header">
+                            <div class="ai-review-title-group">
+                                <span class="material-symbols-outlined ai-review-icon">auto_awesome</span>
+                                <h4 class="ai-review-title">AI 锐评</h4>
+                            </div>
+                            <span class="ai-powered-badge">POWERED BY AI</span>
+                        </div>
+                        <div class="ai-review-placeholder">
+                            <p>请点击AI锐评按钮生成属于您的专属锐评</p>
+                        </div>
+                        <div class="ai-glow-effect"></div>
+                    </div>
 
-                        <button th:each="i : ${#numbers.sequence(1,  searchRank.pages)}"
-                            th:class="${ searchRank.pageNum == i ? 'active' : ''}" th:data-page="${i}" class="page-btn"
-                            th:text="${i}">1</button>
+                    <!-- Task 7: AI推荐助手聊天界面 -->
+                    <div class="ai-assistant-card" id="ai-assistant-module">
+                        <!-- Chat Header -->
+                        <div class="chat-header">
+                            <div class="ai-avatar-wrapper">
+                                <div class="ai-avatar">
+                                    <img alt="AI Avatar"
+                                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-pGZ4uXm_l-qN7B_Z5p_Z_5Z_5Z_5Z_5Z_5Z_5Z_5Z_5Z_5Z_5Z_5Z_5Z_5Z_5Z_5Z_5Z_5Z_5Z_5Z_5Z_5Z">
+                                </div>
+                                <span class="online-indicator"></span>
+                            </div>
+                            <div class="chat-info">
+                                <h4>AI 推荐助手</h4>
+                                <p class="chat-status">在线 - 随时为您服务</p>
+                            </div>
+                        </div>
 
-                        <button th:disabled="${ searchRank.pageNum == searchRank.pages}"
-                            th:data-page="${searchRank.pageNum + 1}" class="page-btn">下一页</button>
+                        <!-- Chat Area -->
+                        <div class="chat-messages-area custom-scrollbar">
+                            <!-- Welcome Content -->
+                            <div class="welcome-message">
+                                <span class="material-symbols-outlined">auto_awesome</span>
+                                <p>告诉您的喜好，我为您推荐精彩内容</p>
+                            </div>
+
+                            <!-- AI Message Bubble -->
+                            <div class="ai-bubble">
+                                <p>你好！我是你的AI推荐助手。告诉我你想听什么歌、看什么电影，或者点击上方标签浏览推荐内容。</p>
+                            </div>
+                        </div>
+
+                        <!-- Input Area -->
+                        <div class="chat-input-area">
+                            <div class="chat-input-wrapper">
+                                <input type="text" class="chat-input-field" placeholder="输入你的喜好或需求...">
+                                <button class="chat-send-btn">
+                                    <span class="material-symbols-outlined text-xl"
+                                        style='font-variation-settings: "FILL" 1;'>send</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <div th:if="${token != null and token != '' and category != null and (searchRank == null or searchRank.list == null or searchRank.list.isEmpty())}"
-                class="empty-results">
-                <h3>未找到相关内容</h3>
-                <p>请尝试使用其他关键词进行搜索</p>
-            </div>
-        </div>
-
-        <!-- 右侧信息区域 -->
-        <div class="sidebar-right">
-            <!-- 战报推送和智能AI推荐大盒子 -->
-            <div class="right-container">
-                <!-- 实时战报推送 -->
-                <div class="realtime-report">
-                    <h3>实时战报推送</h3>
-                    <div class="report-item">
-                        <p>Taylor Swift新单曲打破流媒体播放记录</p>
-                    </div>
-                </div>
-
-                <!-- 音乐智能推荐AI -->
-                <div class="ai-recommendation">
-                    <h3>音乐智能推荐AI</h3>
-                    <div class="ai-suggestion">
-                        <p>最近热门的电子舞曲榜单，适合派对氛围</p>
-                    </div>
-                    <div class="ai-suggestion">
-                        <p>经典怀旧金曲榜单，带您回到美好时光</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 音乐播放器 -->
-
-            <!-- 播放器容器 -->
-            <div id="music-player-container" style="width: 100%;"></div>
+            </aside>
         </div>
     </div>
 
+    <!-- ========== Task 8: 底部音乐播放器 ========== -->
+    <footer class="music-player-bar">
+        <!-- Currently Playing -->
+        <div class="player-current-track">
+            <div class="player-album-art">
+                <img alt="Album art"
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuA6OABamtEz9-ALIS9vyWU66ON7wk9nn_0drN5ifl1kBK8KsLZYvL-ckE2M4VDWPLHfLZ4LZsNe9A0GgpsQKzW6b4nCpFXuP95SHcUw6IN4qMtVo2JAHA7bf7788hBesB4IfFzclbPOeDOiMMwOyHMo2eOb0hsj1Oxg233VTrXo6MJtE5WJaPPTk7jcvqgjOkbj1rVPkvgFnJSj7Qf6kaWCLbPQsQ3EM2_veAHje2AZiG6SEKjGkYvkV-ohmCoct5Fyk9_ZocfXCWU">
+            </div>
+            <div class="player-track-info">
+                <h5 class="player-track-name">Shake It Off</h5>
+                <p class="player-artist-name">Midnight Collective</p>
+            </div>
+        </div>
 
+        <!-- Center Player Controls -->
+        <div class="player-controls-center">
+            <div class="control-buttons">
+                <button class="ctrl-btn">
+                    <span class="material-symbols-outlined">skip_previous</span>
+                </button>
+                <button class="play-pause-btn">
+                    <span class="material-symbols-outlined" style='font-variation-settings: "FILL" 1;'>play_arrow</span>
+                </button>
+                <button class="ctrl-btn">
+                    <span class="material-symbols-outlined">skip_next</span>
+                </button>
+            </div>
+            <div class="progress-bar-wrapper">
+                <span class="time-display">1:24</span>
+                <div class="progress-track">
+                    <div class="progress-fill"></div>
+                </div>
+                <span class="time-display">3:39</span>
+            </div>
+        </div>
 
+        <!-- Right Side Actions -->
+        <div class="player-right-actions">
+        </div>
+    </footer>
+
+    <!-- ==================== 全局评论抽屉弹窗 ==================== -->
+    <div class="comment-drawer-overlay" id="commentDrawerOverlay"></div>
+    <div class="comment-drawer-panel" id="commentDrawerPanel" data-current-rank-id="">
+        <button class="drawer-close-btn" id="drawerCloseBtn">×</button>
+        <h3 class="drawer-title">评论区</h3>
+        <div class="drawer-input-area">
+            <textarea class="drawer-comment-input" id="drawerCommentInput" placeholder="写下你的评论..."></textarea>
+            <div class="drawer-input-actions">
+                <button class="drawer-submit-btn" id="drawerSubmitBtn">发表评论</button>
+            </div>
+        </div>
+        <div class="drawer-comment-list" id="drawerCommentList"></div>
+    </div>
 
     <!-- 引入Axios -->
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script th:src="@{/js/request.js}"></script>
     <script>
+        // ========== Task 9: JavaScript功能代码（完整保留）==========
+
         // 全局变量初始化
         let token = '';
         let userId = '';
@@ -1858,6 +2827,46 @@
                 showErrorTip("播放器加载失败：" + e.message);
             }
         }
+
+        // Best Match卡片的立即播放功能
+        function playFirstRank(btn) {
+            const rankId = btn.dataset.rankId;
+            if (!rankId) {
+                showErrorTip("榜单ID为空！");
+                return;
+            }
+            showSuccessTip("正在加载榜单...");
+            // 这里可以扩展为播放该榜单的第一首歌曲
+        }
+
+        function toggleFavorite(btn) {
+            const rankId = btn.dataset.rankId;
+            if (!rankId) return;
+            // 收藏切换逻辑
+            const icon = btn.querySelector('.material-symbols-outlined');
+            if (icon.style.fontVariationSettings.includes("'FILL' 1")) {
+                icon.style.fontVariationSettings = "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24";
+                showSuccessTip("已取消收藏");
+            } else {
+                icon.style.fontVariationSettings = "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24";
+                showSuccessTip("已添加收藏");
+            }
+        }
+
+        function toggleStar(btn) {
+            const rankId = btn.dataset.rankId;
+            if (!rankId) return;
+            // 星标切换逻辑
+            const icon = btn.querySelector('.material-symbols-outlined');
+            if (icon.style.color === 'rgb(255, 228, 164)') {
+                icon.style.color = '';
+                showSuccessTip("已取消星标");
+            } else {
+                icon.style.color = '#ffe4a4';
+                showSuccessTip("已添加星标");
+            }
+        }
+
         // 分页跳转（和主页保持一致）
         function goToPage(page) {
             if (!page || isNaN(page)) {
@@ -1943,7 +2952,7 @@
                 ? (category === 1 ? "/music/api/rank/deleteVote" : "/music/api/workrank/deleteVote")
                 : getTargetVotePath(category);
 
-            axios.post(url, null, { // 和主页保持一致，使用null作为data
+            axios.post(url, null, {
                 params: { token: token, rankId: rankId, userId: userId }
             })
                 .then(response => {
@@ -2008,7 +3017,7 @@
                         } else {
                             btn.classList.add('collected');
                             collectCountEl.textContent = originalCount + 1;
-                            btn.querySelector('.star-icon').style.color = '#fffa9c';
+                            btn.querySelector('.star-icon').style.color = '#ffe4a4';
                             showSuccessTip("收藏成功！");
                         }
                     } else {
@@ -2133,8 +3142,8 @@
                             <span class="comment-like-count">${comment.likeCount || 0}</span>
                         </button>
                         ${comment.userId === parseInt(userId) ?
-                            `<button class="comment-delete-btn" data-com-id="${comment.comId}" data-rank-id="${comment.rankId}">删除</button>` : ''
-                        }
+                        `<button class="comment-delete-btn" data-com-id="${comment.comId}" data-rank-id="${comment.rankId}">删除</button>` : ''
+                    }
                     </div>
                 `;
 
@@ -2253,6 +3262,108 @@
                 });
         }
 
+        // ===================== AI锐评功能 =====================
+        function renderAiReviewToSidebar(aiContent, rankName) {
+            console.log('渲染AI锐评到侧边栏, 榜单:', rankName);
+
+            const aiReviewModule = document.getElementById('ai-review-module');
+            if (!aiReviewModule) {
+                console.error('AI锐评模块未找到！');
+                return;
+            }
+
+            // 移除占位符，显示内容
+            const placeholder = aiReviewModule.querySelector('.ai-review-placeholder');
+            if (placeholder) {
+                placeholder.style.display = 'none';
+            }
+
+            // 创建或更新内容容器
+            let contentDiv = aiReviewModule.querySelector('.ai-review-content');
+            if (!contentDiv) {
+                contentDiv = document.createElement('div');
+                contentDiv.className = 'ai-review-content';
+                contentDiv.style.cssText = 'padding: 12px; overflow-y: auto; flex: 1;';
+                aiReviewModule.appendChild(contentDiv);
+            }
+
+            contentDiv.innerHTML = `
+                <div style="padding-left: 2px; padding-top: 4px; padding-bottom: 4px; margin-bottom: 2px;">
+
+                    <p style="font-size: 14px; color: #dfe2eb; line-height: 1.6; font-family: Manrope, sans-serif;">${aiContent || '暂无锐评内容'}</p>
+                </div>
+            `;
+
+            console.log('AI锐评内容已渲染到侧边栏');
+        }
+
+        function showAiReviewLoading(rankName) {
+            const aiReviewModule = document.getElementById('ai-review-module');
+            if (!aiReviewModule) return;
+
+            // 隐藏占位符
+            const placeholder = aiReviewModule.querySelector('.ai-review-placeholder');
+            if (placeholder) {
+                placeholder.style.display = 'none';
+            }
+
+            // 移除旧内容
+            const oldContent = aiReviewModule.querySelector('.ai-review-content');
+            if (oldContent) {
+                oldContent.remove();
+            }
+
+            // 显示加载状态
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'ai-review-content ai-review-loading';
+            loadingDiv.style.cssText = 'flex: 1; display: flex; align-items: center; justify-content: center; text-align: center; padding: 5px 10px; border-top: solid  1px gray;';
+            loadingDiv.innerHTML = `
+                <p style="font-size: 12px; color: #6b7280; font-style: italic; line-height: 1.6; font-family: Manrope, sans-serif;">
+                    AI正在分析「${rankName || '未知榜单'}」，请稍候...
+                </p>
+            `;
+
+            aiReviewModule.appendChild(loadingDiv);
+        }
+
+        function requestAiReview(myRankWithSongs, btn) {
+            console.log('请求AI锐评, 榜单ID:', myRankWithSongs.rankId);
+
+            if (!token) {
+                showErrorTip("请先登录后再使用AI锐评！");
+                return;
+            }
+
+            btn.style.pointerEvents = 'none';
+            btn.style.opacity = '0.7';
+
+            showAiReviewLoading(myRankWithSongs.rankName);
+
+            axios.post('/music/AiComment/ai', myRankWithSongs, {
+                params: {
+                    rankId: myRankWithSongs.rankId,
+                    token: token
+                }
+            })
+                .then(response => {
+                    console.log('AI锐评响应:', response.data);
+                    if (response.data.code === 200 && response.data.data != null) {
+                        renderAiReviewToSidebar(response.data.data, myRankWithSongs.rankName);
+                        showSuccessTip("AI锐评生成成功！");
+                    } else {
+                        showErrorTip("AI锐评失败：" + (response.data.msg || "未知错误"));
+                    }
+                })
+                .catch(error => {
+                    console.error('AI锐评请求失败:', error);
+                    showErrorTip("AI服务异常：" + (error.response?.data?.msg || error.message));
+                })
+                .finally(() => {
+                    btn.style.pointerEvents = 'auto';
+                    btn.style.opacity = '1';
+                });
+        }
+
         // 执行搜索功能
         function performSearch() {
             const searchInput = document.getElementById('searchInput');
@@ -2273,34 +3384,24 @@
             console.log('执行搜索：', { keyword: searchKeyword, category, originalInput: searchInput.value });
 
             // 更新搜索结果标题
-            const resultsHeader = document.querySelector('.results-header h2');
-            const resultsDesc = document.querySelector('.results-header p');
+            const resultsHeader = document.querySelector('.page-title');
+            const resultsDesc = document.querySelector('.page-subtitle');
             if (resultsHeader) resultsHeader.textContent = '搜索结果';
             if (resultsDesc) {
-                resultsDesc.innerHTML = `为您找到与 "<span style="color: #1a365d; font-weight: bold;">${searchKeyword}</span>" 相关的内容`;
+                resultsDesc.innerHTML = `寻找到与 "<span style="color: #ffe4a4; font-weight: bold;">${searchKeyword}</span>" 相关的内容`;
             }
 
             // 显示加载状态
             showLoadingState();
 
-            // 发送搜索请求 - 尝试多种变体以提高匹配率
-            const searchVariants = [
-                searchKeyword,
-                searchKeyword.toLowerCase(),
-                searchKeyword.toUpperCase(),
-                searchKeyword.charAt(0).toUpperCase() + searchKeyword.slice(1).toLowerCase()
-            ];
-
-            console.log('搜索关键词变体：', searchVariants);
-
-            // 使用原始关键词发送请求
+            // 发送搜索请求
             axios.get('/music/api/rank/search', {
                 params: {
                     token: token,
                     keyword: searchKeyword,
                     category: category,
                     pageNum: 1,
-                    pageSize: pageSize * 2 // 增加每页数量以获取更多结果
+                    pageSize: pageSize * 2
                 }
             })
                 .then(response => {
@@ -2309,67 +3410,56 @@
                     if (response.data.code === 200 || response.data.success) {
                         const searchData = response.data.data;
                         console.log('🔍 解析后的搜索数据：', searchData);
-                        console.log('📊 数据类型：', typeof searchData);
-                        console.log('📋 是否有list属性：', searchData ? 'list' in searchData : false);
 
                         if (searchData && searchData.list && Array.isArray(searchData.list) && searchData.list.length > 0) {
                             console.log(`✅ 找到 ${searchData.list.length} 条结果`);
 
-                            // 尝试在返回的数据中进行二次过滤（提高匹配精度）
-                            const filteredResults = filterSearchResults(searchData.list, searchKeyword, searchVariants);
+                            // 过滤搜索结果
+                            const filteredResults = filterSearchResults(searchData.list, searchKeyword);
 
                             if (filteredResults.length > 0) {
                                 console.log(`🎯 过滤后剩余 ${filteredResults.length} 条精确匹配结果`);
                                 renderSearchResults({ ...searchData, list: filteredResults }, searchKeyword);
                                 showSuccessTip(`找到 ${filteredResults.length} 条相关结果`);
                             } else {
-                                // 如果二次过滤后无结果，但仍显示原始结果（可能是模糊匹配）
                                 console.log('⚠️ 二次过滤无结果，显示原始结果');
                                 renderSearchResults(searchData, searchKeyword);
                                 showSuccessTip(`找到 ${searchData.list.length} 条相关结果`);
                             }
                         } else {
-                            // 无搜索结果 - 尝试获取所有榜单进行本地搜索
                             console.log('❌ API未返回结果，尝试本地搜索...');
-                            performLocalSearch(searchKeyword, searchVariants);
+                            performLocalSearch(searchKeyword);
                         }
                     } else {
                         console.warn('⚠️ API返回错误：', response.data.msg);
                         showErrorTip('搜索失败：' + (response.data.msg || '未知错误'));
-                        // 即使API出错也尝试本地搜索
-                        performLocalSearch(searchKeyword, searchVariants);
+                        performLocalSearch(searchKeyword);
                     }
                 })
                 .catch(error => {
                     console.error('❌ 搜索请求失败:', error);
-                    console.error('错误详情:', error.response?.data);
                     showErrorTip('网络错误，正在尝试本地搜索...');
-                    // 网络错误时尝试本地搜索
-                    performLocalSearch(searchKeyword, searchVariants);
+                    performLocalSearch(searchKeyword);
                 });
         }
 
         // 本地搜索备选方案
-        function performLocalSearch(keyword, variants) {
+        function performLocalSearch(keyword) {
             console.log('🔄 开始本地搜索，关键词：', keyword);
-
-            // 获取页面上已有的Thymeleaf渲染的榜单数据
             const existingRankings = document.querySelectorAll('.ranking-item');
-            console.log('📦 页面上已有榜单数量：', existingRankings.length);
 
             if (existingRankings.length > 0) {
-                // 从现有DOM中提取数据并搜索
                 const results = [];
                 existingRankings.forEach((item, index) => {
                     const title = item.querySelector('h3')?.textContent || '';
                     const songs = Array.from(item.querySelectorAll('.song-name')).map(el => el.textContent);
                     const singers = Array.from(item.querySelectorAll('.singer-name')).map(el => el.textContent);
+                    const publisher = item.querySelector('.publisher-btn')?.textContent?.replace('发布人：', '') || '';
 
-                    const searchText = `${title} ${songs.join(' ')} ${singers.join(' ')}`.toLowerCase();
+                    const searchText = `${title} ${publisher} ${songs.join(' ')} ${singers.join(' ')}`.toLowerCase();
                     const keywordLower = keyword.toLowerCase();
 
-                    // 检查是否包含关键词（支持部分匹配）
-                    if (variants.some(v => searchText.includes(v.toLowerCase()))) {
+                    if (searchText.includes(keywordLower)) {
                         results.push({
                             element: item.cloneNode(true),
                             matchType: 'local',
@@ -2378,7 +3468,6 @@
                     }
                 });
 
-                // 按相关性排序
                 results.sort((a, b) => b.relevance - a.relevance);
 
                 if (results.length > 0) {
@@ -2389,7 +3478,6 @@
                 }
             }
 
-            // 如果所有方法都失败，显示无结果并提供建议
             console.log('😞 所有搜索方式均未找到结果');
             showNoResultsWithSuggestions(keyword);
         }
@@ -2397,38 +3485,25 @@
         // 计算搜索相关性得分
         function calculateRelevance(text, keyword) {
             let score = 0;
-
-            // 完全匹配得高分
             if (text === keyword) score += 100;
-            // 包含关键词
             else if (text.includes(keyword)) score += 50;
-            // 部分匹配
             else if (keyword.split(' ').some(word => text.includes(word))) score += 20;
-
             return score;
         }
 
-        // 过滤搜索结果（二次精准匹配）
-        function filterSearchResults(results, originalKeyword, variants) {
+        // 过滤搜索结果
+        function filterSearchResults(results, originalKeyword) {
             console.log('🔬 开始二次过滤，原始结果数：', results.length);
 
             const filtered = results.filter(ranking => {
                 const rankingText = [
+                    ranking.username || '',
                     ranking.rankName || '',
                     ...(ranking.rankSongList || []).map(s => `${s.songName || ''} ${s.singerName || ''}`)
                 ].join(' ').toLowerCase();
 
                 const keywordLower = originalKeyword.toLowerCase();
-
-                // 多种匹配策略
-                const matches = variants.some(variant => {
-                    const v = variant.toLowerCase();
-                    return rankingText.includes(v) ||
-                        rankingText.includes(v.replace(/\s/g, '')) || // 忽略空格
-                        v.includes(rankingText); // 反向匹配
-                });
-
-                return matches;
+                return rankingText.includes(keywordLower);
             });
 
             return filtered;
@@ -2437,15 +3512,12 @@
         // 渲染本地搜索结果
         function renderLocalResults(results, keyword) {
             const searchResultsContainer = document.querySelector('.search-results');
-
-            // 保留header
-            const resultsHeader = searchResultsContainer.querySelector('.results-header');
+            const resultsHeader = document.querySelector('.page-heading');
             searchResultsContainer.innerHTML = '';
             if (resultsHeader) {
-                searchResultsContainer.appendChild(resultsHeader);
+                searchResultsContainer.parentNode.insertBefore(resultsHeader.cloneNode(true), searchResultsContainer);
             }
 
-            // 创建结果容器
             const resultsList = document.createElement('div');
             resultsList.id = 'dynamic-search-results';
 
@@ -2454,11 +3526,8 @@
                 wrapper.className = 'ranking-item';
                 wrapper.style.animationDelay = `${index * 0.1}s`;
 
-                // 克隆DOM元素
                 if (result.element) {
                     wrapper.innerHTML = result.element.innerHTML;
-
-                    // 高亮匹配的关键词
                     highlightKeyword(wrapper, keyword);
                 }
 
@@ -2467,9 +3536,8 @@
 
             searchResultsContainer.appendChild(resultsList);
 
-            // 添加提示
             const hintDiv = document.createElement('div');
-            hintDiv.style.cssText = 'margin-top: 20px; padding: 15px; background: rgba(255, 250, 156, 0.3); border-radius: 10px; text-align: center; font-size: 14px; color: #64748b;';
+            hintDiv.style.cssText = 'margin-top: 20px; padding: 15px; background: rgba(240, 198, 77, 0.1); border-radius: 10px; text-align: center; font-size: 14px; color: #99907c;';
             hintDiv.innerHTML = '💡 以上结果来自页面缓存，如需更多结果请刷新页面后重试';
             searchResultsContainer.appendChild(hintDiv);
         }
@@ -2488,7 +3556,7 @@
                 const regex = new RegExp(`(${keyword})`, 'gi');
                 if (regex.test(text)) {
                     const span = document.createElement('span');
-                    span.innerHTML = text.replace(regex, '<mark style="background: #fffa9c; color: #1a365d; padding: 2px 4px; border-radius: 3px; font-weight: bold;">$1</mark>');
+                    span.innerHTML = text.replace(regex, '<mark>$1</mark>');
                     node.parentNode.replaceChild(span, node);
                 }
             });
@@ -2498,14 +3566,12 @@
         function showNoResultsWithSuggestions(keyword) {
             const searchResultsContainer = document.querySelector('.search-results');
 
-            // 保留header
-            const resultsHeader = searchResultsContainer.querySelector('.results-header');
+            const resultsHeader = document.querySelector('.page-heading');
             searchResultsContainer.innerHTML = '';
             if (resultsHeader) {
-                searchResultsContainer.appendChild(resultsHeader);
+                searchResultsContainer.parentNode.insertBefore(resultsHeader.cloneNode(true), searchResultsContainer);
             }
 
-            // 显示智能提示
             const emptyDiv = document.createElement('div');
             emptyDiv.className = 'empty-results';
             emptyDiv.innerHTML = `
@@ -2513,8 +3579,8 @@
                     <div style="font-size: 48px; margin-bottom: 20px;">🔍</div>
                     <h3 style="margin-bottom: 15px;">未找到 "${keyword}" 的相关内容</h3>
 
-                    <div style="background: rgba(255, 255, 255, 0.5); padding: 20px; border-radius: 12px; margin-top: 20px; text-align: left;">
-                        <p style="font-weight: bold; margin-bottom: 12px; color: #1a365d;">💡 搜索建议：</p>
+                    <div style="background: rgba(49, 53, 60, 0.4); padding: 20px; border-radius: 12px; margin-top: 20px; text-align: left;">
+                        <p style="font-weight: bold; margin-bottom: 12px; color: #dfe2eb;">💡 搜索建议：</p>
                         <ul style="list-style: none; padding: 0; font-size: 14px; line-height: 2;">
                             <li>• 检查拼写是否正确</li>
                             <li>• 尝试使用更简短的关键词（如 "Blank" 而不是 "Blank Space"）</li>
@@ -2524,14 +3590,14 @@
                         </ul>
                     </div>
 
-                    <div style="margin-top: 25px; padding: 15px; background: rgba(26, 54, 93, 0.1); border-radius: 10px;">
-                        <p style="font-size: 13px; color: #64748b; margin: 0;">
+                    <div style="margin-top: 25px; padding: 15px; background: rgba(28, 32, 38, 0.3); border-radius: 10px;">
+                        <p style="font-size: 13px; color: #99907c; margin: 0;">
                             📌 提示：如果确定该歌曲存在于榜单中，可能是搜索索引尚未更新。<br>
                             请稍后再试或联系管理员。
                         </p>
                     </div>
 
-                    <button onclick="location.reload()" style="margin-top: 20px; padding: 12px 30px; background: #1a365d; color: #fffa9c; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.3s;" onmouseover="this.style.background='#2a4365'" onmouseout="this.style.background='#1a365d'">
+                    <button onclick="location.reload()" style="margin-top: 20px; padding: 12px 30px; background: #31353c; color: #ffe4a4; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.3s;" onmouseover="this.style.background='#262a31'" onmouseout="this.style.background='#31353c'">
                         🔄 刷新页面重试
                     </button>
                 </div>
@@ -2543,26 +3609,18 @@
         function showLoadingState() {
             const searchResultsContainer = document.querySelector('.search-results');
 
-            // 保留results-header，清空其他内容
-            const resultsHeader = searchResultsContainer.querySelector('.results-header');
+            const resultsHeader = document.querySelector('.page-heading');
             searchResultsContainer.innerHTML = '';
             if (resultsHeader) {
-                searchResultsContainer.appendChild(resultsHeader);
+                searchResultsContainer.parentNode.insertBefore(resultsHeader.cloneNode(true), searchResultsContainer);
             }
 
-            // 添加加载动画
             const loadingDiv = document.createElement('div');
             loadingDiv.className = 'empty-results';
             loadingDiv.style.textAlign = 'center';
             loadingDiv.innerHTML = `
-                <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #1a365d; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-                <p style="margin-top: 15px; color: #64748b;">正在搜索中...</p>
-                <style>
-                    @keyframes spin {
-                        0% { transform: rotate(0deg); }
-                        100% { transform: rotate(360deg); }
-                    }
-                </style>
+                <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #31353c; border-top: 4px solid #f0c64d; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                <p style="margin-top: 15px; color: #99907c;">正在搜索中...</p>
             `;
             searchResultsContainer.appendChild(loadingDiv);
         }
@@ -2571,18 +3629,15 @@
         function renderSearchResults(searchData, keyword) {
             const searchResultsContainer = document.querySelector('.search-results');
 
-            // 清空现有内容（保留header）
-            const resultsHeader = searchResultsContainer.querySelector('.results-header');
+            const resultsHeader = document.querySelector('.page-heading');
             searchResultsContainer.innerHTML = '';
             if (resultsHeader) {
-                searchResultsContainer.appendChild(resultsHeader);
+                searchResultsContainer.parentNode.insertBefore(resultsHeader.cloneNode(true), searchResultsContainer);
             }
 
-            // 创建结果列表容器
             const resultsList = document.createElement('div');
             resultsList.id = 'dynamic-search-results';
 
-            // 遍历渲染每个榜单
             searchData.list.forEach((ranking, index) => {
                 const rankingItem = createRankingItem(ranking, index);
                 resultsList.appendChild(rankingItem);
@@ -2590,7 +3645,6 @@
 
             searchResultsContainer.appendChild(resultsList);
 
-            // 添加分页（如果有）
             if (searchData.pages > 1) {
                 const pagination = createPagination(searchData, keyword);
                 searchResultsContainer.appendChild(pagination);
@@ -2670,20 +3724,18 @@
         function showNoResults(keyword) {
             const searchResultsContainer = document.querySelector('.search-results');
 
-            // 保留header
-            const resultsHeader = searchResultsContainer.querySelector('.results-header');
+            const resultsHeader = document.querySelector('.page-heading');
             searchResultsContainer.innerHTML = '';
             if (resultsHeader) {
-                searchResultsContainer.appendChild(resultsHeader);
+                searchResultsContainer.parentNode.insertBefore(resultsHeader.cloneNode(true), searchResultsContainer);
             }
 
-            // 显示无结果提示
             const emptyDiv = document.createElement('div');
             emptyDiv.className = 'empty-results';
             emptyDiv.innerHTML = `
                 <h3>未找到相关内容</h3>
                 <p>未找到与 "<strong>${keyword}</strong>" 相关的内容</p>
-                <p style="margin-top: 10px; font-size: 14px; color: #64748b;">
+                <p style="margin-top: 10px; font-size: 14px; color: #99907c;">
                     建议：<br>
                     • 检查关键词是否正确<br>
                     • 尝试使用更简短的关键词<br>
@@ -2698,7 +3750,6 @@
             const pagination = document.createElement('div');
             pagination.className = 'pagination';
 
-            // 上一页按钮
             const prevBtn = document.createElement('button');
             prevBtn.textContent = '上一页';
             prevBtn.disabled = searchData.pageNum <= 1;
@@ -2706,7 +3757,6 @@
             prevBtn.onclick = () => goToSearchPage(searchData.pageNum - 1, keyword);
             pagination.appendChild(prevBtn);
 
-            // 页码按钮
             for (let i = 1; i <= searchData.pages; i++) {
                 const pageBtn = document.createElement('button');
                 pageBtn.textContent = i;
@@ -2715,7 +3765,6 @@
                 pagination.appendChild(pageBtn);
             }
 
-            // 下一页按钮
             const nextBtn = document.createElement('button');
             nextBtn.textContent = '下一页';
             nextBtn.disabled = searchData.pageNum >= searchData.pages;
@@ -2732,7 +3781,6 @@
                 return;
             }
 
-            // 临时保存keyword用于分页
             window.currentSearchKeyword = keyword;
 
             axios.get('/music/api/rank/search', {
@@ -2749,7 +3797,6 @@
                         const searchData = response.data.data;
                         if (searchData && searchData.list && searchData.list.length > 0) {
                             renderSearchResults(searchData, keyword);
-                            // 滚动到顶部
                             window.scrollTo({ top: 0, behavior: 'smooth' });
                         } else {
                             showNoResults(keyword);
@@ -2775,7 +3822,6 @@
                     }
                 });
 
-                // 如果URL中有keyword参数，自动填充到搜索框
                 if (keyword) {
                     searchInput.value = keyword;
                 }
@@ -2809,8 +3855,20 @@
             // 初始化播放器
             initMusicPlayer();
 
+            // 初始化 AI 助手
+            if (typeof MusicAIAgent !== 'undefined') {
+                const searchAgent = new MusicAIAgent({
+                    input: '.chat-input-field',
+                    sendButton: '.chat-send-btn',
+                    messageContainer: '.chat-messages-area'
+                });
+                console.log('MusicAIAgent 初始化成功（搜索页）');
+            } else {
+                console.warn('MusicAIAgent 未定义，跳过 AI 助手初始化');
+            }
+
             // 添加 ESC 键关闭评论抽屉功能
-            document.addEventListener('keydown', function(e) {
+            document.addEventListener('keydown', function (e) {
                 if (e.key === 'Escape' || e.keyCode === 27) {
                     const panel = document.getElementById('commentDrawerPanel');
                     if (panel && panel.classList.contains('active')) {
@@ -2819,14 +3877,14 @@
                 }
             });
 
-            // ========== 拆分事件委托，避免冲突 ==========
+            // ========== 事件委托绑定 ==========
             // 1. 播放按钮点击事件
             document.addEventListener('click', function (e) {
-                if (e.target.closest('.play-btn')) {
-                    e.preventDefault(); // 新增：彻底阻止默认行为，避免任何潜在冲突
-                    e.stopPropagation(); // 保留：阻止事件冒泡，避免触发评论/点赞等父级事件
-                    const playBtn = e.target.closest('.play-btn');
-                    playSongFromData(playBtn); // 保留你原本的调用逻辑
+                if (e.target.closest('.play-btn') || e.target.closest('.song-play-btn')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const playBtn = e.target.closest('.play-btn') || e.target.closest('.song-play-btn');
+                    playSongFromData(playBtn);
                 }
             });
 
@@ -2859,19 +3917,17 @@
                     e.stopPropagation();
                 }
 
-                // 4.1 抽屉关闭按钮
                 if (e.target.closest('#drawerCloseBtn')) {
                     closeCommentDrawer();
                 }
 
-                // 4.2 抽屉遮罩层点击关闭
                 const drawerOverlay = e.target.closest('#commentDrawerOverlay');
                 if (drawerOverlay && e.target === drawerOverlay) {
                     closeCommentDrawer();
                 }
             });
 
-            // 5. 评论提交按钮（兼容原有 + 抽屉提交）
+            // 5. 评论提交按钮
             document.addEventListener('click', function (e) {
                 const commentSubmit = e.target.closest('.comment-submit');
                 const drawerSubmit = e.target.closest('#drawerSubmitBtn');
@@ -2891,11 +3947,81 @@
                 }
             });
 
-            // 6. 评论点赞按钮
+            // 6. AI锐评按钮点击事件
+            document.addEventListener('click', function (e) {
+                const aiReviewBtn = e.target.closest('.ai-review-btn');
+                if (aiReviewBtn) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const rankId = aiReviewBtn.dataset.rankId;
+                    const rankName = aiReviewBtn.dataset.rankName;
+
+                    // 找到对应的榜单卡片
+                    const rankCard = aiReviewBtn.closest('[data-rank-id]') || aiReviewBtn.closest('.best-match-card') || aiReviewBtn.closest('.other-rank-card');
+                    if (!rankCard) {
+                        // 尝试通过data属性查找
+                        const allCards = document.querySelectorAll('.best-match-card, .other-rank-card');
+                        let targetCard = null;
+                        allCards.forEach(card => {
+                            const btn = card.querySelector(`[data-rank-id="${rankId}"]`);
+                            if (btn) targetCard = card;
+                        });
+
+                        if (!targetCard) {
+                            showErrorTip("榜单元素未找到！");
+                            return;
+                        }
+
+                        rankCard = targetCard;
+                    }
+
+                    // 收集歌曲数据
+                    const songItems = rankCard.querySelectorAll('.song-item');
+                    const rankSongList = [];
+
+                    songItems.forEach(item => {
+                        const songNameEl = item.querySelector('.song-name-text, .song-name');
+                        const singerNameEl = item.querySelector('.song-meta');
+
+                        let songName = '';
+                        let singerName = '';
+
+                        if (songNameEl) {
+                            songName = songNameEl.textContent.trim();
+                        }
+
+                        if (singerNameEl) {
+                            // 歌手名格式: "歌手 · 专辑"，只需取歌手部分
+                            const metaText = singerNameEl.textContent.trim();
+                            singerName = metaText.split('·')[0].trim();
+                        }
+
+                        rankSongList.push({
+                            songName: songName,
+                            singerName: singerName,
+                            ranking: 0
+                        });
+                    });
+
+                    // 构建请求对象
+                    const myRankWithSongs = {
+                        rankId: parseInt(rankId),
+                        rankName: rankName,
+                        rankSongList: rankSongList,
+                        rankTagsList: []
+                    };
+
+                    // 发送AI锐评请求
+                    requestAiReview(myRankWithSongs, aiReviewBtn);
+                }
+            });
+
+            // 7. 评论点赞按钮
             document.addEventListener('click', function (e) {
                 if (e.target.closest('.comment-like-btn')) {
                     const commentLikeBtn = e.target.closest('.comment-like-btn');
-                    const commentId = commentLikeBtn.dataset.commentId;
+                    const commentId = commentLikeBtn.dataset.comId;
                     toggleCommentLike(commentId, commentLikeBtn);
                     e.stopPropagation();
                 }
@@ -2905,7 +4031,7 @@
             document.addEventListener('click', function (e) {
                 if (e.target.closest('.comment-delete-btn')) {
                     const commentDeleteBtn = e.target.closest('.comment-delete-btn');
-                    const commentId = commentDeleteBtn.dataset.commentId;
+                    const commentId = commentDeleteBtn.dataset.comId;
                     const rankId = commentDeleteBtn.dataset.rankId;
                     deleteComment(commentId, rankId);
                     e.stopPropagation();
@@ -2924,13 +4050,6 @@
 
             // 9. 左侧导航栏按钮事件
             document.addEventListener('click', function (e) {
-                // 导航栏切换按钮（收起/展开）
-                if (e.target.closest('.nav-toggle-btn')) {
-                    const sidebar = document.querySelector('.left-sidebar');
-                    if (sidebar) sidebar.classList.toggle('collapsed');
-                    return;
-                }
-
                 // 首页按钮
                 if (e.target.closest('#navIndex')) {
                     goToIndex();
@@ -2943,9 +4062,9 @@
                     return;
                 }
 
-                // 搜索按钮（当前页面，仅切换active状态）
+                // 搜索按钮（当前页面）
                 if (e.target.closest('#navSearch')) {
-                    document.querySelectorAll('.nav-circle-btn').forEach(btn => btn.classList.remove('active'));
+                    document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
                     document.getElementById('navSearch').classList.add('active');
                     return;
                 }
@@ -2979,22 +4098,7 @@
 
             console.log("页面加载成功，所有按钮事件已绑定");
         });
-
     </script>
-
-<!-- ==================== 全局评论抽屉弹窗 ==================== -->
-<div class="comment-drawer-overlay" id="commentDrawerOverlay"></div>
-<div class="comment-drawer-panel" id="commentDrawerPanel" data-current-rank-id="">
-    <button class="drawer-close-btn" id="drawerCloseBtn">×</button>
-    <h3 class="drawer-title">评论区</h3>
-    <div class="drawer-input-area">
-        <textarea class="drawer-comment-input" id="drawerCommentInput" placeholder="写下你的评论..."></textarea>
-        <div class="drawer-input-actions">
-            <button class="drawer-submit-btn" id="drawerSubmitBtn">发表评论</button>
-        </div>
-    </div>
-    <div class="drawer-comment-list" id="drawerCommentList"></div>
-</div>
 
 </body>
 

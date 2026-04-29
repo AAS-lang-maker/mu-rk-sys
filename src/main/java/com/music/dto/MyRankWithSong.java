@@ -4,6 +4,7 @@ import com.music.pojo.RankSong;
 import com.music.pojo.RankTagVO;
 import com.music.pojo.RankTags;
 import lombok.AccessLevel;
+import com.music.pojo.UserTags;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -29,4 +30,5 @@ public class MyRankWithSong {
    private RankTagVO rankTagVOList;
    private List<RankTags> rankTagsList;
 
+   private List<UserTags> userTagList;
 }

@@ -5,6 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <!-- 修复：补全 relativePath 闭合标签 -->
+
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -172,37 +173,41 @@
             <artifactId>thymeleaf-layout-dialect</artifactId>
         </dependency>
 
+        <!-- 1. LangChain4j 的 Spring Boot 启动器 (解决 @AiService 爆红的核心) -->
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j</artifactId>
-            <version>0.33.0</version>
+            <version>0.31.0</version>
         </dependency>
-        <!-- 1. LangChain4j 对接 OpenAI 协议的 Starter (硅基流动用的是 OpenAI 协议) -->
+
+        <!-- 2. Spring Boot 自动扫描启动器 -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-spring-boot-starter</artifactId>
+            <version>0.31.0</version>
+        </dependency>
+
+        <!-- 3. 对接 OpenAI / 硅基流动 -->
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-open-ai-spring-boot-starter</artifactId>
-            <version>0.33.0</version>
+            <version>0.31.0</version>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-devtools</artifactId>
-            <!-- ⚠️ 字节面试官提醒：这个 optional 一定要设为 true -->
-            <!-- 这样你在打包（mvn package）成正式产品时，它就不会被带走，节省生产环境资源 -->
-            <optional>true</optional>
-        </dependency>
-        <!--阿里云AI-->
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>dashscope-sdk-java</artifactId>
-            <version>2.16.0</version>
-        </dependency>
-        <!-- 2. LangChain4j 的核心库（提供 @AiService 等核心注解） -->
-        <!-- 正确依赖！！！ -->
+
+
+        <!-- 4. 音乐文件解析 -->
         <dependency>
             <groupId>net.jthink</groupId>
             <artifactId>jaudiotagger</artifactId>
             <version>3.0.1</version>
         </dependency>
+
+        <!-- 5. 热部署工具 -->
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.boot</groupId>-->
+<!--            <artifactId>spring-boot-devtools</artifactId>-->
+<!--            <optional>true</optional>-->
+<!--        </dependency>-->
     </dependencies>
     <!-- 确保 compiler 插件版本适配 Java 17 -->
     <build>
@@ -227,4 +232,12 @@
             </plugin>
         </plugins>
     </build>
+    <repositories>
+        <repository>
+            <id>aliyun-maven</id>
+            <url>https://maven.aliyun.com/repository/public</url>
+            <releases><enabled>true</enabled></releases>
+            <snapshots><enabled>false</enabled></snapshots>
+        </repository>
+    </repositories>
 </project>

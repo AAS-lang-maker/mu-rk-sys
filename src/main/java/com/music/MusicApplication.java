@@ -11,8 +11,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
-import javax.sql.DataSource;
 //import dev.langchain4j.service.spring.AiServiceScan;
 //@AiServiceScan("com.music.Service")
 @MapperScan("com.music.Mapper")
