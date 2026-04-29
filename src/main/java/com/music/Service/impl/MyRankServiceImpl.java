@@ -128,6 +128,7 @@ private MyRankMapper myRankMapper;
         pageInfo.setPageSize(pageSize);
         pageInfo.setTotal(total);
         pageInfo.setPages(pages);
+        System.out.println("查询出的喜欢的榜单数："+pageInfo.getList().size());
         return pageInfo;
     }
 

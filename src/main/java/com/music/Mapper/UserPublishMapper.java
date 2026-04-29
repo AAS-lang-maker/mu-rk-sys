@@ -71,5 +71,8 @@ public interface UserPublishMapper {
     int countLove(Integer rankId, Integer userId);
 
     void insertApply(String singerName, String songName);
+
+    @Select("select count(*) from user_follow  where user_id=#{userId} and follow_id=(select user_id from user where username=#{username})")
+    Integer shifoufriend(@Param("userId") Integer userId,@Param("username") String username);
     //@Param("list")注解，专门为Maybatis批量插入的需求的List集合起一个别名
 }

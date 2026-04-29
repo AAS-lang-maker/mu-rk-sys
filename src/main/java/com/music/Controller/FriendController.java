@@ -57,7 +57,7 @@ public class FriendController {
     @PostMapping("/follow")
     @Operation(summary = "关注/取消关注好友", description = "关注/取消关注好友")
     public Result<String> followUser(@RequestParam("token") String token,
-                                     @RequestParam("targetUserId") Integer targetUserId) {
+                                     @RequestParam("UserId") Integer targetUserId) {
         // 1. 解析 Token
         if (token.startsWith("Bearer ")) token = token.substring(7);
         Integer UserId;
