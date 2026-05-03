@@ -143,19 +143,19 @@
             <artifactId>thymeleaf-layout-dialect</artifactId>
         </dependency>
 
-        <!-- 1. LangChain4j 的 Spring Boot 启动器 (解决 @AiService 爆红的核心) -->
-        <dependency>
-            <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j</artifactId>
-            <version>0.31.0</version>
-        </dependency>
+<!--        &lt;!&ndash; 1. LangChain4j 的 Spring Boot 启动器 (解决 @AiService 爆红的核心) &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>dev.langchain4j</groupId>-->
+<!--            <artifactId>langchain4j</artifactId>-->
+<!--            <version>0.31.0</version>-->
+<!--        </dependency>-->
 
-        <!-- 2. Spring Boot 自动扫描启动器 -->
-        <dependency>
-            <groupId>dev.langchain4j</groupId>
-            <artifactId>langchain4j-spring-boot-starter</artifactId>
-            <version>0.31.0</version>
-        </dependency>
+<!--        &lt;!&ndash; 2. Spring Boot 自动扫描启动器 &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>dev.langchain4j</groupId>-->
+<!--            <artifactId>langchain4j-spring-boot-starter</artifactId>-->
+<!--            <version>0.31.0</version>-->
+<!--        </dependency>-->
 
         <!-- 3. 对接 OpenAI / 硅基流动 -->
         <dependency>
@@ -173,11 +173,11 @@
         </dependency>
 
         <!-- 5. 热部署工具 -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-devtools</artifactId>
-            <optional>true</optional>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.boot</groupId>-->
+<!--            <artifactId>spring-boot-devtools</artifactId>-->
+<!--            <optional>true</optional>-->
+<!--        </dependency>-->
     </dependencies>
     <!-- 确保 compiler 插件版本适配 Java 17 -->
     <build>
