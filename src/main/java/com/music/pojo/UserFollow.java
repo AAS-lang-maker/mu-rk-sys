@@ -9,6 +9,6 @@ public class UserFollow {
     private int UFId;
     private int userId;
     private int followId;
-    private LocalDateTime followTime;
+    private LocalDateTime createTime;
     private int isMutual;
 }

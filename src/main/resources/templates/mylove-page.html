@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script th:src="@{/js/axios.min.js}"></script>
     <script th:src="@{/js/request.js}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script th:src="@{/js/music-ai-agent.js}"></script>
     <title>我的收藏</title>
     <link rel="icon" href="data:;base64,iVBORw0KGgo">
     <link rel="stylesheet" th:href="@{/player/music-player.css}">
@@ -638,6 +640,7 @@
             flex-grow: 1;
             display: flex;
             flex-direction: column;
+            gap: 24px;
             align-items: center;
             overflow-y: auto;
             padding: 24px;
@@ -658,6 +661,19 @@
             font-size: 0.875rem;
             line-height: 1.6;
             color: #dfe2eb;
+        }
+
+        .ai-bubble.user-bubble {
+            background-color: rgba(240, 198, 77, 0.15);
+            border-color: rgba(240, 198, 77, 0.3);
+            border-radius: 32px;
+            border-top-right-radius: 0;
+            border-top-left-radius: 32px;
+            align-self: flex-end;
+        }
+
+        .ai-bubble.user-bubble p {
+            color: #ffe4a4;
         }
 
         .ai-input-area {
@@ -1133,6 +1149,17 @@
             top: 60px;
             background: #00C851;
             color: #fff;
+        }
+        .typing-cursor {
+            display: inline-block;
+            margin-left: 2px;
+            animation: blink 1s infinite;
+            color: #888;
+        }
+
+        @keyframes blink {
+            0%,50% { opacity:1; }
+            51%,100% { opacity:0; }
         }
     </style>
     <script th:src="@{/player/music-player.js}"></script>
@@ -2383,6 +2410,11 @@
                 showErrorTip("操作失败：" + (error.response?.data?.msg || error.message));
             });
         }
+        const myloveAgent = new MusicAIAgent({
+            input: '.ai-input',
+            sendButton: '.send-btn',
+            messageContainer: '.ai-chat-area'
+        });
     </script>
 </body>
 

@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Set;
 
 public interface HotRankService {
-    Long caculateHotRank(Long rankId);
-    void updateHotRank(Long rankId);
+    Integer caculateHotRank(Integer rankId);
+    void updateHotRank(Integer rankId);
     Set<String> getHotRankId(int start,int end);
     List<MyRankWithSong> listById(List<Long> rankId);
 

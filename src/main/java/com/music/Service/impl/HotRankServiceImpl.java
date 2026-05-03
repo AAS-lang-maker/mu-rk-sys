@@ -1,21 +1,39 @@
 package com.music.Service.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.music.Config.NativeWebSocketServer;
 import com.music.Mapper.MusicHotRankMapper;
 import com.music.Service.HotRankService;
+import com.music.dto.BattleReport;
 import com.music.dto.CommentVo;
 import com.music.dto.MyRankWithSong;
 import com.music.pojo.Comment;
 import com.music.pojo.PersonalRank;
+import com.music.pojo.RankTagVO;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 public class HotRankServiceImpl implements HotRankService {
@@ -27,42 +45,201 @@ public class HotRankServiceImpl implements HotRankService {
     private static final Logger log = LoggerFactory.getLogger(UserPublishServiceImpl.class);
 
     private static final String Hot_Rank_Key="music:rank:hot";
+
+    // 构造器注入（合并为一个构造函数，确保所有 final 字段都被初始化）
+    public HotRankServiceImpl(RedisTemplate<String, Object> redisTemplate) {
+
+        this.redisTemplate = redisTemplate;
+
+    }
+
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    private DefaultRedisScript<List> rankScript;
+
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
 
     private static final String Love_Key="love:user:%d:rank:%d";
     private static final String Vote_Key="vote:user:%d:rank:%d";
+    private static final String Vote_Count_Key = "music:rank:vote:count:%d";
+    private static final String Love_Count_Key = "music:rank:love:count:%d";
 
     @Autowired
     private MusicHotRankMapper musicHotRankMapper;
+
     @Override
-    public Long caculateHotRank(Long rankId){
-        Long love=musicHotRankMapper.CountLove(rankId);
-        Long vote=musicHotRankMapper.CountVote(rankId);
+    public Integer caculateHotRank(Integer rankId){
+        Integer love=getLoveCount(rankId);
+        Integer vote = getVoteCount(rankId);
         //防止空指针？
-        love=love==null?0L:love;
-        vote=vote==null?0L:vote;
+        love=love==null?0:love;
+        vote=vote==null?0:vote;
         return love+2*vote;
     }
 
+    // 项目启动时加载 Lua 脚本
+    @PostConstruct
+    public void init() {
+        rankScript = new DefaultRedisScript<>();
+        rankScript.setResultType(List.class); // 返回值类型：List
+
+        try {
+            // 1. 读取 Lua 脚本
+            ClassPathResource resource = new ClassPathResource("lua/redis_update.lua");
+            // 使用 try-with-resources 自动关闭流，防止资源泄露
+            try (InputStream inputStream = resource.getInputStream()) {
+                String scriptContent = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
+                        .lines()
+                        .collect(Collectors.joining("\n"));
+
+                rankScript.setScriptText(scriptContent);
+                log.info("✅ Lua 战报脚本加载成功！长度: {} 字节", scriptContent.length());
+            }
+        } catch (IOException e) {
+            // 2. 使用 log.error 记录异常堆栈，方便排查
+            log.error("❌ Lua 脚本加载失败！请检查 resources/lua/redis_update.lua 是否存在", e);
+            // 3. 关键：加载失败直接抛出异常，阻止项目启动
+            // 防止项目跑起来了，但一投票就报 NullPointerException
+            throw new RuntimeException("Lua 脚本初始化失败", e);
+        }
+    }
+
+    /**
+     * 更新热度并发送战报
+     */
+    // 1. 加上 @Async，确保不阻塞主线程
+    @Async
     @Override
-    //第二步的逻辑包括：将新建的Zset集合中添加榜单各项数据+查询榜单排名
-    public void updateHotRank(Long rankId) {
-        if(rankId==null){
-            //直接抛出空指针异常
+    public void updateHotRank(Integer rankId) {
+        if (rankId == null) {
             throw new IllegalArgumentException("rankId不能为空");
         }
-        System.out.println("===== 开始写入Redis =====");
-        System.out.println("Key：" + Hot_Rank_Key);
-        System.out.println("要写入的rankId：" + rankId);
-        Long score=caculateHotRank(rankId);//此步相当于调用上方的自定义的计算分数的方法
-        System.out.println("计算的热度值：" + score);
-        //为什么toString？？？
-        stringRedisTemplate.opsForZSet().add(Hot_Rank_Key,rankId.toString(),score);
-        Set<String> afterWrite = stringRedisTemplate.opsForZSet().range(Hot_Rank_Key, 0, -1);
-        System.out.println("写入后Redis中的数据：" + afterWrite);
-        System.out.println("===== 写入Redis结束 =====");
+        log.info("启用这个方法 ，开始更新热度");
+
+
+    /*    Integer targetScore = caculateHotRank(rankId);
+        Double currentScore = stringRedisTemplate.opsForZSet().score(Hot_Rank_Key, rankId.toString());
+        int oldScore = currentScore == null ? 0 : currentScore.intValue();
+        int scoreDelta = targetScore - oldScore;别算了会覆盖 次次新上榜 你撑得住？
+        */
+
+
+        //小兔子乖乖 把门开开  爱情像纠结的毛线 ~最后还是失眠 别管我了☺️ ε=(´ο｀*)))唉 现在是2026年 4月25日 00:02:41
+        //当世界崩塌  我们 still here
+        //发牢骚来了 verdurous mountain 最好听的一集 谁会不喜欢在深夜听上一首纯音乐呢
+
+        Integer increment = caculateHotRank(rankId);
+        if (increment <= 0) {
+            log.warn("增量小于等于0，不执行更新");
+            return;
+        }
+
+        long timestamp = System.currentTimeMillis()/1000;
+
+        double currentScore = stringRedisTemplate.opsForZSet().score(Hot_Rank_Key, rankId.toString());
+
+        final long BASE = 10000000000L;
+
+        long oldScoreValue = currentScore==0? 0L : (long) currentScore;
+
+        long oldRankScore = oldScoreValue / BASE;
+
+        long newRankScore = oldRankScore + increment.longValue();
+
+
+        long finalScore = newRankScore * BASE + timestamp;
+
+        String scoreStr = String.valueOf(finalScore);
+
+        System.out.println(">>> 最终传给 Redis 的分数: " + scoreStr);
+        System.out.println("最终计算出的 Score: " + finalScore);
+
+        List<Object> result = null;
+        try {
+            result = (List<Object>) stringRedisTemplate.execute(
+                    rankScript,
+                    Collections.singletonList(Hot_Rank_Key),
+                            rankId.toString(),
+                            scoreStr // ARGV[2]: 直接传算好的最终分数！
+
+                    );
+        } catch (Exception e) {
+            log.error("执行 Lua 脚本出错：{}", e.getMessage(),e);
+            e.printStackTrace();
+        }
+
+        if (result != null && result.size() >= 3) {
+            Number oldRankNum = (Number) result.get(0);
+            Number newRankNum = (Number) result.get(1);
+
+            Long oldRank = oldRankNum == null ? -1L : oldRankNum.longValue();
+
+            Long newRank = newRankNum == null ? -1L : newRankNum.longValue();
+
+            log.info("✅ 热度更新完成，rankId={}, oldRank={}, newRank={}", rankId, oldRank, newRank);
+            String currentTopRankIdStr = String.valueOf(result.get(2));
+
+                        // 逻辑一：全服广播 (榜首更换) -> 用原生 WebSocket
+            if (newRank == 0) {
+                String lastTopRankId = (String) redisTemplate.opsForValue().get("rank:last_top_user");
+
+                if (lastTopRankId == null ||
+                        !lastTopRankId.equals(currentTopRankIdStr)) {
+
+                    PersonalRank topRank = musicHotRankMapper.selectRankById(Integer.valueOf(currentTopRankIdStr));
+                    String displayName = (topRank != null && topRank.getRankName() != null)
+                            ? topRank.getRankName() : "榜单#" + currentTopRankIdStr;
+
+                    BattleReport publicReport = new BattleReport(
+                            "SUCCESS",
+                            "🏆 榜单风云",
+                            "恭喜 **" + displayName + "** 登顶热门榜首！"
+                    );
+
+                    String jsonPublicMsg = JSON.toJSONString(publicReport);
+
+                    NativeWebSocketServer.sendMessageToAll(jsonPublicMsg);
+
+                    log.info("📢 全服广播发送：{}", publicReport.getTitle());
+
+                    redisTemplate.opsForValue().set("rank:last_top_user", currentTopRankIdStr);
+                }
+            }
+
+//喵
+
+            String personalMsg = null;
+            if (oldRank == -1) {
+                personalMsg = "🎉 恭喜！你的榜单首次上榜，排名第 " + (newRank + 1) + "！";
+            } else if (newRank < oldRank) {
+                int diff = oldRank.intValue() - newRank.intValue();
+                personalMsg = "🚀 排名上升！你的榜单提升了 " + diff + " 位，当前第 " + (newRank + 1) + "！";
+            }
+
+            if (personalMsg != null) {
+                PersonalRank currentRank = musicHotRankMapper.selectRankById(Math.toIntExact(rankId));
+                if (currentRank != null) {
+                    Integer targetUserId = currentRank.getUserId();
+                    if (targetUserId != null) {
+                        // 【修改点 3】构造私信战报
+                        BattleReport personalReport = new BattleReport(
+                                "INFO",
+                                "排名变动",
+                                personalMsg
+                        );
+
+                        String jsonPersonalMsg = JSON.toJSONString(personalReport);
+
+                        NativeWebSocketServer.sendToUser(targetUserId.toString(), jsonPersonalMsg);
+
+                        log.info("🔒 私信发送给用户 {}: {}", targetUserId, personalMsg);
+                    }
+                }
+            }
+        }
     }
+    
 
     @Override
     public Set<String> getHotRankId(int start,int end) {
@@ -74,39 +251,62 @@ public class HotRankServiceImpl implements HotRankService {
 
     @Override
     public List<MyRankWithSong> listById(List<Long> rankId) {
-        return musicHotRankMapper.listByIds(rankId);
-    }
 
+        List<MyRankWithSong> result = musicHotRankMapper.listByIds(rankId);
+
+
+        log.info("【查询热门榜单详情】开始，rankId={}", rankId);
+
+        result.forEach(r -> {
+            r.setVoteCount(getVoteCount(r.getRankId()));
+            r.setLoveCount(getLoveCount(r.getRankId()));
+            r.setRankTagVOList(new RankTagVO(r.getRankId(), musicHotRankMapper.selectRankTagsxdj(r.getRankId())));
+            r.setRankTagsList(musicHotRankMapper.selectRankTagslistzfm(r.getRankId()));
+        });
+        return result;
+    }
     @Override
-    @Transactional
     public boolean insertVote(Integer userId, Integer rankId) {
-        String votekey=String.format(Vote_Key,userId,rankId);
-        log.info("【点赞操作】开始，userId={}, rankId={}, RedisKey={}", userId, rankId, votekey);
-        Boolean result=stringRedisTemplate.hasKey(votekey);
-        if(Boolean.TRUE.equals(result)){
-            log.info("【取消点赞】Redis已存在记录，准备删除数据库记录");
-            boolean deleteSuccess=stringRedisTemplate.delete(votekey);
-            if (!deleteSuccess) {
-                log.warn("【取消投票】第一次删除Redis Key失败，重试一次！Key={}", votekey);
-                deleteSuccess = stringRedisTemplate.delete(votekey);
+        String votekey = String.format(Vote_Key, userId, rankId);
+        log.info("【点赞操作】开始，userId={}, rankId={}", userId, rankId);
+
+        // 原子占位：避免并发下重复点赞（先占位成功才允许插库）
+        Boolean isFirstVote = stringRedisTemplate.opsForValue().setIfAbsent(votekey, "1", 24, TimeUnit.HOURS);
+        if (Boolean.TRUE.equals(isFirstVote)) {
+            // --- 分支一：点赞 ---
+            PersonalRank v = musicHotRankMapper.selectRankById(rankId);
+            if (v == null) {
+                stringRedisTemplate.delete(votekey);
+                return false;
             }
 
-            // 打印删除结果（关键：看日志就能知道删没删成）
-            log.info("【取消投票】Redis Key删除结果：{}（true=成功，false=失败），Key={}", deleteSuccess, votekey);
-
-            int deleteresult=musicHotRankMapper.deleteVote(userId,rankId);
-            log.info("【取消投票】数据库影响行数：{}", deleteresult);
-            return deleteresult>0;
-
+            try {
+                // 写入 DB (利用数据库唯一索引防止重复)
+                int rows = musicHotRankMapper.insertVote(rankId, userId);
+                if (rows > 0) {
+                    increaseVoteCount(rankId);
+                    log.info("【投票成功】Redis已记录");
+                    return true;
+                }
+                stringRedisTemplate.delete(votekey);
+                return false;
+            } catch (Exception e) {
+                // 插库失败回滚 Redis 占位，避免脏状态
+                stringRedisTemplate.delete(votekey);
+                log.warn("【投票异常】可能是重复点赞导致主键冲突: {}", e.getMessage());
+                return false;
+            }
         }
-        PersonalRank v=musicHotRankMapper.selectRankById(rankId);
-        if(v==null){
-            return false;
+
+        // --- 分支二：取消点赞 ---
+        log.info("【取消点赞】Redis已存在记录，执行取消");
+        int rows = musicHotRankMapper.deleteVote(userId, rankId);
+        if (rows > 0) {
+            stringRedisTemplate.delete(votekey);
+            decreaseVoteCount(rankId);
+            return true;
         }
-        int rows=musicHotRankMapper.insertVote(rankId,userId);
-        stringRedisTemplate.opsForValue().set(votekey,"1");
-        log.info("【投票成功】Redis已记录，userId={}, rankId={}", userId, rankId);
-        return rows>0;
+        return false;
     }
 
     @Override
@@ -115,29 +315,49 @@ public class HotRankServiceImpl implements HotRankService {
         //拼接Redis的key值
         String lovekey=String.format(Love_Key,userId,rankId);
         log.info("【收藏操作】开始，userId={}, rankId={}, RedisKey={}", userId, rankId, lovekey);
-        //看看Redis中是否有key，如果有，就不能再点赞，从而达到防刷票
-        Boolean hasLove=stringRedisTemplate.hasKey(lovekey);
-        if(Boolean.TRUE.equals(hasLove)){
-            log.info("【取消收藏】Redis已存在记录，准备删除数据库记录");
-            int result=musicHotRankMapper.deleteLove(userId,rankId);
-            log.info("【取消收藏】Redis记录已删除，userId={}, rankId={}", userId, rankId);
+        // 先以数据库为准判断是否已收藏，避免 Redis key 过期后重复插入
+        int existed = musicHotRankMapper.countLove(rankId, userId);
+        if (existed > 0) {
+            // DB已收藏 -> 本次视为取消收藏（toggle 语义不变）
+            stringRedisTemplate.opsForValue().set(lovekey, "1", 24, TimeUnit.HOURS);
+            int deletedRows = musicHotRankMapper.deleteLove(userId, rankId);
+            if (deletedRows > 0) {
+                stringRedisTemplate.delete(lovekey);
+                decreaseLoveCount(rankId, deletedRows);
+                log.info("【取消收藏】已删除{}条收藏记录，userId={}, rankId={}", deletedRows, userId, rankId);
+                return true;
+            }
+            return false;
+        }
+
+        Boolean isFirstLove = stringRedisTemplate.opsForValue().setIfAbsent(lovekey, "1", 24, TimeUnit.HOURS);
+        if (Boolean.TRUE.equals(isFirstLove)) {
+            // --- 分支一：收藏 ---
+            PersonalRank l=musicHotRankMapper.selectRankById(rankId);
+            if(l==null){
+                stringRedisTemplate.delete(lovekey);
+                return false;
+            }
+            int row1=musicHotRankMapper.insertLove(userId,rankId);
+            if(row1>0){
+                increaseLoveCount(rankId);
+                log.info("【收藏成功】Redis已记录，userId={}, rankId={}", userId, rankId);
+                return true;
+            }
             stringRedisTemplate.delete(lovekey);
-            log.info("【取消收藏】mysql记录已删除，userId={}, rankId={}", userId, rankId);
-            return result>0;
-        }
-        PersonalRank l=musicHotRankMapper.selectRankById(rankId);
-        if(l==null){
             return false;
         }
-        int row1=musicHotRankMapper.insertLove(userId,rankId);
-        if(row1>0){
-            stringRedisTemplate.opsForValue().set(lovekey,"1");//1??"1"?
-            log.info("【收藏成功】Redis已记录，userId={}, rankId={}", userId, rankId);
-            return row1>0;}
-        else{
-            log.error("【收藏成功】Redis记录失败或者数据库操作失败，userId={}, rankId={}", userId, rankId);
-            return false;
+
+        // --- 分支二：取消收藏 ---
+        log.info("【取消收藏】Redis已存在记录，准备删除数据库记录");
+        int deletedRows=musicHotRankMapper.deleteLove(userId,rankId);
+        if (deletedRows > 0) {
+            stringRedisTemplate.delete(lovekey);
+            decreaseLoveCount(rankId, deletedRows);
+            log.info("【取消收藏】mysql和Redis记录已删除，deletedRows={}, userId={}, rankId={}", deletedRows, userId, rankId);
+            return true;
         }
+        return false;
     }
 
 
@@ -246,6 +466,97 @@ public class HotRankServiceImpl implements HotRankService {
         if(y<=0||flag==true){
             stringRedisTemplate.delete(lovekey);
             log.info("【状态同步】数据库无投票记录，Redis删除Key：{}", lovekey);
+        }
+    }
+
+    /**
+     * 投票数优先读 Redis，未命中再查库并回填 Redis。
+     * 保持原业务语义：最终计数和数据库一致。
+     */
+    private Integer getVoteCount(Integer rankId) {
+        String countKey = String.format(Vote_Count_Key, rankId);
+        String voteCountStr = stringRedisTemplate.opsForValue().get(countKey);
+        if (voteCountStr != null) {
+            try {
+                return Integer.parseInt(voteCountStr);
+            } catch (NumberFormatException e) {
+                log.warn("【投票数缓存】格式异常，key={}, value={}", countKey, voteCountStr);
+            }
+        }
+        Integer dbCount = musicHotRankMapper.CountVote(rankId);
+        int safeCount = dbCount == null ? 0 : dbCount;
+        stringRedisTemplate.opsForValue().set(countKey, String.valueOf(safeCount));
+        return safeCount;
+    }
+
+    private void increaseVoteCount(Integer rankId) {
+        String countKey = String.format(Vote_Count_Key, rankId);
+        String value = stringRedisTemplate.opsForValue().get(countKey);
+        if (value == null) {
+            Integer dbCount = musicHotRankMapper.CountVote(rankId);
+            int safeCount = dbCount == null ? 0 : dbCount;
+            stringRedisTemplate.opsForValue().set(countKey, String.valueOf(safeCount));
+            return;
+        }
+        stringRedisTemplate.opsForValue().increment(countKey);
+    }
+
+    private void decreaseVoteCount(Integer rankId) {
+        String countKey = String.format(Vote_Count_Key, rankId);
+        String value = stringRedisTemplate.opsForValue().get(countKey);
+        if (value == null) {
+            Integer dbCount = musicHotRankMapper.CountVote(rankId);
+            int safeCount = dbCount == null ? 0 : dbCount;
+            stringRedisTemplate.opsForValue().set(countKey, String.valueOf(safeCount));
+            return;
+        }
+        Long newValue = stringRedisTemplate.opsForValue().decrement(countKey);
+        if (newValue != null && newValue < 0) {
+            stringRedisTemplate.opsForValue().set(countKey, "0");
+        }
+    }
+
+    private Integer getLoveCount(Integer rankId) {
+        String countKey = String.format(Love_Count_Key, rankId);
+        String loveCountStr = stringRedisTemplate.opsForValue().get(countKey);
+        if (loveCountStr != null) {
+            try {
+                return Integer.parseInt(loveCountStr);
+            } catch (NumberFormatException e) {
+                log.warn("【收藏数缓存】格式异常，key={}, value={}", countKey, loveCountStr);
+            }
+        }
+        Integer dbCount = musicHotRankMapper.CountLove(rankId);
+        int safeCount = dbCount == null ? 0 : dbCount;
+        stringRedisTemplate.opsForValue().set(countKey, String.valueOf(safeCount));
+        return safeCount;
+    }
+
+    private void increaseLoveCount(Integer rankId) {
+        String countKey = String.format(Love_Count_Key, rankId);
+        String value = stringRedisTemplate.opsForValue().get(countKey);
+        if (value == null) {
+            Integer dbCount = musicHotRankMapper.CountLove(rankId);
+            int safeCount = dbCount == null ? 0 : dbCount;
+            stringRedisTemplate.opsForValue().set(countKey, String.valueOf(safeCount));
+            return;
+        }
+        stringRedisTemplate.opsForValue().increment(countKey);
+    }
+
+    private void decreaseLoveCount(Integer rankId, int delta) {
+        int step = Math.max(1, delta);
+        String countKey = String.format(Love_Count_Key, rankId);
+        String value = stringRedisTemplate.opsForValue().get(countKey);
+        if (value == null) {
+            Integer dbCount = musicHotRankMapper.CountLove(rankId);
+            int safeCount = dbCount == null ? 0 : dbCount;
+            stringRedisTemplate.opsForValue().set(countKey, String.valueOf(safeCount));
+            return;
+        }
+        Long newValue = stringRedisTemplate.opsForValue().increment(countKey, -step);
+        if (newValue != null && newValue < 0) {
+            stringRedisTemplate.opsForValue().set(countKey, "0");
         }
     }
 

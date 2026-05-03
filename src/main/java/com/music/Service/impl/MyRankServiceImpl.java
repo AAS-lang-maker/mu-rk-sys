@@ -4,12 +4,14 @@ import com.alibaba.druid.support.logging.LogFactory;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.music.Mapper.MyRankMapper;
+import com.music.Mapper.TagsMapper;
 import com.music.Service.MyRankService;
 import com.music.dto.CommentVo;
 import com.music.dto.EditRank;
 import com.music.dto.MyRankWithSong;
 import com.music.dto.RankAddRequest;
 import com.music.pojo.*;
+import com.music.utils.ThreadLocalUtil;
 import groovy.util.logging.Log;
 import groovy.util.logging.Slf4j;
 import org.apache.logging.log4j.LogManager;
@@ -31,6 +33,9 @@ public class MyRankServiceImpl implements MyRankService {
 private MyRankMapper myRankMapper;
 //private static final Logger log = (Logger) LogManager.getLogger(MyRankServiceImpl.class);
     //查询personl_rank主表
+
+    @Autowired
+    private TagsMapper tagsMapper;
     @Override
     public PageInfo<MyRankWithSong> selectMyrank(Integer pageNum,Integer pageSize,Integer offset,Integer userId) {
         //逻辑：从Mapper到Service，最后到Controller
@@ -64,7 +69,21 @@ private MyRankMapper myRankMapper;
 
     @Override
     public MyRankWithSong getRank(Integer rankId) {
-        return myRankMapper.getRank(rankId);
+
+        System.out.println("看榜单详情榜单："+rankId);
+
+        Integer userId= ThreadLocalUtil.get();
+
+        System.out.println("用户id："+userId);
+
+        List<Tags>tagVOList=tagsMapper.selectRankTag(rankId,userId);
+
+        RankTagVO rankTagVO=new RankTagVO(rankId,tagVOList);
+
+        MyRankWithSong myRankWithSong=myRankMapper.getRank(rankId);
+
+        myRankWithSong.setRankTagVOList(rankTagVO);
+        return myRankWithSong;
     }
 
 
@@ -109,6 +128,7 @@ private MyRankMapper myRankMapper;
         pageInfo.setPageSize(pageSize);
         pageInfo.setTotal(total);
         pageInfo.setPages(pages);
+        System.out.println("查询出的喜欢的榜单数："+pageInfo.getList().size());
         return pageInfo;
     }
 

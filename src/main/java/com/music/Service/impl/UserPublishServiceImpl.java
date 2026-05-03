@@ -1,5 +1,6 @@
 package com.music.Service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.github.pagehelper.PageInfo;
 import com.music.Mapper.UserPublishMapper;
 import com.music.Service.UserPublishService;
@@ -7,6 +8,7 @@ import com.music.dto.CommentVo;
 import com.music.dto.MyRankWithSong;
 import com.music.dto.RankAddRequest;
 import com.music.pojo.*;
+import com.music.utils.ThreadLocalUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,7 +84,13 @@ public class UserPublishServiceImpl implements UserPublishService {
 
     @Override
     public PageInfo<MyRankWithSong> selectPublishRank(Integer category, Integer pageNum, Integer pageSize, Integer offset) {
+
+        Integer userId = ThreadLocalUtil.get();
+
         List<MyRankWithSong> ranks=userPublishMapper.selectPublishRank(category,pageSize,offset);
+        ranks.forEach(rank -> {
+            rank.setFollowed(userPublishMapper.shifoufriend(userId, rank.getUsername())!=0);
+        });
         PageInfo<MyRankWithSong> pageInfo=new PageInfo();
         Integer total=userPublishMapper.selectTotal(category);
         Integer pages=(total+pageSize-1)/pageSize;

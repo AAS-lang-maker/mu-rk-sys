@@ -10,5 +10,6 @@ public class VoteRecord {
     private Integer userId;
     private String ip;
     private Integer rankId;
+    private Integer songId;
     private LocalDateTime voteTime;
 }

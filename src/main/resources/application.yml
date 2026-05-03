@@ -15,9 +15,8 @@ spring:
     encoding: UTF-8
     cache: false
     mode: HTML
-
   datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver  # MySQL8.0驱动（5.7用com.mysql.jdbc.Driver）
+    driver-class-name: com.mysql.cj.jdbc.Driver # MySQL8.0驱动（5.7用com.mysql.jdbc.Driver）
     url: jdbc:mysql://localhost:3306/music_db?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
     username: root  # 你的MySQL账号（默认root）
     # 解释：localhost=本地数据库，3306=MySQL默认端口，music_db=你的数据库名（需自己在MySQL中建）
@@ -34,7 +33,7 @@ spring:
 
 redis:
   host: 172.17.211.108
-  port: 63790
+  port: 6379
   lettuce:
     pool:
       max-active: 8
@@ -74,3 +73,26 @@ langchain4j:
 
 siliconflow:
   api-key: sk-scfyywuvogbtzbjclasankvpfxwzccdvecbfkuaksmxjbgam
+
+# ... (前面的配置保持不变) ...
+
+
+# Springdoc (Swagger) 配置 - 注意缩进，必须顶格写 springdoc
+#springdoc:
+  #swagger-ui:
+   # path: /swagger-ui.html # 显式定义访问路径
+  #api-docs:
+  #  path: /v3/api-docs      # 显式定义 JSON 数据路径
+  # 可选：如果你希望文档包含所有分组
+  #group-configs:
+  #  - group: 'public-api'
+ #     paths-to-match: '/**'
+#      packages-to-scan: com.music.controller
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+  # 👇👇👇 添加这一行，告诉 Swagger 去哪里找接口 👇👇👇
+  packages-to-scan: com.music.Controller # 这里改成你存放 Controller 的包名

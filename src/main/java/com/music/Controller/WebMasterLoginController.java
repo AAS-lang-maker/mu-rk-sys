@@ -5,6 +5,8 @@ import com.music.dto.LoginSuccessVo;
 import com.music.dto.UserLoginDTO;
 import com.music.dto.UserRegisterDTO;
 import com.music.utils.Result;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,16 +20,19 @@ import java.util.List;
 @Controller
 @RequestMapping("/api/role")
 @Validated
+@Tag(name = "WebMasterLoginController", description = "网站管理员登录控制器")
 public class WebMasterLoginController {
     @Autowired
     private WebMasterLoginService webMasterLoginService;
     @PostMapping("/login")
     @ResponseBody
+    @Operation(summary = "网站管理员登录", description = "网站管理员登录")
     public Result<LoginSuccessVo> admin(@Valid@RequestBody UserLoginDTO userLoginDTO) {
         Result<LoginSuccessVo> result=webMasterLoginService.selectWebmaster(userLoginDTO);
         return result;
     }
     @PostMapping("/register")
+    @Operation(summary = "网站管理员注册", description = "网站管理员注册")
     public String adminRegister(@Valid UserRegisterDTO userRegisterDTO, RedirectAttributes
                                 redirectAttributes) {
        Result<String> result =webMasterLoginService.register(userRegisterDTO);
