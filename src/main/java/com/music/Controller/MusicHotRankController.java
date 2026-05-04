@@ -2,6 +2,7 @@ package com.music.Controller;
 
 import com.music.Config.NativeWebSocketServer;
 import com.music.Service.HotRankService;
+import com.music.Service.impl.HotRankServiceImpl;
 import com.music.dto.BattleReport;
 import com.music.dto.CommentVo;
 import com.music.dto.MyRankWithSong;
@@ -12,10 +13,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @RestController//???
@@ -27,6 +30,45 @@ public class MusicHotRankController {
     @Autowired
     private HotRankService hotRankService;
 
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
+
+
+
+    @GetMapping("/fix/data")
+    public String fixData() {
+        String oldPattern = "music:rank:vote:count:*";
+        String newZSetKey = "music:rank:vote"; // 这是我们要生成的新榜单 Key
+
+        // 1. 找到所有散乱的 Key
+        Set<String> keys = stringRedisTemplate.keys(oldPattern);
+
+        if (keys == null || keys.isEmpty()) {
+            return "错误：没有找到旧数据，请检查 Key 路径是否正确";
+        }
+
+        int count = 0;
+        // 2. 遍历并搬运
+        for (String key : keys) {
+            // 获取票数
+            String scoreStr = stringRedisTemplate.opsForValue().get(key);
+
+            if (scoreStr != null) {
+                // 从 Key 中提取 ID (例如从 ...count:14 提取 14)
+                String id = key.substring(key.lastIndexOf(":") + 1);
+
+                // 写入到新的 ZSet 中
+                stringRedisTemplate.opsForZSet().add(newZSetKey, id, Double.parseDouble(scoreStr));
+                count++;
+            }
+        }
+
+        // 3. (可选) 给新榜单设个过期时间，防止数据永久堆积
+        stringRedisTemplate.expire(newZSetKey, 1, TimeUnit.DAYS);
+
+        return "成功！已将 " + count + " 条数据迁移到 ZSet: " + newZSetKey;
+    }
+
     //热门榜单整体逻辑写在纸上
     @GetMapping("/hotrank")
     @Operation(summary = "获取热门榜单", description = "获取热门榜单")
@@ -36,6 +78,7 @@ public class MusicHotRankController {
             return Result.error("token is null!....");
         }
         Set<String> idset = hotRankService.getHotRankId(start,end);
+
         if(idset.isEmpty()){
             return Result.error("该集合不能为空");
         }
@@ -46,6 +89,11 @@ public class MusicHotRankController {
         return Result.success(list);//前端要接受到查询回显的热门榜单集合
     }
     //为什么要这样做，因为Service层的数据全部为Long类型，且Mybatis中通过foreach循环List集合
+
+
+
+
+
 
     @PostMapping("/vote")
     @Operation(summary = "点赞榜单", description = "点赞榜单")
