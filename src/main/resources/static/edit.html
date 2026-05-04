@@ -322,6 +322,97 @@
                 padding: 20px;
             }
         }
+
+        /* 云标签选择器样式 */
+        .tag-selector-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #fffa9c;
+            border-radius: 8px;
+            background: rgba(255, 250, 156, 0.05);
+        }
+
+        .tag-selector-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .cloud-tag-select {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #fffa9c;
+            border-radius: 6px;
+            background: rgba(255, 250, 156, 0.1);
+            color: #f7fafc;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .cloud-tag-select:hover {
+            background: rgba(255, 250, 156, 0.2);
+            border-color: #fff780;
+        }
+
+        .cloud-tag-select:focus {
+            outline: none;
+            border-color: #fff780;
+            background: rgba(255, 250, 156, 0.25);
+            box-shadow: 0 0 0 2px rgba(255, 250, 156, 0.3);
+        }
+
+        .cloud-tag-select:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .cloud-tag-select option {
+            background: #1E293B;
+            color: #f7fafc;
+        }
+
+        .selected-tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+            min-height: 32px;
+        }
+
+        .selected-tag-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: rgba(255, 250, 156, 0.2);
+            border: 1px solid #fffa9c;
+            border-radius: 16px;
+            color: #f7fafc;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+
+        .selected-tag-item:hover {
+            background: rgba(255, 250, 156, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .tag-remove-btn {
+            background: none;
+            border: none;
+            color: #ff4444;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+            transition: all 0.2s ease;
+        }
+
+        .tag-remove-btn:hover {
+            color: #ff6666;
+            transform: scale(1.2);
+        }
     </style>
 </head>
 
@@ -348,6 +439,20 @@
 
         <div class="song-list" id="songList"></div>
 
+        <!-- 云标签选择区域 -->
+        <div class="tag-selector-section">
+            <div class="form-group">
+                <label for="cloudTagSelect">关联云标签</label>
+                <div class="tag-selector-container">
+                    <select id="cloudTagSelect" class="cloud-tag-select">
+                        <option value="">请选择云标签</option>
+                    </select>
+                    <span class="tag-limit-hint" id="tagLimitHint" style="display: none; color: #ff4444; font-size: 12px; margin-left: 10px;">最多可选择3个标签</span>
+                </div>
+            </div>
+            <div class="selected-tags-container" id="selectedTagsContainer"></div>
+        </div>
+
         <div class="modal-footer">
             <button class="btn btn-secondary" id="cancelBtn">取消</button>
             <button class="btn btn-primary" id="saveBtn">保存</button>
@@ -372,6 +477,7 @@
 
 <script>
     let selectedSongIndex = -1;
+    let allTagOptions = []; // 存储所有标签选项
 
     // 辅助函数：从本地存储获取token
     function getToken() {
@@ -497,10 +603,24 @@
                         songListDiv.appendChild(songItem);
                     });
                 }
+
+                // 加载云标签数据
+                loadCloudTags(rankId);
             })
             .catch(error => {
                 console.error('获取榜单数据失败:', error);
             });
+
+        // 绑定select变化事件
+        document.getElementById('cloudTagSelect').addEventListener('change', function() {
+            const tagId = this.value;
+            if (!tagId) return;
+
+            const selectedOption = this.options[this.selectedIndex];
+            const tagName = selectedOption.textContent;
+
+            selectTag(tagId, tagName);
+        });
     });
 
     // 选择歌手按钮
@@ -709,6 +829,175 @@
         // 返回上一页
         window.history.back();
     });
+
+    // 加载云标签数据
+    function loadCloudTags(rankId) {
+        const token = getToken();
+
+        Promise.all([
+            fetch(`/music/api/ranks/tag-options?token=${token}`),
+            fetch(`/music/api/ranks/${rankId}/tags?token=${token}`)
+        ])
+        .then(([optionsResponse, tagsResponse]) => {
+            if (!optionsResponse.ok) throw new Error('获取标签选项失败');
+            if (!tagsResponse.ok) throw new Error('获取榜单标签失败');
+
+            return Promise.all([optionsResponse.json(), tagsResponse.json()]);
+        })
+        .then(([optionsData, tagsData]) => {
+            const selectElement = document.getElementById('cloudTagSelect');
+            const selectedContainer = document.getElementById('selectedTagsContainer');
+
+            if (optionsData.code === 200 && optionsData.data) {
+                allTagOptions = optionsData.data;
+                renderTagOptions(selectElement, optionsData.data);
+            }
+
+            if (tagsData.code === 200 && tagsData.data) {
+                renderSelectedTags(selectedContainer, tagsData.data, selectElement);
+            }
+        })
+        .catch(error => {
+            console.error('加载云标签数据失败:', error);
+        });
+    }
+
+    // 渲染标签选项（排除已选择的）
+    function renderTagOptions(selectElement, allOptions) {
+        const selectedTagIds = getSelectedTagIds();
+
+        selectElement.innerHTML = '<option value="">请选择云标签</option>';
+
+        allOptions.forEach(option => {
+            if (!selectedTagIds.includes(option.tagId)) {
+                const optionElement = document.createElement('option');
+                optionElement.value = option.tagId;
+                optionElement.textContent = option.tagName;
+                selectElement.appendChild(optionElement);
+            }
+        });
+
+        updateTagSelectorState();
+    }
+
+    // 渲染已选标签
+    function renderSelectedTags(container, tags, selectElement) {
+        container.innerHTML = '';
+
+        tags.forEach(tag => {
+            const tagItem = document.createElement('div');
+            tagItem.className = 'selected-tag-item';
+            tagItem.setAttribute('data-tag-id', tag.tagId);
+            tagItem.innerHTML = `
+                <span>${tag.tagName}</span>
+                <button class="tag-remove-btn" data-tag-id="${tag.tagId}">×</button>
+            `;
+
+            tagItem.querySelector('.tag-remove-btn').addEventListener('click', function(e) {
+                e.stopPropagation();
+                removeTag(tag.tagId, tagItem);
+            });
+
+            container.appendChild(tagItem);
+        });
+
+        if (selectElement && allTagOptions.length > 0) {
+            renderTagOptions(selectElement, allTagOptions);
+        }
+    }
+
+    // 获取当前已选标签的ID数组
+    function getSelectedTagIds() {
+        const tagItems = document.querySelectorAll('.selected-tag-item');
+        return Array.from(tagItems).map(item => parseInt(item.getAttribute('data-tag-id')));
+    }
+
+    // 更新标签选择器状态（禁用/启用）
+    function updateTagSelectorState() {
+        const selectElement = document.getElementById('cloudTagSelect');
+        const hintElement = document.getElementById('tagLimitHint');
+        const selectedCount = getSelectedTagIds().length;
+
+        if (selectedCount >= 3) {
+            selectElement.disabled = true;
+            hintElement.style.display = 'inline';
+        } else {
+            selectElement.disabled = false;
+            hintElement.style.display = 'none';
+        }
+    }
+
+    // 选择标签
+    function selectTag(tagId, tagName) {
+        const rankId = document.getElementById('rankId').value;
+        const token = getToken();
+        const selectedContainer = document.getElementById('selectedTagsContainer');
+
+        fetch(`/music/api/ranks/${rankId}/tags?token=${token}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ tagId: parseInt(tagId) })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.code === 200) {
+                const tagItem = document.createElement('div');
+                tagItem.className = 'selected-tag-item';
+                tagItem.setAttribute('data-tag-id', tagId);
+                tagItem.innerHTML = `
+                    <span>${tagName}</span>
+                    <button class="tag-remove-btn" data-tag-id="${tagId}">×</button>
+                `;
+
+                tagItem.querySelector('.tag-remove-btn').addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    removeTag(tagId, tagItem);
+                });
+
+                selectedContainer.appendChild(tagItem);
+
+                const selectElement = document.getElementById('cloudTagSelect');
+                renderTagOptions(selectElement, allTagOptions);
+
+                console.log('标签添加成功:', tagName);
+            } else {
+                alert('添加标签失败：' + (data.msg || '未知错误'));
+            }
+        })
+        .catch(error => {
+            console.error('添加标签失败:', error);
+            alert('添加标签失败，请稍后重试');
+        });
+    }
+
+    // 删除标签
+    function removeTag(tagId, tagElement) {
+        const rankId = document.getElementById('rankId').value;
+        const token = getToken();
+
+        fetch(`/music/api/ranks/${rankId}/tags/${tagId}?token=${token}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.code === 200) {
+                tagElement.remove();
+
+                const selectElement = document.getElementById('cloudTagSelect');
+                renderTagOptions(selectElement, allTagOptions);
+
+                console.log('标签删除成功, tagId:', tagId);
+            } else {
+                alert('删除标签失败：' + (data.msg || '未知错误'));
+            }
+        })
+        .catch(error => {
+            console.error('删除标签失败:', error);
+            alert('删除标签失败，请稍后重试');
+        });
+    }
 
 </script>
 </body>

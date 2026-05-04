@@ -85,7 +85,7 @@ public class FriendServiceImpl implements FriendService {
         // 参数2：当前是谁在看？也是 currentUserId（用来计算互关）
         userSimpleVO.setMasterList(friendMapper.selectFollowList(currentUserId, currentUserId)
                 .stream().
-                map(userFollow -> userMapper.getUsernameById(userFollow.getUserId()))
+                map(userFollow -> userMapper.getUsernameById(userFollow.getFollowId()))
 
                 .collect(Collectors.toList()));
         return userSimpleVO;

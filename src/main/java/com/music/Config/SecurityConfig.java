@@ -114,32 +114,36 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // 1. 启用 CORS (使用上面定义的 corsConfigurationSource Bean)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                // 2. 禁用 CSRF
                 .csrf(csrf -> csrf.disable())
-                // 3. 配置请求授权规则
+
                 .authorizeHttpRequests(auth -> auth
-                        // 放行 Swagger UI 和 API 文档
+
+                        .requestMatchers(
+                                "/",
+                                "/*.html",
+                                "/css/**",
+                                "/js/**",
+                                "/player/**",
+                                "/images/**"
+                        ).permitAll()
+
+                        .requestMatchers("/api/**").permitAll()
+
+                        .requestMatchers("/AiComment/**").permitAll()
+
+                        .requestMatchers("/ws-endpoint/**").permitAll()
+
                         .requestMatchers(
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
-                                "/v3/api-docs",
                                 "/v3/api-docs/**",
                                 "/webjars/**",
-                                "/swagger-resources",
-                                "/swagger-resources/**",
-                                "/music/api/hot/test/broadcast"// <--- 放行 stomp.js
+                                "/swagger-resources/**"
                         ).permitAll()
 
-                        // 放行 API 接口
-                        .requestMatchers("/api/**")
-                        .permitAll()
+                        .requestMatchers("/play/**").permitAll()
 
-                        // --- 👇 修改点：放行 WebSocket 握手请求 (必须带上 /music 前缀) ---
-                        .requestMatchers("/ws-endpoint/**").permitAll()
-
-                        // 4. 其他所有请求都需要认证
                         .anyRequest().authenticated()
                 );
 

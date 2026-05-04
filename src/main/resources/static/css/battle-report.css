@@ -1,0 +1,143 @@
+/* =========================
+   黑金战报弹窗样式
+========================= */
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.72);
+    backdrop-filter: blur(5px);
+    visibility: hidden;
+    opacity: 0;
+    transition: .35s ease;
+    z-index: 9998;
+}
+
+.overlay.active {
+    visibility: visible;
+    opacity: 1;
+}
+
+.modal-container {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    visibility: hidden;
+    pointer-events: none;
+    perspective: 2000px;
+    z-index: 9999;
+}
+
+.modal-container.active {
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.modal-card {
+    width: 380px;
+    max-width: calc(100vw - 32px);
+    background: linear-gradient(135deg,#1a1a1a 0%,#050505 100%);
+    border-radius: 22px;
+    padding: 38px 28px;
+    text-align: center;
+    border: 1px solid rgba(212,175,55,.28);
+    box-shadow:
+            0 25px 60px rgba(0,0,0,.7),
+            0 0 30px rgba(212,175,55,.08);
+    transform-style: preserve-3d;
+    opacity: 0;
+}
+
+.modal-container.active .modal-card {
+    animation: battleComeIn .8s cubic-bezier(.15,.85,.35,1.1) forwards;
+}
+
+@keyframes battleComeIn {
+    0% {
+        opacity: 0;
+        transform: translateZ(-900px) rotateX(22deg) scale(.8);
+    }
+    100% {
+        opacity: 1;
+        transform: translateZ(0) rotateX(0) scale(1);
+    }
+}
+
+@keyframes battleGoOut {
+    to {
+        opacity: 0;
+        transform: translateZ(-450px) rotateX(-18deg) scale(.82);
+    }
+}
+
+.modal-icon {
+    font-size: 54px;
+    color: #d4af37;
+    margin-bottom: 18px;
+    transform: translateZ(60px);
+}
+
+.modal-title {
+    color: #fcf6ba;
+    font-size: 24px;
+    margin-bottom: 16px;
+    transform: translateZ(40px);
+}
+
+.modal-body {
+    color: #bcbcbc;
+    line-height: 1.7;
+    font-size: 15px;
+    margin-bottom: 28px;
+    transform: translateZ(30px);
+}
+
+.report-rank {
+    color: #ff4d4f;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.battle-btn {
+    border: none;
+    cursor: pointer;
+    padding: 12px 34px;
+    border-radius: 999px;
+    font-weight: 700;
+    color: #000;
+    background: linear-gradient(135deg,#d4af37 0%,#aa771c 100%);
+    transform: translateZ(45px);
+}
+
+.battle-btn:hover {
+    transform: translateZ(45px) scale(1.03);
+}
+
+#particle-container {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 10000;
+}
+
+.particle {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0;
+}
+
+@media (max-width: 520px) {
+    .modal-card {
+        padding: 28px 20px;
+    }
+
+    .modal-title {
+        font-size: 20px;
+    }
+
+    .modal-body {
+        font-size: 14px;
+    }
+}

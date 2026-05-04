@@ -35,7 +35,7 @@ public class UserPublishServiceImpl implements UserPublishService {
 
     @Override
     @Transactional(rollbackFor = Exception.class,propagation = Propagation.REQUIRED)//事务注解:主表和子表的Service层操作必须同时成功，否则就是失败
-    public boolean insertRank(Integer categoryId, Integer userId, RankAddRequest rankAddRequestDto) {
+    public Integer insertRank(Integer categoryId, Integer userId, RankAddRequest rankAddRequestDto) {
        //？依旧难想，将Dto类转化为对应数据库的实体类
         //先创建一个pojo对应的对象，再将前端dto的对应值传进去，最后调用Mapper层
         PersonalRank personalRank = new PersonalRank();
@@ -50,7 +50,7 @@ public class UserPublishServiceImpl implements UserPublishService {
         System.out.println("获取的rankId：" + rankId);
         if (rankId == null) {
             System.out.println("rankId为null，直接返回失败"); // 新增：打印跳过逻辑
-            return false;
+            return null;
         }
 
         List<RankSong> ranksongList=new ArrayList<RankSong>();//用集合接受前端榜单数据，因为歌曲和排名有很多，一个用户还可能有多个榜单
@@ -65,9 +65,9 @@ public class UserPublishServiceImpl implements UserPublishService {
         int insertCount = userPublishMapper.sixInsert(ranksongList);
         if (insertCount != ranksongList.size()) {
             System.out.println("子表插入行数与预期不符，返回失败");
-            return false; // 触发事务回滚
+            return null; // 触发事务回滚
         }
-        return  true;
+        return  rankId;
         }
 
     @Override

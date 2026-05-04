@@ -73,7 +73,7 @@ public class UserPublishController {
     @PostMapping("/add/{category}")
     @Operation(summary = "添加榜单", description = "添加榜单")
     @ResponseBody
-    public Result<String> add(@PathVariable("category") Integer category,
+    public Result<Integer> add(@PathVariable("category") Integer category,
                       @RequestBody RankAddRequest rankAddRequestDto,
                       HttpServletRequest request,
                       @RequestHeader("Authorization") String authHeader) throws Exception {
@@ -88,7 +88,7 @@ public class UserPublishController {
 
         // 修复：先判空再遍历，避免空列表触发空指针
         if (songItems == null || songItems.isEmpty()) {
-          return  Result.error("歌曲列表不能为空");
+          return Result.error("歌曲列表不能为空");
         }
 
         // 修复：排名校验先判空，避免null==0触发空指针
@@ -99,9 +99,9 @@ public class UserPublishController {
 
 
         // 核心入库逻辑（完全保留你原有代码，未修改）
-        boolean result = userPublishService.insertRank(category, userId, rankAddRequestDto);
-        if (result) {
-            return  Result.success("发布榜单成功");
+        Integer rankId = userPublishService.insertRank(category, userId, rankAddRequestDto);
+        if (rankId != null && rankId > 0) {
+            return Result.success(rankId);
          } else {
             return Result.error("榜单发布失败，请稍后再试一试");
            }

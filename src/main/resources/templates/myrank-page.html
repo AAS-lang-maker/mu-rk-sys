@@ -631,6 +631,50 @@
             background: rgba(49, 53, 60, 0.65);
             transform: translateY(-2px);
         }
+
+        .rank-tags-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 12px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        .rank-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(240, 198, 77, 0.1);
+            border: 1px solid rgba(240, 198, 77, 0.3);
+            border-radius: 12px;
+            padding: 4px 10px;
+            font-size: 13px;
+            color: var(--primary);
+            font-family: 'Manrope', sans-serif;
+            transition: all 0.2s ease;
+        }
+        .rank-tag:hover {
+            background: rgba(240, 198, 77, 0.15);
+            border-color: rgba(240, 198, 77, 0.5);
+        }
+        .tag-delete-btn {
+            background: transparent;
+            border: none;
+            color: rgba(246, 141, 141, 0.7);
+            cursor: pointer;
+            font-size: 14px;
+            padding: 0 2px;
+            line-height: 1;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .tag-delete-btn:hover {
+            color: #f68d8d;
+            transform: scale(1.2);
+        }
+
         .comment-container {
             display: none;
             animation: fadeIn 0.3s ease;
@@ -749,6 +793,46 @@
         .comment-delete-btn::before {
             content: "🗑️";
             font-size: 12px;
+        }
+
+        .comment-like-btn {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: rgba(223, 226, 235, 0.6);
+            font-size: 13px;
+            font-weight: 500;
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s ease;
+            font-family: 'Manrope', sans-serif;
+        }
+
+        .comment-like-btn:hover {
+            color: var(--primary-container);
+            background-color: rgba(240, 198, 77, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .comment-like-btn.liked {
+            color: var(--primary-container);
+        }
+
+        .comment-like-btn.liked .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .comment-like-btn .material-symbols-outlined {
+            font-size: 16px;
+        }
+
+        .comment-like-count {
+            font-size: 12px;
+            color: inherit;
         }
 
         /* Pagination */
@@ -880,6 +964,7 @@
         }
     </style>
     <script th:src="@{/player/music-player.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/battle-report.css}">
 </head>
 
 <body>
@@ -984,6 +1069,7 @@
                                     <button class="comment-toggle" th:data-rank-id="${ranking.rankId}">
                                         查看评论
                                     </button>
+                                    <div class="rank-tags-container" th:id="|rank-tags-${ranking.rankId}|"></div>
                                     <div class="comment-container" th:id="|comment-container-${ranking.rankId}|">
                                         <div class="comment-input-area">
                                             <textarea class="comment-input" th:id="|comment-input-${ranking.rankId}|"
@@ -1189,6 +1275,117 @@
             });
         }
 
+        // ===================== 榜单标签功能 =====================
+        function loadRankTags(rankId) {
+            if (!rankId) {
+                console.warn('loadRankTags: rankId 为空');
+                return;
+            }
+            const container = document.getElementById(`rank-tags-${rankId}`);
+            if (!container) {
+                console.warn(`loadRankTags: 未找到容器 rank-tags-${rankId}`);
+                return;
+            }
+
+            if (!token) {
+                container.style.display = 'none';
+                return;
+            }
+
+            axios.get(`/music/api/ranks/${rankId}/tags`, {
+                params: { token: token }
+            })
+                .then(response => {
+                    if (response.data && response.data.code === 200) {
+                        const tags = response.data.data || [];
+                        renderRankTags(container, tags, rankId);
+                    } else {
+                        console.warn('加载标签失败:', response.data?.msg || '未知错误');
+                        container.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('加载标签请求异常:', error);
+                    container.style.display = 'none';
+                });
+        }
+
+        function renderRankTags(container, tags, rankId) {
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            if (!tags || !Array.isArray(tags) || tags.length === 0) {
+                container.style.display = 'none';
+                return;
+            }
+
+            container.style.display = 'flex';
+
+            tags.forEach(tag => {
+                if (!tag || !tag.tagId) return;
+
+                const tagEl = document.createElement('span');
+                tagEl.className = 'rank-tag';
+                tagEl.setAttribute('data-tag-id', tag.tagId);
+
+                tagEl.innerHTML = `
+                    ${tag.tagName || ''}
+                    <button class="tag-delete-btn" data-rank-id="${rankId}" data-tag-id="${tag.tagId}">×</button>
+                `;
+
+                container.appendChild(tagEl);
+            });
+        }
+
+        function deleteRankTag(rankId, tagId) {
+            if (!rankId || !tagId) {
+                showErrorTip('参数无效');
+                return;
+            }
+            if (!confirm('确定要移除该标签吗？')) return;
+
+            axios.delete(`/music/api/ranks/${rankId}/tags/${tagId}`, {
+                params: { token: token }
+            })
+                .then(response => {
+                    if (response.data && (response.data.code === 200 || response.data.success)) {
+                        showSuccessTip("标签移除成功！");
+                        const tagEl = document.querySelector(`.rank-tag[data-tag-id="${tagId}"]`);
+                        if (tagEl) {
+                            tagEl.remove();
+                        }
+                        const container = document.getElementById(`rank-tags-${rankId}`);
+                        if (container && container.querySelectorAll('.rank-tag').length === 0) {
+                            container.style.display = 'none';
+                        }
+                    } else {
+                        showErrorTip(response.data?.msg || '移除标签失败');
+                        if (response.data?.code === 403) {
+                            showErrorTip('权限不足，无法移除该标签');
+                        } else if (response.data?.code === 404) {
+                            showErrorTip('标签或榜单不存在');
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('删除标签请求异常:', error);
+                    if (error.response) {
+                        if (error.response.status === 403) {
+                            showErrorTip('权限不足，无法移除该标签');
+                        } else if (error.response.status === 404) {
+                            showErrorTip('标签或榜单不存在');
+                        } else if (error.response.status >= 500) {
+                            showErrorTip('服务器错误，请稍后重试');
+                        } else {
+                            showErrorTip(error.response.data?.msg || '移除标签失败');
+                        }
+                    } else {
+                        showErrorTip('网络错误，请检查网络连接');
+                    }
+                });
+        }
+
         // ===================== 评论区功能 ======================
         function toggleComments(rankId) {
             const container = document.getElementById(`comment-container-${rankId}`);
@@ -1261,6 +1458,10 @@
                 </div>
                 <div class="comment-content">${comment.comContent || ''}</div>
                 <div class="comment-actions-bar">
+                    <button class="comment-like-btn ${comment.liked ? 'liked' : ''}" data-com-id="${comment.comId}">
+                        <span class="material-symbols-outlined">thumb_up</span>
+                        <span class="comment-like-count">${comment.likeCount || 0}</span>
+                    </button>
                     ${comment.userId === parseInt(userId) ?
                         `<button class="comment-delete-btn" data-comment-id="${comment.comId}">删除</button>` : ''
                     }
@@ -1290,13 +1491,14 @@
                 return;
             }
 
-            axios.post(`/music/api/rank/pubcomment`, {
-                rankId: rankId,
-                userId: userId,
-                content: content,
-                parentId: null
-            }, {
-                params: { token: token }
+            axios.post(`/music/api/rank/pubcomment`, null, {
+                params: {
+                    token: token,
+                    rankId: rankId,
+                    userId: userId,
+                    content: content,
+                    parentId: null
+                }
             })
                 .then(response => {
                     console.log('提交评论成功:', response.data);
@@ -1344,6 +1546,66 @@
                     console.error('删除评论失败:', error);
                     showErrorTip("删除评论失败：" + (error.response?.data?.msg || error.message));
                 });
+        }
+
+        function toggleCommentLike(commentId, btn) {
+            console.log('切换评论点赞状态，commentId:', commentId);
+
+            if (!token) {
+                showErrorTip("请先登录后再点赞！");
+                return;
+            }
+
+            const likeCountEl = btn.querySelector('.comment-like-count');
+            const originalCount = Number(likeCountEl.textContent) || 0;
+
+            btn.style.pointerEvents = 'none';
+
+            if (btn.classList.contains('liked')) {
+                axios.post(`/music/api/rank/deleteLike`, null, {
+                    params: {
+                        token: token,
+                        comId: commentId
+                    }
+                })
+                    .then(response => {
+                        if (response.data.code === 200 || response.data.success) {
+                            btn.classList.remove('liked');
+                            likeCountEl.textContent = Math.max(0, originalCount - 1);
+                            showSuccessTip("取消点赞成功！");
+                        } else {
+                            showErrorTip("取消点赞失败：" + (response.data.msg || "未知错误"));
+                        }
+                    })
+                    .catch(error => {
+                        showErrorTip("取消点赞失败：" + (error.response?.data?.msg || error.message));
+                    })
+                    .finally(() => {
+                        btn.style.pointerEvents = 'auto';
+                    });
+            } else {
+                axios.post(`/music/api/rank/like`, null, {
+                    params: {
+                        token: token,
+                        comId: commentId
+                    }
+                })
+                    .then(response => {
+                        if (response.data.code === 200 || response.data.success) {
+                            btn.classList.add('liked');
+                            likeCountEl.textContent = originalCount + 1;
+                            showSuccessTip("点赞成功！");
+                        } else {
+                            showErrorTip("点赞失败：" + (response.data.msg || "未知错误"));
+                        }
+                    })
+                    .catch(error => {
+                        showErrorTip("点赞失败：" + (error.response?.data?.msg || error.message));
+                    })
+                    .finally(() => {
+                        btn.style.pointerEvents = 'auto';
+                    });
+            }
         }
 
         function formatTime(time) {
@@ -1537,6 +1799,27 @@
             }
         }
 
+        function goToRank() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const token = urlParams.get('token') || localStorage.getItem('token');
+                const userId = urlParams.get('userId') || urlParams.get('user_id') || localStorage.getItem('user_id');
+                const category = urlParams.get('category') || localStorage.getItem('category') || '1';
+
+                if (!token || !userId) {
+                    alert('登录信息失效，请重新登录');
+                    window.location.href = '/music/login.html';
+                    return;
+                }
+
+                let url = `/music/rank.html?token=${encodeURIComponent(token)}&userId=${encodeURIComponent(userId)}&category=${encodeURIComponent(category)}`;
+                window.location.href = url;
+            } catch (err) {
+                console.error('❌ 跳转创建榜单出错：', err);
+                alert('跳转失败，请刷新重试！');
+            }
+        }
+
         function editRanking(id) {
             const token = localStorage.getItem('token');
             const targetUrl = `/music/api/mine/edit/${id}?token=${encodeURIComponent(token)}`;
@@ -1610,6 +1893,14 @@
         document.addEventListener('DOMContentLoaded', function () {
             initMusicPlayer();
 
+            const rankingItems = document.querySelectorAll('.ranking-item');
+            rankingItems.forEach(item => {
+                const rankId = item.dataset.rankId;
+                if (rankId) {
+                    loadRankTags(rankId);
+                }
+            });
+
             document.addEventListener('click', function (e) {
                 const target = e.target;
 
@@ -1647,7 +1938,7 @@
                     return;
                 }
                 if (target.closest('#navAdd')) {
-                    goToPu();
+                    goToRank();
                     return;
                 }
                 if (target.closest('#btn-reLogin')) {
@@ -1708,6 +1999,27 @@
                     return;
                 }
 
+                const commentLikeBtn = e.target.closest('.comment-like-btn');
+                if (commentLikeBtn) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const comId = commentLikeBtn.dataset.comId;
+                    if (comId) {
+                        toggleCommentLike(comId, commentLikeBtn);
+                    }
+                    return;
+                }
+
+                const tagDeleteBtn = e.target.closest('.tag-delete-btn');
+                if (tagDeleteBtn) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const rankId = tagDeleteBtn.dataset.rankId;
+                    const tagId = tagDeleteBtn.dataset.tagId;
+                    deleteRankTag(rankId, tagId);
+                    return;
+                }
+
                 const pageBtn = e.target.closest('.pagination-wrap button:not(.pagination-btn-nav)');
                 if (pageBtn && !pageBtn.disabled) {
                     e.preventDefault();
@@ -1733,6 +2045,7 @@
             }
         });
     </script>
+    <script th:src="@{/js/battle-report.js}"></script>
 </body>
 
 </html>

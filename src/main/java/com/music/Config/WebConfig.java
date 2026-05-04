@@ -31,20 +31,12 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         // 2. 注册登录拦截器并配置规则
         registry.addInterceptor(loginInterceptor)
-                .addPathPatterns("/**") // 拦截所有请求
-                .excludePathPatterns(    // 以下是“白名单”，不用登录也能访问
-                        "/api/user/register", // 你的注册接口（根据实际路径检查一下）
-                        "/api/user/login",    // 你的登录接口
-                        "/api/role/register",
+                .addPathPatterns("/api/**")   // 只拦截接口
+                .excludePathPatterns(
+                        "/api/user/login",
+                        "/api/user/register",
                         "/api/role/login",
-                        "/js/**",         // 放行 JS 文件夹
-                        "/player/**",     // 放行播放器插件文件夹
-                        "/login.html",    // 放行登录页
-                        "/register.html", // 放行注册页
-                        "/index.html",    // 放行首页
-                        "/*.css",         // 放行根目录下的 CSS
-                        "/*.js",           // 放行根目录下的 JS
-                        // 下面这一行是关键，放行 Swagger 的接口数据
+                        "/api/role/register",
                         "/v3/api-docs/**",
                         "/swagger-ui/**"
                 );

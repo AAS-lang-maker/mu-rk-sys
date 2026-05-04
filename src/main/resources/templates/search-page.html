@@ -541,6 +541,42 @@
             font-size: 14px;
         }
 
+        .btn-follow-publisher {
+            padding: 4px 12px;
+            border-radius: var(--radius-full);
+            border: 1px solid var(--primary);
+            background: transparent;
+            color: var(--primary);
+            font-size: 10px;
+            font-family: var(--font-body);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: all 200ms ease;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .btn-follow-publisher:hover {
+            background: rgba(240, 198, 77, 0.15);
+            transform: scale(1.05);
+        }
+
+        .btn-follow-publisher:active {
+            transform: scale(0.95);
+        }
+
+        .btn-follow-publisher.followed {
+            background: #3b362b;
+            color: #241a00;
+            font-weight: bold;
+        }
+
+        .btn-follow-publisher.followed:hover {
+            background: #5e563e;
+            border-color: var(--primary-container);
+        }
+
         .match-time {
             font-size: 10px;
             color: #a3a3a3;
@@ -916,9 +952,10 @@
         }
 
         .ai-avatar img {
-            width: 32px;
-            height: 32px;
+            width: 45px;
+            height: 45px;
             opacity: 0.8;
+            border-radius: 50%;
             filter: invert(1) sepia(1) saturate(5) hue-rotate(10deg);
         }
 
@@ -2270,16 +2307,56 @@
         }
 
         @keyframes blink {
-            0%,50% {
+
+            0%,
+            50% {
                 opacity: 1;
             }
-            51%,100% {
+
+            51%,
+            100% {
                 opacity: 0;
             }
+        }
+
+        /* Rank Tags Container */
+        .rank-tags-container {
+            display: flex;
+            gap: 8px;
+            flex: 1;
+            min-width: 0;
+            max-width: calc(100% - 120px);
+        }
+
+        /* Rank Tag Item */
+        .rank-tag-item {
+            flex: 1;
+            padding: 6px 12px;
+            background: rgba(49, 53, 60, 0.5);
+            border: 1px solid rgba(77, 70, 53, 0.15);
+            border-radius: var(--radius-md);
+            font-size: 10px;
+            color: var(--on-surface-variant);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: default;
+            transition: all 200ms ease;
+            font-family: var(--font-body);
+            min-width: 0;
+        }
+
+        .rank-tag-item:hover {
+            border-color: rgba(255, 228, 164, 0.4);
+            color: var(--primary);
+            background: rgba(49, 53, 60, 0.8);
         }
     </style>
 
     <script th:src="@{/player/music-player.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/battle-report.css}">
 </head>
 
 <body>
@@ -2389,10 +2466,18 @@
                                         <div class="match-info">
                                             <p class="match-tag">Exclusive Release</p>
                                             <h3 class="match-title" th:text="${firstRank.rankName}">榜单名称</h3>
-                                            <div class="match-author">
+                                            <div class="match-author"
+                                                style="display: flex; align-items: center; gap: 12px;">
                                                 <span class="material-symbols-outlined"
                                                     style="font-size: 14px;">person</span>
                                                 <span th:text="${firstRank.username}">作者名</span>
+                                                <button class="btn-follow-publisher"
+                                                    th:data-username="${firstRank.username}"
+                                                    th:data-user-id="${firstRank.userId}"
+                                                    th:data-followed="${firstRank.Followed}"
+                                                    th:classappend="${firstRank.Followed ? 'followed' : ''}">
+                                                    <span th:text="${firstRank.Followed ? '已关注' : '关注'}">关注</span>
+                                                </button>
                                             </div>
                                             <p class="match-time">更新时间：<span
                                                     th:text="${firstRank.publishTime}">时间</span>
@@ -2466,10 +2551,18 @@
                                         <div class="match-info">
                                             <p class="match-tag">Exclusive Release</p>
                                             <h3 class="match-title" th:text="${ranking.rankName}">榜单名称</h3>
-                                            <div class="match-author">
+                                            <div class="match-author"
+                                                style="display: flex; align-items: center; gap: 12px;">
                                                 <span class="material-symbols-outlined"
                                                     style="font-size: 14px;">person</span>
                                                 <span th:text="${ranking.username}">作者名</span>
+                                                <button class="btn-follow-publisher"
+                                                    th:data-username="${ranking.username}"
+                                                    th:data-user-id="${ranking.userId}"
+                                                    th:data-followed="${ranking.Followed}"
+                                                    th:classappend="${ranking.Followed ? 'followed' : ''}">
+                                                    <span th:text="${ranking.Followed ? '已关注' : '关注'}">关注</span>
+                                                </button>
                                             </div>
                                             <p class="match-time">更新时间：<span th:text="${ranking.publishTime}">时间</span>
                                             </p>
@@ -2520,6 +2613,7 @@
                                                 <span class="material-symbols-outlined">chat_bubble</span>
                                                 查看评论
                                             </button>
+                                            <div class="rank-tags-container" style="display: none;"></div>
                                             <div class="comment-container"
                                                 th:id="|comment-container-${ranking.rankId}|">
                                                 <div class="comment-input-area">
@@ -2601,7 +2695,7 @@
                             <div class="ai-avatar-wrapper">
                                 <div class="ai-avatar">
                                     <img alt="AI Avatar"
-                                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-pGZ4uXm_l-qN7B_Z5p_Z_5Z_5Z_5Z_5Z_5Z_5Z_5Z_5Z_5Z_5Z_5Z_5Z_5Z_5Z_5Z_5Z_5Z_5Z_5Z_5Z_5Z">
+                                        src="https://th.bing.com/th/id/OIP.HeCfy1wH-100VEDW7dOBTAAAAA?w=137&h=183&c=7&r=0&o=5&dpr=2&pid=1.7">
                                 </div>
                                 <span class="online-indicator"></span>
                             </div>
@@ -2746,6 +2840,110 @@
             setTimeout(() => el.style.display = 'none', 2000);
         }
 
+        function syncFollowButtonsForUser(targetUserId, isFollowed) {
+            const allFollowButtons = document.querySelectorAll('.btn-follow-publisher');
+
+            allFollowButtons.forEach(btn => {
+                if (btn.dataset.userId === String(targetUserId)) {
+                    if (isFollowed) {
+                        btn.classList.add('followed');
+                        const spanEl = btn.querySelector('span');
+                        if (spanEl) {
+                            spanEl.textContent = '已关注';
+                        } else {
+                            btn.textContent = '已关注';
+                        }
+                    } else {
+                        btn.classList.remove('followed');
+                        const spanEl = btn.querySelector('span');
+                        if (spanEl) {
+                            spanEl.textContent = '关注';
+                        } else {
+                            btn.textContent = '关注';
+                        }
+                    }
+                }
+            });
+
+            console.log(`[同步完成] 用户 ${targetUserId} 的 ${allFollowButtons.length} 个按钮已更新为: ${isFollowed ? '已关注' : '关注'}`);
+        }
+
+        function followPublisher(userId, username, btn) {
+            if (!token) {
+                showErrorTip("请先登录后再关注！");
+                return;
+            }
+
+            console.log('[关注接口] 开始请求:', {
+                targetUserId: userId,
+                targetUsername: username,
+                url: '/music/api/friend/follow'
+            });
+
+            btn.style.pointerEvents = 'none';
+            btn.style.opacity = '0.7';
+
+            const requestParams = {
+                token: token
+            };
+
+            if (userId && userId !== 'undefined' && userId !== 'null') {
+                requestParams.UserId = userId;
+            }
+
+            if (username && !requestParams.UserId) {
+                requestParams.Username = username;
+                console.warn('[关注接口] ⚠️ 使用 Username 作为备选参数');
+            }
+
+            axios.post('/music/api/friend/follow', null, {
+                params: requestParams
+            })
+                .then(response => {
+                    console.log('[关注接口] 响应成功:', response.data);
+                    if (response.data.code === 200) {
+                        const message = response.data.data || '操作成功';
+                        if (message === '关注成功') {
+                            btn.classList.add('followed');
+                            const spanEl = btn.querySelector('span');
+                            if (spanEl) {
+                                spanEl.textContent = '已关注';
+                            } else {
+                                btn.innerHTML = '已关注';
+                            }
+                            syncFollowButtonsForUser(userId || username, true);
+                            showSuccessTip(message);
+                        } else if (message === '已取消关注') {
+                            btn.classList.remove('followed');
+                            const spanEl = btn.querySelector('span');
+                            if (spanEl) {
+                                spanEl.textContent = '关注';
+                            } else {
+                                btn.innerHTML = '关注';
+                            }
+                            syncFollowButtonsForUser(userId || username, false);
+                            showSuccessTip(message);
+                        } else {
+                            showSuccessTip(message);
+                        }
+                    } else {
+                        showErrorTip("操作失败：" + (response.data.msg || "后端处理失败"));
+                    }
+                })
+                .catch(error => {
+                    console.error('[关注接口] 请求失败:', error);
+                    showErrorTip("操作失败：" + (error.response?.data?.msg || error.message));
+                })
+                .finally(() => {
+                    btn.style.pointerEvents = 'auto';
+                    btn.style.opacity = '1';
+                });
+        }
+
+        function unfollowPublisher(userId, username, btn) {
+            followPublisher(userId, username, btn);
+        }
+
         // 动态路径工具（和主页保持一致）
         function getTargetVotePath(category) {
             return category === 1 ? "/music/api/rank/vote" : "/music/api/workrank/vote";
@@ -2842,29 +3040,71 @@
         function toggleFavorite(btn) {
             const rankId = btn.dataset.rankId;
             if (!rankId) return;
-            // 收藏切换逻辑
-            const icon = btn.querySelector('.material-symbols-outlined');
-            if (icon.style.fontVariationSettings.includes("'FILL' 1")) {
-                icon.style.fontVariationSettings = "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24";
-                showSuccessTip("已取消收藏");
-            } else {
-                icon.style.fontVariationSettings = "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24";
-                showSuccessTip("已添加收藏");
+            if (!token || !userId) {
+                showErrorTip("请先登录后再操作！");
+                return;
             }
+            const icon = btn.querySelector('.material-symbols-outlined');
+            const isVoted = icon.style.fontVariationSettings.includes("'FILL' 1");
+            const url = isVoted
+                ? (category === 1 ? "/music/api/rank/deleteVote" : "/music/api/workrank/deleteVote")
+                : getTargetVotePath(category);
+            btn.disabled = true;
+            axios.post(url, null, {
+                params: { token: token, rankId: rankId, userId: userId }
+            })
+                .then(response => {
+                    btn.disabled = false;
+                    if (response.data.code === 200 || response.data.success) {
+                        if (isVoted) {
+                            icon.style.fontVariationSettings = "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24";
+                            showSuccessTip("取消点赞成功！");
+                        } else {
+                            icon.style.fontVariationSettings = "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24";
+                            showSuccessTip("点赞成功！");
+                        }
+                    } else {
+                        showErrorTip("点赞失败：" + (response.data.msg || "未知错误"));
+                    }
+                })
+                .catch(error => {
+                    btn.disabled = false;
+                    showErrorTip("点赞失败：" + (error.response?.data?.msg || error.message));
+                });
         }
 
         function toggleStar(btn) {
             const rankId = btn.dataset.rankId;
             if (!rankId) return;
-            // 星标切换逻辑
-            const icon = btn.querySelector('.material-symbols-outlined');
-            if (icon.style.color === 'rgb(255, 228, 164)') {
-                icon.style.color = '';
-                showSuccessTip("已取消星标");
-            } else {
-                icon.style.color = '#ffe4a4';
-                showSuccessTip("已添加星标");
+            if (!token || !userId) {
+                showErrorTip("请先登录后再收藏！");
+                return;
             }
+            const icon = btn.querySelector('.material-symbols-outlined');
+            const isStarred = icon.style.color === 'rgb(255, 228, 164)' || icon.style.color === '#ffe4a4';
+            btn.disabled = true;
+            const url = isStarred
+                ? (category === 1 ? "/music/api/rank/deleteLove" : "/music/api/workrank/deleteLove")
+                : getTargetLovePath(category);
+            axios.post(url, null, { params: { token, rankId, userId } })
+                .then(response => {
+                    btn.disabled = false;
+                    if (response.data.code === 200 || response.data.success) {
+                        if (isStarred) {
+                            icon.style.color = '';
+                            showSuccessTip("取消收藏成功！");
+                        } else {
+                            icon.style.color = '#ffe4a4';
+                            showSuccessTip("收藏成功！");
+                        }
+                    } else {
+                        showErrorTip("收藏失败：" + (response.data.msg || "未知错误"));
+                    }
+                })
+                .catch(error => {
+                    btn.disabled = false;
+                    showErrorTip("收藏失败：" + (error.response?.data?.msg || error.message));
+                });
         }
 
         // 分页跳转（和主页保持一致）
@@ -3213,11 +3453,12 @@
             const likeCountEl = btn.querySelector('.comment-like-count');
             const originalCount = Number(likeCountEl.textContent) || 0;
 
-            axios.post(url, {
-                comId: commentId,
-                userId: userId
-            }, {
-                params: { token: token }
+            axios.post(url, null, {
+                params: {
+                    token: token,
+                    comId: commentId,
+                    userId: userId
+                }
             })
                 .then(response => {
                     if (response.data.code === 200 || response.data.success) {
@@ -3364,6 +3605,67 @@
                 });
         }
 
+        // 获取当前搜索关键词的辅助函数
+        function getCurrentKeyword() {
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput && searchInput.value.trim()) {
+                return searchInput.value.trim();
+            }
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('keyword')) {
+                return urlParams.get('keyword');
+            }
+            if (typeof keyword !== 'undefined' && keyword) {
+                return keyword;
+            }
+            return '';
+        }
+
+        // 判断是否应该使用本地搜索
+        function checkShouldUseLocalSearch(keyword) {
+            const existingRankings = document.querySelectorAll('.ranking-item');
+            const hasLocalData = existingRankings.length > 0;
+
+            const lastKeyword = getCurrentKeyword();
+            let isSimilarKeyword = false;
+            if (lastKeyword && keyword) {
+                const similarity = calculateKeywordSimilarity(lastKeyword, keyword);
+                isSimilarKeyword = similarity > 0.6;
+            }
+
+            console.log('📊 搜索模式判断：', { hasLocalData, isSimilarKeyword, lastKeyword, currentKeyword: keyword });
+
+            return hasLocalData && isSimilarKeyword;
+        }
+
+        // 计算关键词相似度
+        function calculateKeywordSimilarity(keyword1, keyword2) {
+            if (!keyword1 || !keyword2) return 0;
+            const str1 = keyword1.toLowerCase();
+            const str2 = keyword2.toLowerCase();
+
+            if (str1 === str2) return 1;
+            if (str1.includes(str2) || str2.includes(str1)) return 0.8;
+
+            const words1 = str1.split(/\s+/);
+            const words2 = str2.split(/\s+/);
+            const commonWords = words1.filter(word => words2.includes(word));
+            const similarity = commonWords.length / Math.max(words1.length, words2.length);
+
+            return similarity;
+        }
+
+        // 执行服务端搜索（页面跳转）
+        function performServerSearch(keyword) {
+            console.log('🌐 执行服务端搜索跳转，关键词：', keyword);
+            showLoadingState();
+
+            const searchUrl = `/music/api/rank/search?token=${token}&keyword=${encodeURIComponent(keyword)}&category=${category}&pageNum=1&pageSize=${pageSize}`;
+            console.log('🔗 跳转URL：', searchUrl);
+
+            window.location.href = searchUrl;
+        }
+
         // 执行搜索功能
         function performSearch() {
             const searchInput = document.getElementById('searchInput');
@@ -3379,91 +3681,77 @@
                 return;
             }
 
-            // 预处理搜索关键词：去除多余空格，统一格式
             searchKeyword = searchKeyword.replace(/\s+/g, ' ').trim();
             console.log('执行搜索：', { keyword: searchKeyword, category, originalInput: searchInput.value });
 
-            // 更新搜索结果标题
             const resultsHeader = document.querySelector('.page-title');
             const resultsDesc = document.querySelector('.page-subtitle');
             if (resultsHeader) resultsHeader.textContent = '搜索结果';
             if (resultsDesc) {
-                resultsDesc.innerHTML = `寻找到与 "<span style="color: #ffe4a4; font-weight: bold;">${searchKeyword}</span>" 相关的内容`;
+                resultsDesc.innerHTML = `寻找到与 "<span style='color: #ffe4a4; font-weight: bold;'>${searchKeyword}</span>" 相关的内容`;
             }
 
-            // 显示加载状态
-            showLoadingState();
+            const shouldUseLocalSearch = checkShouldUseLocalSearch(searchKeyword);
+            console.log('🎯 搜索模式决策：', shouldUseLocalSearch ? '本地搜索' : '服务端搜索');
 
-            // 发送搜索请求
-            axios.get('/music/api/rank/search', {
-                params: {
-                    token: token,
-                    keyword: searchKeyword,
-                    category: category,
-                    pageNum: 1,
-                    pageSize: pageSize * 2
-                }
-            })
-                .then(response => {
-                    console.log('📥 搜索响应完整数据：', JSON.stringify(response.data, null, 2));
-
-                    if (response.data.code === 200 || response.data.success) {
-                        const searchData = response.data.data;
-                        console.log('🔍 解析后的搜索数据：', searchData);
-
-                        if (searchData && searchData.list && Array.isArray(searchData.list) && searchData.list.length > 0) {
-                            console.log(`✅ 找到 ${searchData.list.length} 条结果`);
-
-                            // 过滤搜索结果
-                            const filteredResults = filterSearchResults(searchData.list, searchKeyword);
-
-                            if (filteredResults.length > 0) {
-                                console.log(`🎯 过滤后剩余 ${filteredResults.length} 条精确匹配结果`);
-                                renderSearchResults({ ...searchData, list: filteredResults }, searchKeyword);
-                                showSuccessTip(`找到 ${filteredResults.length} 条相关结果`);
-                            } else {
-                                console.log('⚠️ 二次过滤无结果，显示原始结果');
-                                renderSearchResults(searchData, searchKeyword);
-                                showSuccessTip(`找到 ${searchData.list.length} 条相关结果`);
-                            }
-                        } else {
-                            console.log('❌ API未返回结果，尝试本地搜索...');
-                            performLocalSearch(searchKeyword);
-                        }
-                    } else {
-                        console.warn('⚠️ API返回错误：', response.data.msg);
-                        showErrorTip('搜索失败：' + (response.data.msg || '未知错误'));
-                        performLocalSearch(searchKeyword);
-                    }
-                })
-                .catch(error => {
-                    console.error('❌ 搜索请求失败:', error);
-                    showErrorTip('网络错误，正在尝试本地搜索...');
-                    performLocalSearch(searchKeyword);
-                });
+            if (shouldUseLocalSearch) {
+                performLocalSearch(searchKeyword);
+            } else {
+                performServerSearch(searchKeyword);
+            }
         }
 
-        // 本地搜索备选方案
+        // 本地搜索备选方案（增强版）
         function performLocalSearch(keyword) {
             console.log('🔄 开始本地搜索，关键词：', keyword);
             const existingRankings = document.querySelectorAll('.ranking-item');
 
             if (existingRankings.length > 0) {
+                if (!window.cachedRankings || window.cachedRankings.length === 0) {
+                    window.cachedRankings = [];
+                    existingRankings.forEach(item => {
+                        const title = item.querySelector('h3')?.textContent?.trim() || '';
+                        const songs = Array.from(item.querySelectorAll('.song-name')).map(el => el.textContent?.trim() || '');
+                        const singers = Array.from(item.querySelectorAll('.singer-name')).map(el => el.textContent?.trim() || '');
+                        const publisher = item.querySelector('.publisher-btn')?.textContent?.replace('发布人：', '')?.trim() || '';
+                        const tags = Array.from(item.querySelectorAll('.tag, .label, [class*="tag"], [class*="label"]')).map(el => el.textContent?.trim() || '').filter(t => t);
+
+                        window.cachedRankings.push({
+                            element: item,
+                            title: title,
+                            songs: songs,
+                            singers: singers,
+                            publisher: publisher,
+                            tags: tags
+                        });
+                    });
+                    console.log(`📦 已缓存 ${window.cachedRankings.length} 条榜单数据`);
+                }
+
+                const keywords = keyword.toLowerCase().split(/\s+/).filter(k => k.length > 0);
                 const results = [];
-                existingRankings.forEach((item, index) => {
-                    const title = item.querySelector('h3')?.textContent || '';
-                    const songs = Array.from(item.querySelectorAll('.song-name')).map(el => el.textContent);
-                    const singers = Array.from(item.querySelectorAll('.singer-name')).map(el => el.textContent);
-                    const publisher = item.querySelector('.publisher-btn')?.textContent?.replace('发布人：', '') || '';
 
-                    const searchText = `${title} ${publisher} ${songs.join(' ')} ${singers.join(' ')}`.toLowerCase();
-                    const keywordLower = keyword.toLowerCase();
+                window.cachedRankings.forEach((cachedItem, index) => {
+                    const searchTexts = [
+                        cachedItem.title,
+                        ...cachedItem.songs,
+                        ...cachedItem.singers,
+                        cachedItem.publisher,
+                        ...cachedItem.tags
+                    ].filter(t => t).map(t => t.toLowerCase());
 
-                    if (searchText.includes(keywordLower)) {
+                    const allTextCombined = searchTexts.join(' ');
+
+                    const matchAllKeywords = keywords.every(kw => {
+                        return searchTexts.some(text => text.includes(kw));
+                    });
+
+                    if (matchAllKeywords) {
+                        const relevance = calculateRelevanceEnhanced(cachedItem, keywords, allTextCombined);
                         results.push({
-                            element: item.cloneNode(true),
+                            element: cachedItem.element.cloneNode(true),
                             matchType: 'local',
-                            relevance: calculateRelevance(searchText, keywordLower)
+                            relevance: relevance
                         });
                     }
                 });
@@ -3472,6 +3760,12 @@
 
                 if (results.length > 0) {
                     console.log(`✅ 本地搜索找到 ${results.length} 条结果`);
+
+                    const pageSubtitle = document.querySelector('.page-subtitle');
+                    if (pageSubtitle) {
+                        pageSubtitle.innerHTML = `找到 <strong>${results.length}</strong> 条相关结果（本地缓存）`;
+                    }
+
                     renderLocalResults(results, keyword);
                     showSuccessTip(`找到 ${results.length} 条相关结果（本地缓存）`);
                     return;
@@ -3479,10 +3773,65 @@
             }
 
             console.log('😞 所有搜索方式均未找到结果');
+
+            const pageSubtitle = document.querySelector('.page-subtitle');
+            if (pageSubtitle) {
+                pageSubtitle.innerHTML = `未找到与 "<strong>${keyword}</strong>" 相关的内容`;
+            }
+
             showNoResultsWithSuggestions(keyword);
         }
 
-        // 计算搜索相关性得分
+        // 计算搜索相关性得分（增强版）
+        function calculateRelevanceEnhanced(cachedItem, keywords, allTextCombined) {
+            let score = 0;
+            const titleLower = cachedItem.title.toLowerCase();
+            const publisherLower = cachedItem.publisher.toLowerCase();
+            const songsLower = cachedItem.songs.map(s => s.toLowerCase());
+            const singersLower = cachedItem.singers.map(s => s.toLowerCase());
+            const tagsLower = cachedItem.tags.map(t => t.toLowerCase());
+
+            keywords.forEach(keyword => {
+                if (titleLower === keyword) {
+                    score += 100;
+                } else if (titleLower.includes(keyword)) {
+                    score += 50;
+                }
+
+                if (songsLower.some(song => song === keyword)) {
+                    score += 90;
+                } else if (songsLower.some(song => song.includes(keyword))) {
+                    score += 40;
+                }
+
+                if (singersLower.some(singer => singer === keyword)) {
+                    score += 80;
+                } else if (singersLower.some(singer => singer.includes(keyword))) {
+                    score += 30;
+                }
+
+                if (publisherLower === keyword) {
+                    score += 70;
+                } else if (publisherLower.includes(keyword)) {
+                    score += 20;
+                }
+
+                if (tagsLower.some(tag => tag.includes(keyword))) {
+                    score += 15;
+                }
+
+                if (allTextCombined.includes(keyword) && !titleLower.includes(keyword) &&
+                    !songsLower.some(song => song.includes(keyword)) &&
+                    !singersLower.some(singer => singer.includes(keyword)) &&
+                    !publisherLower.includes(keyword)) {
+                    score += 10;
+                }
+            });
+
+            return score;
+        }
+
+        // 计算搜索相关性得分（保留原函数以兼容）
         function calculateRelevance(text, keyword) {
             let score = 0;
             if (text === keyword) score += 100;
@@ -3774,41 +4123,124 @@
             return pagination;
         }
 
-        // 跳转到指定搜索页
+        // 跳转到指定搜索页（页面跳转模式）
         function goToSearchPage(page, keyword) {
             if (!page || isNaN(page)) {
                 showErrorTip('页码参数错误！');
                 return;
             }
 
-            window.currentSearchKeyword = keyword;
+            const currentKeyword = keyword || getCurrentKeyword();
+            const url = `/music/api/rank/search?token=${encodeURIComponent(token)}&keyword=${encodeURIComponent(currentKeyword)}&category=${category}&pageNum=${page}&pageSize=${pageSize}`;
 
-            axios.get('/music/api/rank/search', {
+            console.log(`📄 跳转到第 ${page} 页`);
+            window.location.href = url;
+        }
+
+        function loadRankTags(rankId, containerElement) {
+            if (!rankId || !containerElement) {
+                console.warn('[loadRankTags] 缺少必要参数:', { rankId, containerElement });
+                return;
+            }
+
+            console.log(`[loadRankTags] 开始加载榜单 ${rankId} 的标签...`);
+
+            axios.get(`/music/api/ranks/${rankId}/tags`, {
                 params: {
                     token: token,
-                    keyword: keyword,
-                    category: category,
-                    pageNum: page,
-                    pageSize: pageSize
+                    userId: userId
                 }
             })
                 .then(response => {
-                    if (response.data.code === 200 || response.data.success) {
-                        const searchData = response.data.data;
-                        if (searchData && searchData.list && searchData.list.length > 0) {
-                            renderSearchResults(searchData, keyword);
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                    console.log(`[loadRankTags] 榜单 ${rankId} 标签加载成功:`, response.data);
+
+                    if (response.data && response.data.code === 200) {
+                        const tags = response.data.data || [];
+                        containerElement.innerHTML = '';
+
+                        if (tags && tags.length > 0) {
+                            // 限制最多显示3个标签
+                            const displayTags = tags.slice(0, 3);
+                            displayTags.forEach((tag, index) => {
+                                const tagSpan = document.createElement('span');
+                                tagSpan.className = 'rank-tag-item';
+                                tagSpan.textContent = tag.tagName || tag.tagId || '标签';
+                                tagSpan.title = tag.tagName || tag.tagId || '标签';
+                                tagSpan.dataset.tagIndex = index;
+                                tagSpan.dataset.tagId = tag.tagId;
+                                containerElement.appendChild(tagSpan);
+                            });
+                            containerElement.style.display = 'flex';
+                            console.log(`[loadRankTags] 榜单 ${rankId} 已显示 ${displayTags.length} 个标签`);
                         } else {
-                            showNoResults(keyword);
+                            containerElement.style.display = 'none';
+                            console.log(`[loadRankTags] 榜单 ${rankId} 无关联标签`);
                         }
                     } else {
-                        showErrorTip('加载失败：' + (response.data.msg || '未知错误'));
+                        containerElement.style.display = 'none';
+                        console.warn(`[loadRankTags] 榜单 ${rankId} 返回异常:`, response.data);
                     }
                 })
                 .catch(error => {
-                    console.error('分页加载失败:', error);
-                    showErrorTip('加载失败：' + (error.response?.data?.msg || error.message));
+                    console.error(`[loadRankTags] 榜单 ${rankId} 标签加载失败:`, error);
+                    containerElement.style.display = 'none';
                 });
+        }
+
+        function initRankTagsForAllCards() {
+            console.log('[初始化] 开始加载所有榜单卡片的标签...');
+
+            // 方案：直接查找所有 rank-tags-container 元素，然后向上查找 rankId
+            const allTagContainers = document.querySelectorAll('.rank-tags-container');
+            let loadedCount = 0;
+
+            allTagContainers.forEach((container, index) => {
+                // 从容器向上查找包含 data-rank-id 的按钮或父元素
+                const rankButton = container.closest('.other-rank-card, .best-match-card, .playlist-card')
+                    ?.querySelector('[data-rank-id]')
+                    || container.parentElement?.querySelector('[data-rank-id]');
+
+                const rankId = rankButton?.dataset?.rankId;
+
+                if (rankId && container) {
+                    loadRankTags(rankId, container);
+                    loadedCount++;
+                    console.log(`[初始化] 容器 #${index}: 正在加载榜单 ${rankId} 的标签`);
+                }
+            });
+
+            if (loadedCount === 0) {
+                console.warn('[初始化] 未找到任何需要加载标签的榜单卡片');
+            } else {
+                console.log(`[初始化完成] 共发起 ${loadedCount} 个标签加载请求`);
+            }
+        }
+
+        // 缓存初始榜单数据
+        function cacheInitialData() {
+            const rankings = document.querySelectorAll('.ranking-item');
+            if (rankings.length === 0) {
+                console.log('⚠️ 页面无榜单数据可缓存');
+                return;
+            }
+
+            window.cachedRankings = [];
+            rankings.forEach((item) => {
+                const title = item.querySelector('h3')?.textContent || '';
+                const songs = Array.from(item.querySelectorAll('.song-name')).map(el => el.textContent);
+                const singers = Array.from(item.querySelectorAll('.singer-name')).map(el => el.textContent);
+                const publisher = item.querySelector('.publisher-btn')?.textContent?.replace('发布人：', '') || '';
+
+                window.cachedRankings.push({
+                    element: item,
+                    title: title,
+                    songs: songs,
+                    singers: singers,
+                    publisher: publisher
+                });
+            });
+
+            console.log(`💾 已缓存 ${window.cachedRankings.length} 条榜单数据`);
         }
 
         // 支持回车键搜索
@@ -3822,7 +4254,17 @@
                     }
                 });
 
-                if (keyword) {
+                const urlParams = new URLSearchParams(window.location.search);
+                const urlKeyword = urlParams.get('keyword');
+                if (urlKeyword && urlKeyword.trim()) {
+                    keyword = urlKeyword.trim();
+                    searchInput.value = keyword;
+                    const subtitleEl = document.querySelector('.page-subtitle');
+                    if (subtitleEl) {
+                        subtitleEl.innerHTML = `寻找到与 &quot;<span style=&quot;color: #ffe4a4; font-weight: bold;&quot;>${keyword}</span>&quot; 相关的内容`;
+                    }
+                    console.log(`📝 从 URL 加载关键词：${keyword}`);
+                } else if (keyword) {
                     searchInput.value = keyword;
                 }
             }
@@ -3854,6 +4296,9 @@
 
             // 初始化播放器
             initMusicPlayer();
+
+            // 初始化所有榜单的标签
+            initRankTagsForAllCards();
 
             // 初始化 AI 助手
             if (typeof MusicAIAgent !== 'undefined') {
@@ -3904,6 +4349,38 @@
                     const collectBtn = e.target.closest('.collect-btn');
                     const rankId = collectBtn.dataset.rankId;
                     collectRanking(rankId, collectBtn);
+                    e.stopPropagation();
+                }
+            });
+
+            // 5. 关注发布者按钮点击事件
+            document.addEventListener('click', function (e) {
+                const followBtn = e.target.closest('.btn-follow-publisher');
+                if (followBtn) {
+                    console.log('[关注按钮] 点击事件触发');
+                    console.log('[关注按钮] 按钮完整属性:', {
+                        username: followBtn.dataset.username,
+                        userId: followBtn.dataset.userId,
+                        followed: followBtn.dataset.followed,
+                        classList: Array.from(followBtn.classList)
+                    });
+
+                    const username = followBtn.dataset.username;
+                    const userId = followBtn.dataset.userId;
+
+                    console.log('[关注按钮] 提取参数:', { username, userId });
+
+                    if (!username) {
+                        console.error('[关注按钮] ❌ 缺少用户名参数');
+                        showErrorTip("关注失败：缺少用户名信息");
+                        return;
+                    }
+
+                    if (followBtn.classList.contains('followed')) {
+                        unfollowPublisher(userId, username, followBtn);
+                    } else {
+                        followPublisher(userId, username, followBtn);
+                    }
                     e.stopPropagation();
                 }
             });
@@ -4096,10 +4573,46 @@
                 }
             });
 
+            // ==================== 初始化关注按钮状态 ====================
+            function initFollowButtonStates() {
+                console.log('[初始化] 开始设置关注按钮初始状态...');
+
+                const allFollowButtons = document.querySelectorAll('.btn-follow-publisher');
+                let initializedCount = 0;
+
+                allFollowButtons.forEach((btn, index) => {
+                    const followedAttr = btn.dataset.followed;
+                    const userId = btn.dataset.userId;
+                    const username = btn.dataset.username;
+
+                    if (followedAttr === 'true') {
+                        btn.classList.add('followed');
+                        const spanEl = btn.querySelector('span');
+                        if (spanEl) {
+                            spanEl.textContent = '已关注';
+                        } else {
+                            btn.textContent = '已关注';
+                        }
+                        initializedCount++;
+
+                        console.log(`[初始化] 按钮 #${index}: 用户 ${username}(ID:${userId}) → 已关注`);
+                    } else {
+                        console.log(`[初始化] 按钮 #${index}: 用户 ${username}(ID:${userId}) → 关注`);
+                    }
+                });
+
+                console.log(`[初始化完成] 共处理 ${allFollowButtons.length} 个按钮，其中 ${initializedCount} 个为已关注状态`);
+            }
+
+            // 初始化关注按钮状态
+            initFollowButtonStates();
+
             console.log("页面加载成功，所有按钮事件已绑定");
+
+            cacheInitialData();
         });
     </script>
-
+    <script th:src="@{/js/battle-report.js}"></script>
 </body>
 
 </html>

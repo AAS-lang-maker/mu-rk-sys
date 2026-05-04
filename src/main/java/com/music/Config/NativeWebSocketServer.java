@@ -67,46 +67,31 @@ public class NativeWebSocketServer {
         }
 
         int count = onlineCount.decrementAndGet();
-        System.out.println("有一连接关闭，当前连接数：" + count);
+        System.out.println("有一连接关闭    ，当前连接数：" + count);
         System.out.println("用户 " + normalizedUserId + " 断开连接，当前连接数：" + clients.size()); // 4. 使用 clients.size() 获取当前连接数
 
     }
 
     @OnMessage
-    public void onMessage(String message, Session session, @PathParam("userId") String userId) throws IOException {
-        System.out.println("收到客户端消息: " + message);
+    public void onMessage(String message,
+                          Session session,
+                          @PathParam("userId") String userId) throws IOException {
 
-        // 👇 加上这一行：后端收到消息后，原样发回给客户端
-        try {
-            session.getBasicRemote().sendText("服务端收到了你的消息: " + message);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         System.out.println("收到用户 " + userId + " 的消息: " + message);
 
-        // 简单测试：假设消息内容是 "to:1002:你好啊"，我们就发给 1002
         if (message.startsWith("to:")) {
-            String[] parts = message.split(":", 3); // 分割字符串
-            if (parts.length == 3) {
-                String targetId = parts[1]; // 目标用户ID
-                String content = parts[2];  // 实际内容
-                Session session1 = clients.get(targetId);
-                if (session1 != null) {
-                    session1.getBasicRemote().sendText("来自 " + userId + " 的私信: " + content);
-                } else {
-                    System.out.println("用户 " + targetId + " 不在线！");
-                }
 
-                sendToUser(targetId, "来自 " + userId + " 的私信: " + content);
-            }
-        }
-        // 👇 加上这一行：后端收到消息后，原样发回给客户端
-        try {
-            session.getBasicRemote().sendText("服务端收到了你的消息: " + message);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            String[] parts = message.split(":", 3);
 
+            String targetId = parts[1];
+            String content = parts[2];
+
+            sendToUser(targetId, content); // ← 这里只发纯 JSON
+
+        } else {
+
+            session.getBasicRemote().sendText(message);
+        }
     }
 
     @OnError

@@ -1,9 +1,16 @@
 package com.music.Service;
 
-import jakarta.servlet.http.HttpServletResponse;
-
-import java.io.UnsupportedEncodingException;
+import com.music.pojo.Song;
+import java.io.File;
 
 public interface SongService {
- void playSong(Integer songId, HttpServletResponse response) throws UnsupportedEncodingException;
+ /**
+  * 根据歌曲ID获取歌曲信息和对应的音频文件
+  */
+ Song getSongById(Integer songId);
+
+ /**
+  * 获取歌曲对应的音频文件
+  */
+ File getSongFile(Song song);
 }

@@ -15,6 +15,9 @@ spring:
     encoding: UTF-8
     cache: false
     mode: HTML
+  mvc:
+    async:
+      request-timeout: 30000 # 异步请求超时时间，单位毫秒（30秒）
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver # MySQL8.0驱动（5.7用com.mysql.jdbc.Driver）
     url: jdbc:mysql://localhost:3306/music_db?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true

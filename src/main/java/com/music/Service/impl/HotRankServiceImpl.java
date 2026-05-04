@@ -109,7 +109,7 @@ public class HotRankServiceImpl implements HotRankService {
      * 更新热度并发送战报
      */
     // 1. 加上 @Async，确保不阻塞主线程
-    @Async
+    @Async("rankTask")
     @Override
     public void updateHotRank(Integer rankId) {
         if (rankId == null) {

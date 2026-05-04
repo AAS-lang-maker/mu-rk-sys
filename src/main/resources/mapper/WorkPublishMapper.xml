@@ -67,6 +67,7 @@
         <result property="voteCount" column="vote_count"/>
         <result property="loveCount" column="love_count"/>
         <result property="username" column="username"/>
+        <result property="userId" column="user_id"/>
         <result property="publishTime" column="publish_time"/>
         <!-- 子查询映射：把同一个榜单下的歌曲映射到songList列表 -->
         <collection property="rankSongList" ofType="com.music.pojo.RankSong">
@@ -78,9 +79,9 @@
         </collection>
     </resultMap>
         <select id="selectSearch" resultMap="MyRankWithSongResultMap">
-            select p.rank_id,p.rank_name,p.total_vote as vote_count,p.total_love as love_count
+            select p.rank_id,p.rank_name,p.user_id,u.username,p.total_vote as vote_count,p.total_love as love_count
             ,p.publish_time,r.rs_id,r.ranking,r.rank_update_time,s.song_name,si.singer_name from
-            (select pe.rank_id,pe.rank_name,ifnull(sum(v.vote),0) as total_vote,ifnull(sum(l.love),0) as total_love,
+            (select pe.rank_id,pe.rank_name,pe.user_id,ifnull(sum(v.vote),0) as total_vote,ifnull(sum(l.love),0) as total_love,
             pe.publish_time from personal_rank as pe left join vote_record as v
             on pe.rank_id = v.rank_id left join love_record as l on pe.rank_id = l.rank_id
             where pe.category_id=#{category}
@@ -94,9 +95,10 @@
             </if>
             <!--if语句必须在分页操作之后，否则有可能搜索的目标信息在当前页面之后或者之前-->
             <!--多多括号，分清and，or。多多(())-->
-            group by pe.rank_id,pe.rank_name,pe.publish_time
+            group by pe.rank_id,pe.rank_name,pe.publish_time,pe.user_id
             order by pe.publish_time asc
             limit #{pageSize} offset #{offset}) as p
+            left join user u on p.user_id = u.user_id
             left join rank_song as r on p.rank_id=r.rank_id
             left join song as s on r.song_id = s.song_id
             left join singer as si on s.singer_id = si.singer_id

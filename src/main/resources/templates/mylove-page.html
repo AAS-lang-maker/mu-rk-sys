@@ -11,8 +11,12 @@
     <title>我的收藏</title>
     <link rel="icon" href="data:;base64,iVBORw0KGgo">
     <link rel="stylesheet" th:href="@{/player/music-player.css}">
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Manrope:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/battle-report.css}">
     <style>
         * {
             margin: 0;
@@ -227,7 +231,7 @@
 
         .my-tags-btn {
             background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
-            padding: 12px 20px;
+            padding: 10px 19px;
             border-radius: 12px;
             display: flex;
             align-items: center;
@@ -379,6 +383,16 @@
             transform: scale(1.05);
         }
 
+        .action-btn[onclick*="showCommonLove"]:hover {
+            background-color: rgba(99, 102, 241, 0.15);
+            color: #a5b4fc;
+            transform: scale(1.08);
+        }
+
+        .action-btn[onclick*="showCommonLove"]:active {
+            transform: scale(0.95);
+        }
+
         /* ==================== Song List ==================== */
         .song-list-section {
             margin-bottom: 48px;
@@ -425,8 +439,8 @@
         .play-icon-hidden {
             opacity: 0;
             transition: opacity 0.2s ease;
-            background:none;
-            border:none;
+            background: none;
+            border: none;
         }
 
         .song-item:hover .play-icon-hidden {
@@ -467,13 +481,47 @@
             transition: color 0.2s ease;
         }
 
+        /* ==================== Rank Tags Container ==================== */
+        .rank-tags-container {
+            display: flex;
+            gap: 8px;
+            flex: 1;
+            min-width: 0;
+            max-width: calc(100% - 120px);
+        }
+
+        .rank-tag-item {
+            flex: 1;
+            padding: 6px 12px;
+            background: rgba(49, 53, 60, 0.5);
+            border: 1px solid rgba(77, 70, 53, 0.15);
+            border-radius: 8px;
+            font-size: 10px;
+            color: #a8adb8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: default;
+            transition: all 200ms ease;
+            font-family: 'Manrope', sans-serif;
+            min-width: 0;
+        }
+
+        .rank-tag-item:hover {
+            border-color: rgba(255, 228, 164, 0.4);
+            color: #ffe4a4;
+            background: rgba(49, 53, 60, 0.8);
+        }
+
         /* ==================== Right Panel (Fixed) ==================== */
         .right-panel {
             position: fixed;
             top: 10px;
             right: 15px;
             bottom: 106px;
-            width: calc((100% - 256px - 32px) * 5 / 12);
+            width: calc((100% - 265px - 32px) * 5 / 12);
             display: flex;
             flex-direction: column;
             gap: 15px;
@@ -854,6 +902,39 @@
             line-height: 1.6;
         }
 
+        .comment-like-btn {
+            color: rgba(209, 197, 175, 0.6);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            transition: color 200ms ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .comment-like-btn:hover {
+            color: #f0c64d;
+        }
+
+        .comment-like-btn.liked {
+            color: #f0c64d;
+        }
+
+        .comment-like-btn.liked .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .comment-like-btn .material-symbols-outlined {
+            font-size: 16px;
+        }
+
+        .comment-like-count {
+            font-size: 12px;
+            min-width: 12px;
+        }
+
         .drawer-footer {
             padding: 24px;
             background: rgba(24, 28, 34, 0.5);
@@ -914,6 +995,486 @@
         .submit-comment-btn .material-symbols-outlined {
             font-size: 18px;
             font-variation-settings: 'FILL' 1;
+        }
+
+        /* ==================== Follow/Fans Drawer ==================== */
+        .drawer-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .drawer-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .follow-fans-drawer {
+            position: fixed;
+            top: 0;
+            right: 0;
+            height: 100vh;
+            width: 500px;
+            background-color: #0a0e14;
+            border-left: 1px solid rgba(143, 118, 26, 0.15);
+            box-shadow: -10px 0 40px rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            transform: translateX(100%);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .follow-fans-drawer.open {
+            transform: translateX(0);
+        }
+
+        .follow-fans-drawer .drawer-header {
+            padding: 32px;
+            border-bottom: 1px solid rgba(77, 70, 53, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .follow-fans-drawer .drawer-title-group h2 {
+            font-size: 30px;
+            font-weight: bold;
+            color: #ffe4a4;
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: -0.05em;
+        }
+
+        .follow-fans-drawer .close-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(49, 53, 60, 0.6);
+            backdrop-filter: blur(20px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #a3a3a3;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .follow-fans-drawer .close-btn:hover {
+            color: #ffe4a4;
+            background-color: #31353c;
+        }
+
+        .follow-fans-drawer .close-btn .material-symbols-outlined {
+            font-size: 24px;
+        }
+
+        .follow-fans-drawer .drawer-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px;
+        }
+
+        .follow-fans-drawer .custom-scrollbar {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .user-row {
+            display: grid;
+            grid-template-columns: 3rem 1fr auto;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .user-row:hover {
+            background-color: #262a31;
+        }
+
+        .user-row .row-number {
+            font-size: 14px;
+            font-family: 'Space Grotesk', sans-serif;
+            color: #737373;
+        }
+
+        .user-row:hover .row-number {
+            color: #ffe4a4;
+        }
+
+        .user-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            overflow: hidden;
+            flex-shrink: 0;
+            border: 2px solid rgba(255, 228, 164, 0.2);
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .user-details .username {
+            font-size: 14px;
+            font-weight: bold;
+            color: #dfe2eb;
+        }
+
+        .user-row:hover .user-details .username {
+            color: #ffe4a4;
+        }
+
+        .user-details .user-bio {
+            font-size: 11px;
+            color: #737373;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            font-family: 'Manrope', sans-serif;
+        }
+
+        .user-row:hover .user-details .user-bio {
+            color: rgba(255, 228, 164, 0.6);
+        }
+
+        .follow-btn {
+            padding: 6px 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(143, 118, 26, 0.3);
+            background: transparent;
+            color: #8f761a;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+
+        .follow-btn:hover {
+            background: rgba(143, 118, 26, 0.1);
+            border-color: #8f761a;
+        }
+
+        .follow-btn.following {
+            background: rgba(143, 118, 26, 0.15);
+            color: #c9a962;
+            border-color: transparent;
+        }
+
+        .follow-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* ==================== Mutual Rank Drawer ==================== */
+        .mutual-rank-drawer {
+            position: fixed;
+            top: 40%;
+            right: 0;
+            transform: translateX(100%) translateY(-50%);
+            height: 80vh;
+            width: 100%;
+            max-width: 500px;
+            background-color: #0a0e14;
+            border-left: 1px solid rgba(143, 118, 26, 0.15);
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+            border-radius: 24px 0 0 24px;
+            overflow: hidden;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .mutual-rank-drawer.active {
+            transform: translateX(0) translateY(-50%);
+        }
+
+        .mutual-rank-drawer .drawer-header {
+            padding: 32px;
+            border-bottom: 1px solid rgba(77, 70, 53, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .mutual-rank-drawer .drawer-title-group h2 {
+            font-size: 30px;
+            font-weight: bold;
+            color: #ffe4a4;
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: -0.05em;
+        }
+
+        .mutual-rank-drawer .drawer-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 10px;
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: #737373;
+            margin-top: 8px;
+        }
+
+        .mutual-rank-drawer .meta-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background-color: #737373;
+        }
+
+        .mutual-rank-drawer .close-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(49, 53, 60, 0.6);
+            backdrop-filter: blur(20px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #a3a3a3;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .mutual-rank-drawer .close-btn:hover {
+            color: #ffe4a4;
+            background-color: #31353c;
+        }
+
+        .mutual-rank-drawer .drawer-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px;
+            max-height: calc(80vh - 180px);
+        }
+
+        .mutual-rank-drawer .song-row {
+            display: grid;
+            grid-template-columns: 3rem 1fr auto 4rem;
+            align-items: center;
+            padding: 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .mutual-rank-drawer .song-row:hover {
+            background-color: #262a31;
+        }
+
+        .mutual-rank-drawer .song-row.active {
+            border-left: 4px solid #ffe4a4;
+            background-color: rgba(255, 228, 164, 0.05);
+        }
+
+        .mutual-rank-drawer .row-number {
+            font-size: 14px;
+            font-family: 'Space Grotesk', sans-serif;
+            color: #737373;
+        }
+
+        .mutual-rank-drawer .song-row:hover .row-number,
+        .mutual-rank-drawer .song-row.active .row-number {
+            color: #ffe4a4;
+        }
+
+        .mutual-rank-drawer .song-details .name {
+            font-size: 14px;
+            font-weight: bold;
+            color: #dfe2eb;
+        }
+
+        .mutual-rank-drawer .song-row.active .song-details .name {
+            color: #ffe4a4;
+        }
+
+        .mutual-rank-drawer .song-details .artist {
+            font-size: 11px;
+            color: #737373;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            font-family: 'Manrope', sans-serif;
+            margin-top: 2px;
+        }
+
+        .mutual-rank-drawer .song-row.active .song-details .artist {
+            color: rgba(255, 228, 164, 0.6);
+        }
+
+        .mutual-rank-drawer .play-btn-small {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 228, 164, 0.2);
+            color: #ffe4a4;
+            background: none;
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .mutual-rank-drawer .song-row:hover .play-btn-small {
+            opacity: 1;
+        }
+
+        .mutual-rank-drawer .play-btn-small.active {
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+            color: #3d2e00;
+            opacity: 1;
+        }
+
+        .mutual-rank-drawer .song-duration {
+            font-size: 12px;
+            color: #737373;
+            font-family: 'Manrope', sans-serif;
+            text-align: right;
+        }
+
+        .mutual-rank-drawer .song-row.active .song-duration {
+            color: #ffe4a4;
+        }
+
+        .mutual-rank-drawer .drawer-footer {
+            padding: 32px;
+            background-color: #171717;
+            border-top: 1px solid rgba(143, 118, 26, 0.15);
+        }
+
+        .mutual-rank-drawer .footer-actions {
+            display: flex;
+            gap: 16px;
+        }
+
+        .mutual-rank-drawer .action-primary {
+            flex: 1;
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+            color: #3d2e00;
+            padding: 16px;
+            border-radius: 16px;
+            font-weight: bold;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 20px 25px -5px rgba(234, 179, 8, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .mutual-rank-drawer .action-primary:hover {
+            filter: brightness(1.1);
+        }
+
+        .mutual-rank-drawer .action-primary:active {
+            transform: scale(0.95);
+        }
+
+        .mutual-rank-drawer .action-secondary {
+            flex: 1;
+            border: 1px solid rgba(255, 228, 164, 0.2);
+            color: #ffe4a4;
+            padding: 16px;
+            border-radius: 16px;
+            font-weight: bold;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            background: none;
+            transition: all 0.3s ease;
+        }
+
+        .mutual-rank-drawer .action-secondary:hover {
+            background-color: rgba(255, 228, 164, 0.1);
+        }
+
+        .mutual-rank-drawer .action-secondary:active {
+            transform: scale(0.95);
+        }
+
+        /* Mutual Rank List Item Styles */
+        .rank-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 8px;
+        }
+
+        .rank-item:hover {
+            background-color: rgba(255, 228, 164, 0.08);
+        }
+
+        .rank-item-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .rank-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(240, 198, 77, 0.2) 0%, rgba(255, 228, 164, 0.1) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffe4a4;
+            flex-shrink: 0;
+        }
+
+        .rank-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .rank-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #dfe2eb;
+        }
+
+        .rank-item:hover .rank-name {
+            color: #ffe4a4;
+        }
+
+        .rank-count {
+            font-size: 11px;
+            color: #737373;
+            font-family: 'Manrope', sans-serif;
         }
 
         /* ==================== Bottom Player Bar ==================== */
@@ -1072,7 +1633,8 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-top: 40px;
+            width: 530px;
+            margin: 40px auto 0;
             pointer-events: auto;
             gap: 8px;
         }
@@ -1105,6 +1667,18 @@
         .pagination button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+        }
+
+        .pagination .ellipsis {
+            background: #1c2026;
+            border: 1px solid rgba(77, 70, 53, 0.3);
+            color: #dfe2eb;
+            border-radius: 8px;
+            padding: 8px 12px;
+            cursor: default;
+            font-family: 'Manrope', sans-serif;
+            font-size: 0.875rem;
+            pointer-events: none;
         }
 
         /* ==================== Empty State ==================== */
@@ -1150,6 +1724,7 @@
             background: #00C851;
             color: #fff;
         }
+
         .typing-cursor {
             display: inline-block;
             margin-left: 2px;
@@ -1158,8 +1733,16 @@
         }
 
         @keyframes blink {
-            0%,50% { opacity:1; }
-            51%,100% { opacity:0; }
+
+            0%,
+            50% {
+                opacity: 1;
+            }
+
+            51%,
+            100% {
+                opacity: 0;
+            }
         }
     </style>
     <script th:src="@{/player/music-player.js}"></script>
@@ -1199,7 +1782,8 @@
                 <span class="nav-text">热门榜单</span>
             </button>
             <button class="nav-item active" id="navMyLove">
-                <span class="material-symbols-outlined nav-icon" style="font-variation-settings: 'FILL' 1;">favorite</span>
+                <span class="material-symbols-outlined nav-icon"
+                    style="font-variation-settings: 'FILL' 1;">favorite</span>
                 <span class="nav-text">我的收藏</span>
             </button>
         </nav>
@@ -1219,10 +1803,20 @@
                     <h2>我的收藏</h2>
                     <p>您珍藏的所有声音档案都在这里。</p>
                 </div>
-                <button class="my-tags-btn gold-gradient gold-glow">
-                    <span class="material-symbols-outlined">label</span>
-                    My tags
-                </button>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <button class="action-btn" title="关注" style="width: auto; padding: 0 16px;">
+                        <span class="material-symbols-outlined">person_add</span>
+                        <span>关注</span>
+                    </button>
+                    <button class="action-btn" title="粉丝" style="width: auto; padding: 0 16px;">
+                        <span class="material-symbols-outlined">group</span>
+                        <span>粉丝</span>
+                    </button>
+                    <button class="my-tags-btn gold-gradient gold-glow">
+                        <span class="material-symbols-outlined">label</span>
+                        My tags
+                    </button>
+                </div>
             </header>
 
             <!-- Playlist Feed with Thymeleaf Loop -->
@@ -1232,7 +1826,8 @@
                     <!-- Card Header: Cover + Info -->
                     <div class="card-header">
                         <div class="card-cover">
-                            <img alt="Publisher" src="https://tse4-mm.cn.bing.net/th/id/OIP-C.YzVD8zb817n7AdFqtsY46wHaHS?w=183&h=180&c=7&r=0&o=5&dpr=2&pid=1.7">
+                            <img alt="Publisher"
+                                src="https://tse4-mm.cn.bing.net/th/id/OIP-C.YzVD8zb817n7AdFqtsY46wHaHS?w=183&h=180&c=7&r=0&o=5&dpr=2&pid=1.7">
                             <div class="card-cover-overlay">
                                 <span class="material-symbols-outlined">play_circle</span>
                             </div>
@@ -1244,11 +1839,17 @@
                                 <p th:text="|更新时间: ${ranking.publishTime}|">更新时间：2024-05-20 04:32</p>
                             </div>
                             <div class="card-actions">
-                                <button class="action-btn" th:data-rank-id="${ranking.rankId}" onclick="toggleVote(this)">
+                                <button class="action-btn" th:data-rank-id="${ranking.rankId}"
+                                    onclick="toggleVote(this)">
                                     <span class="material-symbols-outlined">favorite</span>
                                 </button>
-                                <button class="action-btn" th:data-rank-id="${ranking.rankId}" onclick="toggleLove(this)">
+                                <button class="action-btn" th:data-rank-id="${ranking.rankId}"
+                                    onclick="toggleLove(this)">
                                     <span class="material-symbols-outlined">star</span>
+                                </button>
+                                <button class="action-btn" th:data-rank-id="${ranking.rankId}"
+                                    onclick="showCommonLove(this)">
+                                    <span class="material-symbols-outlined">group</span>
                                 </button>
                             </div>
                         </div>
@@ -1256,39 +1857,45 @@
 
                     <!-- Song List -->
                     <div class="song-list-section">
-                        <div class="song-item" th:each="song : ${ranking.rankSongList}" th:data-song-id="${song.songId}">
+                        <div class="song-item" th:each="song : ${ranking.rankSongList}"
+                            th:data-song-id="${song.songId}">
                             <div class="song-item-left">
                                 <span class="song-name" th:text="${song?.songName}">歌曲名称</span>
                                 <span class="singer-name" th:text="${song.singerName}">歌手名称</span>
                             </div>
                             <button class="play-btn play-icon-hidden" th:data-song-id="${song.songId}"
-                                th:data-song-name="${song.songName}"
-                                th:data-singer-name="${song.singerName}">
+                                th:data-song-name="${song.songName}" th:data-singer-name="${song.singerName}">
                                 <span class="material-symbols-outlined">play_arrow</span>
                             </button>
                         </div>
                     </div>
 
-                    <!-- View Comments Button -->
-                    <div style="display: flex; justify-content: flex-start;">
-                        <button class="view-comments-btn" onclick="document.getElementById('comment-drawer').classList.add('open')">
+                    <!-- View Comments Button + Tags -->
+                    <div style="display: flex; justify-content: flex-start; align-items: center; gap: 12px;">
+                        <button class="view-comments-btn"
+                            onclick="document.getElementById('comment-drawer').classList.add('open')">
                             <span class="material-symbols-outlined">chat</span>
                             查看评论
                         </button>
+                        <!-- Rank Tags Container (动态加载) -->
+                        <div class="rank-tags-container" style="display: none;"></div>
                     </div>
                 </div>
             </div>
 
             <!-- Pagination -->
-            <div class="pagination" th:if="${myloveSongs != null}">
-                <button th:disabled="${myloveSongs.pageNum == 1}"
+            <div class="pagination" id="pagination-container" th:if="${myloveSongs != null}">
+                <script th:inline="javascript">
+                    window.__PAGINATION_DATA__ = {
+                        currentPage: [[${ myloveSongs.pageNum }]],
+                        totalPages: [[${ myloveSongs.pages }]],
+                        total: [[${ myloveSongs.total }]]
+                    };
+                </script>
+                <button class="prev-btn" th:disabled="${myloveSongs.pageNum == 1}"
                     th:data-page="${myloveSongs.pageNum - 1}">上一页</button>
-
-                <button th:each="i : ${#numbers.sequence(1, myloveSongs.pages)}"
-                    th:class="${myloveSongs.pageNum == i ? 'active' : ''}" th:data-page="${i}"
-                    th:text="${i}">1</button>
-
-                <button th:disabled="${myloveSongs.pageNum == myloveSongs.pages}"
+                <div id="page-buttons-container"></div>
+                <button class="next-btn" th:disabled="${myloveSongs.pageNum == myloveSongs.pages}"
                     th:data-page="${myloveSongs.pageNum + 1}">下一页</button>
             </div>
 
@@ -1306,38 +1913,27 @@
 
     <!-- ==================== Right Fixed Panel ==================== -->
     <div class="right-panel">
-        <!-- Common Friends Module -->
-        <div class="panel-module glass">
-            <div class="module-header">
-                <div class="module-header-left">
-                    <div class="module-icon-circle">
-                        <span class="material-symbols-outlined">group</span>
-                    </div>
-                    <h3 class="module-title">共同好友推荐</h3>
-                </div>
-            </div>
-            <div class="module-body">
-                <div class="friend-item">
-                    <div class="friend-left">
-
-                        <div class="friend-info">
-                            <p>Cyber_Walker</p>
-                            <p>共同爱好：Techno</p>
-                        </div>
-                    </div>
-                    <button class="add-friend-btn gold-glow">
-                        <span class="material-symbols-outlined">person_add</span>
-                    </button>
-                </div>
-            </div>
-        </div>
+        <!-- Common Collected Ranks Module -->
+        <!--        <div class="panel-module glass">-->
+        <!--            <div class="module-header">-->
+        <!--                <div class="module-header-left">-->
+        <!--                    <div class="module-icon-circle">-->
+        <!--                        <span class="material-symbols-outlined">library_music</span>-->
+        <!--                    </div>-->
+        <!--                    <h3 class="module-title">共同收藏榜单</h3>-->
+        <!--                </div>-->
+        <!--            </div>-->
+        <!--            <div class="module-body" id="mutual-ranks-list">-->
+        <!--            </div>-->
+        <!--        </div>-->
 
         <!-- AI Recommendation Assistant Module -->
         <div class="panel-module ai-module glass">
             <div class="module-header" style="background: rgba(38, 42, 49, 0.5);">
                 <div class="module-header-left">
                     <div class="module-icon-circle">
-                        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+                        <span class="material-symbols-outlined"
+                            style="font-variation-settings: 'FILL' 1;">smart_toy</span>
                     </div>
                     <div>
                         <h3 class="module-title">AI 推荐助手</h3>
@@ -1369,7 +1965,8 @@
         <!-- Drawer Header -->
         <div class="drawer-header">
             <h3>榜单评论</h3>
-            <button class="drawer-close-btn" onclick="document.getElementById('comment-drawer').classList.remove('open')">
+            <button class="drawer-close-btn"
+                onclick="document.getElementById('comment-drawer').classList.remove('open')">
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
@@ -1379,7 +1976,8 @@
             <!-- Comment Item 1 -->
             <div class="comment-entry">
                 <div class="comment-avatar">
-                    <img alt="avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYFiPONoMVIQKy6-lIS_7xOaziYWSq6p-9TYC79am_RUHavIG6xvPdaA4NP-lhQimzJ-1-q6BJaZ2ldfbLgUoiey6-mF2a1mOpJxaLHplZuMtF85dDBAmARKGrZmThu28t-8JK1HWGmFyE8S-y3TI1gW49vwmImWRfwy8E7VqZywo6AhuHGFpfR2dFycBpLe4ULnP3DNmWjNZM5X54ACuyzBwQOyQDdrdBeVkNUqKoOVmQUtWQcjKCVl9yQKRjrPAA_eqUF4DJIjU">
+                    <img alt="avatar"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYFiPONoMVIQKy6-lIS_7xOaziYWSq6p-9TYC79am_RUHavIG6xvPdaA4NP-lhQimzJ-1-q6BJaZ2ldfbLgUoiey6-mF2a1mOpJxaLHplZuMtF85dDBAmARKGrZmThu28t-8JK1HWGmFyE8S-y3TI1gW49vwmImWRfwy8E7VqZywo6AhuHGFpfR2dFycBpLe4ULnP3DNmWjNZM5X54ACuyzBwQOyQDdrdBeVkNUqKoOVmQUtWQcjKCVl9yQKRjrPAA_eqUF4DJIjU">
                 </div>
                 <div class="comment-body">
                     <div class="comment-top">
@@ -1387,13 +1985,20 @@
                         <span class="comment-time">2小时前</span>
                     </div>
                     <p class="comment-text">这套歌单的深夜氛围感拉满了，特别适合加班的时候听，很有赛博朋克的代入感。</p>
+                    <div class="comment-actions-bar">
+                        <button class="comment-like-btn" onclick="toggleCommentLike(1, this)">
+                            <span class="material-symbols-outlined">thumb_up</span>
+                            <span class="comment-like-count">12</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
             <!-- Comment Item 2 -->
             <div class="comment-entry">
                 <div class="comment-avatar">
-                    <img alt="avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4c2H2dN9oBGOhtbhL89Hmj0l0X9EKli74nX9Twua8lo9hnu-IJbBeg-QgUO31cYThfKzrjJKOgrAI3sAVC1rG42P2ax2-ZwHPSNednLQsnYP3TlQ0besuRy4jj3G65gO0JfmtEUIy1EvrNkylGN69txi-Vxojh7G9qmpvwKhazkOYaCibjdlyGTVpXWr9A_T53icclp9gdbCr9Tal-_l4YtBgKweDo3mcofzCtNKAKWmxdRv8y9-8cHRnNUXgPCXrYcAmeXS5Fz8">
+                    <img alt="avatar"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4c2H2dN9oBGOhtbhL89Hmj0l0X9EKli74nX9Twua8lo9hnu-IJbBeg-QgUO31cYThfKzrjJKOgrAI3sAVC1rG42P2ax2-ZwHPSNednLQsnYP3TlQ0besuRy4jj3G65gO0JfmtEUIy1EvrNkylGN69txi-Vxojh7G9qmpvwKhazkOYaCibjdlyGTVpXWr9A_T53icclp9gdbCr9Tal-_l4YtBgKweDo3mcofzCtNKAKWmxdRv8y9-8cHRnNUXgPCXrYcAmeXS5Fz8">
                 </div>
                 <div class="comment-body">
                     <div class="comment-top">
@@ -1401,6 +2006,12 @@
                         <span class="comment-time">昨天</span>
                     </div>
                     <p class="comment-text">太赞了，期待博主更新更多的类似曲目！</p>
+                    <div class="comment-actions-bar">
+                        <button class="comment-like-btn" onclick="toggleCommentLike(2, this)">
+                            <span class="material-symbols-outlined">thumb_up</span>
+                            <span class="comment-like-count">8</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1415,6 +2026,61 @@
         </div>
     </div>
 
+    <!-- ==================== Follow/Fans Drawer ==================== -->
+    <div class="drawer-overlay" id="follow-fans-overlay"></div>
+    <div class="follow-fans-drawer" id="follow-fans-drawer">
+        <div class="drawer-header">
+            <div class="drawer-title-group">
+                <h2 id="follow-fans-title">我的关注</h2>
+            </div>
+            <button class="close-btn" id="follow-fans-close-btn">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <div class="drawer-content">
+            <div id="follow-fans-list" class="custom-scrollbar"></div>
+        </div>
+    </div>
+
+    <!-- ==================== Mutual Rank Drawer ==================== -->
+    <!-- Mutual Rank Drawer Overlay -->
+    <div class="drawer-overlay" id="mutual-rank-overlay" onclick="closeMutualRankDrawer()"></div>
+
+    <!-- Mutual Rank Details Drawer -->
+    <div class="mutual-rank-drawer" id="mutual-rank-drawer">
+        <div class="drawer-header">
+            <div class="drawer-title-group">
+                <h2 id="mutual-rank-title">榜单详情</h2>
+                <div class="drawer-meta">
+                    <span id="mutual-rank-song-count">50 首歌曲</span>
+                    <span class="meta-dot"></span>
+                    <span id="mutual-rank-duration">时长：3小时 12分</span>
+                </div>
+            </div>
+            <button class="close-btn" onclick="closeMutualRankDrawer()">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <div class="drawer-content custom-scrollbar">
+            <div id="mutual-rank-song-list">
+            </div>
+        </div>
+
+        <div class="drawer-footer">
+            <div class="footer-actions">
+                <button class="action-primary" onclick="playAllMutualRankSongs()">
+                    <span class="material-symbols-outlined">play_circle</span>
+                    播放全部
+                </button>
+                <button class="action-secondary">
+                    <span class="material-symbols-outlined">chat_bubble</span>
+                    查看评论
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- ==================== Bottom Player Bar ==================== -->
 
 
@@ -1422,6 +2088,267 @@
     <div id="music-player-container"></div>
 
     <script>
+        // ===================== API 服务层与工具函数 =====================
+
+        function getToken() {
+            const tokenKeys = ['token', 'authToken', 'access_token', 'jwt'];
+            for (const key of tokenKeys) {
+                const value = localStorage.getItem(key);
+                if (value && value.trim()) return value.trim();
+            }
+            const cookieMatch = document.cookie.match(/(?:^|;\s*)(token|authToken|access_token|jwt)=([^;]*)/);
+            if (cookieMatch && cookieMatch[2] && cookieMatch[2].trim()) return cookieMatch[2].trim();
+            const urlToken = getUrlParam('token');
+            if (urlToken && urlToken.trim()) {
+                localStorage.setItem('token', urlToken.trim());
+                return urlToken.trim();
+            }
+            return null;
+        }
+
+        // request 函数已在外部 /js/request.js 中定义（基于 axios 实例）
+        // 此处不再重复定义，避免 "Identifier 'request' has already been declared" 语法错误
+
+        function showToast(message, type = 'info') {
+            const toastContainer = document.getElementById('toast-container') || createToastContainer();
+            const toast = document.createElement('div');
+            toast.className = `toast-toast toast-${type}`;
+
+            const icons = {
+                success: '✓',
+                error: '✕',
+                warning: '⚠',
+                info: 'ℹ'
+            };
+
+            const colors = {
+                success: { bg: 'linear-gradient(135deg, #00C851 0%, #00e676 100%)', icon: '#fff' },
+                error: { bg: 'linear-gradient(135deg, #ff4444 0%, #ff6b6b 100%)', icon: '#fff' },
+                warning: { bg: 'linear-gradient(135deg, #ff9800 0%, #ffb74d 100%)', icon: '#fff' },
+                info: { bg: 'linear-gradient(135deg, #2196F3 0%, #64b5f6 100%)', icon: '#fff' }
+            };
+
+            const colorConfig = colors[type] || colors.info;
+
+            toast.style.cssText = `
+                position: relative;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 16px 24px;
+                border-radius: 12px;
+                background: ${colorConfig.bg};
+                color: ${colorConfig.icon};
+                font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+                font-size: 14px;
+                font-weight: 600;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(255, 228, 164, 0.2);
+                backdrop-filter: blur(10px);
+                min-width: 280px;
+                max-width: 420px;
+                transform: translateX(120%);
+                transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+                z-index: 99999;
+                overflow: hidden;
+            `;
+
+            toast.innerHTML = `
+                <span style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 24px;
+                    height: 24px;
+                    border-radius: 50%;
+                    background: rgba(255, 255, 255, 0.2);
+                    font-size: 16px;
+                    font-weight: bold;
+                    flex-shrink: 0;
+                ">${icons[type] || icons.info}</span>
+                <span style="flex: 1;">${message}</span>
+                <button onclick="this.parentElement.remove()" style="
+                    background: none;
+                    border: none;
+                    color: inherit;
+                    cursor: pointer;
+                    font-size: 18px;
+                    padding: 0 4px;
+                    opacity: 0.8;
+                    transition: opacity 0.2s;
+                " onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.8'">×</button>
+                <div style="
+                    position: absolute;
+                    bottom: 0;
+                    left: 0;
+                    height: 3px;
+                    background: rgba(255, 255, 255, 0.5);
+                    animation: toast-progress 3s linear forwards;
+                "></div>
+            `;
+
+            toastContainer.appendChild(toast);
+
+            requestAnimationFrame(() => {
+                toast.style.transform = 'translateX(0)';
+            });
+
+            setTimeout(() => {
+                toast.style.transform = 'translateX(120%)';
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 400);
+            }, 3000);
+
+            if (!document.getElementById('toast-progress-style')) {
+                const style = document.createElement('style');
+                style.id = 'toast-progress-style';
+                style.textContent = `
+                    @keyframes toast-progress {
+                        from { width: 100%; }
+                        to { width: 0%; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        }
+
+        function createToastContainer() {
+            const container = document.createElement('div');
+            container.id = 'toast-container';
+            container.style.cssText = `
+                position: fixed;
+                top: 24px;
+                right: 24px;
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+                z-index: 99998;
+                pointer-events: none;
+            `;
+            document.body.appendChild(container);
+            return container;
+        }
+
+        function showLoading(container, message = '加载中...') {
+            const targetEl = typeof container === 'string' ? document.querySelector(container) : container;
+            if (!targetEl) {
+                console.error('Loading 容器未找到:', container);
+                return null;
+            }
+
+            const loadingId = `loading-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+            const overlay = document.createElement('div');
+            overlay.id = loadingId;
+            overlay.className = 'loading-overlay';
+            overlay.style.cssText = `
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(16, 20, 26, 0.85);
+                backdrop-filter: blur(8px);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 20px;
+                z-index: 9999;
+                border-radius: inherit;
+                transition: opacity 0.3s ease;
+            `;
+
+            overlay.innerHTML = `
+                <div class="loading-spinner" style="
+                    width: 48px;
+                    height: 48px;
+                    border: 4px solid rgba(255, 228, 164, 0.2);
+                    border-top-color: #ffe4a4;
+                    border-radius: 50%;
+                    animation: spin 0.8s linear infinite;
+                "></div>
+                <div class="loading-text" style="
+                    color: #ffe4a4;
+                    font-family: 'Manrope', sans-serif;
+                    font-size: 14px;
+                    font-weight: 600;
+                    letter-spacing: 0.05em;
+                    text-transform: uppercase;
+                ">${message}</div>
+                <div class="loading-dots" style="
+                    display: flex;
+                    gap: 6px;
+                ">
+                    <span class="dot" style="
+                        width: 8px;
+                        height: 8px;
+                        background: #ffe4a4;
+                        border-radius: 50%;
+                        animation: bounce 1.4s ease-in-out infinite;
+                        animation-delay: 0s;
+                    "></span>
+                    <span class="dot" style="
+                        width: 8px;
+                        height: 8px;
+                        background: #ffe4a4;
+                        border-radius: 50%;
+                        animation: bounce 1.4s ease-in-out infinite;
+                        animation-delay: 0.2s;
+                    "></span>
+                    <span class="dot" style="
+                        width: 8px;
+                        height: 8px;
+                        background: #ffe4a4;
+                        border-radius: 50%;
+                        animation: bounce 1.4s ease-in-out infinite;
+                        animation-delay: 0.4s;
+                    "></span>
+                </div>
+            `;
+
+            targetEl.style.position = targetEl.style.position || 'relative';
+            targetEl.appendChild(overlay);
+
+            if (!document.getElementById('loading-animations-style')) {
+                const style = document.createElement('style');
+                style.id = 'loading-animations-style';
+                style.textContent = `
+                    @keyframes spin {
+                        to { transform: rotate(360deg); }
+                    }
+                    @keyframes bounce {
+                        0%, 80%, 100% {
+                            transform: scale(0.6);
+                            opacity: 0.6;
+                        }
+                        40% {
+                            transform: scale(1);
+                            opacity: 1;
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            return loadingId;
+        }
+
+        function hideLoading(containerOrId) {
+            let loadingEl;
+            if (typeof containerOrId === 'string' && containerOrId.startsWith('loading-')) {
+                loadingEl = document.getElementById(containerOrId);
+            } else {
+                const targetEl = typeof containerOrId === 'string' ? document.querySelector(containerOrId) : containerOrId;
+                if (targetEl) {
+                    loadingEl = targetEl.querySelector('.loading-overlay');
+                }
+            }
+
+            if (loadingEl) {
+                loadingEl.style.opacity = '0';
+                setTimeout(() => loadingEl.remove(), 300);
+            }
+        }
+
         // ===================== 全局核心配置（完全复用我的榜单页）=====================
         function getUrlParam(paramName) {
             const reg = new RegExp("(^|&)" + paramName + "=([^&]*)(&|$)");
@@ -1482,17 +2409,31 @@
 
         // ===================== 播放器核心逻辑（完全复用我的榜单页）=====================
         function initMusicPlayer() {
-            if (musicPlayer) return;
+            if (musicPlayer) {
+                console.log('⚠️ 播放器已初始化，跳过重复初始化');
+                return;
+            }
             try {
+                console.log('🎵 开始初始化音乐播放器...');
+                const container = document.getElementById('music-player-container');
+                if (!container) {
+                    console.warn('⚠️ 音乐播放器容器未找到，将自动创建');
+                }
+
                 musicPlayer = new MusicPlayer({
                     container: 'music-player-container',
-                    token: token,
-                    userId: userId
+                    token: token || '',
+                    userId: userId || ''
                 });
-                console.log("播放器初始化成功");
+                console.log("✅ 播放器初始化成功");
             } catch (e) {
-                console.error("播放器初始化失败:", e);
-                showErrorTip("播放器加载失败：" + e.message);
+                console.error("❌ 播放器初始化失败:", e);
+                musicPlayer = null;
+                try {
+                    showErrorTip("播放器加载失败：" + (e.message || '未知错误'));
+                } catch (toastErr) {
+                    console.error('❌ 显示错误提示失败:', toastErr);
+                }
             }
         }
 
@@ -1602,9 +2543,7 @@
                 commentItem.style.cssText = 'display:flex;gap:16px;padding:16px 0;border-bottom:1px solid rgba(77,70,53,0.15);';
 
                 commentItem.innerHTML = `
-                <div class="comment-avatar" style="width:40px;height:40px;border-radius:50%;overflow:hidden;flex-shrink:0;border:1px solid rgba(255,228,164,0.2);">
-                    <img alt="avatar" src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=user%20avatar&image_size=square" style="width:100%;height:100%;object-fit:cover;">
-                </div>
+
                 <div class="comment-body" style="flex-grow:1;display:flex;flex-direction:column;gap:4px;">
                     <div class="comment-top" style="display:flex;justify-content:space-between;align-items:center;">
                         <span class="comment-user" style="font-size:0.875rem;font-weight:700;color:#dfe2eb;">${comment.username || '匿名用户'}</span>
@@ -1612,9 +2551,13 @@
                     </div>
                     <p class="comment-text" style="font-size:0.875rem;color:rgba(209,197,175,0.8);line-height:1.6;">${comment.comContent || ''}</p>
                     <div class="comment-actions-bar">
+                        <button class="comment-like-btn ${comment.liked ? 'liked' : ''}" data-com-id="${comment.comId}" onclick="toggleCommentLike(${comment.comId}, this)">
+                            <span class="material-symbols-outlined">thumb_up</span>
+                            <span class="comment-like-count">${comment.likeCount || 0}</span>
+                        </button>
                         ${comment.userId === parseInt(userId) ?
-                            `<button class="comment-delete-btn" data-comment-id="${comment.comId}" style="background:transparent;border:none;color:rgba(209,197,175,0.6);padding:4px 8px;border-radius:8px;font-size:12px;cursor:pointer;">删除</button>` : ''
-                        }
+                        `<button class="comment-delete-btn" data-comment-id="${comment.comId}" style="background:transparent;border:none;color:rgba(209,197,175,0.6);padding:4px 8px;border-radius:8px;font-size:12px;cursor:pointer;">删除</button>` : ''
+                    }
                     </div>
                 </div>
             `;
@@ -1707,6 +2650,68 @@
                     console.error('删除评论失败:', error);
                     showErrorTip("删除评论失败：" + (error.response?.data?.msg || error.message));
                 });
+        }
+
+        function toggleCommentLike(commentId, btn) {
+            console.log('切换评论点赞状态，commentId:', commentId);
+
+            if (!token) {
+                showErrorTip("请先登录后再点赞！");
+                return;
+            }
+
+            const likeCountEl = btn.querySelector('.comment-like-count');
+            const originalCount = Number(likeCountEl.textContent) || 0;
+
+            btn.style.pointerEvents = 'none';
+
+            if (btn.classList.contains('liked')) {
+                axios.post(`/music/api/rank/deleteLike`, null, {
+                    params: {
+                        token: token,
+                        comId: commentId
+                    }
+                })
+                    .then(response => {
+                        console.log('取消点赞响应:', response.data);
+                        if (response.data.code === 200 || response.data.success) {
+                            btn.classList.remove('liked');
+                            likeCountEl.textContent = Math.max(0, originalCount - 1);
+                        } else {
+                            showErrorTip("取消点赞失败：" + (response.data.msg || '未知错误'));
+                        }
+                    })
+                    .catch(error => {
+                        console.error('取消点赞失败:', error);
+                        showErrorTip("取消点赞失败：" + (error.response?.data?.msg || error.message));
+                    })
+                    .finally(() => {
+                        btn.style.pointerEvents = '';
+                    });
+            } else {
+                axios.post(`/music/api/rank/like`, null, {
+                    params: {
+                        token: token,
+                        comId: commentId
+                    }
+                })
+                    .then(response => {
+                        console.log('点赞响应:', response.data);
+                        if (response.data.code === 200 || response.data.success) {
+                            btn.classList.add('liked');
+                            likeCountEl.textContent = originalCount + 1;
+                        } else {
+                            showErrorTip("点赞失败：" + (response.data.msg || '未知错误'));
+                        }
+                    })
+                    .catch(error => {
+                        console.error('点赞失败:', error);
+                        showErrorTip("点赞失败：" + (error.response?.data?.msg || error.message));
+                    })
+                    .finally(() => {
+                        btn.style.pointerEvents = '';
+                    });
+            }
         }
 
         function formatTime(time) {
@@ -2025,6 +3030,31 @@
             }
         }
 
+        function goToMyTags() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const token = urlParams.get('token') || localStorage.getItem('token') || '';
+                const userId = urlParams.get('userId') || urlParams.get('user_id') || localStorage.getItem('user_id') || '';
+
+                console.log('📌 收藏页跳转mytags参数：', { token, userId });
+
+                if (!token || !userId) {
+                    showErrorTip('登录信息失效，请重新登录');
+                    setTimeout(() => window.location.href = '/music/login.html', 1500);
+                    return;
+                }
+
+                const targetUrl = `/music/mytags.html?token=${encodeURIComponent(token)}&userId=${encodeURIComponent(userId)}`;
+                console.log('📌 收藏页最终跳转URL：', targetUrl);
+
+                window.location.href = targetUrl;
+
+            } catch (err) {
+                console.error('❌ 收藏页跳转mytags出错：', err);
+                showErrorTip('跳转失败：' + err.message);
+            }
+        }
+
         function goToPage(page) {
             const currentToken = localStorage.getItem('token') || getUrlParam('token');
             const currentUserId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
@@ -2033,45 +3063,61 @@
 
         // ===================== 全局评论区功能 =====================
         function loadGlobalComments() {
-            const commentList = document.getElementById('comment-list');
-            if (!commentList) return;
-
-            if (!token) {
-                commentList.innerHTML = '<p style="color: rgba(209, 197, 175, 0.7); text-align: center;">请先登录后查看评论</p>';
-                return;
-            }
-
-            commentList.innerHTML = '<p style="color: rgba(209, 197, 175, 0.7); text-align: center;">加载中...</p>';
-
-            const firstRankingItem = document.querySelector('.playlist-card');
-            const rankId = firstRankingItem ? firstRankingItem.dataset.rankId : null;
-
-            if (!rankId) {
-                commentList.innerHTML = '<p style="color: rgba(209, 197, 175, 0.7); text-align: center;">暂无收藏榜单，无法加载评论</p>';
-                return;
-            }
-
-            axios.get(`/music/api/rank/list`, {
-                params: {
-                    token: token,
-                    rankId: rankId,
-                    userId: userId
+            try {
+                console.log('💬 开始加载全局评论...');
+                const commentList = document.getElementById('comment-list');
+                if (!commentList) {
+                    console.log('⚠️ 全局评论容器未找到，跳过加载');
+                    return;
                 }
-            })
-                .then(response => {
-                    console.log('加载全局评论响应:', response.data);
-                    if (response.data.code === 200 || response.data.success) {
-                        const comments = response.data.data || response.data;
-                        renderGlobalComments(commentList, comments);
-                    } else {
-                        commentList.innerHTML = `<p style="color: rgba(209, 197, 175, 0.7); text-align: center;">查询评论失败：${response.data.msg || '未知错误'}</p>`;
-                        console.error('评论查询失败:', response.data);
-                    }
+
+                const currentToken = token || getToken();
+                if (!currentToken) {
+                    commentList.innerHTML = '<p style="color: rgba(209, 197, 175, 0.7); text-align: center;">请先登录后查看评论</p>';
+                    return;
+                }
+
+                commentList.innerHTML = '<p style="color: rgba(209, 197, 175, 0.7); text-align: center;">加载中...</p>';
+
+                const firstRankingItem = document.querySelector('.playlist-card');
+                const rankId = firstRankingItem ? firstRankingItem.dataset.rankId : null;
+
+                if (!rankId) {
+                    commentList.innerHTML = '<p style="color: rgba(209, 197, 175, 0.7); text-align: center;">暂无收藏榜单，无法加载评论</p>';
+                    return;
+                }
+
+                const currentUserId = userId || localStorage.getItem('user_id') || '';
+
+                axios.get(`/music/api/rank/list`, {
+                    params: {
+                        token: currentToken,
+                        rankId: rankId,
+                        userId: currentUserId
+                    },
+                    timeout: 10000
                 })
-                .catch(error => {
-                    console.error('加载评论失败:', error);
-                    commentList.innerHTML = `<p style="color: rgba(209, 197, 175, 0.7); text-align: center;">加载评论失败：${error.response?.data?.msg || error.message}</p>`;
-                });
+                    .then(response => {
+                        console.log('✅ 加载全局评论响应:', response.data);
+                        if (response.data.code === 200 || response.data.success) {
+                            const comments = response.data.data || response.data;
+                            renderGlobalComments(commentList, comments);
+                        } else {
+                            commentList.innerHTML = `<p style="color: rgba(209, 197, 175, 0.7); text-align: center;">查询评论失败：${response.data.msg || '未知错误'}</p>`;
+                            console.error('❌ 评论查询失败:', response.data);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('❌ 加载评论失败:', error);
+                        if (error.code === 'ECONNABORTED') {
+                            commentList.innerHTML = '<p style="color: rgba(209, 197, 175, 0.7); text-align: center;">加载超时，请稍后重试</p>';
+                        } else {
+                            commentList.innerHTML = `<p style="color: rgba(209, 197, 175, 0.7); text-align: center;">加载评论失败：${error.response?.data?.msg || error.message || '网络错误'}</p>`;
+                        }
+                    });
+            } catch (err) {
+                console.error('❌ loadGlobalComments 函数执行出错:', err);
+            }
         }
 
         function renderGlobalComments(container, comments) {
@@ -2091,9 +3137,7 @@
                 commentItem.className = 'comment-entry';
 
                 commentItem.innerHTML = `
-                <div class="comment-avatar" style="width:40px;height:40px;border-radius:50%;overflow:hidden;flex-shrink:0;border:1px solid rgba(255,228,164,0.2);">
-                    <img alt="avatar" src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=user%20avatar&image_size=square" style="width:100%;height:100%;object-fit:cover;">
-                </div>
+                
                 <div class="comment-body" style="flex-grow:1;display:flex;flex-direction:column;gap:4px;">
                     <div class="comment-top" style="display:flex;justify-content:space-between;align-items:center;">
                         <span class="comment-user" style="font-size:0.875rem;font-weight:700;color:#dfe2eb;">${comment.username || '匿名用户'}</span>
@@ -2101,9 +3145,13 @@
                     </div>
                     <p class="comment-text" style="font-size:0.875rem;color:rgba(209,197,175,0.8);line-height:1.6;">${comment.comContent || ''}</p>
                     <div class="comment-actions-bar">
+                        <button class="comment-like-btn ${comment.liked ? 'liked' : ''}" data-com-id="${comment.comId}" onclick="toggleCommentLike(${comment.comId}, this)">
+                            <span class="material-symbols-outlined">thumb_up</span>
+                            <span class="comment-like-count">${comment.likeCount || 0}</span>
+                        </button>
                         ${comment.userId === parseInt(userId) ?
-                            `<button class="comment-delete-btn" data-comment-id="${comment.comId}" style="background:transparent;border:none;color:rgba(209,197,175,0.6);padding:4px 8px;border-radius:8px;font-size:12px;cursor:pointer;">删除</button>` : ''
-                        }
+                        `<button class="comment-delete-btn" data-comment-id="${comment.comId}" style="background:transparent;border:none;color:rgba(209,197,175,0.6);padding:4px 8px;border-radius:8px;font-size:12px;cursor:pointer;">删除</button>` : ''
+                    }
                     </div>
                 </div>
             `;
@@ -2163,151 +3211,372 @@
                 });
         }
 
+        // ===================== 榜单标签加载功能 =====================
+        function loadRankTags(rankId, containerElement) {
+            if (!rankId || !containerElement) return;
+
+            const currentToken = getToken() || token;
+            const currentUserId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId') || userId;
+
+            axios.get(`/music/api/ranks/${rankId}/tags`, {
+                params: {
+                    token: currentToken,
+                    userId: currentUserId
+                }
+            })
+                .then(response => {
+                    console.log('加载榜单标签成功:', rankId, response.data);
+
+                    if (response.data && (response.data.code === 200 || response.data.success)) {
+                        const tags = response.data.data || [];
+                        containerElement.innerHTML = '';
+
+                        if (tags && tags.length > 0) {
+                            const displayTags = tags.slice(0, 3);
+                            displayTags.forEach((tag, index) => {
+                                const tagSpan = document.createElement('span');
+                                tagSpan.className = 'rank-tag-item';
+                                tagSpan.textContent = tag.tagName || tag.tagId || '标签';
+                                tagSpan.title = tag.tagName || tag.tagId || '标签';
+                                tagSpan.dataset.tagIndex = index;
+                                tagSpan.dataset.tagId = tag.tagId;
+                                containerElement.appendChild(tagSpan);
+                            });
+                            containerElement.style.display = 'flex';
+                        } else {
+                            containerElement.style.display = 'none';
+                        }
+                    } else {
+                        containerElement.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('加载榜单标签失败:', rankId, error);
+                    containerElement.style.display = 'none';
+                });
+        }
+
         // ===================== 事件委托绑定（修复事件优先级）=====================
         document.addEventListener('DOMContentLoaded', function () {
-            initMusicPlayer();
+            try {
+                console.log('🚀 mylove-page 开始初始化...');
 
-            loadGlobalComments();
+                initMusicPlayer();
 
-            renderUserNameFromLocalStorage();
+                loadGlobalComments();
 
-            initAvatarUpload();
+                renderUserNameFromLocalStorage();
 
-            // 抽屉外部点击关闭
-            window.addEventListener('click', function(e) {
-                const drawer = document.getElementById('comment-drawer');
-                const openButtons = document.querySelectorAll('[onclick*="comment-drawer"]');
-                let clickedButton = false;
-                openButtons.forEach(btn => { if(btn.contains(e.target)) clickedButton = true; });
+                initAvatarUpload();
 
-                if (!drawer.contains(e.target) && !clickedButton && drawer.classList.contains('open')) {
-                    drawer.classList.remove('open');
+                window.addEventListener('click', function (e) {
+                    try {
+                        const drawer = document.getElementById('comment-drawer');
+                        if (!drawer) return;
+                        const openButtons = document.querySelectorAll('[onclick*="comment-drawer"]');
+                        let clickedButton = false;
+                        openButtons.forEach(btn => { if (btn.contains(e.target)) clickedButton = true; });
+
+                        if (!drawer.contains(e.target) && !clickedButton && drawer.classList.contains('open')) {
+                            drawer.classList.remove('open');
+                        }
+                    } catch (err) {
+                        console.error('❌ 抽屉关闭事件处理出错:', err);
+                    }
+                });
+
+                function renderPagination() {
+                    const container = document.getElementById('pagination-container');
+                    if (!container) return;
+
+                    let currentPage, totalPages;
+
+                    // 方案1：从 Thymeleaf 内联脚本获取（最可靠）
+                    if (window.__PAGINATION_DATA__) {
+                        currentPage = window.__PAGINATION_DATA__.currentPage;
+                        totalPages = window.__PAGINATION_DATA__.totalPages;
+                    }
+                    // 方案2：从 data 属性获取（兼容旧版）
+                    else if (container.dataset.currentPage && !container.dataset.currentPage.includes('${')) {
+                        currentPage = parseInt(container.dataset.currentPage);
+                        totalPages = parseInt(container.dataset.totalPages);
+                    }
+                    // 方案3：从 URL 参数获取（最终备用）
+                    else {
+                        const urlParams = new URLSearchParams(window.location.search);
+                        currentPage = parseInt(urlParams.get('pageNum')) || 1;
+                        totalPages = 1; // 无法准确获取，保守估计
+                    }
+
+                    // 最终验证和默认值
+                    if (!currentPage || Number.isNaN(currentPage) || currentPage < 1) currentPage = 1;
+                    if (!totalPages || Number.isNaN(totalPages) || totalPages < 1) totalPages = 1;
+
+                    const pageButtonsContainer = document.getElementById('page-buttons-container');
+
+                    if (!pageButtonsContainer) return;
+
+                    pageButtonsContainer.innerHTML = '';
+
+                    let pagesToShow = [];
+
+                    if (totalPages <= 9) {
+                        for (let i = 1; i <= totalPages; i++) {
+                            pagesToShow.push(i);
+                        }
+                    } else {
+                        if (currentPage <= 4) {
+                            for (let i = 1; i <= 5; i++) {
+                                pagesToShow.push(i);
+                            }
+                            pagesToShow.push('...');
+                            pagesToShow.push(totalPages);
+                        } else if (currentPage >= totalPages - 3) {
+                            pagesToShow.push(1);
+                            pagesToShow.push('...');
+                            for (let i = totalPages - 4; i <= totalPages; i++) {
+                                pagesToShow.push(i);
+                            }
+                        } else {
+                            pagesToShow.push(1);
+                            pagesToShow.push('...');
+                            pagesToShow.push(currentPage - 1);
+                            pagesToShow.push(currentPage);
+                            pagesToShow.push(currentPage + 1);
+                            pagesToShow.push('...');
+                            pagesToShow.push(totalPages);
+                        }
+                    }
+
+                    pagesToShow.forEach(item => {
+                        if (item === '...') {
+                            const ellipsis = document.createElement('span');
+                            ellipsis.className = 'ellipsis';
+                            ellipsis.textContent = '...';
+                            pageButtonsContainer.appendChild(ellipsis);
+                        } else {
+                            const btn = document.createElement('button');
+                            btn.dataset.page = item;
+                            btn.textContent = item;
+                            if (item === currentPage) {
+                                btn.classList.add('active');
+                            }
+                            pageButtonsContainer.appendChild(btn);
+                        }
+                    });
+
+                    const prevBtn = container.querySelector('.prev-btn');
+                    const nextBtn = container.querySelector('.next-btn');
+
+                    if (prevBtn) {
+                        prevBtn.disabled = (currentPage === 1);
+                        prevBtn.dataset.page = currentPage - 1;
+                    }
+
+                    if (nextBtn) {
+                        nextBtn.disabled = (currentPage === totalPages);
+                        nextBtn.dataset.page = currentPage + 1;
+                    }
                 }
-            });
 
-            // 侧边栏导航按钮绑定
-            document.addEventListener('click', function (e) {
-                const target = e.target;
+                renderPagination();
 
-                if (target.closest('#navIndex')) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    let navToken = localStorage.getItem('token') || getUrlParam('token');
-                    let navUserId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
-                    window.location.href = `/music/index.html?token=${encodeURIComponent(navToken)}&userId=${encodeURIComponent(navUserId)}`;
-                    return;
+                document.addEventListener('click', function (e) {
+                    try {
+                        const target = e.target;
+
+                        if (target.closest('#navIndex')) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            let navToken = localStorage.getItem('token') || getUrlParam('token');
+                            let navUserId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
+                            window.location.href = `/music/index.html?token=${encodeURIComponent(navToken)}&userId=${encodeURIComponent(navUserId)}`;
+                            return;
+                        }
+
+                        if (target.closest('#navHome')) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            goToPu();
+                            return;
+                        }
+
+                        if (target.closest('.my-tags-btn')) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            goToMyTags();
+                            return;
+                        }
+
+                        if (target.closest('#navSearch')) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            let navToken = localStorage.getItem('token') || getUrlParam('token');
+                            let navUserId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
+                            let navCategory = localStorage.getItem('category') || getUrlParam('category') || '1';
+                            window.location.href = `/music/api/rank/sou?token=${encodeURIComponent(navToken)}&category=${navCategory}&userId=${encodeURIComponent(navUserId)}`;
+                            return;
+                        }
+
+                        if (target.closest('#navMyRank')) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            let navToken = localStorage.getItem('token') || getUrlParam('token');
+                            let navUserId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
+                            window.location.href = `/music/api/mine/myrank?token=${encodeURIComponent(navToken)}&userId=${encodeURIComponent(navUserId)}`;
+                            return;
+                        }
+
+                        if (target.closest('#navHotRank')) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            let navToken = localStorage.getItem('token') || getUrlParam('token');
+                            let navUserId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
+                            window.location.href = `/music/hotrank.html?token=${encodeURIComponent(navToken)}&userId=${encodeURIComponent(navUserId)}`;
+                            return;
+                        }
+
+                        if (target.closest('#navAdd')) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            let navToken = localStorage.getItem('token') || getUrlParam('token');
+                            let navUserId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
+                            let navCategory = localStorage.getItem('category') || getUrlParam('category') || '1';
+                            window.location.href = `/music/rank.html?token=${encodeURIComponent(navToken)}&userId=${encodeURIComponent(navUserId)}&category=${encodeURIComponent(navCategory)}`;
+                            return;
+                        }
+
+                        if (target.closest('#navMyLove')) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+                            target.closest('#navMyLove').classList.add('active');
+                            return;
+                        }
+                    } catch (err) {
+                        console.error('❌ 导航点击事件处理出错:', err);
+                    }
+                });
+
+                document.addEventListener('click', function (e) {
+                    try {
+                        const playBtn = e.target.closest('.play-btn');
+                        if (playBtn) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('播放按钮点击，歌曲ID：', playBtn.dataset.songId);
+                            playSongFromData(playBtn);
+                        }
+                    } catch (err) {
+                        console.error('❌ 播放按钮事件处理出错:', err);
+                    }
+                });
+
+                document.addEventListener('click', function (e) {
+                    try {
+                        const commentToggle = e.target.closest('.comment-toggle');
+                        if (commentToggle) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const rankId = commentToggle.dataset.rankId;
+                            toggleComments(rankId);
+                        }
+                    } catch (err) {
+                        console.error('❌ 评论切换事件处理出错:', err);
+                    }
+                });
+
+                document.addEventListener('click', function (e) {
+                    try {
+                        const commentSubmit = e.target.closest('.comment-submit');
+                        if (commentSubmit) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const rankId = commentSubmit.dataset.rankId;
+                            submitComment(rankId);
+                        }
+                    } catch (err) {
+                        console.error('❌ 评论提交事件处理出错:', err);
+                    }
+                });
+
+                document.addEventListener('click', function (e) {
+                    try {
+                        if (e.target.closest('.submit-comment-btn')) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            submitGlobalComment();
+                        }
+                    } catch (err) {
+                        console.error('❌ 全局评论提交事件处理出错:', err);
+                    }
+                });
+
+                document.addEventListener('click', function (e) {
+                    try {
+                        const commentDelete = e.target.closest('.comment-delete-btn');
+                        if (commentDelete) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const commentId = commentDelete.dataset.commentId;
+                            deleteComment(commentId);
+                        }
+                    } catch (err) {
+                        console.error('❌ 评论删除事件处理出错:', err);
+                    }
+                });
+
+                document.addEventListener('click', function (e) {
+                    try {
+                        const pageBtn = e.target.closest('.pagination button');
+                        if (pageBtn && !pageBtn.disabled) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const page = pageBtn.dataset.page;
+                            goToPage(page);
+                        }
+                    } catch (err) {
+                        console.error('❌ 分页按钮事件处理出错:', err);
+                    }
+                });
+
+                const tokenCheck = getToken() || token || '';
+                const userIdCheck = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId') || userId || '';
+                const isValidUserId = userIdCheck && !isNaN(Number(userIdCheck)) && Number(userIdCheck) > 0;
+
+                if (!tokenCheck || !isValidUserId) {
+                    console.warn('⚠️ 登录状态检查未通过：', { token: !!tokenCheck, userId: userIdCheck, isValid: isValidUserId });
                 }
 
-                if (target.closest('#navHome')) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    goToPu();
-                    return;
+                console.log('✅ mylove-page 初始化完成，所有事件绑定成功');
+
+                // ==================== 初始化榜单标签 ====================
+                function initRankTagsForAllCards() {
+                    console.log('[初始化] 开始加载所有榜单卡片的标签...');
+
+                    const allCards = document.querySelectorAll('.playlist-card');
+                    let loadedCount = 0;
+
+                    allCards.forEach((card, index) => {
+                        const rankId = card.dataset.rankId;
+                        const tagsContainer = card.querySelector('.rank-tags-container');
+
+                        if (rankId && tagsContainer) {
+                            loadRankTags(rankId, tagsContainer);
+                            loadedCount++;
+                            console.log(`[初始化] 卡片 #${index}: 正在加载榜单 ${rankId} 的标签`);
+                        }
+                    });
+
+                    console.log(`[初始化完成] 共发起 ${loadedCount} 个标签加载请求`);
                 }
 
-                if (target.closest('#navSearch')) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    let navToken = localStorage.getItem('token') || getUrlParam('token');
-                    let navUserId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
-                    let navCategory = localStorage.getItem('category') || getUrlParam('category') || '1';
-                    window.location.href = `/music/api/rank/sou?token=${encodeURIComponent(navToken)}&category=${navCategory}&userId=${encodeURIComponent(navUserId)}`;
-                    return;
-                }
+                // 初始化所有榜单的标签
+                initRankTagsForAllCards();
 
-                if (target.closest('#navMyRank')) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    let navToken = localStorage.getItem('token') || getUrlParam('token');
-                    let navUserId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
-                    window.location.href = `/music/api/mine/myrank?token=${encodeURIComponent(navToken)}&userId=${encodeURIComponent(navUserId)}`;
-                    return;
-                }
-
-                if (target.closest('#navHotRank')) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    let navToken = localStorage.getItem('token') || getUrlParam('token');
-                    let navUserId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
-                    window.location.href = `/music/hotrank.html?token=${encodeURIComponent(navToken)}&userId=${encodeURIComponent(navUserId)}`;
-                    return;
-                }
-
-                if (target.closest('#navMyLove')) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
-                    target.closest('#navMyLove').classList.add('active');
-                    return;
-                }
-            });
-
-            // 播放按钮绑定
-            document.addEventListener('click', function (e) {
-                const playBtn = e.target.closest('.play-btn');
-                if (playBtn) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log('播放按钮点击，歌曲ID：', playBtn.dataset.songId);
-                    playSongFromData(playBtn);
-                }
-            });
-
-            // 评论相关按钮绑定
-            document.addEventListener('click', function (e) {
-                const commentToggle = e.target.closest('.comment-toggle');
-                if (commentToggle) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const rankId = commentToggle.dataset.rankId;
-                    toggleComments(rankId);
-                }
-            });
-
-            document.addEventListener('click', function (e) {
-                const commentSubmit = e.target.closest('.comment-submit');
-                if (commentSubmit) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const rankId = commentSubmit.dataset.rankId;
-                    submitComment(rankId);
-                }
-            });
-
-            // 抽屉内发布评论按钮绑定
-            document.addEventListener('click', function (e) {
-                if (e.target.closest('.submit-comment-btn')) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    submitGlobalComment();
-                }
-            });
-
-            document.addEventListener('click', function (e) {
-                const commentDelete = e.target.closest('.comment-delete-btn');
-                if (commentDelete) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const commentId = commentDelete.dataset.commentId;
-                    deleteComment(commentId);
-                }
-            });
-
-            // 分页按钮绑定
-            document.addEventListener('click', function (e) {
-                const pageBtn = e.target.closest('.pagination button');
-                if (pageBtn && !pageBtn.disabled) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const page = pageBtn.dataset.page;
-                    goToPage(page);
-                }
-            });
-
-            // 校验登录状态
-            if (!token || !userId || isNaN(userId)) {
-                showErrorTip('登录信息失效，请重新登录');
-                setTimeout(() => window.location.href = '/music/login.html', 1500);
+            } catch (error) {
+                console.error('❌ mylove-page DOMContentLoaded 初始化失败:', error);
+                console.error('错误堆栈:', error.stack);
             }
         });
 
@@ -2332,24 +3601,24 @@
                     userId: userId
                 }
             })
-            .then(response => {
-                console.log('点赞响应:', response.data);
-                if (response.data.code === 200 || response.data.success) {
-                    showSuccessTip("点赞成功！");
-                    btn.classList.add('active');
-                    const icon = btn.querySelector('.material-symbols-outlined');
-                    if (icon) {
-                        icon.style.fontVariationSettings = "'FILL' 1";
-                        icon.style.color = '#ffe4a4';
+                .then(response => {
+                    console.log('点赞响应:', response.data);
+                    if (response.data.code === 200 || response.data.success) {
+                        showSuccessTip("点赞成功！");
+                        btn.classList.add('active');
+                        const icon = btn.querySelector('.material-symbols-outlined');
+                        if (icon) {
+                            icon.style.fontVariationSettings = "'FILL' 1";
+                            icon.style.color = '#ffe4a4';
+                        }
+                    } else {
+                        showErrorTip("点赞失败：" + (response.data.msg || '未知错误'));
                     }
-                } else {
-                    showErrorTip("点赞失败：" + (response.data.msg || '未知错误'));
-                }
-            })
-            .catch(error => {
-                console.error('点赞失败:', error);
-                showErrorTip("点赞失败：" + (error.response?.data?.msg || error.message));
-            });
+                })
+                .catch(error => {
+                    console.error('点赞失败:', error);
+                    showErrorTip("点赞失败：" + (error.response?.data?.msg || error.message));
+                });
         }
 
         // ===================== 榜单收藏功能（love/deleteLove接口）=====================
@@ -2379,43 +3648,732 @@
             }
 
             axios.post(url, null)
-            .then(response => {
-                console.log('收藏操作响应:', response.data);
-                if (response.data.code === 200 || response.data.success) {
-                    showSuccessTip(successMsg);
+                .then(response => {
+                    console.log('收藏操作响应:', response.data);
+                    if (response.data.code === 200 || response.data.success) {
+                        showSuccessTip(successMsg);
 
-                    if (isLoved) {
-                        btn.dataset.loved = 'false';
-                        btn.classList.remove('active');
-                        const icon = btn.querySelector('.material-symbols-outlined');
-                        if (icon) {
-                            icon.style.fontVariationSettings = "'FILL' 0";
-                            icon.style.color = '';
+                        if (isLoved) {
+                            btn.dataset.loved = 'false';
+                            btn.classList.remove('active');
+                            const icon = btn.querySelector('.material-symbols-outlined');
+                            if (icon) {
+                                icon.style.fontVariationSettings = "'FILL' 0";
+                                icon.style.color = '';
+                            }
+                        } else {
+                            btn.dataset.loved = 'true';
+                            btn.classList.add('active');
+                            const icon = btn.querySelector('.material-symbols-outlined');
+                            if (icon) {
+                                icon.style.fontVariationSettings = "'FILL' 1";
+                                icon.style.color = '#ffe4a4';
+                            }
                         }
                     } else {
-                        btn.dataset.loved = 'true';
-                        btn.classList.add('active');
-                        const icon = btn.querySelector('.material-symbols-outlined');
-                        if (icon) {
-                            icon.style.fontVariationSettings = "'FILL' 1";
-                            icon.style.color = '#ffe4a4';
-                        }
+                        showErrorTip("操作失败：" + (response.data.msg || '未知错误'));
                     }
-                } else {
-                    showErrorTip("操作失败：" + (response.data.msg || '未知错误'));
+                })
+                .catch(error => {
+                    console.error('收藏操作失败:', error);
+                    showErrorTip("操作失败：" + (error.response?.data?.msg || error.message));
+                });
+        }
+
+        // ===================== 共同喜欢好友列表功能（common-love接口）=====================
+        function showCommonLove(btn) {
+            const rankId = btn.dataset.rankId;
+
+            if (!rankId) {
+                showErrorTip("榜单ID为空，无法查看！");
+                return;
+            }
+
+            if (!token || !userId || isNaN(userId)) {
+                showErrorTip("请先登录后再查看！");
+                return;
+            }
+
+            axios.get(`/music/api/friend/common-love?token=${encodeURIComponent(token)}&userId=${userId}&rankId=${rankId}`)
+                .then(response => {
+                    console.log('共同喜欢响应:', response.data);
+                    if (response.data.code === 200) {
+                        const usernames = response.data.data?.usernames;
+                        const listContainer = document.getElementById('common-love-list');
+                        const emptyState = document.querySelector('#common-love-modal .empty-state');
+
+                        if (usernames && usernames.length > 0) {
+                            listContainer.innerHTML = '';
+                            usernames.forEach(username => {
+                                const item = document.createElement('div');
+                                item.className = 'friend-item';
+                                item.textContent = username;
+                                listContainer.appendChild(item);
+                            });
+                            listContainer.style.display = '';
+                            if (emptyState) emptyState.style.display = 'none';
+                        } else {
+                            listContainer.style.display = 'none';
+                            if (emptyState) emptyState.style.display = '';
+                        }
+                    } else {
+                        showErrorTip("获取数据失败：" + (response.data.msg || '未知错误'));
+                    }
+                })
+                .catch(error => {
+                    console.error('获取共同喜欢好友失败:', error);
+                    showErrorTip("获取数据失败：" + (error.response?.data?.msg || error.message));
+                })
+                .finally(() => {
+                    openCommonLoveModal();
+                });
+        }
+
+        function openCommonLoveModal() {
+            const modal = document.getElementById('common-love-modal');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeCommonLoveModal() {
+            const modal = document.getElementById('common-love-modal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const commonLoveModal = document.getElementById('common-love-modal');
+            if (commonLoveModal) {
+                commonLoveModal.addEventListener('click', function (e) {
+                    if (e.target === this || e.target.classList.contains('modal-overlay')) {
+                        closeCommonLoveModal();
+                    }
+                });
+                const closeBtn = commonLoveModal.querySelector('.close-btn, [class*="close"]');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', function () {
+                        closeCommonLoveModal();
+                    });
                 }
-            })
-            .catch(error => {
-                console.error('收藏操作失败:', error);
-                showErrorTip("操作失败：" + (error.response?.data?.msg || error.message));
+            }
+        });
+
+        // ==================== MusicAIAgent 初始化（已移入 DOMContentLoaded 并添加错误保护）====================
+
+        // ==================== Follow/Fans Drawer ====================
+        console.log("【接口预留】关注/粉丝数据接口待对接");
+
+        function openFollowFansDrawer(type) {
+            const drawer = document.getElementById('follow-fans-drawer');
+            const overlay = document.getElementById('follow-fans-overlay');
+            const title = document.getElementById('follow-fans-title');
+            const drawerContent = document.querySelector('.follow-fans-drawer .drawer-content');
+
+            if (type === 'following') {
+                title.textContent = '我的关注';
+                const currentToken = getToken();
+                if (!currentToken) {
+                    showToast('请先登录', 'warning');
+                    return;
+                }
+                showLoading(drawerContent, '加载关注列表...');
+                request({
+                    url: '/friend/listmaster',
+                    method: 'GET',
+                    params: { token: currentToken }
+                }).then(data => {
+                    hideLoading(drawerContent);
+                    renderFollowingList(data);
+                }).catch(error => {
+                    hideLoading(drawerContent);
+                    showToast(error.message, 'error');
+                    renderFollowFansList(type);
+                });
+            } else if (type === 'followers') {
+                title.textContent = '我的粉丝';
+                const currentToken = getToken();
+                if (!currentToken) {
+                    showToast('请先登录', 'warning');
+                    return;
+                }
+                showLoading(drawerContent, '加载粉丝列表...');
+                request({
+                    url: '/friend/listfans',
+                    method: 'GET',
+                    params: { token: currentToken }
+                }).then(data => {
+                    hideLoading(drawerContent);
+                    renderFollowersList(data);
+                }).catch(error => {
+                    hideLoading(drawerContent);
+                    showToast(error.message, 'error');
+                });
+            }
+
+            overlay.classList.add('active');
+            drawer.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeFollowFansDrawer() {
+            const drawer = document.getElementById('follow-fans-drawer');
+            const overlay = document.getElementById('follow-fans-overlay');
+
+            overlay.classList.remove('active');
+            drawer.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        function renderFollowFansList(type) {
+            const listContainer = document.getElementById('follow-fans-list');
+
+            if (type === 'followers') {
+                return;
+            }
+
+            listContainer.innerHTML = '<div class="empty-state">加载失败，请稍后重试</div>';
+        }
+
+        function renderFollowersList(data) {
+            const listContainer = document.getElementById('follow-fans-list');
+            const fanList = data && (Array.isArray(data.fanList) ? data.fanList : []);
+
+            if (!fanList || fanList.length === 0) {
+                listContainer.innerHTML = '<div class="empty-state">暂无粉丝</div>';
+                return;
+            }
+
+            listContainer.innerHTML = '';
+
+            fanList.forEach((username, index) => {
+                const userRow = document.createElement('div');
+                userRow.className = 'user-row';
+                const avatar = 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=user%20avatar&image_size=square';
+                userRow.innerHTML = `
+                    <span class="row-number">${String(index + 1).padStart(2, '0')}</span>
+                    <div class="user-details">
+                        <span class="username">${username}</span>
+                    </div>
+                    
+                `;
+                listContainer.appendChild(userRow);
             });
         }
-        const myloveAgent = new MusicAIAgent({
-            input: '.ai-input',
-            sendButton: '.send-btn',
-            messageContainer: '.ai-chat-area'
+
+        function renderFollowingList(data) {
+            const listContainer = document.getElementById('follow-fans-list');
+            const masterList = data && (Array.isArray(data.masterList) ? data.masterList : []);
+
+            if (!masterList || masterList.length === 0) {
+                listContainer.innerHTML = '<div class="empty-state">暂无关注</div>';
+                return;
+            }
+
+            listContainer.innerHTML = '';
+
+            masterList.forEach((username, index) => {
+                const userRow = document.createElement('div');
+                userRow.className = 'user-row';
+                const avatar = 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=user%20avatar&image_size=square';
+                userRow.innerHTML = `
+                    <span class="row-number">${String(index + 1).padStart(2, '0')}</span>
+
+                    <div class="user-details">
+                        <span class="username">${username}</span>
+                    </div>
+                `;
+                listContainer.appendChild(userRow);
+            });
+        }
+
+        async function toggleFollow(targetUserId, buttonElement) {
+            const token = getToken();
+
+            if (!token) {
+                showToast('请先登录', 'warning');
+                return;
+            }
+
+            if (buttonElement.disabled) return;
+            buttonElement.disabled = true;
+
+            const originalText = buttonElement.textContent;
+            buttonElement.textContent = '处理中...';
+
+            try {
+                const result = await request({
+                    url: '/friend/follow',
+                    method: 'POST',
+                    params: { token, UserId: targetUserId }
+                });
+
+                if (result === '关注成功' || result.message?.includes('关注')) {
+                    buttonElement.textContent = '已关注';
+                    buttonElement.classList.add('following');
+                    showToast('关注成功', 'success');
+                } else if (result === '已取消关注' || result.message?.includes('取消')) {
+                    buttonElement.textContent = '关注';
+                    buttonElement.classList.remove('following');
+                    showToast('已取消关注', 'info');
+
+                    const userRow = buttonElement.closest('.user-row');
+                    if (userRow) {
+                        userRow.style.opacity = '0';
+                        userRow.style.transform = 'translateX(20px)';
+                        setTimeout(() => userRow.remove(), 300);
+                    }
+                }
+
+            } catch (error) {
+                showToast(error.message || '操作失败', 'error');
+                buttonElement.textContent = originalText;
+            } finally {
+                buttonElement.disabled = false;
+            }
+        }
+
+        // 关注/粉丝抽屉事件绑定
+        document.addEventListener('DOMContentLoaded', function () {
+            // ==================== MusicAIAgent 初始化（带错误保护）====================
+            try {
+                const myloveAgent = new MusicAIAgent({
+                    input: '.ai-input',
+                    sendButton: '.send-btn',
+                    messageContainer: '.ai-chat-area'
+                });
+                window.myloveAgent = myloveAgent;
+                console.log('✅ MusicAIAgent 初始化成功');
+            } catch (error) {
+                console.error('❌ MusicAIAgent 初始化失败（不影响其他功能）:', error);
+            }
+
+            const followBtns = document.querySelectorAll('.action-btn[title="关注"]');
+            const fansBtns = document.querySelectorAll('.action-btn[title="粉丝"]');
+            const closeBtn = document.getElementById('follow-fans-close-btn');
+            const overlay = document.getElementById('follow-fans-overlay');
+
+            followBtns.forEach(btn => {
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openFollowFansDrawer('following');
+                });
+            });
+
+            fansBtns.forEach(btn => {
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openFollowFansDrawer('followers');
+                });
+            });
+
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    closeFollowFansDrawer();
+                });
+            }
+
+            if (overlay) {
+                overlay.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    closeFollowFansDrawer();
+                });
+            }
+
+            // 共同收藏榜单抽屉关闭按钮事件绑定
+            const mutualRankCloseBtn = document.querySelector('.mutual-rank-drawer .close-btn');
+            if (mutualRankCloseBtn) {
+                mutualRankCloseBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    closeMutualRankDrawer();
+                });
+            }
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    closeFollowFansDrawer();
+                    closeMutualRankDrawer();
+                }
+            });
+
+            // ==================== Mutual Collected Ranks Module (API 对接) ====================
+
+            async function loadMutualCollectedRanksFromAPI() {
+                const token = getToken();
+                const userId = localStorage.getItem('user_id') || getUrlParam('userId') || getUrlParam('user_id') || '';
+                const rankId = new URLSearchParams(window.location.search).get('rankId') || 0;
+
+                if (!token || !userId) {
+                    console.log('未登录或缺少userId，跳过共同收藏榜单加载');
+                    renderMutualRanksList(null);
+                    return;
+                }
+
+                const container = document.querySelector('#mutual-ranks-list');
+                if (container) {
+                    var loader = showLoading(container.parentElement || container, '加载共同收藏...');
+                }
+
+                try {
+                    const data = await request({
+                        url: '/friend/common-love',
+                        params: { token: token, userId: userId, rankId: rankId }
+                    });
+
+                    renderMutualRanksList(data);
+
+                    if (loader) hideLoading(loader);
+                    // showToast('共同收藏榜单加载成功', 'success');
+                } catch (error) {
+                    if (loader) hideLoading(loader);
+                    // showToast('加载共同收藏榜单失败: ' + error.message, 'error');
+                    // console.error('加载共同收藏榜单失败:', error);
+                    renderMutualRanksList(null);
+                }
+            }
+
+            function renderMutualRanksList(data) {
+                const listContainer = document.getElementById('mutual-ranks-list');
+
+                if (!listContainer) return;
+
+                listContainer.innerHTML = '';
+
+                if (!data || !data.ranks || data.ranks.length === 0) {
+                    listContainer.innerHTML = `
+                        <div style="padding: 24px; text-align: center; color: #737373; font-size: 13px;">
+                            <span class="material-symbols-outlined" style="font-size: 32px; display: block; margin-bottom: 8px; opacity: 0.5;">library_music</span>
+                            暂无共同收藏榜单
+                        </div>
+                    `;
+                    return;
+                }
+
+                data.ranks.forEach(rank => {
+                    const rankItem = document.createElement('div');
+                    rankItem.className = 'rank-item';
+                    rankItem.onclick = function () {
+                        openMutualRankDrawer(rank.id || rank.rankId, rank.name || rank.rankName, rank);
+                    };
+
+                    rankItem.innerHTML = `
+                        <div class="rank-item-left">
+                            <div class="rank-icon">
+                                <span class="material-symbols-outlined">library_music</span>
+                            </div>
+                            <div class="rank-info">
+                                <span class="rank-name">${rank.name || rank.rankName}</span>
+                                <span class="rank-count">${rank.collectCount || 0} 人收藏${rank.songCount ? ' · ' + rank.songCount + ' 首歌曲' : ''}</span>
+                            </div>
+                        </div>
+                    `;
+
+                    listContainer.appendChild(rankItem);
+                });
+            }
+
+            function loadMutualCollectedRanks() {
+                loadMutualCollectedRanksFromAPI();
+            }
+
+            function openMutualRankDrawer(rankId, title, rankData) {
+                const drawer = document.getElementById('mutual-rank-drawer');
+                const overlay = document.getElementById('mutual-rank-overlay');
+                const titleEl = document.getElementById('mutual-rank-title');
+                const songCountEl = document.getElementById('mutual-rank-song-count');
+                const durationEl = document.getElementById('mutual-rank-duration');
+
+                if (rankData) {
+                    titleEl.textContent = title || rankData.name || rankData.rankName;
+                    songCountEl.textContent = `${rankData.songCount || 0} 首歌曲`;
+                    durationEl.textContent = `时长：${rankData.duration || '未知'}`;
+
+                    renderMutualRankSongs(rankData.songList || []);
+                }
+
+                overlay.classList.add('active');
+                drawer.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeMutualRankDrawer() {
+                const drawer = document.getElementById('mutual-rank-drawer');
+                const overlay = document.getElementById('mutual-rank-overlay');
+
+                overlay.classList.remove('active');
+                drawer.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+
+            function renderMutualRankSongs(songList) {
+                const container = document.getElementById('mutual-rank-song-list');
+
+                if (!container) return;
+
+                container.innerHTML = '';
+
+                songList.forEach((song, index) => {
+                    const songRow = document.createElement('div');
+                    songRow.className = 'song-row';
+
+                    songRow.innerHTML = `
+                        <span class="row-number">${String(index + 1).padStart(2, '0')}</span>
+                        <div class="song-details">
+                            <div class="name">${song.songName}</div>
+                            <div class="artist">${song.singerName}</div>
+                        </div>
+                        <button class="play-btn-small" onclick="event.stopPropagation(); console.log('播放歌曲：${song.songName}')">
+                            <span class="material-symbols-outlined">play_arrow</span>
+                        </button>
+                        <span class="song-duration">${song.duration}</span>
+                    `;
+
+                    container.appendChild(songRow);
+                });
+            }
+
+            function playAllMutualRankSongs() {
+                console.log("【功能预留】播放全部歌曲功能待对接");
+                showSuccessTip("开始播放全部歌曲");
+            }
+
+            // 共同收藏榜单加载（带错误保护）
+            try {
+                loadMutualCollectedRanks();
+            } catch (error) {
+                console.error('⚠️ 加载共同收藏榜单失败（不影响页面其他功能）:', error);
+            }
+
+            // ===================== 修复发布者显示 null 问题（后端已修复，此为保险机制）=====================
+            try {
+                setTimeout(function () {
+                    const cards = document.querySelectorAll('.playlist-card');
+                    let fixedCount = 0;
+
+                    cards.forEach(function (card, index) {
+                        const cardMeta = card.querySelector('.card-meta');
+                        if (!cardMeta) return;
+
+                        const publisherPara = cardMeta.querySelector('p:first-child');
+                        if (!publisherPara) return;
+
+                        const text = publisherPara.textContent.trim();
+                        if (text.includes('null') || text === '发布者：' || text === '发布者:') {
+                            publisherPara.textContent = '发布者: --';
+                            fixedCount++;
+                            console.log(`🔧 已修复卡片 ${index} 的发布者显示（显示占位符）`);
+                        }
+                    });
+
+                    if (fixedCount > 0) {
+                        console.log(`✅ 共修复 ${fixedCount} 个卡片的发布者显示（后端数据可能仍有缺失）`);
+                    } else {
+                        console.log('✅ 所有卡片的发布者信息正常（后端数据完整）');
+                    }
+                }, 300);
+            } catch (error) {
+                console.error('⚠️ 发布者显示修复失败（不影响其他功能）:', error);
+            }
         });
     </script>
+    <script th:src="@{/js/battle-report.js}"></script>
+    <div id="common-love-modal" style="display: none;">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">收藏了这个榜单的好友</h3>
+                <button class="modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="common-love-list"></div>
+                <div class="empty-state" style="display: none;">暂无共同收藏的好友</div>
+            </div>
+        </div>
+    </div>
+    <style>
+        #common-love-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            animation: modalFadeIn 0.25s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes listItemFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        #common-love-modal .modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            cursor: pointer;
+        }
+
+        #common-love-modal .modal-content {
+            position: relative;
+            background-color: #fff;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 520px;
+            max-height: 70vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            z-index: 1;
+            animation: modalContentScale 0.25s ease-out;
+        }
+
+        @keyframes modalContentScale {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        #common-love-modal .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            flex-shrink: 0;
+        }
+
+        #common-love-modal .modal-header h3.modal-title {
+            margin: 0;
+            font-size: 18px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        #common-love-modal .modal-close-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #888;
+            cursor: pointer;
+            line-height: 1;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        #common-love-modal .modal-close-btn:hover {
+            color: #333;
+            background-color: #f5f5f5;
+        }
+
+        #common-love-modal .modal-body {
+            padding: 20px;
+            max-height: calc(70vh - 80px);
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        #common-love-list {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #common-love-modal .friend-item {
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #333;
+            transition: all 0.2s ease;
+            animation: listItemFadeIn 0.3s ease-out backwards;
+            cursor: default;
+        }
+
+        #common-love-modal .friend-item:last-child {
+            margin-bottom: 0;
+        }
+
+        #common-love-modal .friend-item:nth-child(1) {
+            animation-delay: 0.05s;
+        }
+
+        #common-love-modal .friend-item:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        #common-love-modal .friend-item:nth-child(3) {
+            animation-delay: 0.15s;
+        }
+
+        #common-love-modal .friend-item:nth-child(4) {
+            animation-delay: 0.2s;
+        }
+
+        #common-love-modal .friend-item:nth-child(5) {
+            animation-delay: 0.25s;
+        }
+
+        #common-love-modal .friend-item:nth-child(6) {
+            animation-delay: 0.3s;
+        }
+
+        #common-love-modal .friend-item:nth-child(7) {
+            animation-delay: 0.35s;
+        }
+
+        #common-love-modal .friend-item:nth-child(8) {
+            animation-delay: 0.4s;
+        }
+
+        #common-love-modal .friend-item:nth-child(n+9) {
+            animation-delay: 0.45s;
+        }
+
+        #common-love-modal .friend-item:hover {
+            background-color: #e9ecef;
+            transform: translateX(4px);
+        }
+
+        #common-love-modal .empty-state {
+            text-align: center;
+            color: #999;
+            padding: 40px 20px;
+            font-size: 14px;
+        }
+    </style>
 </body>
 
 </html>

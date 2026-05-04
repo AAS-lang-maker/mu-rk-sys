@@ -1176,6 +1176,65 @@
             transform: scale(0.95);
         }
 
+        .comment-like-btn {
+            background: none;
+            border: none;
+            color: rgba(115, 115, 115, 0.6);
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: all 0.3s ease;
+            font-size: 12px;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .comment-like-btn:hover {
+            color: rgba(240, 198, 77, 0.8);
+            background-color: rgba(240, 198, 77, 0.08);
+        }
+
+        .comment-like-btn.liked {
+            color: #f0c64d;
+        }
+
+        .comment-like-btn.liked:hover {
+            background-color: rgba(255, 228, 164, 0.15);
+        }
+
+        .comment-like-btn:active {
+            transform: scale(0.95);
+        }
+
+        .comment-like-btn i {
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .comment-like-btn:not(.liked) i {
+            opacity: 0.7;
+        }
+
+        .comment-like-btn.liked i {
+            animation: likePop 0.4s ease;
+        }
+
+        @keyframes likePop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        .comment-like-count {
+            font-size: 11px;
+            min-width: 16px;
+            text-align: center;
+            user-select: none;
+        }
+
         .comment-text {
             font-size: 14px;
             color: #d1c5af;
@@ -1559,6 +1618,7 @@
     <script src="/music/player/music-player.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="/music/js/music-ai-agent.js"></script>
+    <link rel="stylesheet" href="/css/battle-report.css">
 </head>
 
 <body>
@@ -1658,7 +1718,7 @@
                     <div class="header-left">
                         <div class="avatar-container">
                             <div class="avatar">
-                                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDZITLLyKCAHaG0FLfsJcBLKuCj9sgt5RcDWZvteWbZP9SN7CkTox4DtcpxmKAjepwTXLAwbs14xE7OfQSGpLemb_lhuJFb2JAa3pv2LADcE2qlCJ1I40Fc6Dp3_V_EbNWKxkMj6-XBEnzB95x3U_xawyx6nxthe8Uoi7-fqbwlpaC6GgOVLnbn0Ip2e--STA1d63rTbEmmJmXlYSqUhDYmDS8JlIXF_OHaEiis_u5RfvYEOYP3Dzix3jW6wnjjq40FXdoRpESL1Qg" alt=""/>
+                                <img src="https://th.bing.com/th/id/OIP.HeCfy1wH-100VEDW7dOBTAAAAA?w=137&h=183&c=7&r=0&o=5&dpr=2&pid=1.7" alt=""/>
                             </div>
                             <div class="online-status"></div>
                         </div>
@@ -1740,11 +1800,6 @@
         <div class="drawer-header">
             <div class="drawer-title-group">
                 <h2 id="drawer-title">榜单详情</h2>
-                <div class="drawer-meta">
-                    <span>50 首歌曲</span>
-                    <span class="meta-dot"></span>
-                    <span>时长：3小时 12分</span>
-                </div>
             </div>
             <button class="close-btn" onclick="closeDrawer()">
                 <span class="material-symbols-outlined">close</span>
@@ -2314,9 +2369,6 @@
         ` : '';
 
             commentItem.innerHTML = `
-                <div class="comment-avatar">
-                    <img src="${comment.avatar || 'https://via.placeholder.com/40'}" alt=""/>
-                </div>
                 <div class="comment-body">
                     <div class="comment-header">
                         <span class="comment-author">${comment.username || '匿名用户'}</span>
@@ -2324,6 +2376,10 @@
                         ${deleteButtonHtml}
                     </div>
                     <div class="comment-text">${comment.comContent || ''}</div>
+                    <button class="comment-like-btn ${comment.liked ? 'liked' : ''}" onclick="toggleCommentLike('${comment.comId}', this)" title="点赞">
+                        <span class="material-symbols-outlined" style="font-size: 14px;">favorite</span>
+                        <span class="comment-like-count">${comment.likeCount || 0}</span>
+                    </button>
                 </div>
             `;
 
@@ -2384,11 +2440,12 @@
         const likeCountEl = btn.querySelector('.comment-like-count');
         const originalCount = Number(likeCountEl.textContent) || 0;
 
-        axios.post(url, {
-            comId: commentId,
-            userId: userId
-        }, {
-            params: { token: token }
+        axios.post(url, null, {
+            params: {
+                token: token,
+                comId: commentId,
+                userId: userId
+            }
         })
             .then(response => {
                 if (response.data.code === 200 || response.data.success) {
@@ -2629,10 +2686,10 @@
                             <button class="action-btn" onclick="openComments('${rankId}', '${rankName}')">
                                 <span class="material-symbols-outlined">chat_bubble</span>
                             </button>
-                            <button class="action-btn vote-btn ${rank.isVoted ? 'voted' : ''}" data-rank-id="${rankId}" onclick="voteForRanking('${rankId}', this)">
+                            <button class="action-btn vote-btn ${rank.isVoted ? 'voted' : ''}" data-rank-id="${rankId}">
                                 <span class="material-symbols-outlined">favorite</span>
                             </button>
-                            <button class="action-btn collect-btn ${rank.isCollected ? 'collected' : ''}" data-rank-id="${rankId}" onclick="collectRanking('${rankId}', this)">
+                            <button class="action-btn collect-btn ${rank.isCollected ? 'collected' : ''}" data-rank-id="${rankId}" >
                                 <span class="material-symbols-outlined">bookmark</span>
                             </button>
                         </div>
@@ -2878,6 +2935,6 @@
 <div class="drawer-overlay" id="commentDrawerOverlay" style="display:none;" onclick="closeCommentDrawer()"></div>
 <div id="commentDrawerPanel" style="display:none;" data-current-rank-id="">
 </div>
-
+    <script src="/js/battle-report.js"></script>
 </body>
 </html>

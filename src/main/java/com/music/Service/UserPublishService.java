@@ -13,7 +13,7 @@ import java.util.List;
 
 
 public interface UserPublishService {
-    public boolean insertRank(Integer categoryId, Integer userId, RankAddRequest rankAddRequestDto);
+    public Integer insertRank(Integer categoryId, Integer userId, RankAddRequest rankAddRequestDto);
 
     List<Singer> selectSinger(Integer categoryId);
 

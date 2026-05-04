@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>POPULAR TAGS UNIVERSE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Space+Grotesk:wght@300;400;500;600;700&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --surface: #0b0d1b;
+      --primary: #c1fffe;
+      --secondary: #ff51fa;
+      --tertiary: #fffeac;
+      --on-surface: #e3e4f8;
+      --error: #ff6e84;
+      --surface-container-low: #101221;
+      --surface-container-high: #1b1f31;
+      --surface-container-highest: #212538;
+      --outline-variant: #454757;
+      --on-surface-variant: #a8aabd;
+      --primary-5: rgba(193, 255, 254, 0.05);
+      --primary-20: rgba(193, 255, 254, 0.2);
+      --primary-30: rgba(193, 255, 254, 0.3);
+      --primary-60: rgba(193, 255, 254, 0.6);
+      --secondary-5: rgba(255, 81, 250, 0.05);
+      --tertiary-5: rgba(255, 255, 172, 0.05);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--surface);
+      color: var(--on-surface);
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    .cosmic-background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      background: var(--surface);
+      overflow: hidden;
+      z-index: -1;
+    }
+
+    .star-field {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background-image:
+        radial-gradient(2px 2px at 20% 30%, white, transparent),
+        radial-gradient(2px 2px at 40% 70%, white, transparent),
+        radial-gradient(1px 1px at 90% 40%, white, transparent),
+        radial-gradient(2px 2px at 60% 20%, white, transparent),
+        radial-gradient(1px 1px at 10% 80%, white, transparent),
+        radial-gradient(2px 2px at 70% 90%, white, transparent),
+        radial-gradient(1px 1px at 30% 50%, white, transparent),
+        radial-gradient(2px 2px at 85% 15%, white, transparent),
+        radial-gradient(1px 1px at 50% 95%, white, transparent),
+        radial-gradient(2px 2px at 15% 65%, white, transparent);
+      opacity: 0.6;
+    }
+
+    .ambient-glow-top {
+      position: absolute;
+      top: -100px;
+      left: -100px;
+      width: 500px;
+      height: 500px;
+      background: var(--primary-5);
+      filter: blur(120px);
+      border-radius: 50%;
+    }
+
+    .ambient-glow-bottom {
+      position: absolute;
+      bottom: -150px;
+      right: -150px;
+      width: 600px;
+      height: 600px;
+      background: var(--secondary-5);
+      filter: blur(150px);
+      border-radius: 50%;
+    }
+
+    .main-container {
+      min-height: 100vh;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .top-navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 50;
+      padding: 24px 32px;
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+    }
+
+    .back-btn {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(27, 31, 49, 0.6);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--primary-20);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+    }
+
+    .back-btn:hover {
+      background: var(--primary);
+      color: var(--surface);
+      transform: scale(1.05);
+    }
+
+    .back-btn:hover .material-symbols-outlined {
+      transform: translateX(-2px);
+    }
+
+    .back-btn .material-symbols-outlined {
+      font-family: 'Material Symbols Outlined';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 24px;
+      line-height: 1;
+      letter-spacing: normal;
+      text-transform: none;
+      display: inline-block;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+      transition: transform 0.3s ease;
+    }
+
+    .header-section {
+      padding: 10px 48px 32px;
+      text-align: center;
+    }
+
+    .main-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 3.5rem;
+      font-weight: 700;
+      letter-spacing: -0.05em;
+      text-transform: uppercase;
+      color: var(--on-surface);
+      margin-bottom: 16px;
+      line-height: 1.1;
+    }
+
+    .subtitle-text {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.875rem;
+      line-height: 1.625;
+      color: var(--on-surface-variant);
+      opacity: 0.7;
+      max-width: 650px;
+      margin: 0 auto;
+    }
+
+    .tags-cosmos {
+      position: relative;
+      height: calc(100vh - 280px);
+      padding: 32px;
+    }
+
+    .planet-tag {
+      position: absolute;
+      cursor: default;
+      z-index: 10;
+      animation: drift 8s ease-in-out infinite alternate;
+      animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .planet-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .orbit-ring {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 2px solid currentColor;
+      opacity: 0.3;
+      animation: orbit-spin linear infinite;
+    }
+
+    .orbit-ring.primary-ring {
+      color: var(--primary);
+    }
+
+    .orbit-ring.secondary-ring {
+      color: var(--secondary);
+    }
+
+    .orbit-ring.tertiary-ring {
+      color: var(--tertiary);
+    }
+
+    .planet-core {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      overflow: hidden;
+      box-shadow:
+        0 0 30px currentColor,
+        inset 0 0 20px rgba(0, 0, 0, 0.3);
+      transition: transform 0.3s ease;
+    }
+
+    .planet-core img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .planet-tag:hover .planet-core {
+      transform: scale(1.08);
+    }
+
+    .tag-label {
+      position: absolute;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--on-surface);
+      background: var(--surface-container-high);
+      padding: 6px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--outline-variant);
+      white-space: nowrap;
+      backdrop-filter: blur(10px);
+      pointer-events: none;
+      cursor: default;
+      transition: all 0.3s ease;
+    }
+
+    .tag-label:hover {
+      background: var(--surface-container-highest);
+      border-color: var(--primary-30);
+      box-shadow: 0 0 12px rgba(193, 255, 254, 0.3);
+      transform: translateX(-50%) scale(1.05);
+    }
+
+    .tag-label.right:hover {
+      transform: translateY(-50%) scale(1.05);
+    }
+
+    .tag-label.top:hover {
+      transform: translateX(-50%) scale(1.05);
+    }
+
+    .tag-label.bottom-center:hover {
+      transform: translateX(-50%) scale(1.05);
+    }
+
+    .tag-label.bottom {
+      bottom: -28px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .tag-label.right {
+      right: -64px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .tag-label.top {
+      top: -28px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .tag-label.bottom-center {
+      bottom: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .status-indicators {
+      position: absolute;
+      bottom: 32px;
+      left: 32px;
+      display: flex;
+      gap: 16px;
+      z-index: 20;
+    }
+
+    .indicator-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 18px;
+      background: rgba(27, 31, 49, 0.4);
+      backdrop-filter: blur(12px);
+      border-radius: 12px;
+      border: 1px solid rgba(69, 71, 87, 0.2);
+    }
+
+    .indicator-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    .indicator-dot.secondary-dot {
+      background: var(--secondary);
+      box-shadow: 0 0 12px var(--secondary);
+    }
+
+    .indicator-dot.tertiary-dot {
+      background: var(--tertiary);
+      box-shadow: 0 0 12px var(--tertiary);
+    }
+
+    .indicator-text {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--on-surface-variant);
+    }
+
+    .control-buttons {
+      position: fixed;
+      top: 96px;
+      right: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      z-index: 50;
+    }
+
+    .control-btn {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(27, 31, 49, 0.6);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--primary-20);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .control-btn:hover {
+      background: var(--primary);
+      color: var(--surface);
+      transform: scale(1.05);
+    }
+
+    .control-btn.rotate-hover:hover .material-symbols-outlined {
+      transform: rotate(180deg);
+    }
+
+    .material-symbols-outlined {
+      font-family: 'Material Symbols Outlined';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 24px;
+      line-height: 1;
+      letter-spacing: normal;
+      text-transform: none;
+      display: inline-block;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+      transition: transform 0.3s ease;
+    }
+
+    @keyframes drift {
+      from {
+        transform: translateY(0) rotate(0deg);
+      }
+
+      to {
+        transform: translateY(-6px) rotate(0.5deg);
+      }
+    }
+
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes orbit-spin {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 0.6;
+      }
+
+      50% {
+        opacity: 1;
+      }
+    }
+
+    @keyframes pulse-dot {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.5;
+        transform: scale(0.8);
+      }
+    }
+
+    /* ==================== 性能优化：GPU 加速属性 ==================== */
+    .planet-tag {
+      will-change: transform;
+    }
+
+    .orbit-ring {
+      will-change: transform;
+    }
+
+    .accretion-disk-1,
+    .accretion-disk-2 {
+      will-change: transform;
+    }
+
+    .planet-core {
+      will-change: transform;
+    }
+
+    /* ==================== 响应式设计：平板设备 (768px - 1024px) ==================== */
+    @media screen and (max-width: 1024px) {
+      .main-title {
+        font-size: 2.5rem;
+      }
+
+      .planet-container {
+        transform: scale(0.85);
+      }
+
+      .header-section {
+        padding: 120px 32px 24px;
+      }
+
+      .tags-cosmos {
+        height: calc(100vh - 240px);
+        padding: 24px;
+      }
+    }
+
+    /* ==================== 响应式设计：手机设备 (< 768px) ==================== */
+    @media screen and (max-width: 768px) {
+      .main-title {
+        font-size: 2rem;
+      }
+
+      .subtitle-text {
+        font-size: 0.875rem;
+      }
+
+      .planet-tag {
+        transform: scale(0.7);
+      }
+
+      .status-indicators {
+        flex-direction: column;
+        gap: 8px;
+        bottom: 16px;
+        left: 16px;
+      }
+
+      .control-buttons {
+        top: 80px;
+        right: 16px;
+        gap: 12px;
+      }
+
+      .control-btn {
+        width: 40px;
+        height: 40px;
+      }
+
+      .header-section {
+        padding: 100px 16px 20px;
+      }
+
+      .tags-cosmos {
+        height: calc(100vh - 200px);
+        padding: 16px;
+      }
+
+      .top-navbar {
+        padding: 16px;
+      }
+
+      .back-btn {
+        width: 40px;
+        height: 40px;
+      }
+
+      .back-btn .material-symbols-outlined {
+        font-size: 20px;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="/css/battle-report.css">
+</head>
+
+<body>
+  <div class="cosmic-background">
+    <div class="star-field"></div>
+    <div class="ambient-glow-top"></div>
+    <div class="ambient-glow-bottom"></div>
+  </div>
+
+  <div class="main-container">
+    <nav class="top-navbar">
+      <a href="javascript:void(0);" class="back-btn" id="back-to-index" title="返回首页">
+        <span class="material-symbols-outlined">arrow_back</span>
+      </a>
+    </nav>
+
+    <header class="header-section">
+      <h1 class="main-title">POPULAR TAGS UNIVERSE</h1>
+      <p class="subtitle-text">Explore the most trending tags across the entire universe. These cosmic markers represent
+        the hottest topics loved by all travelers.</p>
+    </header>
+
+    <section class="tags-cosmos">
+
+    </section>
+
+    <div class="status-indicators">
+      <div class="indicator-card">
+        <div class="indicator-dot secondary-dot"></div>
+        <span class="indicator-text">0 Active Signals Detected</span>
+      </div>
+      <div class="indicator-card">
+        <div class="indicator-dot tertiary-dot"></div>
+        <span class="indicator-text">Calibration: 99.8%</span>
+      </div>
+    </div>
+
+    <div class="control-buttons">
+      <button class="control-btn rotate-hover" title="Refresh Tags">
+        <span class="material-symbols-outlined">autorenew</span>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = '/music/api/tagsplanet';
+
+    async function request(method, url, data = null) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+      try {
+        const options = {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal
+        };
+
+        const token = localStorage.getItem('token')
+          || localStorage.getItem('accessToken')
+          || localStorage.getItem('auth_token')
+          || sessionStorage.getItem('token');
+
+        if (token) {
+          options.headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        if (data && (method === 'POST' || method === 'PUT')) {
+          options.body = JSON.stringify(data);
+        }
+
+        const response = await fetch(API_BASE + url, options);
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          let errorMsg = `请求失败 (${response.status})`;
+          if (response.status === 400) errorMsg = '请求参数错误';
+          if (response.status === 401) {
+            errorMsg = '登录已过期，请重新登录';
+          }
+          if (response.status === 403) errorMsg = '权限不足';
+          if (response.status === 404) errorMsg = '资源不存在';
+          if (response.status === 500) errorMsg = '服务器内部错误';
+          return { success: false, data: null, message: errorMsg };
+        }
+
+        const result = await response.json();
+
+        if (result.code !== undefined && result.code !== 200) {
+          return { success: false, data: null, message: result.message || '操作失败' };
+        }
+
+        return { success: true, data: result.data ?? result, message: result.message || '操作成功' };
+
+      } catch (error) {
+        clearTimeout(timeoutId);
+
+        if (error.name === 'AbortError') {
+          return { success: false, data: null, message: '请求超时，请稍后重试' };
+        }
+
+        console.error('API请求错误:', error);
+
+        let errorMsg = '网络连接失败，请检查网络';
+
+        if (window.location.protocol === 'file:') {
+          errorMsg = '请通过 Spring Boot Web 服务器访问此页面（当前为本地文件模式）';
+        } else if (error.message && (error.message.includes('Failed to fetch') || error.message.includes('NetworkError'))) {
+          errorMsg = '无法连接到服务器，请确认后端服务已启动';
+        } else if (error.message && error.message.includes('CORS')) {
+          errorMsg = '跨域请求被阻止，请检查服务器 CORS 配置';
+        }
+
+        return { success: false, data: null, message: errorMsg };
+      }
+    }
+
+    async function loadPopularTags() {
+      return await request('GET', '/planetall');
+    }
+
+    const tags = [];
+    let isGlobalLoading = false;
+
+    function setGlobalLoading(loading) {
+      isGlobalLoading = loading;
+
+      const container = document.querySelector('.main-container');
+      if (!container) return;
+
+      const oldOverlay = document.querySelector('.loading-overlay');
+      if (oldOverlay) oldOverlay.remove();
+
+      if (loading) {
+        const overlay = document.createElement('div');
+        overlay.className = 'loading-overlay';
+        overlay.innerHTML = `
+          <div class="loading-spinner"></div>
+          <div class="loading-text">加载中...</div>
+        `;
+
+        Object.assign(overlay.style, {
+          position: 'fixed',
+          top: '0',
+          left: '0',
+          width: '100%',
+          height: '100%',
+          background: 'rgba(11, 13, 27, 0.8)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: '9999',
+          backdropFilter: 'blur(8px)'
+        });
+
+        const spinner = overlay.querySelector('.loading-spinner');
+        Object.assign(spinner.style, {
+          width: '48px',
+          height: '48px',
+          border: '3px solid var(--primary-20)',
+          borderTopColor: 'var(--primary)',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite'
+        });
+
+        const text = overlay.querySelector('.loading-text');
+        Object.assign(text.style, {
+          marginTop: '16px',
+          fontFamily: "'Space Grotesk', sans-serif",
+          fontSize: '14px',
+          color: 'var(--on-surface-variant)',
+          letterSpacing: '0.05em'
+        });
+
+        container.appendChild(overlay);
+      }
+    }
+
+    function setupRefreshButton() {
+      const refreshBtn = document.querySelector('.control-btn.rotate-hover');
+      if (refreshBtn) {
+        refreshBtn.addEventListener('click', async () => {
+          if (refreshBtn.dataset.loading === 'true') return;
+
+          refreshBtn.dataset.loading = 'true';
+          const icon = refreshBtn.querySelector('.material-symbols-outlined');
+
+          if (icon) {
+            icon.style.animation = 'spin 1s linear infinite';
+          }
+
+          showFeedback('正在刷新热门标签数据...', 'info');
+
+          try {
+            const existingTags = document.querySelectorAll('.planet-tag');
+            existingTags.forEach(tag => tag.remove());
+            tags.length = 0;
+
+            await initializePopularTagsFromServer(false);
+            showFeedback('热门标签数据已刷新', 'success');
+          } catch (error) {
+            console.error('Refresh error:', error);
+            showFeedback('刷新失败，请重试', 'error');
+          } finally {
+            refreshBtn.dataset.loading = 'false';
+            if (icon) {
+              icon.style.animation = '';
+            }
+          }
+        });
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+        e.preventDefault();
+        const refreshBtn = document.querySelector('.control-btn.rotate-hover');
+        if (refreshBtn) refreshBtn.click();
+      }
+    });
+
+    /**
+     * 智能位置生成器 - 防重叠算法
+     * 采用分区网格布局策略，确保所有标签均匀分布且不重叠
+     */
+    function generateNonOverlappingPosition(existingTags, tagIndex, totalTags) {
+      const container = document.querySelector('.tags-cosmos');
+      if (!container) return { top: '10%', left: '10%' };
+
+      const containerWidth = container.offsetWidth;
+      const containerHeight = container.offsetHeight;
+
+      const gridConfigs = {
+        '1-3': { cols: 2, rows: 2 },
+        '4-6': { cols: 3, rows: 2 },
+        '7-10': { cols: 4, rows: 3 }
+      };
+
+      let config;
+      if (totalTags <= 3) config = gridConfigs['1-3'];
+      else if (totalTags <= 6) config = gridConfigs['4-6'];
+      else config = gridConfigs['7-10'];
+
+      const cellWidth = containerWidth / config.cols;
+      const cellHeight = containerHeight / config.rows;
+
+      const gridCol = tagIndex % config.cols;
+      const gridRow = Math.floor(tagIndex / config.cols);
+
+      const centerX = (gridCol * cellWidth) + (cellWidth / 2);
+      const centerY = (gridRow * cellHeight) + (cellHeight / 2);
+
+      const randomOffsetX = (Math.random() - 0.5) * 16;
+      const randomOffsetY = (Math.random() - 0.5) * 16;
+
+      let finalTop = ((centerY + (randomOffsetY * cellHeight / 100)) / containerHeight * 100);
+      let finalLeft = ((centerX + (randomOffsetX * cellWidth / 100)) / containerWidth * 100);
+
+      finalTop = Math.max(5, Math.min(85, finalTop));
+      finalLeft = Math.max(5, Math.min(85, finalLeft));
+
+      return {
+        top: Math.round(finalTop) + '%',
+        left: Math.round(finalLeft) + '%'
+      };
+    }
+
+    function convertApiDataToTag(apiTag, index, totalTags) {
+      const colors = ['primary', 'secondary', 'tertiary'];
+      const sizes = [96, 112, 128, 140];
+      const images = [
+        'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=400',
+        'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=400',
+        'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400',
+        'https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?w=400',
+        'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?w=400',
+        'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=400',
+        'https://images.unsplash.com/photo-1464802686167-b939a6910659?w=400',
+        'https://images.unsplash.com/photo-1509773896068-7fd415d91e2e?w=400'
+      ];
+
+      const position = generateNonOverlappingPosition(tags, index, totalTags);
+
+      return {
+        id: String(apiTag.tagId || apiTag.id),
+        name: apiTag.tagName || apiTag.name,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        size: sizes[Math.floor(Math.random() * sizes.length)],
+        position: position,
+        image: images[Math.floor(Math.random() * images.length)],
+        orbitDuration: (Math.floor(Math.random() * 10) + 8) + 's',
+        animationDelay: -Math.floor(Math.random() * 8),
+        labelPosition: ['bottom', 'top', 'right', 'bottom-center'][Math.floor(Math.random() * 4)]
+      };
+    }
+
+    async function initializePopularTagsFromServer(isFirstLoad = true) {
+      if (window.location.protocol === 'file:') {
+        console.warn('⚠️ 检测到 file:// 协议模式，将加载示例数据');
+        showFeedback('当前为本地文件预览模式，显示的是示例数据（启动 Spring Boot 后可加载真实数据）', 'warning');
+
+        if (isFirstLoad) {
+          setTimeout(() => {
+            loadFallbackData();
+          }, 500);
+        }
+        return;
+      }
+
+      if (isFirstLoad) {
+        setGlobalLoading(true);
+      }
+      showFeedback('正在加载热门标签数据...', 'info');
+
+      try {
+        const result = await loadPopularTags();
+
+        if (result.success && result.data) {
+          let tagList = result.data.records || result.data.list || [];
+
+          if (Array.isArray(result.data)) {
+            tagList = result.data;
+          }
+
+          tagList = tagList.slice(0, 10);
+
+          if (tagList.length === 0) {
+            showFeedback('暂无热门标签数据', 'info');
+          } else {
+            tagList.forEach((apiTag, index) => {
+              const tagData = convertApiDataToTag(apiTag, index, tagList.length);
+              tags.push(tagData);
+              createTagElement(tagData);
+            });
+
+            showFeedback(`成功加载 ${tagList.length} 个热门标签`, 'success');
+          }
+
+          updateSignalCount();
+        } else {
+          showFeedback(result.message || '加载热门标签失败', 'error');
+        }
+      } catch (error) {
+        console.error('加载热门标签失败:', error);
+        showFeedback('加载热门标签数据失败，请刷新重试', 'error');
+      } finally {
+        if (isFirstLoad) setGlobalLoading(false);
+      }
+    }
+
+    function loadFallbackData() {
+      const fallbackTags = [
+        // 有机随机布局 (Organic Random Layout) - 模拟宇宙行星自然分布
+        // 打破 Grid 网格限制，采用不规则多边形分布策略
+        { id: 'fallback-1', name: 'POPULAR', color: 'primary', size: 125, position: { top: '8%', left: '18%' }, image: 'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=400', orbitDuration: '12s', animationDelay: -2, labelPosition: 'bottom' },
+        { id: 'fallback-2', name: 'TRENDING', color: 'secondary', size: 115, position: { top: '15%', left: '68%' }, image: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=400', orbitDuration: '10s', animationDelay: -4, labelPosition: 'top' },
+        { id: 'fallback-3', name: 'VIRAL', color: 'primary', size: 135, position: { top: '22%', left: '35%' }, image: 'https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?w=400', orbitDuration: '11s', animationDelay: -3, labelPosition: 'right' },
+        { id: 'fallback-4', name: 'CLASSIC', color: 'primary', size: 118, position: { top: '35%', left: '12%' }, image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400', orbitDuration: '11s', animationDelay: -3, labelPosition: 'bottom-center' },
+        { id: 'fallback-5', name: 'FAVORITE', color: 'tertiary', size: 128, position: { top: '42%', left: '55%' }, image: 'https://images.unsplash.com/photo-1464802686167-b939a6910659?w=400', orbitDuration: '9s', animationDelay: -6, labelPosition: 'top' },
+        { id: 'fallback-6', name: 'EPIC', color: 'secondary', size: 122, position: { top: '52%', left: '82%' }, image: 'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=400', orbitDuration: '10s', animationDelay: -4, labelPosition: 'bottom' },
+        { id: 'fallback-7', name: 'RISING', color: 'primary', size: 95, position: { top: '68%', left: '22%' }, image: 'https://images.unsplash.com/photo-1509773896068-7fd415d91e2e?w=400', orbitDuration: '15s', animationDelay: -2, labelPosition: 'right' },
+        { id: 'fallback-8', name: 'HOT', color: 'tertiary', size: 108, position: { top: '62%', left: '48%' }, image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400', orbitDuration: '14s', animationDelay: -1, labelPosition: 'bottom' },
+        { id: 'fallback-9', name: 'MUST SEE', color: 'tertiary', size: 102, position: { top: '78%', left: '68%' }, image: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=400', orbitDuration: '12s', animationDelay: -7, labelPosition: 'top' },
+        { id: 'fallback-10', name: 'TOP RATED', color: 'secondary', size: 110, position: { top: '85%', left: '8%' }, image: 'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?w=400', orbitDuration: '13s', animationDelay: -5, labelPosition: 'bottom' }
+      ];
+
+      fallbackTags.forEach(tagData => {
+        tags.push(tagData);
+        createTagElement(tagData);
+      });
+
+      updateSignalCount();
+      console.log(`✅ 已加载 ${fallbackTags.length} 个示例标签（本地预览模式）`);
+    }
+
+    function createTagElement(tagData) {
+      const container = document.querySelector('.tags-cosmos');
+
+      const planetTag = document.createElement('div');
+      planetTag.className = 'planet-tag';
+      planetTag.dataset.id = tagData.id;
+      planetTag.style.top = tagData.position.top;
+      planetTag.style.left = tagData.position.left;
+      planetTag.style.animationDelay = tagData.animationDelay + 's';
+
+      const planetContainer = document.createElement('div');
+      planetContainer.className = 'planet-container';
+      planetContainer.style.width = tagData.size + 'px';
+      planetContainer.style.height = tagData.size + 'px';
+
+      const orbitRing = document.createElement('div');
+      orbitRing.className = `orbit-ring ${tagData.color}-ring`;
+      orbitRing.style.animationDuration = tagData.orbitDuration;
+
+      const planetCore = document.createElement('div');
+      planetCore.className = 'planet-core';
+      planetCore.style.color = `var(--${tagData.color})`;
+
+      const img = document.createElement('img');
+      img.src = tagData.image;
+      img.alt = tagData.name;
+      planetCore.appendChild(img);
+
+      const tagLabel = document.createElement('div');
+      tagLabel.className = `tag-label ${tagData.labelPosition}`;
+      tagLabel.style.pointerEvents = 'none';
+
+      const span = document.createElement('span');
+      span.textContent = tagData.name;
+      tagLabel.appendChild(span);
+
+      planetContainer.appendChild(orbitRing);
+      planetContainer.appendChild(planetCore);
+      planetContainer.appendChild(tagLabel);
+      planetTag.appendChild(planetContainer);
+
+      container.appendChild(planetTag);
+    }
+
+    let feedbackStack = [];
+
+    function showFeedback(message, type = 'info') {
+      const feedback = document.createElement('div');
+      feedback.className = `edit-feedback edit-feedback-${type}`;
+      feedback.textContent = message;
+
+      const existingFeedbacks = document.querySelectorAll('.edit-feedback');
+      const stackOffset = existingFeedbacks.length * 60;
+
+      Object.assign(feedback.style, {
+        position: 'fixed',
+        top: (120 + stackOffset) + 'px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        padding: '12px 24px',
+        borderRadius: '12px',
+        fontFamily: "'Space Grotesk', sans-serif",
+        fontSize: '12px',
+        fontWeight: '500',
+        letterSpacing: '0.05em',
+        textTransform: 'uppercase',
+        zIndex: '10000' + existingFeedbacks.length,
+        animation: 'feedback-slide-in 0.3s ease-out forwards',
+        backdropFilter: 'blur(16px)',
+        border: '1px solid'
+      });
+
+      const colors = {
+        success: {
+          bg: 'rgba(76, 175, 80, 0.9)',
+          color: '#ffffff',
+          border: 'rgba(76, 175, 80, 0.5)'
+        },
+        error: {
+          bg: 'rgba(244, 67, 54, 0.9)',
+          color: '#ffffff',
+          border: 'rgba(244, 67, 54, 0.5)'
+        },
+        warning: {
+          bg: 'rgba(255, 152, 0, 0.9)',
+          color: '#1a1a1a',
+          border: 'rgba(255, 152, 0, 0.5)'
+        },
+        info: {
+          bg: 'rgba(13, 71, 161, 0.95)',
+          color: '#c1fffe',
+          border: 'rgba(193, 255, 254, 0.4)'
+        }
+      };
+
+      const style = colors[type] || colors.info;
+      feedback.style.background = style.bg;
+      feedback.style.color = style.color;
+      feedback.style.borderColor = style.border;
+
+      document.body.appendChild(feedback);
+      feedbackStack.push(feedback);
+
+      setTimeout(() => {
+        feedback.style.animation = 'feedback-slide-out 0.3s ease-in forwards';
+        setTimeout(() => {
+          if (feedback.parentNode) {
+            feedback.remove();
+            const index = feedbackStack.indexOf(feedback);
+            if (index > -1) {
+              feedbackStack.splice(index, 1);
+            }
+            repositionRemainingFeedbacks();
+          }
+        }, 300);
+      }, 3000);
+    }
+
+    function repositionRemainingFeedbacks() {
+      const remainingFeedbacks = document.querySelectorAll('.edit-feedback');
+      remainingFeedbacks.forEach((fb, index) => {
+        fb.style.top = (120 + index * 60) + 'px';
+        fb.style.transition = 'top 0.3s ease-out';
+      });
+    }
+
+    const feedbackStyle = document.createElement('style');
+    feedbackStyle.textContent = `
+      @keyframes feedback-slide-in {
+        from {
+          opacity: 0;
+          transform: translateX(-50%) translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(-50%) translateY(0);
+        }
+      }
+
+      @keyframes feedback-slide-out {
+        from {
+          opacity: 1;
+          transform: translateX(-50%) translateY(0);
+        }
+        to {
+          opacity: 0;
+          transform: translateX(-50%) translateY(-20px);
+        }
+      }
+    `;
+    document.head.appendChild(feedbackStyle);
+
+    function updateSignalCount() {
+      const signalIndicator = document.querySelectorAll('.indicator-text')[0];
+      if (signalIndicator) {
+        signalIndicator.textContent = `${tags.length} Active Signals Detected`;
+      }
+    }
+
+    function setupBackButton() {
+      const backBtn = document.getElementById('back-to-index');
+      if (backBtn) {
+        backBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+
+          // 使用相对路径直接跳转到 index.html，兼容 file:// 和 http:// 协议
+          window.location.href = 'index.html';
+        });
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('Popular Tags Universe initialized with', tags.length, 'tags');
+
+      setupRefreshButton();
+      setupBackButton();
+      initializePopularTagsFromServer(true);
+    });
+  </script>
+  <script src="/js/battle-report.js"></script>
+</body>
+
+</html>

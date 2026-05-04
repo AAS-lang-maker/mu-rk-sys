@@ -37,7 +37,7 @@ public class AdminSongServiceImpl implements AdminSongService {
     }
 
     @Override
-    @Async
+    @Async("rankTask")
     public void uploadadmin(MultipartFile file) {
       try{
         File tempNcm=saveTempFile(file);
