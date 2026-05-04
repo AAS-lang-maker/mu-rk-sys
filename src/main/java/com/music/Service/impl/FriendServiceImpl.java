@@ -91,7 +91,7 @@ public class FriendServiceImpl implements FriendService {
         return userSimpleVO;
     }
 
-    @Override
+     @Override
     public UserSimpleVO getMyFans(Integer currentUserId) {
         UserSimpleVO userSimpleVO = new UserSimpleVO();
         userSimpleVO.setUserId(currentUserId);

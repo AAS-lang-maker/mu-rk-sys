@@ -25,7 +25,7 @@ public class FriendController {
       //前端在播放榜单歌曲时，传入 rankId 即可弹出“共同收藏”。
 
     @GetMapping("/common-love")
-    @Operation(summary = "获取共同收藏的榜单", description = "获取共同收藏的榜单")
+    @Operation(summary = "获取共同收藏榜单的好友", description = "获取共同收藏榜单的人")
     public Result<CommonLoveVO> commonLove(@RequestParam("token") String token,
                                           @RequestParam("userId") Integer userId,
                                           @RequestParam("rankId") Integer rankId,

@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 核心：namespace必须等于UserMapper接口的全限定类名（包名+接口名） -->
+<mapper namespace="com.music.Mapper.UserPublishMapper">
+
+    <insert id="insertRank" parameterType="com.music.pojo.PersonalRank" useGeneratedKeys="true" keyProperty="rankId" keyColumn="rank_id">
+        insert into personal_rank(rank_name, user_id, category_id, target_id)
+        VALUES (#{rankName},#{userId},#{categoryId},#{targetId})
+    </insert>
+    <!--批量插入子表-->
+    <insert id="sixInsert">
+       insert into rank_song(rank_id, song_id, ranking)
+       VALUES
+                                                            <!--豆包又教我：用遍历集合，遍历Service层用户对歌曲榜单排名的List-->
+     <foreach collection="list" item="item" separator=",">
+                                                            <!--foreach中的item和前面的Service无关联，此处只是给遍历的元素起一个别名，随意起-->
+         (#{item.rankId},#{item.songId},#{item.ranking})
+     </foreach>
+    </insert>
+
+    <insert id="insertVote">
+        insert into vote_record  (rank_id,vote_time,user_id)
+            values (#{rankId},now(),#{userId})
+    </insert>
+    <insert id="insertLove">
+        insert into love_record(user_id,rank_id,love_time)
+        values (#{userId},#{rankId},now())
+    </insert>
+    <insert id="insertComment">
+        insert into comment(rank_id, user_id, parent_id, comment_content,comment_time,id_delete) VALUES
+        (#{rankId},#{userId},
+         <if test="parentId == null">NULL</if>
+        <if test="parentId != null">#{parentId}</if>
+        ,#{content},now(),0)
+        <!--用动态sql处理发表评论时无parent——id的情况-->
+    </insert>
+    <insert id="insertLike">
+        insert into like_comment(user_id,com_id) values (#{userId},#{comId})
+    </insert>
+    <insert id="insertApply">
+        <selectKey keyProperty="id" keyColumn="user_id" resultType="Integer" order="AFTER">
+            SELECT LAST_INSERT_ID()  <!-- MySQL 获取自增主键的函数 -->
+        </selectKey>
+        insert into song_demand(demand_songname,demand_singername) values (#{songName},#{singerName})
+    </insert>
+    <select id="selectSinger" resultType="com.music.pojo.Singer">
+        select singer_id,singer_name from singer where category_id=#{categoryId} and singer_status=1
+    </select>
+    <select id="selectSong" resultType="com.music.pojo.Song">
+        select song_id,song.song_name from song where singer_id=#{singerId} and song_status=1
+    </select>
+    <select id="checkip" resultType="java.lang.Integer">
+        select count(*) from vote_record where ip=#{ip} and rank_id=#{rankId}
+    </select>
+    <select id="checkLoveip" resultType="java.lang.Integer">
+        select count(*) from love_record where ip=#{ip} and rank_id=#{rankId}
+    </select>
+    <select id="selectPublishRank" resultMap="MyRankWithSongResultMap">
+        select a.rank_id,a.rank_name,a.vote_count,a.love_count,a.publish_time,
+               b.rs_id,b.song_id,b.ranking,b.rank_update_time,c.song_name,d.singer_name,u.username
+        from (select p.rank_id,p.rank_name,p.publish_time,p.user_id,coalesce(v.total_vote,0) as vote_count,coalesce(l.total_love,0) as love_count
+              from personal_rank as p
+              left join (select rank_id,count(*) as total_vote from vote_record group by rank_id) as v on v.rank_id=p.rank_id
+              left join  (select rank_id,count(*) as total_love from love_record group by rank_id) as l on l.rank_id=p.rank_id
+              where p.category_id=#{category}
+              order by publish_time asc
+              limit #{pageSize} offset #{offset}) a
+                 left join rank_song as b on a.rank_id = b.rank_id
+                 left join song as c on c.song_id=b.song_id
+                 left join singer as d on c.singer_id = d.singer_id
+                left join user u on u.user_id=a.user_id
+        order by b.rank_update_time asc, b.ranking asc
+    </select>
+    <resultMap id="MyRankWithSongResultMap" type="com.music.dto.MyRankWithSong">
+        <id property="rankId" column="rank_id"/>
+        <result property="rankName" column="rank_name"/>
+        <result property="voteCount" column="vote_count"/>
+        <result property="loveCount" column="love_count"/>
+        <result property="username" column="username"/>
+        <result property="publishTime" column="publish_time"/>
+        <!-- 子查询映射：把同一个榜单下的歌曲映射到songList列表 -->
+        <collection property="rankSongList" ofType="com.music.pojo.RankSong">
+            <id property="rsId" column="rs_id"/>
+            <result property="songId" column="song_id"/>
+            <result property="songName" column="song_name"/>
+            <result property="singerName" column="singer_name"/>
+            <result property="ranking" column="ranking"/>
+            <result property="rankUpdateTime" column="rank_update_time"/>
+        </collection>
+    </resultMap>
+    <!-- 模糊查询本质：like+concat和%占位符，keyword拼接 -->
+    <select id="selectSearch" resultMap="MyRankWithSongResultMap">
+        select p.rank_id,p.rank_name,p.total_vote as vote_count,p.total_love as love_count
+        ,p.publish_time,r.rs_id,r.ranking,r.rank_update_time,r.song_id,s.song_name,si.singer_name,u.username from
+        (select pe.rank_id,pe.rank_name,pe.publish_time,pe.user_id,coalesce(v.total_vote,0) as total_vote,coalesce(l.total_love,0) as total_love
+        from personal_rank as pe
+        left join (select rank_id,count(*) as total_vote from vote_record group by rank_id) as v
+        on pe.rank_id = v.rank_id
+        left join (select rank_id,count(*) as total_love from love_record group by rank_id) as l
+        on pe.rank_id = l.rank_id
+        where pe.category_id=#{category}
+        <!--必须使用group by分组.因为使用了聚合sum函数，如果不分组，求和的数据无法和榜单信息关联起来-->
+        <!--久违动态sql，if语句处理关键词为空的情况，防止用户空搜索而导致了空查询.注意if标签的位置，要在and之后，否则当if条件不成立时，直接
+        判断and后条件为空。并且标签中不需要有where，因为if标签自带where-->
+        <if test="keyword != null and keyword != &quot;&quot;">
+            AND (pe.rank_name like concat('%',#{keyword},'%') or exists(select 1 from rank_song as rs join  song as s on
+             s.song_id=rs.song_id join singer as si on si.singer_id=s.singer_id where rs.rank_id=pe.rank_id
+            and(si.singer_name like concat('%',#{keyword},'%') or s.song_name like concat('%',#{keyword},'%'))))
+        </if>
+        <!--if语句必须在分页操作之后，否则有可能搜索的目标信息在当前页面之后或者之前-->
+        <!--多多括号，分清and，or。多多(())-->
+        order by pe.publish_time asc
+        limit #{pageSize} offset #{offset}) as p
+        left join rank_song as r on p.rank_id=r.rank_id
+        left join song as s on r.song_id = s.song_id
+        left join singer as si on s.singer_id = si.singer_id
+        left join user u on p.user_id=u.user_id
+        order by r.rank_update_time asc,r.ranking desc
+    </select>
+    <resultMap id="MyRankWithSongsResultMap" type="com.music.dto.MyRankWithSong">
+        <id property="rankId" column="rank_id"/>
+        <result property="rankName" column="rank_name"/>
+        <result property="voteCount" column="vote_count"/>
+        <result property="loveCount" column="love_count"/>
+        <result property="username" column="username"/>
+        <result property="publishTime" column="publish_time"/>
+        <collection property="rankSongList" ofType="com.music.pojo.RankSong">
+            <id property="rsId" column="rs_id"/>
+            <result property="songId" column="song_id"/>
+            <result property="songName" column="song_name"/>
+            <result property="singerName" column="singer_name"/>
+            <result property="ranking" column="ranking"/>
+            <result property="singerName" column="singer_name"/>
+            <result property="rankUpdateTime" column="rank_update_time"/>
+        </collection>
+    </resultMap>
+
+    <select id="selectSearchTotal" resultType="java.lang.Integer">
+        <!--豆包说：注意去重，查询总行数时，由于有模糊查询，可能会有重复行数-->
+        select count(distinct p.rank_id) from personal_rank as p
+        left join rank_song as r on p.rank_id = r.rank_id
+        left join song as s on s.song_id=r.song_id
+        left join singer as si on s.singer_id = si.singer_id
+        where p.category_id=#{category}
+        <if test="keyword != null and keyword != &quot;&quot; "> and
+            (s.song_name like concat('%',#{keyword},'%') or si.singer_name
+            like concat('%',#{keyword},'%') or p.rank_name like concat('%',#{keyword},'%'))</if>
+        order by p.publish_time asc,r.ranking desc
+    </select>
+    <!-- 使用count，只是进行一个计数，不用有group by，left join会产生重复的rank_id，所以要去重distinct-->
+    <select id="selectComment" resultMap="CommentVoResultMap">
+        select distinct c.com_id,c.rank_id,c.user_id,c.parent_id,u.username,pu.username as parent_username,
+               c.comment_content,c.comment_time,ifnull(cl.like_count,0) as like_count,
+               case when cl2.user_id is not null then 1 else 0 end as is_liked
+        from comment as c left join (select com_id,count(*) as like_count from like_comment group by com_id )
+        as cl on c.com_id=cl.com_id
+        left join like_comment as cl2 on cl2.com_id=c.com_id and cl2.user_id=#{userId}
+        left join user as u on c.user_id = u.user_id
+        left join personal_rank p on p.rank_id=c.rank_id
+        left join comment pc on pc.parent_id=c.com_id
+        left join user pu on pu.user_id=pc.user_id
+        where c.rank_id=#{rankId} and c.id_delete=0
+        order by c.comment_time desc
+        limit 50
+    </select>
+    <resultMap id="CommentVoResultMap" type="com.music.dto.CommentVo">
+        <id property="comId" column="com_id"/>
+        <result property="rankId" column="rank_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="username" column="username"/>
+        <result property="comContent" column="comment_content"/>
+        <result property="comTime" column="comment_time"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="likeCount" column="like_count"/>
+        <result property="isLiked" column="is_liked"/>
+        <result property="parentUsername" column="parent_username"/>
+    </resultMap>
+    <!--最难的sql查询：1.case when来判断该评论的点赞中方此用户是否点赞了，以1和0代表点赞状态
+                    2.左外关联评论点赞表中用count函数计算该评论的总点赞数，再在子查询中用ifnull避免总点赞数是null的情况
+                    3.cl2这个左外连接用于联合1去判断用户点赞状态
+                    4.对于父评论功能即评论区回复功能，用了两次外键关联。先是comment和自己关联中的parent_id和主键关联
+                     ,再是parent_id和user表关联
+                     所以会有关联两次user表的情况-->
+    <select id="selectCommentById" resultMap="CommentResultMap">
+     select * from comment where com_id=#{comId}
+    </select>
+
+     <resultMap id="CommentResultMap" type="com.music.pojo.Comment">
+     <id property="comId" column="com_id"/>
+     <result property="rankId" column="rank_id"/>
+     <result property="userId" column="user_id"/>
+     <result property="comContent" column="comment_content"/>
+     <result property="comTime" column="comment_time"/>
+     <result property="parentId" column="parent_id"/>
+</resultMap>
+</mapper>

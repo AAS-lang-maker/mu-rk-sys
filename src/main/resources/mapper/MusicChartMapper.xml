@@ -23,7 +23,7 @@
               left join song as s on s.song_id=rs.song_id
               left join singer as si on s.singer_id = si.singer_id
               left join user as u on pr.user_id = u.user_id
-              left join User_tags as ut on ut.user_id=u.user_id
+              left join User_Tags as ut on ut.user_id=u.user_id
               left join tags_dictionary as td on td.tag_id=ut.tag_id
               order by pr.rank_id,rs.ranking
     </select>

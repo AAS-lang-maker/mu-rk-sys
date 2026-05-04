@@ -26,11 +26,11 @@ public class MusicAgentServiceImpl implements MusicAgentService {
     private ChatMemoryStore chatMemoryStore;
     @Override
     public TokenStream chat(int userId, String userMessage) {
-        List<ChatMessage> memory = chatMemoryStore.getMessages(userId);
-        log.info("已经存入记忆，准备调用Agent，即将生成流式回复");
 
-        String systemPrompt = String.format("你是一个专业音乐推荐大管家。\n" +
-                "请结合用户对音乐榜单的喜好，喜欢的音乐风格和历史聊天记录，为用户提供精准的音乐建议。\n" +
+        List<ChatMessage> memory = chatMemoryStore.getMessages(userId);
+        log.info("已经存入记忆，准备调用Agent,即将生成流式回复");
+        String systemPrompt = String.format("你是一个专业得音乐推荐大管家。\n" + "请结合用户对音乐榜单" +
+                "的喜好，喜欢的音乐风格和历史聊天记录，为用户提供精准的音乐建议。\n" +
                 "如果需要获取实时榜单，你可以调用相关工具");
 
 // 1. 获取流（这一行保持不变）
@@ -38,7 +38,7 @@ public class MusicAgentServiceImpl implements MusicAgentService {
 
         tokenStream.onNext(token -> {
 // 这里可以留空，或者写 log.debug(token);
-                    log.debug(token.toString());
+            log.debug(token.toString());
                 })
                 .onComplete(response -> {
 

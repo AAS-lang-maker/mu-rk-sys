@@ -44,8 +44,8 @@ public class HotRankServiceImpl implements HotRankService {
                 */
     private static final Logger log = LoggerFactory.getLogger(UserPublishServiceImpl.class);
 
-    private static final String Hot_Rank_Key="music:rank:hot";
-
+    private static final String Hot_Rank_Key="music:rank:vote";
+    private static final String HOT_RANK_ZSET_KEY = "music:rank:vote";
     // 构造器注入（合并为一个构造函数，确保所有 final 字段都被初始化）
     public HotRankServiceImpl(RedisTemplate<String, Object> redisTemplate) {
 
@@ -246,6 +246,7 @@ public class HotRankServiceImpl implements HotRankService {
         if(end<=0||start<0){
             return Collections.emptySet();//妙SOS,返回空集合
         }
+
          return stringRedisTemplate.opsForZSet().reverseRange(Hot_Rank_Key,start,end);
     }
 
@@ -488,31 +489,55 @@ public class HotRankServiceImpl implements HotRankService {
         stringRedisTemplate.opsForValue().set(countKey, String.valueOf(safeCount));
         return safeCount;
     }
+    // 1. 定义 ZSet 的 Key
 
+
+    // 2. 修改 increase 方法
     private void increaseVoteCount(Integer rankId) {
         String countKey = String.format(Vote_Count_Key, rankId);
         String value = stringRedisTemplate.opsForValue().get(countKey);
+
         if (value == null) {
             Integer dbCount = musicHotRankMapper.CountVote(rankId);
             int safeCount = dbCount == null ? 0 : dbCount;
             stringRedisTemplate.opsForValue().set(countKey, String.valueOf(safeCount));
+
+            // 【新增】同步 ZSet 初始分数
+            stringRedisTemplate.opsForZSet().add(HOT_RANK_ZSET_KEY, rankId.toString(), safeCount);
             return;
         }
+
+        // 计数 +1
         stringRedisTemplate.opsForValue().increment(countKey);
+
+        // 【新增】ZSet 分数 +1
+        stringRedisTemplate.opsForZSet().incrementScore(HOT_RANK_ZSET_KEY, rankId.toString(), 1);
     }
 
+    // 3. 修改 decrease 方法
     private void decreaseVoteCount(Integer rankId) {
         String countKey = String.format(Vote_Count_Key, rankId);
         String value = stringRedisTemplate.opsForValue().get(countKey);
+
         if (value == null) {
             Integer dbCount = musicHotRankMapper.CountVote(rankId);
             int safeCount = dbCount == null ? 0 : dbCount;
             stringRedisTemplate.opsForValue().set(countKey, String.valueOf(safeCount));
+
+            // 【新增】同步 ZSet 初始分数
+            stringRedisTemplate.opsForZSet().add(HOT_RANK_ZSET_KEY, rankId.toString(), safeCount);
             return;
         }
+
         Long newValue = stringRedisTemplate.opsForValue().decrement(countKey);
+
         if (newValue != null && newValue < 0) {
             stringRedisTemplate.opsForValue().set(countKey, "0");
+            // 【新增】ZSet 分数修正为 0
+            stringRedisTemplate.opsForZSet().add(HOT_RANK_ZSET_KEY, rankId.toString(), 0);
+        } else {
+            // 【新增】ZSet 分数 -1
+            stringRedisTemplate.opsForZSet().incrementScore(HOT_RANK_ZSET_KEY, rankId.toString(), -1);
         }
     }
 

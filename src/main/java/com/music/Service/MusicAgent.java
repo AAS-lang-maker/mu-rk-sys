@@ -3,7 +3,7 @@ package com.music.Service;
 
 import dev.langchain4j.service.*;
 import dev.langchain4j.service.spring.AiService;
-
+import dev.langchain4j.service.TokenStream;
 @AiService
 public interface MusicAgent {
     @SystemMessage("{{systemPrompt}}") // 1. 定义一个模板变量

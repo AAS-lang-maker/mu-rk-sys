@@ -1,0 +1,1738 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script th:src="@{/js/axios.min.js}"></script>
+    <script th:src="@{/js/request.js}"></script>
+    <title>个人榜单</title>
+    <link rel="icon" href="data:'base:;base64,iVBORw0KGgo=">
+    <link rel="stylesheet" th:href="@{/player/music-player.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --surface: #10141a;
+            --surface-container-lowest: #0a0e14;
+            --surface-container: #1c2026;
+            --surface-container-highest: #31353c;
+            --primary: #ffe4a4;
+            --primary-container: #f0c64d;
+            --on-surface: #dfe2eb;
+            --on-primary: #3d2e00;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Manrope', sans-serif;
+            background-color: var(--surface);
+            color: var(--on-surface);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .font-headline {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .glass-effect {
+            background: rgba(28, 32, 38, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .gold-gradient {
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+        }
+
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(16, 20, 26, 0.1);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(240, 198, 77, 0.2);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(240, 198, 77, 0.5);
+        }
+
+        .audio-wave {
+            display: flex;
+            align-items: flex-end;
+            gap: 3px;
+            height: 40px;
+        }
+        .wave-bar {
+            width: 4px;
+            background: linear-gradient(to top, #f0c64d, #ffe4a4);
+            border-radius: 4px;
+            animation: wave 1.2s ease-in-out infinite;
+        }
+        @keyframes wave {
+            0%, 100% { height: 8px; }
+            50% { height: 32px; }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        .app-layout {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* ========== 左侧导航栏 (288px) ========== */
+        .sidebar-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 288px;
+            height: 100vh;
+            background-color: #0a0b0e;
+            border-right: 1px solid rgba(245,158,11,0.15);
+            display: flex;
+            flex-direction: column;
+            padding: 32px 16px;
+            padding-bottom: calc(96px + 48px);
+            z-index: 40;
+        }
+
+        .nav-brand {
+            padding: 0 16px;
+            margin-bottom: 32px;
+        }
+
+        .nav-brand h1 {
+            font-size: 18px;
+            font-weight: bold;
+            color: #facc15;
+            letter-spacing: -0.9px;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .nav-brand p {
+            font-family: 'Space Grotesk';
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            font-size: 10px;
+            color: #737373;
+            margin-top: 4px;
+        }
+
+        .nav-menu {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 0 8px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 16px;
+            color: #737373;
+            text-decoration: none;
+            transition: all 0.3s ease-in-out;
+            border-radius: 8px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        .nav-item:hover {
+            color: #d4d4d4;
+            background-color: rgba(38,38,38,0.4);
+        }
+
+        .nav-item:hover .nav-icon {
+            color: #facc15;
+        }
+
+        .nav-item.active {
+            color: #facc15;
+            background-color: rgba(245,158,11,0.1);
+            border-radius: 0 9999px 9999px 0;
+        }
+
+        .nav-item.active .nav-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+
+        .nav-icon {
+            font-size: 20px;
+            transition: color 0.3s ease;
+        }
+
+        .nav-text {
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            font-size: 10px;
+        }
+
+        .nav-footer {
+            padding: 16px 8px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            margin-top: auto;
+        }
+
+        .create-rank-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+            color: #3d2e00;
+            font-weight: bold;
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(240,198,77,0.1);
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        /* ========== 主内容区 ========== */
+        .main-content {
+            flex: 1;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+            margin-left: 288px;
+        }
+
+        /* Profile Hero Banner */
+        .profile-hero {
+            padding: 28px 48px 20px;
+            position: sticky;
+            top: 0;
+            background: rgba(16, 20, 26, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 30;
+        }
+        .profile-hero-inner {
+            display: flex;
+            gap: 32px;
+            align-items: center;
+        }
+        .avatar-wrapper {
+            position: relative;
+        }
+        .avatar-glow {
+            position: absolute;
+            inset: -2px;
+            background: linear-gradient(to top right, var(--primary-container), var(--primary));
+            border-radius: 24px;
+            blur: 12px;
+            opacity: 0.3;
+            transition: opacity 1s ease, filter 0.2s ease;
+        }
+        .avatar-wrapper:hover .avatar-glow {
+            opacity: 0.5;
+        }
+        .avatar-box {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            border-radius: 24px;
+            border: 1px solid rgba(240, 198, 77, 0.2);
+            background: var(--surface-container);
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+        }
+        .avatar-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .user-info-block {
+            padding-bottom: 8px;
+        }
+        .user-name-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        .user-name {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: -0.05em;
+        }
+        .verified-badge .material-symbols-outlined {
+            color: rgba(255, 228, 164, 0.8);
+            font-size: 24px;
+            font-variation-settings: 'FILL' 1;
+        }
+        .user-tags {
+            display: flex;
+            gap: 16px;
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            font-size: 12px;
+            color: #737373;
+        }
+        .tag-badge {
+            background: rgba(38, 38, 38, 0.5);
+            padding: 4px 12px;
+            border-radius: 9999px;
+            border: 1px solid rgba(64, 64, 64, 0.3);
+        }
+        .tag-badge.premium {
+            background: rgba(240, 198, 77, 0.1);
+            color: rgba(255, 228, 164, 0.8);
+            border-color: rgba(240, 198, 77, 0.1);
+        }
+
+        /* Data Pulse Indicator */
+        .data-pulse {
+            position: fixed;
+            top: 28px;
+            right: 48px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 16px;
+            background: rgba(23, 23, 23, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 9999px;
+            border: 1px solid rgba(240, 198, 77, 0.1);
+            z-index: 50;
+        }
+        .pulse-bars {
+            display: flex;
+            gap: 2px;
+        }
+        .pulse-bar {
+            width: 4px;
+            border-radius: 9999px;
+            background: var(--primary-container);
+        }
+        .pulse-bar:nth-child(1) {
+            height: 12px;
+            opacity: 0.4;
+            animation: bounce 1s infinite 0ms;
+        }
+        .pulse-bar:nth-child(2) {
+            height: 20px;
+            opacity: 0.8;
+            animation: bounce 1s infinite 200ms;
+        }
+        .pulse-bar:nth-child(3) {
+            height: 8px;
+            opacity: 0.6;
+            animation: bounce 1s infinite 400ms;
+        }
+        .pulse-label {
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            font-size: 9px;
+            color: #a3a3a3;
+        }
+
+        /* Content Card */
+        .content-section {
+            flex: 1;
+            padding: 0 48px 64px;
+        }
+        .glass-card {
+            position: relative;
+            background: rgba(28, 32, 38, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 40px;
+            border: 1px solid rgba(240, 198, 77, 0.1);
+            min-height: 600px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 64px 48px;
+            overflow: hidden;
+        }
+        .card-glow-top {
+            position: absolute;
+            top: -96px;
+            right: -96px;
+            width: 384px;
+            height: 384px;
+            background: rgba(240, 198, 77, 0.05);
+            border-radius: 50%;
+            filter: blur(100px);
+        }
+        .card-glow-bottom {
+            position: absolute;
+            bottom: -96px;
+            left: -96px;
+            width: 384px;
+            height: 384px;
+            background: rgba(240, 198, 77, 0.05);
+            border-radius: 50%;
+            filter: blur(100px);
+        }
+
+        /* Empty State */
+        .empty-state {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+        }
+        .empty-visual {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 40px;
+        }
+        .equalizer-badge {
+            position: absolute;
+            bottom: -16px;
+            padding: 4px 16px;
+            background: rgba(240, 198, 77, 0.1);
+            border-radius: 9999px;
+            border: 1px solid rgba(240, 198, 77, 0.2);
+            backdrop-filter: blur(8px);
+        }
+        .equalizer-badge .material-symbols-outlined {
+            color: var(--primary);
+            font-size: 14px;
+        }
+        .empty-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 30px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 16px;
+            letter-spacing: -0.03em;
+        }
+        .empty-desc {
+            color: #a3a3a3;
+            font-size: 14px;
+            max-width: 384px;
+            margin: 0 auto;
+            line-height: 1.625;
+        }
+
+        /* Rankings Container */
+        .rankings-container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+        }
+
+        /* Ranking Item */
+        .ranking-item {
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 16px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(240, 198, 77, 0.06);
+            border-left: 4px solid transparent;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .ranking-item:hover {
+            background: rgba(255, 255, 255, 0.07);
+            transform: translateX(4px);
+            border-left-color: var(--primary-container);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+        .ranking-content {
+            flex: 1;
+        }
+        .ranking-item h3 {
+            color: var(--primary);
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .ranking-item > .ranking-content > p {
+            color: rgba(223, 226, 235, 0.55);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* Song List */
+        .song-list {
+            margin-top: 16px;
+            padding-left: 0;
+        }
+        .song-list h4 {
+            color: var(--primary);
+            font-size: 15px;
+            margin-bottom: 12px;
+            font-weight: 500;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .song-list ul {
+            list-style: none;
+            padding: 0;
+            background: rgba(49, 53, 60, 0.3);
+            border-radius: 12px;
+            padding: 10px;
+        }
+        .song-list li {
+            margin: 8px 0;
+            padding: 10px 15px;
+            border-bottom: 1px solid rgba(223, 226, 235, 0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+        .song-list li:last-child {
+            border-bottom: none;
+        }
+        .song-list li:hover {
+            background: rgba(223, 226, 235, 0.04);
+        }
+        .song-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex: 1;
+        }
+        .song-name {
+            color: var(--on-surface);
+            font-size: 15px;
+        }
+        .singer-name {
+            color: rgba(223, 226, 235, 0.5);
+            font-size: 14px;
+        }
+        .song-rank {
+            color: var(--on-surface);
+            font-size: 14px;
+            font-weight: 600;
+            padding: 4px 10px;
+            background: rgba(240, 198, 77, 0.08);
+            border-radius: 6px;
+            margin-right: 10px;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .play-btn {
+            background: rgba(240, 198, 77, 0.1);
+            border: 1px solid rgba(240, 198, 77, 0.3);
+            color: var(--primary);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 12px;
+            padding-left: 2px;
+            z-index: 2;
+        }
+        .play-btn:hover {
+            background: var(--primary-container);
+            color: var(--on-primary);
+            transform: scale(1.1);
+            box-shadow: 0 0 12px rgba(240, 198, 77, 0.35);
+        }
+
+        /* Edit & Delete Buttons */
+        .edit-btn {
+            background-color: var(--surface-container-highest);
+            color: var(--primary);
+            border: 1px solid rgba(240, 198, 77, 0.2);
+            border-radius: 8px;
+            padding: 6px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-left: 12px;
+            align-self: flex-start;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .edit-btn:hover {
+            background-color: var(--primary-container);
+            color: var(--on-primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(240, 198, 77, 0.2);
+        }
+        .delete-btn {
+            background: rgba(246, 141, 141, 0.15);
+            color: #f68d8d;
+            border: 1px solid rgba(246, 141, 141, 0.2);
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-left: 8px;
+            align-self: flex-start;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .delete-btn:hover {
+            background-color: rgba(239, 108, 108, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(246, 141, 141, 0.35);
+        }
+
+        /* Comment Section */
+        .comment-section {
+            margin-top: 20px;
+            border-top: 1px solid rgba(223, 226, 235, 0.1);
+            padding-top: 16px;
+        }
+        .comment-toggle {
+            background: rgba(49, 53, 60, 0.4);
+            border: 1px solid rgba(223, 226, 235, 0.15);
+            color: var(--on-surface);
+            border-radius: 9999px;
+            padding: 6px 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            margin-bottom: 16px;
+            font-family: 'Manrope', sans-serif;
+        }
+        .comment-toggle:hover {
+            background: rgba(49, 53, 60, 0.65);
+            transform: translateY(-2px);
+        }
+        .comment-container {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .comment-container.show {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .comment-input-area {
+            margin-bottom: 20px;
+        }
+        .comment-input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(28, 32, 38, 0.6);
+            border: 1px solid rgba(223, 226, 235, 0.15);
+            border-radius: 12px;
+            color: var(--on-surface);
+            font-size: 14px;
+            resize: vertical;
+            min-height: 80px;
+            transition: all 0.3s ease;
+            font-family: 'Manrope', sans-serif;
+        }
+        .comment-input:focus {
+            outline: none;
+            border-color: var(--primary-container);
+            box-shadow: 0 0 16px rgba(240, 198, 77, 0.15);
+        }
+        .comment-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 10px;
+        }
+        .comment-submit {
+            background: var(--primary-container);
+            color: var(--on-primary);
+            border: none;
+            border-radius: 8px;
+            padding: 8px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .comment-submit:hover {
+            background: var(--primary);
+            transform: translateY(-2px);
+        }
+        .comment-list {
+            margin-top: 20px;
+        }
+        .comment-item {
+            background: rgba(28, 32, 38, 0.4);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(223, 226, 235, 0.06);
+        }
+        .comment-item:hover {
+            background: rgba(28, 32, 38, 0.6);
+        }
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .comment-username {
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 14px;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .comment-time {
+            color: rgba(223, 226, 235, 0.4);
+            font-size: 12px;
+        }
+        .comment-content {
+            color: var(--on-surface);
+            font-size: 14px;
+            line-height: 1.45;
+            margin-bottom: 10px;
+        }
+        .comment-actions-bar {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .comment-delete-btn {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: rgba(255, 99, 71, 0.6);
+            font-size: 13px;
+            font-weight: 500;
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s ease;
+            font-family: 'Manrope', sans-serif;
+        }
+        .comment-delete-btn:hover {
+            color: #ff6347;
+            background-color: rgba(255, 99, 71, 0.1);
+            transform: translateY(-1px);
+        }
+        .comment-delete-btn::before {
+            content: "🗑️";
+            font-size: 12px;
+        }
+
+        /* Pagination */
+        .pagination-wrap {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            padding: 6px;
+            background: rgba(23, 23, 23, 0.6);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-radius: 16px;
+            border: 1px solid rgba(240, 198, 77, 0.1);
+            margin-top: 48px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+        }
+        .pagination-btn-nav {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            color: #737373;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: color 0.3s ease;
+            border-radius: 8px;
+        }
+        .pagination-btn-nav:hover {
+            color: var(--primary);
+        }
+        .pagination-btn-nav .material-symbols-outlined {
+            font-size: 20px;
+        }
+        .pagination-numbers {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 0 8px;
+        }
+        .page-num-btn {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            color: rgba(163, 163, 163, 0.75);
+            font-size: 14px;
+            font-weight: 500;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .page-num-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .page-num-btn.active {
+            background: var(--primary-container);
+            color: var(--on-primary);
+            font-weight: 700;
+            box-shadow: 0 8px 24px rgba(240, 198, 77, 0.2);
+        }
+        .page-num-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Alerts */
+        #errorAlert {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 24px;
+            background: #ff4444;
+            color: #fff;
+            border-radius: 8px;
+            z-index: 9999;
+            font-family: 'Manrope', sans-serif;
+            font-weight: 500;
+        }
+        #successAlert {
+            display: none;
+            position: fixed;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 24px;
+            background: #00C851;
+            color: #fff;
+            border-radius: 8px;
+            z-index: 9999;
+            font-family: 'Manrope', sans-serif;
+            font-weight: 500;
+        }
+
+        #music-player-container {
+            position: fixed !important;
+            min-height: 70px !important;
+            z-index: 1001;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar-nav { width: 72px; }
+            .nav-brand, .nav-text, .nav-footer { display: none; }
+            .nav-item { justify-content: center; padding: 12px; }
+            .profile-hero { padding: 32px 24px 24px; }
+            .content-section { padding: 0 24px 48px; }
+            .glass-card { padding: 40px 24px; }
+            .data-pulse { right: 24px; top: 24px; }
+        }
+
+        @media (max-width: 768px) {
+            .app-layout { flex-direction: column; }
+            .sidebar-nav { display: none; }
+            .content-section { padding: 0 16px 32px; }
+            .glass-card { padding: 32px 16px; border-radius: 24px; }
+            .profile-hero-inner { flex-direction: column; text-align: center; }
+            .avatar-box { width: 120px; height: 120px; }
+            .user-name { font-size: 32px; }
+            .user-tags { justify-content: center; flex-wrap: wrap; }
+        }
+    </style>
+    <script th:src="@{/player/music-player.js}"></script>
+</head>
+
+<body>
+    <div id="errorAlert"></div>
+    <div id="successAlert"></div>
+
+    <div class="app-layout">
+        <!-- ========== 左侧导航栏 ========== -->
+        <aside class="sidebar-nav">
+            <div class="nav-brand">
+                <h1>The Digital Conductor</h1>
+                <p>Premium Music Vault</p>
+            </div>
+            <nav class="nav-menu">
+                <button class="nav-item" id="navIndex">
+                    <span class="material-symbols-outlined nav-icon">home</span>
+                    <span class="nav-text">首页</span>
+                </button>
+                <button class="nav-item" id="navHome">
+                    <span class="material-symbols-outlined nav-icon">grid_view</span>
+                    <span class="nav-text">主页</span>
+                </button>
+                <button class="nav-item" id="navSearch">
+                    <span class="material-symbols-outlined nav-icon">search</span>
+                    <span class="nav-text">搜索榜单</span>
+                </button>
+                <button class="nav-item active" id="navMyRank">
+                    <span class="material-symbols-outlined nav-icon">queue_music</span>
+                    <span class="nav-text">我的榜单</span>
+                </button>
+                <button class="nav-item" id="navHotRank">
+                    <span class="material-symbols-outlined nav-icon">local_fire_department</span>
+                    <span class="nav-text">热门榜单</span>
+                </button>
+                <button class="nav-item" id="navMyLove">
+                    <span class="material-symbols-outlined nav-icon">favorite</span>
+                    <span class="nav-text">我的收藏</span>
+                </button>
+            </nav>
+            <div class="nav-footer">
+                <button class="create-rank-btn" id="navAdd">+ 创建榜单</button>
+            </div>
+        </aside>
+
+        <!-- ========== 主内容区 ========== -->
+        <main class="main-content">
+            <!-- Profile Hero Banner -->
+            <section class="profile-hero">
+                <div class="profile-hero-inner">
+                    <div class="avatar-wrapper">
+                        <div class="avatar-glow"></div>
+                        <div class="avatar-box">
+                            <img alt="用户头像" class="avatar-img"
+                                src="https://tse4-mm.cn.bing.net/th/id/OIP-C.YzVD8zb817n7AdFqtsY46wHaHS?w=183&h=180&c=7&r=0&o=5&dpr=2&pid=1.7">
+                        </div>
+                    </div>
+                    <div class="user-info-block">
+                        <div class="user-name-row">
+                            <h2 class="user-name" th:text="${username}">DJ666</h2>
+                            <span class="verified-badge material-symbols-outlined">verified</span>
+                        </div>
+                        <div class="user-tags">
+                            <span class="tag-badge" th:text="|ID: ${userId}|">ID: 882910</span>
+                            <span class="tag-badge premium">Premium Member</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Content Area -->
+            <section class="content-section">
+                <div class="glass-card">
+                    <div class="card-glow-top"></div>
+                    <div class="card-glow-bottom"></div>
+
+                    <div class="rankings-container" th:if="${!#lists.isEmpty(personalRanks?.list)}">
+                        <div th:each="ranking, stat : ${personalRanks?.list}" class="ranking-item"
+                            th:data-rank-id="${ranking.rankId}">
+                            <div class="ranking-content">
+                                <h3 th:text="${ranking.rankName}">榜单标题</h3>
+                                <p th:text="|更新于: ${ranking.publishTime}|">最后更新时间</p>
+
+                                <div class="song-list">
+                                    <h4>歌曲列表</h4>
+                                    <ul>
+                                        <li th:each="song : ${ranking.rankSongList}" th:data-song-id="${song.songId}">
+                                            <div class="song-info">
+                                                <span class="song-rank" th:text="${song?.ranking}">排名</span>
+                                                <span class="song-name" th:text="${song?.songName}">歌曲名称</span>
+                                                <span class="singer-name" th:text="${song.singerName}">歌手名称</span>
+                                            </div>
+                                            <div class="song-actions">
+                                                <button class="play-btn" th:data-song-id="${song.songId}"
+                                                    th:data-song-name="${song.songName}"
+                                                    th:data-singer-name="${song.singerName}">&#9658;</button>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <div class="comment-section">
+                                    <button class="comment-toggle" th:data-rank-id="${ranking.rankId}">
+                                        查看评论
+                                    </button>
+                                    <div class="comment-container" th:id="|comment-container-${ranking.rankId}|">
+                                        <div class="comment-input-area">
+                                            <textarea class="comment-input" th:id="|comment-input-${ranking.rankId}|"
+                                                placeholder="写下你的评论..."></textarea>
+                                            <div class="comment-actions">
+                                                <button class="comment-submit" th:data-rank-id="${ranking.rankId}">
+                                                    发表评论
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="comment-list" th:id="|comment-list-${ranking.rankId}|">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button class="edit-btn" th:data-rank-id="${ranking.rankId}">编辑</button>
+                                <button class="delete-btn" th:data-rank-id="${ranking.rankId}">删除</button>
+                            </div>
+                        </div>
+
+                        <!-- Pagination -->
+                        <div class="pagination-wrap" th:if="${personalRanks != null}">
+                            <button class="pagination-btn-nav" th:disabled="${personalRanks.pageNum == 1}"
+                                th:data-page="${personalRanks.pageNum - 1}">
+                                <span class="material-symbols-outlined">chevron_left</span>
+                            </button>
+                            <div class="pagination-numbers">
+                                <button class="page-num-btn" th:each="i : ${#numbers.sequence(1, personalRanks?.pages)}"
+                                    th:classappend="${personalRanks.pageNum == i ? 'active' : ''}"
+                                    th:data-page="${i}" th:text="${i}">1</button>
+                            </div>
+                            <button class="pagination-btn-nav" th:disabled="${personalRanks.pageNum == personalRanks.pages}"
+                                th:data-page="${personalRanks.pageNum + 1}">
+                                <span class="material-symbols-outlined">chevron_right</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div class="empty-state" th:if="${#lists.isEmpty(personalRanks?.list)}">
+                        <div class="empty-visual">
+                            <div class="audio-wave">
+                                <div class="wave-bar" style="animation-delay: 0.1s"></div>
+                                <div class="wave-bar" style="animation-delay: 0.3s"></div>
+                                <div class="wave-bar" style="animation-delay: 0.5s"></div>
+                                <div class="wave-bar" style="animation-delay: 0.2s"></div>
+                                <div class="wave-bar" style="animation-delay: 0.4s"></div>
+                                <div class="wave-bar" style="animation-delay: 0.6s"></div>
+                                <div class="wave-bar" style="animation-delay: 0.3s"></div>
+                            </div>
+                            <div class="equalizer-badge">
+                                <span class="material-symbols-outlined">equalizer</span>
+                            </div>
+                        </div>
+                        <h3 class="empty-title">暂无榜单数据</h3>
+                        <p class="empty-desc">
+                            Your archive is currently a silent canvas. Start curating your first musical masterpiece to bring this space to life.
+                        </p>
+                    </div>
+
+                    <!-- Pagination for empty state fallback -->
+                    <div class="pagination-wrap" th:if="${personalRanks != null and !#lists.isEmpty(personalRanks?.list)}" style="margin-top: 48px;">
+                        <button class="pagination-btn-nav" th:disabled="${personalRanks.pageNum == 1}"
+                            th:data-page="${personalRanks.pageNum - 1}">
+                            <span class="material-symbols-outlined">chevron_left</span>
+                        </button>
+                        <div class="pagination-numbers">
+                            <button class="page-num-btn" th:each="i : ${#numbers.sequence(1, personalRanks?.pages)}"
+                                th:classappend="${personalRanks.pageNum == i ? 'active' : ''}"
+                                th:data-page="${i}" th:text="${i}">1</button>
+                        </div>
+                        <button class="pagination-btn-nav" th:disabled="${personalRanks.pageNum == personalRanks.pages}"
+                            th:data-page="${personalRanks.pageNum + 1}">
+                            <span class="material-symbols-outlined">chevron_right</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Data Pulse Indicator -->
+    <div class="data-pulse">
+        <div class="pulse-bars">
+            <div class="pulse-bar"></div>
+            <div class="pulse-bar"></div>
+            <div class="pulse-bar"></div>
+        </div>
+        <span class="pulse-label">Vault Synced</span>
+    </div>
+
+    <!-- 音乐播放器容器 -->
+    <div id="music-player-container"></div>
+
+
+    <script>
+        // ===================== 全局核心配置 ======================
+        function getUrlParam(paramName) {
+            const reg = new RegExp("(^|&)" + paramName + "=([^&]*)(&|$)");
+            const paramMatch = window.location.search.substr(1).match(reg);
+            return paramMatch ? decodeURIComponent(paramMatch[2]) : null;
+        }
+
+        function getUserIdFromToken(token) {
+            if (!token) return null;
+            try {
+                const payload = token.split('.')[1];
+                const decodedPayload = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
+                const payloadObj = JSON.parse(decodedPayload);
+                return payloadObj.userId || payloadObj.uid || null;
+            } catch (error) {
+                console.error("解析Token失败:", error);
+                return null;
+            }
+        }
+
+        let token = getUrlParam("token") || localStorage.getItem('token') || '';
+        let userId = getUrlParam("userId") || getUrlParam("user_id") || getUserIdFromToken(token) || localStorage.getItem('user_id') || '';
+        let category = parseInt(getUrlParam("category")) || 1;
+        let musicPlayer = null;
+
+        function showErrorTip(msg) {
+            let el = document.getElementById('errorAlert');
+            if (!el) {
+                el = document.createElement('div');
+                el.id = 'errorAlert';
+                el.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:10px 24px;background:#ff4444;color:#fff;border-radius:8px;z-index:9999;font-family:"Manrope",sans-serif;font-weight:500;';
+                document.body.appendChild(el);
+            }
+            el.innerText = msg;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 2000);
+        }
+
+        function showSuccessTip(msg) {
+            let el = document.getElementById('successAlert');
+            if (!el) {
+                el = document.createElement('div');
+                el.id = 'successAlert';
+                el.style.cssText = 'position:fixed;top:70px;left:50%;transform:translateX(-50%);padding:10px 24px;background:#00C851;color:#fff;border-radius:8px;z-index:9999;font-family:"Manrope",sans-serif;font-weight:500;';
+                document.body.appendChild(el);
+            }
+            el.innerText = msg;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 2000);
+        }
+
+        function padStartCompat(str, length, padChar) {
+            str = str.toString();
+            while (str.length < length) {
+                str = padChar + str;
+            }
+            return str;
+        }
+
+        // ===================== 播放器核心逻辑 ======================
+        function initMusicPlayer() {
+            if (musicPlayer) return;
+            try {
+                musicPlayer = new MusicPlayer({
+                    container: 'music-player-container',
+                    token: token,
+                    userId: userId
+                });
+                console.log("播放器初始化成功");
+            } catch (e) {
+                console.error("播放器初始化失败:", e);
+                showErrorTip("播放器加载失败：" + e.message);
+            }
+        }
+
+        function playSong(song) {
+            if (!song) {
+                showErrorTip("歌曲信息为空！");
+                return;
+            }
+            if (!musicPlayer) {
+                initMusicPlayer();
+            }
+            try {
+                musicPlayer.playSong(song);
+                showSuccessTip(`开始播放：${song.songName}`);
+            } catch (e) {
+                console.error("播放歌曲失败:", e);
+                showErrorTip("播放失败：" + e.message);
+            }
+        }
+
+        function playSongFromData(btn) {
+            const songId = btn.dataset.songId;
+            const songName = btn.dataset.songName;
+            const singerName = btn.dataset.singerName;
+
+            if (!songId) {
+                showErrorTip("歌曲ID为空，无法播放！");
+                return;
+            }
+
+            playSong({
+                songId: songId,
+                songName: songName || "未知歌曲",
+                singerName: singerName || "未知歌手"
+            });
+        }
+
+        // ===================== 评论区功能 ======================
+        function toggleComments(rankId) {
+            const container = document.getElementById(`comment-container-${rankId}`);
+            if (!container) {
+                showErrorTip("评论容器未找到！");
+                return;
+            }
+            const toggleBtn = container.previousElementSibling;
+
+            if (container.classList.contains('show')) {
+                container.classList.remove('show');
+                toggleBtn.textContent = '查看评论';
+            } else {
+                container.classList.add('show');
+                toggleBtn.textContent = '收起评论';
+                loadComments(rankId);
+            }
+        }
+
+        function loadComments(rankId) {
+            console.log('加载评论列表，rankId:', rankId);
+            const commentList = document.getElementById(`comment-list-${rankId}`);
+            if (!commentList) return;
+
+            if (!token) {
+                commentList.innerHTML = '<p style="color: rgba(223, 226, 235, 0.5); text-align: center;">请先登录后查看评论</p>';
+                return;
+            }
+
+            commentList.innerHTML = '<p style="color: rgba(223, 226, 235, 0.5); text-align: center;">加载中...</p>';
+
+            axios.get(`/music/api/rank/list`, {
+                params: {
+                    token: token,
+                    rankId: rankId,
+                    userId: userId
+                }
+            })
+                .then(response => {
+                    console.log('加载评论响应:', response.data);
+                    if (response.data.code === 200 || response.data.success) {
+                        const comments = response.data.data || response.data;
+                        renderComments(commentList, comments);
+                    } else {
+                        commentList.innerHTML = `<p style="color: rgba(223, 226, 235, 0.5); text-align: center;">查询评论失败：${response.data.msg || '未知错误'}</p>`;
+                        console.error('评论查询失败:', response.data);
+                    }
+                })
+                .catch(error => {
+                    console.error('加载评论失败:', error);
+                    commentList.innerHTML = `<p style="color: rgba(223, 226, 235, 0.5); text-align: center;">加载评论失败：${error.response?.data?.msg || error.message}</p>`;
+                });
+        }
+
+        function renderComments(container, comments) {
+            if (!comments || comments.length === 0) {
+                container.innerHTML = '<p style="color: rgba(223, 226, 235, 0.5); text-align: center;">暂无评论</p>';
+                return;
+            }
+
+            container.innerHTML = '';
+            comments.forEach(comment => {
+                const commentItem = document.createElement('div');
+                commentItem.className = 'comment-item';
+
+                commentItem.innerHTML = `
+                <div class="comment-header">
+                    <span class="comment-username">${comment.username || '匿名用户'}</span>
+                    <span class="comment-time">${formatTime(comment.comTime)}</span>
+                </div>
+                <div class="comment-content">${comment.comContent || ''}</div>
+                <div class="comment-actions-bar">
+                    ${comment.userId === parseInt(userId) ?
+                        `<button class="comment-delete-btn" data-comment-id="${comment.comId}">删除</button>` : ''
+                    }
+                </div>
+            `;
+
+                container.appendChild(commentItem);
+            });
+        }
+
+        function submitComment(rankId) {
+            console.log('提交评论,rankId:', rankId);
+            const input = document.getElementById(`comment-input-${rankId}`);
+            if (!input) {
+                showErrorTip("评论输入框未找到！");
+                return;
+            }
+            const content = input.value.trim();
+
+            if (!content) {
+                showErrorTip("评论内容不能为空！");
+                return;
+            }
+
+            if (!token || !userId || isNaN(userId)) {
+                showErrorTip("请先登录后再评论！");
+                return;
+            }
+
+            axios.post(`/music/api/rank/pubcomment`, {
+                rankId: rankId,
+                userId: userId,
+                content: content,
+                parentId: null
+            }, {
+                params: { token: token }
+            })
+                .then(response => {
+                    console.log('提交评论成功:', response.data);
+                    if (response.data.code === 200 || response.data.success) {
+                        showSuccessTip("评论发表成功！");
+                        input.value = '';
+                        loadComments(rankId);
+                    } else {
+                        showErrorTip("评论发表失败：" + (response.data.msg || '未知错误'));
+                    }
+                })
+                .catch(error => {
+                    console.error('提交评论失败:', error);
+                    showErrorTip("评论发表失败：" + (error.response?.data?.msg || error.message));
+                });
+        }
+
+        function deleteComment(commentId) {
+            console.log('删除评论，commentId:', commentId);
+
+            if (!confirm('确定要删除这条评论吗？')) {
+                return;
+            }
+
+            axios.delete(`/music/api/rank/deleteComment`, {
+                params: {
+                    token: token,
+                    comId: commentId,
+                    userId: userId
+                }
+            })
+                .then(response => {
+                    console.log('删除评论成功:', response.data);
+                    if (response.data.code === 200 || response.data.success) {
+                        showSuccessTip("删除评论成功！");
+                        const commentItem = document.querySelector(`[data-comment-id="${commentId}"]`).closest('.comment-item');
+                        const commentContainer = commentItem.closest('[id^="comment-container-"]');
+                        const rankId = commentContainer.id.replace('comment-container-', '');
+                        loadComments(rankId);
+                    } else {
+                        showErrorTip("删除评论失败：" + (response.data.msg || '未知错误'));
+                    }
+                })
+                .catch(error => {
+                    console.error('删除评论失败:', error);
+                    showErrorTip("删除评论失败：" + (error.response?.data?.msg || error.message));
+                });
+        }
+
+        function formatTime(time) {
+            if (!time) return '';
+            const date = new Date(time);
+            if (isNaN(date.getTime())) return '未知时间';
+            const year = date.getFullYear();
+            const month = padStartCompat(date.getMonth() + 1, 2, '0');
+            const day = padStartCompat(date.getDate(), 2, '0');
+            const hour = padStartCompat(date.getHours(), 2, '0');
+            const minute = padStartCompat(date.getMinutes(), 2, '0');
+            return `${year}-${month}-${day} ${hour}:${minute}`;
+        }
+
+        // ===================== 导航和业务逻辑 =====================
+        (function () {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const urlToken = urlParams.get('token') || '';
+                const urlUid = urlParams.get('user_id') || urlParams.get('userId') || '';
+                const urlUserName = urlParams.get('userName') || urlParams.get('username') || '';
+                const urlCategory = urlParams.get('category') || '';
+                const urlSuccess = urlParams.get('success') || '';
+
+                localStorage.setItem('token', urlToken);
+                localStorage.setItem('user_id', urlUid);
+                localStorage.setItem('userName', urlUserName);
+                localStorage.setItem('category', urlCategory);
+                localStorage.setItem('success', urlSuccess);
+
+                console.log('✅ 初始化完成，参数：', {
+                    token: urlToken,
+                    userId: urlUid,
+                    category: urlCategory,
+                    success: urlSuccess
+                });
+            } catch (err) {
+                console.error('❌ 初始化出错：', err);
+            }
+        })();
+
+        function goToHome() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                let token = urlParams.get('token') || localStorage.getItem('token') || '';
+                let user_id = urlParams.get('userId') || urlParams.get('user_id') || localStorage.getItem('user_id') || '';
+                let userName = urlParams.get('userName') || localStorage.getItem('userName') || '';
+                const category = urlParams.get('category') || localStorage.getItem('category') || '';
+                const success = urlParams.get('success') || localStorage.getItem('success') || '';
+
+                console.log('📌 跳转主页前读取的参数：', { token, user_id, userName, category, success });
+
+                if (!token) {
+                    alert('登录信息已失效，请重新登录');
+                    window.location.href = '/music/login.html';
+                    return;
+                }
+
+                if (!user_id) {
+                    alert('用户ID缺失，请重新登录');
+                    window.location.href = '/music/login.html';
+                    return;
+                }
+
+                const params = new URLSearchParams();
+                params.append('token', token);
+                params.append('userId', user_id);
+                if (userName) params.append('userName', userName);
+                if (category) params.append('category', category);
+                if (success) params.append('success', success);
+
+                const targetUrl = `/music/api/rank/publish?${params.toString()}`;
+                console.log('📌 最终跳转主页URL：', targetUrl);
+
+                window.location.href = targetUrl;
+
+            } catch (err) {
+                console.error('❌ 跳转主页出错：', err);
+                alert('跳转失败，请刷新页面重试！');
+            }
+        }
+
+        function goToIndex() {
+            try {
+                const token = localStorage.getItem('token') || getUrlParam('token');
+                const userId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
+                const userName = localStorage.getItem('userName') || '';
+                
+                let url = '/music/index.html';
+                const params = new URLSearchParams();
+                if (token) params.append('token', token);
+                if (userId) params.append('userId', userId);
+                if (userName) params.append('userName', userName);
+                
+                if (params.toString()) {
+                    url += '?' + params.toString();
+                }
+                
+                window.location.href = url;
+            } catch (err) {
+                console.error('❌ 跳转首页出错：', err);
+                alert('跳转失败，请刷新页面重试！');
+            }
+        }
+
+        function goToSearch() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const token = urlParams.get('token') || localStorage.getItem('token') || '';
+                const userId = urlParams.get('userId') || urlParams.get('user_id') || localStorage.getItem('user_id') || '';
+                const category = urlParams.get('category') || localStorage.getItem('category') || '1';
+
+                console.log('📌 跳转搜索页前读取的参数：', { token, userId, category });
+
+                if (!token) {
+                    alert('登录信息失效，请重新登录');
+                    window.location.href = '/music/login.html';
+                    return;
+                }
+
+                if (!userId) {
+                    alert('用户ID缺失，请重新登录');
+                    window.location.href = '/music/login.html';
+                    return;
+                }
+
+                const params = new URLSearchParams();
+                params.append('token', token);
+                params.append('userId', userId);
+                params.append('category', category);
+
+                const targetUrl = `/music/api/rank/search?${params.toString()}`;
+                console.log('📌 最终跳转搜索页URL：', targetUrl);
+
+                window.location.href = targetUrl;
+            } catch (err) {
+                console.error('❌ 跳转搜索页出错：', err);
+                alert('跳转失败，请刷新重试！');
+            }
+        }
+
+        function goToHotRank() {
+            try {
+                const token = localStorage.getItem('token') || getUrlParam('token');
+                const userId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
+                
+                if (!token || !userId) {
+                    alert('登录信息失效，请重新登录');
+                    window.location.href = '/music/login.html';
+                    return;
+                }
+                
+                let url = `/music/hotrank.html?token=${encodeURIComponent(token)}&userId=${encodeURIComponent(userId)}`;
+                window.location.href = url;
+            } catch (err) {
+                console.error('❌ 跳转热门榜出错：', err);
+                alert('跳转失败，请刷新重试！');
+            }
+        }
+
+        function goToPu() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const token = urlParams.get('token') || localStorage.getItem('token') || '';
+                const userId = urlParams.get('userId') || urlParams.get('user_id') || localStorage.getItem('user_id') || '';
+                const category = urlParams.get('category') || localStorage.getItem('category') || '';
+                const success = urlParams.get('success') || localStorage.getItem('success') || '';
+
+                console.log('📌 跳转前参数：', { token, userId, category, success });
+
+                if (!token || !userId) {
+                    alert('登录信息失效，请重新登录');
+                    window.location.href = '/music/login.html';
+                    return;
+                }
+
+                const params = new URLSearchParams();
+                params.append('token', token);
+                params.append('userId', userId);
+                if (category) params.append('category', category);
+                if (success) params.append('success', success);
+
+                const targetUrl = `/music/api/rank/publish?${params.toString()}`;
+                console.log('📌 最终跳转URL：', targetUrl);
+
+                window.location.href = targetUrl;
+
+            } catch (err) {
+                console.error('❌ 跳转出错：', err);
+                alert('跳转失败，请刷新重试！');
+            }
+        }
+
+        function editRanking(id) {
+            const token = localStorage.getItem('token');
+            const targetUrl = `/music/api/mine/edit/${id}?token=${encodeURIComponent(token)}`;
+            window.location.href = targetUrl;
+        }
+
+        function goToMyLove() {
+            const token = localStorage.getItem('token') || getUrlParam('token');
+            const userId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
+
+            if (token) {
+                let url = `/music/api/mine/lv?token=${encodeURIComponent(token)}`;
+                if (userId) {
+                    url += `&userId=${encodeURIComponent(userId)}`;
+                }
+                url += '&pageNum=1&pageSize=10';
+                window.location.href = url;
+            } else {
+                showErrorTip('登录信息失效，请重新登录！');
+                window.location.href = '/music/login.html';
+            }
+        }
+
+        function deleteRanking(rankId) {
+            if (!confirm('确定要删除这个榜单吗？删除后无法恢复！')) {
+                return;
+            }
+
+            const token = localStorage.getItem('token') || getUrlParam('token');
+            if (!token) {
+                showErrorTip('登录信息失效，请重新登录');
+                window.location.href = '/music/login.html';
+                return;
+            }
+
+            const deleteUrl = `/music/api/mine/deleterank?token=${encodeURIComponent(token)}&rankId=${rankId}`;
+
+            fetch(deleteUrl, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('删除请求失败');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.code === 200 || data.success) {
+                        showSuccessTip('榜单删除成功！');
+                        location.reload();
+                    } else {
+                        showErrorTip(data.msg || '删除失败，请重试');
+                    }
+                })
+                .catch(error => {
+                    console.error('删除请求异常：', error);
+                    showErrorTip('网络错误，请稍后重试');
+                });
+        }
+
+        function goToPage(page) {
+            const currentToken = localStorage.getItem('token') || getUrlParam('token');
+            const currentUserId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
+            window.location.href = `/music/api/mine/myrank?pageNum=${page}&token=${encodeURIComponent(currentToken)}&userId=${encodeURIComponent(currentUserId)}`;
+        }
+
+        // ===================== 事件委托绑定 ====================
+        document.addEventListener('DOMContentLoaded', function () {
+            initMusicPlayer();
+
+            document.addEventListener('click', function (e) {
+                const target = e.target;
+
+                if (target.closest('#btn-goToPu')) {
+                    goToPu();
+                    return;
+                }
+                if (target.closest('#btn-reLogin')) {
+                    window.location.href = '/music/login.html';
+                    return;
+                }
+                // ========== 导航按钮事件绑定 ==========
+                if (target.closest('#navIndex')) {
+                    goToIndex();
+                    return;
+                }
+                if (target.closest('#navHome')) {
+                    goToHome();
+                    return;
+                }
+                if (target.closest('#navSearch')) {
+                    goToSearch();
+                    return;
+                }
+                if (target.closest('#navMyRank')) {
+                    location.reload();
+                    return;
+                }
+                if (target.closest('#navHotRank')) {
+                    goToHotRank();
+                    return;
+                }
+                if (target.closest('#navMyLove')) {
+                    goToMyLove();
+                    return;
+                }
+                if (target.closest('#navAdd')) {
+                    goToPu();
+                    return;
+                }
+                if (target.closest('#btn-reLogin')) {
+                    window.location.href = '/music/login.html';
+                    return;
+                }
+
+                const playBtn = e.target.closest('.play-btn');
+                if (playBtn) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    playSongFromData(playBtn);
+                    return;
+                }
+
+                const editBtn = e.target.closest('.edit-btn');
+                if (editBtn) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const rankId = editBtn.dataset.rankId;
+                    editRanking(rankId);
+                    return;
+                }
+
+                const deleteBtn = e.target.closest('.delete-btn');
+                if (deleteBtn) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const rankId = deleteBtn.dataset.rankId;
+                    deleteRanking(rankId);
+                    return;
+                }
+
+                const commentToggle = e.target.closest('.comment-toggle');
+                if (commentToggle) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const rankId = commentToggle.dataset.rankId;
+                    toggleComments(rankId);
+                    return;
+                }
+
+                const commentSubmit = e.target.closest('.comment-submit');
+                if (commentSubmit) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const rankId = commentSubmit.dataset.rankId;
+                    submitComment(rankId);
+                    return;
+                }
+
+                const commentDelete = e.target.closest('.comment-delete-btn');
+                if (commentDelete) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const commentId = commentDelete.dataset.commentId;
+                    deleteComment(commentId);
+                    return;
+                }
+
+                const pageBtn = e.target.closest('.pagination-wrap button:not(.pagination-btn-nav)');
+                if (pageBtn && !pageBtn.disabled) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const page = pageBtn.dataset.page;
+                    if (page) goToPage(page);
+                    return;
+                }
+
+                const pageNavBtn = e.target.closest('.pagination-btn-nav');
+                if (pageNavBtn && !pageNavBtn.disabled) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const page = pageNavBtn.dataset.page;
+                    if (page) goToPage(page);
+                    return;
+                }
+            });
+
+            if (!token || !userId || isNaN(userId)) {
+                showErrorTip('登录信息失效，请重新登录');
+                setTimeout(() => window.location.href = '/music/login.html', 1500);
+            }
+        });
+    </script>
+</body>
+
+</html>

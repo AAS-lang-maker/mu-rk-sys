@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Digital Conductor</title>
+    <script src="js/axios.min.js"></script>
+    <script src="js/request.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f131d;
+            --primary: #dcc66e;
+            --on-surface: #dfe2f1;
+            --surface-low: #151a26;
+            --surface-high: #262a35;
+            --text-gray: #8b92a5;
+            --text-light: #6b7280;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            overflow-y: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        html::-webkit-scrollbar {
+            display: none;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg);
+            color: var(--on-surface);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            overflow-y: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        body::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* ===== 导航栏 ===== */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 48px;
+            background: rgba(15, 19, 29, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 250, 205, 0.08);
+        }
+
+        .header-brand {
+            font-family: 'Manrope', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .header-center {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .trending-btn {
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 20px;
+            border-radius: 9999px;
+            border: 1px solid rgba(220, 198, 110, 0.3);
+            background: rgba(220, 198, 110, 0.06);
+            color: var(--primary);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .trending-btn:hover {
+            background: rgba(220, 198, 110, 0.12);
+            border-color: rgba(220, 198, 110, 0.5);
+        }
+
+        .trending-icon {
+            font-size: 14px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .welcome-text {
+            font-size: 14px;
+            color: var(--text-gray);
+        }
+
+        .welcome-text span#userName {
+            color: var(--on-surface);
+            font-weight: 600;
+            margin-left: 4px;
+        }
+
+        .brand-tag {
+            font-family: 'Manrope', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: 2px;
+            opacity: 0.7;
+        }
+
+        .avatar-placeholder {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--surface-high), var(--surface-low));
+            border: 2px solid rgba(220, 198, 110, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            color: var(--primary);
+        }
+
+        /* ===== 主内容区 ===== */
+        .main-content {
+            position: relative;
+            z-index: 1;
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 120px 24px 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* ===== Hero 区域 ===== */
+        .hero-section {
+            text-align: center;
+            margin-bottom: 64px;
+        }
+
+        .hero-title {
+            font-family: 'Manrope', sans-serif;
+            font-size: 56px;
+            font-weight: 800;
+            line-height: 1.15;
+            background: linear-gradient(135deg, #ffffff 0%, var(--primary) 50%, #ffffff 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            letter-spacing: -0.5px;
+        }
+
+        .hero-subtitle {
+            font-size: 18px;
+            color: var(--text-gray);
+            max-width: 520px;
+            margin: 0 auto;
+            line-height: 1.7;
+        }
+
+        /* ===== 分类卡片容器 ===== */
+        .cards-container {
+            display: flex;
+            gap: 40px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 48px;
+        }
+
+        .category-card {
+            position: relative;
+            width: 480px;
+            height: 420px;
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 250, 205, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            padding: 40px 36px;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+                        box-shadow 0.4s ease,
+                        border-color 0.3s ease;
+            overflow: hidden;
+        }
+
+        .category-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 24px;
+            background: linear-gradient(135deg, rgba(220, 198, 110, 0.06), transparent 60%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+        }
+
+        .category-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 28px 56px rgba(0, 0, 0, 0.55);
+            border-color: rgba(220, 198, 110, 0.2);
+        }
+
+        .category-card:hover::before {
+            opacity: 1;
+        }
+
+        .card-icon-wrapper {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            margin-bottom: 24px;
+            flex-shrink: 0;
+        }
+
+        .card-icon-wrapper.icon-star {
+            background: linear-gradient(135deg, #1e2230, #141826);
+            color: var(--primary);
+            border: 1px solid rgba(220, 198, 110, 0.2);
+        }
+
+        .card-icon-wrapper.icon-folder {
+            background: linear-gradient(135deg, #162033, #101829);
+            color: #7bd0ff;
+            border: 1px solid rgba(123, 208, 255, 0.2);
+        }
+
+        .card-title {
+            font-family: 'Manrope', sans-serif;
+            font-size: 32px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+
+        .card-subtitle {
+            font-size: 14px;
+            color: var(--text-gray);
+            margin-bottom: 16px;
+            letter-spacing: 0.5px;
+        }
+
+        .card-desc {
+            font-size: 14px;
+            color: var(--text-light);
+            line-height: 1.6;
+            margin-bottom: auto;
+            flex-grow: 1;
+        }
+
+        .card-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 24px;
+            padding: 12px 28px;
+            border-radius: 9999px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            outline: none;
+            align-self: flex-start;
+        }
+
+        .card-cta.cta-primary {
+            background: linear-gradient(135deg, var(--primary), #140f00);
+            color: #140f00;
+        }
+
+        .card-cta.cta-primary:hover {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+        }
+
+        .card-cta.cta-outline {
+            background: transparent;
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+        }
+
+        .card-cta.cta-outline:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* ===== 状态指示器 ===== */
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 32px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #7bd0ff;
+            animation: breathe 2s ease-in-out infinite;
+        }
+
+        @keyframes breathe {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1.0; }
+        }
+
+        .status-text {
+            font-size: 14px;
+            color: var(--text-gray);
+        }
+
+        /* ===== 重新登录链接 ===== */
+        .relogin-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: color 0.3s ease;
+            margin-bottom: 40px;
+            background: none;
+            border: none;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .relogin-link:hover {
+            color: var(--primary);
+        }
+
+        /* ===== 底部区域 ===== */
+        .footer-area {
+            text-align: center;
+            margin-top: 12px;
+        }
+
+        .footer-hint {
+            font-size: 16px;
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .footer-copyright {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 768px) {
+            .header {
+                padding: 14px 20px;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .header-brand {
+                font-size: 16px;
+            }
+
+            .header-center {
+                order: 3;
+                width: 100%;
+                justify-content: center;
+            }
+
+            .hero-title {
+                font-size: 36px;
+            }
+
+            .hero-subtitle {
+                font-size: 15px;
+            }
+
+            .cards-container {
+                flex-direction: column;
+                align-items: center;
+                gap: 24px;
+            }
+
+            .category-card {
+                width: 100%;
+                max-width: 420px;
+                height: auto;
+                min-height: 360px;
+                padding: 32px 28px;
+            }
+
+            .card-title {
+                font-size: 26px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- 导航栏 -->
+<header class="header">
+    <div class="header-brand">THE DIGITAL CONDUCTOR</div>
+    <div class="header-center">
+        <button class="trending-btn">
+            <span class="trending-icon">&#128293;</span>
+            Trending
+        </button>
+    </div>
+    <div class="header-right">
+        <span class="welcome-text">欢迎用户<span id="userName"></span></span>
+        <span class="brand-tag">MUSIC - RANK</span>
+        <div class="avatar-placeholder">&#9878;</div>
+    </div>
+</header>
+
+<!-- 主内容 -->
+<main class="main-content">
+
+    <!-- Hero 主视觉 -->
+    <section class="hero-section">
+        <h1 class="hero-title">The Digital Conductor</h1>
+        <p class="hero-subtitle">获取全球最权威的音乐排行榜。通过选择下方的专业数据流来开启您的体验。</p>
+    </section>
+
+    <!-- 分类卡片容器 -->
+    <div class="cards-container">
+
+        <!-- 卡片1：歌手明星 -->
+        <div class="category-card" data-category="1">
+            <div class="card-icon-wrapper icon-star">&#9733;</div>
+            <h2 class="card-title">歌手明星</h2>
+            <p class="card-subtitle">歌手明星</p>
+            <p class="card-desc">国交各流派、榜单冠军歌手以及全球最具影响力的音乐偶像。</p>
+            <div class="card-cta cta-primary">进入分类 &#8594;</div>
+        </div>
+
+        <!-- 卡片2：影视游戏 -->
+        <div class="category-card" data-category="2">
+            <div class="card-icon-wrapper icon-folder">&#128193;</div>
+            <h2 class="card-title">影视游戏</h2>
+            <p class="card-subtitle">Film & Games</p>
+            <p class="card-desc">电影配乐、管弦乐游戏原作以及数字世界的原创声音。</p>
+            <div class="card-cta cta-outline">查看目录 &#9673;</div>
+        </div>
+
+    </div>
+
+    <!-- 状态指示器 -->
+    <div class="status-indicator">
+        <span class="status-dot"></span>
+        <span class="status-text">实时排名数据流已激活</span>
+    </div>
+
+    <!-- 重新登录链接 -->
+    <button class="relogin-link" id="reloginLink">&#8635; 重新登录</button>
+
+    <!-- 底部区域 -->
+    <footer class="footer-area">
+        <p class="footer-hint">请选择你心仪的榜单类别</p>
+        <p class="footer-copyright">&copy; 2026 数字指挥家。选择一个类别开始您的旅程。</p>
+    </footer>
+
+</main>
+
+<script>
+    function getUrlParam(paramName) {
+        const reg = new RegExp("(^|&)" + paramName + "=([^&]*)(&|$)");
+        const paramMatch = window.location.search.substr(1).match(reg);
+        return paramMatch ? decodeURIComponent(paramMatch[2]) : null;
+    }
+
+    let token = getUrlParam("token");
+    let userId = getUrlParam("userId");
+    let userName = getUrlParam("userName") || " ";
+
+    window.onload = function() {
+        document.getElementById("userName").innerText = userName;
+        if (!token || !userId) {
+            alert("登录信息失效，请重新登录！");
+            window.location.href = "/music/login.html";
+        }
+    };
+
+    document.querySelectorAll('.category-card').forEach(function(card) {
+        card.addEventListener('click', function() {
+            const categoryId = card.getAttribute('data-category');
+            if (!token || !userId) {
+                alert("登录信息失效，请重新登录！");
+                window.location.href = "/music/login.html";
+                return;
+            }
+            const jumpUrl = '/music/api/category/redirect?categoryId=' + categoryId + '&token=' + encodeURIComponent(token) + '&userId=' + userId;
+            window.location.href = jumpUrl;
+        });
+    });
+
+    document.getElementById('reloginLink').addEventListener('click', function() {
+        token = '';
+        userId = '';
+        window.location.href = '/music/login.html';
+    });
+</script>
+
+</body>
+</html>

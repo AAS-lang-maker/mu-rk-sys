@@ -1,0 +1,2370 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script th:src="@{/js/axios.min.js}"></script>
+    <script th:src="@{/js/request.js}"></script>
+    <title>榜单页</title>
+    <link rel="icon" href="data:'base:;base64,iVBORw0KGgo=">
+    <link rel="stylesheet" th:href="@{/player/music-player.css}">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet">
+
+    <style>
+        /* ==================== Design System - CSS Variables ==================== */
+        :root {
+            /* Surface 层级 */
+            --surface: #10141a;
+            --surface-container-lowest: #0a0e14;
+            --surface-container-low: #181c22;
+            --surface-container: #1c2026;
+            --surface-container-high: #262a31;
+            --surface-container-highest: #31353c;
+
+            /* On-surface 色 */
+            --on-surface: #dfe2eb;
+            --on-surface-variant: #a8adb8;
+
+            /* Primary 强调色 */
+            --primary: #ffe4a4;
+            --primary-container: #f0c64d;
+            --primary-fixed-dim: #ebc249;
+            --surface-tint: #ebc249;
+
+            /* 边框 */
+            --outline-variant: #4d4635;
+
+            /* 字体 */
+            --font-headline: 'Space Grotesk', sans-serif;
+            --font-body: 'Manrope', sans-serif;
+
+            /* 圆角 */
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --radius-xl: 16px;
+            --radius-full: 9999px;
+        }
+
+        /* ==================== Global Reset & Base Styles ==================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            min-height: 100vh;
+            color: var(--on-surface);
+            background: var(--surface);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: var(--font-headline);
+        }
+
+        /* ==================== Material Icons Configuration ==================== */
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        /* ==================== Utility Classes ==================== */
+
+        /* Gold Gradient */
+        .gold-gradient {
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+        }
+
+        .text-gold-gradient {
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Glass Card Effect */
+        .glass-card {
+            background: rgba(49, 53, 60, 0.6);
+            backdrop-filter: blur(20px);
+            border-radius: var(--radius-xl);
+            border: 1px solid rgba(77, 70, 53, 0.1);
+        }
+
+        /* Custom Scrollbar (Gold Theme) */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(240, 198, 77, 0.2);
+            border-radius: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(240, 198, 77, 0.5);
+        }
+
+        /* Hide Scrollbar */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* ==================== Left Sidebar Navigation ==================== */
+        .sidebar-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 288px;
+            height: 100vh;
+            background-color: #0a0b0e;
+            border-right: 1px solid rgba(245, 158, 11, 0.15);
+            display: flex;
+            flex-direction: column;
+            padding: 48px 16px;
+            z-index: 40;
+            padding-bottom: calc(96px + 48px);
+        }
+
+        .nav-brand {
+            padding: 0 16px;
+            margin-bottom: 32px;
+        }
+
+        .nav-brand h1 {
+            font-size: 18px;
+            font-weight: bold;
+            color: #facc15;
+            letter-spacing: -0.9px;
+            text-transform: none;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .nav-brand p {
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            font-size: 10px;
+            color: #737373;
+            margin-top: 4px;
+        }
+
+        .nav-menu {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 0 8px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 16px;
+            color: #737373;
+            text-decoration: none;
+            transition: all 0.3s ease-in-out;
+            border-radius: 8px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        .nav-item:hover {
+            color: #d4d4d4;
+            background-color: rgba(38, 38, 38, 0.4);
+        }
+
+        .nav-item:hover .nav-icon {
+            color: #facc15;
+        }
+
+        .nav-item.active {
+            color: #facc15;
+            background-color: rgba(245, 158, 11, 0.1);
+            border-radius: 0 9999px 9999px 0;
+        }
+
+        .nav-item.active .nav-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+
+        .nav-icon {
+            font-size: 20px;
+            transition: color 0.3s ease;
+        }
+
+        .nav-text {
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            font-size: 10px;
+        }
+
+        .nav-footer {
+            padding: 16px 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            margin-top: auto;
+        }
+
+        .create-rank-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+            color: #3d2e00;
+            font-weight: bold;
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(240, 198, 77, 0.1);
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        .create-rank-btn:hover {
+            transform: scale(0.95);
+            box-shadow: 0 10px 30px rgba(240, 198, 77, 0.2);
+        }
+
+        .create-rank-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* ==================== Main Content Grid Layout ==================== */
+        .main-grid {
+            margin-left: 288px;
+            padding: 32px 32px 90px;
+            display: grid;
+            grid-template-columns: 8fr 4fr;
+            gap: 32px;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .content-area {
+            grid-column: 1 / 2;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            padding-right: 8px;
+        }
+
+        .right-sidebar {
+            grid-column: 2 / 3;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+
+        /* Page Header */
+        .page-header {
+            margin-bottom: 10px;
+            padding-left: 8px;
+        }
+
+        .page-header-label {
+            display: block;
+            font-size: 10px;
+            color: var(--primary-fixed-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+            margin-bottom: 8px;
+            font-family: var(--font-body);
+        }
+
+        .page-header-title {
+            font-size: 36px;
+            font-weight: bold;
+            color: var(--on-surface);
+            letter-spacing: -0.02em;
+        }
+
+        /* ==================== Playlist Card Component ==================== */
+        .playlist-card {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            border-radius: var(--radius-xl);
+            background: var(--surface-container-low);
+            border: 1px solid rgba(77, 70, 53, 0.05);
+            margin-bottom: 24px;
+            transition: transform 300ms ease;
+        }
+
+        .card-main {
+            display: flex;
+            gap: 24px;
+        }
+
+        /* Cover Image Area */
+        .card-cover {
+            width: 160px;
+            height: 160px;
+            flex-shrink: 0;
+            border-radius: var(--radius-lg);
+            border: 2px solid rgba(255, 228, 164, 0.3);
+            box-shadow: 0 0 20px rgba(240, 198, 77, 0.2);
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+            transition: transform 700ms ease;
+        }
+
+        .card-cover img,
+        .card-cover .cover-placeholder {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 700ms ease;
+        }
+
+        .playlist-card:hover .card-cover img,
+        .playlist-card:hover .card-cover .cover-placeholder {
+            transform: scale(1.1);
+        }
+
+        .cover-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: bold;
+            color: white;
+        }
+
+        /* Play Button Overlay */
+        .play-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 300ms ease;
+        }
+
+        .card-cover:hover .play-overlay {
+            opacity: 1;
+        }
+
+        .play-overlay-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #241a00;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            transform: translateY(8px);
+            transition: transform 300ms ease;
+        }
+
+        .card-cover:hover .play-overlay-btn {
+            transform: translateY(0);
+        }
+
+        .play-overlay-btn .material-symbols-outlined {
+            font-size: 28px;
+            font-variation-settings: 'FILL' 1;
+        }
+
+        /* Card Info Area */
+        .card-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .card-title {
+            font-size: 24px;
+            font-family: var(--font-headline);
+            font-weight: bold;
+            color: var(--on-surface);
+            transition: color 300ms ease;
+            line-height: 1.2;
+        }
+
+        .playlist-card:hover .card-title {
+            color: var(--primary);
+        }
+
+        .card-meta {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--on-surface-variant);
+            margin-top: 4px;
+        }
+
+        .card-meta span {
+            color: rgba(212, 215, 220, 0.7);
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 16px;
+            margin-top: 12px;
+        }
+
+        .action-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-lg);
+            background: var(--surface-container-highest);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            transition: all 200ms ease;
+            color: var(--on-surface);
+        }
+
+        .action-btn:hover {
+            color: var(--primary);
+            transform: scale(1.05);
+        }
+
+        .action-btn .material-symbols-outlined {
+            font-size: 20px;
+        }
+
+        /* Song List */
+        .song-list {
+            margin-top: 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .song-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-radius: var(--radius-md);
+            transition: background 200ms ease;
+        }
+
+        .song-item:hover {
+            background: rgba(49, 53, 60, 0.5);
+        }
+
+        .song-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .song-name {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--on-surface);
+        }
+
+        .song-artist {
+            font-size: 10px;
+            text-transform: uppercase;
+            color: #6b7280;
+            letter-spacing: 0.03em;
+        }
+
+        .play-song-btn {
+            opacity: 0;
+            color: var(--on-surface-variant);
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 4px;
+            transition: all 200ms ease;
+        }
+
+        .song-item:hover .play-song-btn {
+            opacity: 1;
+        }
+
+        .play-song-btn:hover {
+            color: var(--primary);
+        }
+
+        .play-song-btn .material-symbols-outlined {
+            font-size: 20px;
+        }
+
+        /* Card Footer */
+        .card-footer {
+            margin-top: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .btn-view-comments {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: var(--radius-md);
+            background: rgba(49, 53, 60, 0.5);
+            border: 1px solid rgba(77, 70, 53, 0.1);
+            color: #9ca3af;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 200ms ease;
+            font-family: var(--font-body);
+        }
+
+        .btn-view-comments:hover {
+            border-color: rgba(255, 228, 164, 0.4);
+            color: var(--primary);
+        }
+
+        .btn-view-comments .material-symbols-outlined {
+            font-size: 14px;
+        }
+
+        /* AI Review FAB Button */
+        .ai-fab {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+            box-shadow: 0 0 15px rgba(240, 198, 77, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            transition: all 300ms ease;
+            color: #241a00;
+        }
+
+        .ai-fab:hover {
+            transform: scale(1.1);
+        }
+
+        .ai-fab .material-symbols-outlined {
+            font-size: 22px;
+            font-variation-settings: 'FILL' 1;
+        }
+
+        /* AI FAB Tooltip */
+        .ai-fab-tooltip {
+            position: absolute;
+            right: calc(100% + 12px);
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--surface-container-highest);
+            color: var(--primary);
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 6px 12px;
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(255, 228, 164, 0.2);
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 200ms ease;
+            font-family: var(--font-body);
+        }
+
+        .ai-fab:hover .ai-fab-tooltip {
+            opacity: 1;
+        }
+
+        /* ==================== Right Sidebar Modules ==================== */
+
+        /* AI Critique Module */
+        .ai-critique-module {
+            height: 320px;
+            display: flex;
+            flex-direction: column;
+            padding: 12px;
+            overflow: hidden;
+        }
+
+        .module-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            /*margin-bottom: 24px;*/
+        }
+
+        .module-title {
+            font-size: 18px;
+            font-family: var(--font-headline);
+            font-weight: bold;
+            color: var(--on-surface);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .module-title .material-symbols-outlined {
+            color: var(--primary);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .module-badge {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: #6b7280;
+            font-family: var(--font-body);
+        }
+
+        .module-content {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .empty-state {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 16px;
+        }
+
+        .empty-state p {
+            font-size: 12px;
+            color: #6b7280;
+            font-style: italic;
+            line-height: 1.6;
+            font-family: var(--font-body);
+        }
+
+        /* Friends Recommendation Module */
+        .friends-module {
+            padding: 12px;
+        }
+
+        .friend-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            /*margin-bottom: 16px;*/
+        }
+
+        .friend-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 228, 164, 0.2);
+            padding: 2px;
+            overflow: hidden;
+        }
+
+        .friend-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            background: var(--surface-container-highest);
+        }
+
+        .friend-info {
+            flex: 1;
+        }
+
+        .friend-name {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--on-surface);
+        }
+
+        .friend-desc {
+            font-size: 10px;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+
+        .btn-add-friend {
+            color: var(--primary);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            transition: color 200ms ease;
+        }
+
+        .btn-add-friend:hover {
+            color: white;
+        }
+
+        .btn-add-friend .material-symbols-outlined {
+            font-size: 20px;
+        }
+
+        /* AI Assistant Chat Module */
+        .ai-assistant-module {
+            height: 380px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .chat-header {
+            padding: 9px;
+            border-bottom: 1px solid rgba(77, 70, 53, 0.1);
+            background: var(--surface-container-low);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .ai-avatar-wrapper {
+            position: relative;
+            width: 40px;
+            height: 40px;
+        }
+
+        .ai-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 228, 164, 0.3);
+            overflow: hidden;
+        }
+
+        .ai-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: var(--surface-container-highest);
+        }
+
+        .online-indicator {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 12px;
+            height: 12px;
+            background: #22c55e;
+            border: 2px solid var(--surface-container-low);
+            border-radius: 50%;
+        }
+
+        .chat-header-info h4 {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--on-surface);
+        }
+
+        .chat-header-info p {
+            font-size: 10px;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            background: rgba(16, 20, 26, 0.4);
+        }
+
+        .chat-prompt {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            opacity: 0.4;
+        }
+
+        .chat-prompt .material-symbols-outlined {
+            font-size: 36px;
+            color: var(--primary);
+            margin-bottom: 8px;
+            font-variation-settings: 'FILL' 1;
+        }
+
+        .chat-prompt p {
+            font-size: 10px;
+            color: #9ca3af;
+            text-align: center;
+            font-family: var(--font-body);
+        }
+
+        .chat-bubble {
+            background: rgba(49, 53, 60, 0.5);
+            border-radius: var(--radius-xl);
+            padding: 16px;
+            max-width: 90%;
+            border: 1px solid rgba(77, 70, 53, 0.1);
+        }
+
+        .chat-bubble p {
+            font-size: 12px;
+            color: var(--on-surface);
+            line-height: 1.6;
+            font-style: italic;
+            font-family: var(--font-body);
+        }
+
+        .chat-input-area {
+            padding: 5px;
+            border-top: 1px solid rgba(77, 70, 53, 0.1);
+            background: var(--surface-container-low);
+        }
+
+        .chat-input-wrapper {
+            display: flex;
+            align-items: center;
+            background: var(--surface-container-highest);
+            border-radius: var(--radius-full);
+            padding: 4px 16px;
+            gap: 8px;
+        }
+
+        .chat-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: 12px;
+            color: var(--on-surface);
+            font-family: var(--font-body);
+        }
+
+        .chat-input::placeholder {
+            color: #4b5563;
+        }
+
+        .btn-send-message {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            color: #241a00;
+            box-shadow: 0 2px 8px rgba(240, 198, 77, 0.3);
+            transition: all 200ms ease;
+        }
+
+        .btn-send-message:hover {
+            transform: scale(1.05);
+        }
+
+        .btn-send-message .material-symbols-outlined {
+            font-size: 14px;
+        }
+
+        /* ==================== Comment Drawer Sidebar ==================== */
+        #comments-sidebar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 400px;
+            height: 100vh;
+            background: rgba(49, 53, 60, 0.6);
+            backdrop-filter: blur(20px);
+            border-left: 1px solid rgba(255, 228, 164, 0.2);
+            z-index: 10000;
+            box-shadow: -20px 0 50px rgba(0, 0, 0, 0.5);
+            transform: translateX(100%);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-open #comments-sidebar {
+            transform: translateX(0);
+        }
+
+        .drawer-header {
+            padding: 24px;
+            border-bottom: 1px solid rgba(77, 70, 53, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .drawer-title {
+            font-size: 20px;
+            font-family: var(--font-headline);
+            font-weight: bold;
+            color: var(--on-surface);
+        }
+
+        .btn-close-drawer {
+            color: #9ca3af;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            transition: color 200ms ease;
+        }
+
+        .btn-close-drawer:hover {
+            color: var(--primary);
+        }
+
+        .btn-close-drawer .material-symbols-outlined {
+            font-size: 24px;
+        }
+
+        .drawer-comments {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        .comment-item {
+            display: flex;
+            gap: 16px;
+        }
+
+        .comment-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 228, 164, 0.2);
+            padding: 2px;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .comment-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            background: var(--surface-container-highest);
+        }
+
+        .comment-content {
+            flex: 1;
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .comment-author {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .comment-time {
+            font-size: 10px;
+            text-transform: uppercase;
+            color: #6b7280;
+            letter-spacing: 0.03em;
+        }
+
+        .comment-delete-btn {
+            color: #9ca3af;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            transition: color 200ms ease;
+            margin-left: auto;
+        }
+
+        .comment-delete-btn:hover {
+            color: #ef4444;
+        }
+
+        .comment-delete-btn .material-symbols-outlined {
+            font-size: 16px;
+        }
+
+        .comment-text {
+            font-size: 14px;
+            color: rgba(212, 215, 220, 0.85);
+            line-height: 1.5;
+        }
+
+        .drawer-input-area {
+            padding: 24px;
+            border-top: 1px solid rgba(77, 70, 53, 0.1);
+            background: var(--surface-container-low);
+            flex-shrink: 0;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .comment-textarea {
+            width: 100%;
+            min-height: 96px;
+            padding: 12px;
+            border-radius: var(--radius-lg);
+            background: var(--surface-container-highest);
+            border: 1px solid rgba(77, 70, 53, 0.2);
+            resize: none;
+            font-size: 14px;
+            color: var(--on-surface);
+            font-family: var(--font-body);
+            outline: none;
+            transition: border-color 200ms ease;
+        }
+
+        .comment-textarea:focus {
+            border-color: rgba(255, 228, 164, 0.5);
+        }
+
+        .comment-textarea::placeholder {
+            color: #6b7280;
+        }
+
+        .btn-submit-comment {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            padding: 6px 16px;
+            border-radius: var(--radius-md);
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+            color: #241a00;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border: none;
+            cursor: pointer;
+            font-family: var(--font-body);
+            transition: all 200ms ease;
+        }
+
+        .btn-submit-comment:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(240, 198, 77, 0.3);
+        }
+
+
+
+        .player-now-playing {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            width: 25%;
+        }
+
+        .player-album-art {
+            width: 56px;
+            height: 56px;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            border: 1px solid rgba(77, 70, 53, 0.1);
+        }
+
+        .player-album-art img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .player-track-info h5 {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--on-surface);
+            letter-spacing: -0.01em;
+        }
+
+        .player-track-info p {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+
+        .player-controls {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-buttons {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .control-btn {
+            color: var(--on-surface);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            transition: color 200ms ease;
+        }
+
+        .control-btn:hover {
+            color: var(--primary);
+        }
+
+        .control-btn .material-symbols-outlined {
+            font-size: 24px;
+        }
+
+        .btn-play-main {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            color: #241a00;
+            box-shadow: 0 0 15px rgba(240, 198, 77, 0.3);
+            transition: all 200ms ease;
+        }
+
+        .btn-play-main:hover {
+            transform: scale(1.05);
+        }
+
+        .btn-play-main:active {
+            transform: scale(0.95);
+        }
+
+        .btn-play-main .material-symbols-outlined {
+            font-size: 24px;
+            font-variation-settings: 'FILL' 1;
+        }
+
+        .progress-bar-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            max-width: 512px;
+        }
+
+        .time-label {
+            font-size: 9px;
+            color: #6b7280;
+            font-family: var(--font-body);
+            min-width: 32px;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 4px;
+            background: var(--surface-container-highest);
+            border-radius: 2px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .progress-fill {
+            width: 45%;
+            height: 100%;
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+            border-radius: 2px;
+            box-shadow: 0 0 8px #f0c64d;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 25px;
+            margin-bottom: 12px;
+            gap: 8px;
+        }
+
+        .page-btn {
+            padding: 8px 16px;
+            border-radius: var(--radius-md);
+            background: var(--surface-container-highest);
+            border: 1px solid rgba(77, 70, 53, 0.15);
+            color: var(--on-surface);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 200ms ease;
+            font-family: var(--font-body);
+        }
+
+        .page-btn:hover:not(:disabled) {
+            background: var(--primary-container);
+            color: #10141a;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .page-btn.active {
+            background: var(--primary-container);
+            color: #10141a;
+            font-weight: bold;
+        }
+
+        /* Error/Success Alerts */
+        #errorAlert,
+        #successAlert {
+            position: fixed;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
+            z-index: 9999;
+            display: none;
+            font-size: 14px;
+            font-family: var(--font-body);
+        }
+
+        #errorAlert {
+            background: #ff4444;
+            color: white;
+            top: 80px;
+        }
+
+        #successAlert {
+            background: #00C851;
+            color: white;
+            top: 120px;
+        }
+
+        /* Empty State */
+        .empty-data {
+            text-align: center;
+            padding: 80px 20px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        /* Rank Tags Container */
+        .rank-tags-container {
+            display: flex;
+            gap: 8px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        /* Rank Tag Item */
+        .rank-tag-item {
+            flex: 1;
+            padding: 6px 12px;
+            background: rgba(49, 53, 60, 0.5);
+            border: 1px solid rgba(77, 70, 53, 0.15);
+            border-radius: var(--radius-md);
+            font-size: 10px;
+            color: var(--on-surface-variant);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: default;
+            transition: all 200ms ease;
+            font-family: var(--font-body);
+            min-width: 0;
+        }
+
+        .rank-tag-item:hover {
+            border-color: rgba(255, 228, 164, 0.4);
+            color: var(--primary);
+            background: rgba(49, 53, 60, 0.8);
+        }
+    </style>
+
+</head>
+
+<body class="sidebar-closed" data-mode="connect">
+
+    <!-- ==================== Left Sidebar Navigation ==================== -->
+    <aside class="sidebar-nav">
+        <div class="nav-brand">
+            <h1>The Digital Conductor</h1>
+            <p>Premium Music Vault</p>
+        </div>
+
+        <nav class="nav-menu">
+            <button class="nav-item" id="navIndex" title="首页">
+                <span class="material-symbols-outlined nav-icon">home</span>
+                <span class="nav-text">首页</span>
+            </button>
+            <button class="nav-item active" id="navHome" title="主页">
+                <span class="material-symbols-outlined nav-icon">grid_view</span>
+                <span class="nav-text">主页</span>
+            </button>
+            <button class="nav-item" id="navSearch" title="搜索榜单">
+                <span class="material-symbols-outlined nav-icon">search</span>
+                <span class="nav-text">搜索榜单</span>
+            </button>
+            <button class="nav-item" id="navMyRank" title="我的榜单">
+                <span class="material-symbols-outlined nav-icon">queue_music</span>
+                <span class="nav-text">我的榜单</span>
+            </button>
+            <button class="nav-item" id="navHotRank" title="热门榜单">
+                <span class="material-symbols-outlined nav-icon">local_fire_department</span>
+                <span class="nav-text">热门榜单</span>
+            </button>
+            <button class="nav-item" id="navMyLove" title="我的收藏">
+                <span class="material-symbols-outlined nav-icon">favorite</span>
+                <span class="nav-text">我的收藏</span>
+            </button>
+        </nav>
+
+        <div class="nav-footer">
+            <button class="create-rank-btn" id="navAdd">+ 创建榜单</button>
+        </div>
+    </aside>
+
+    <!-- ==================== Main Content Grid ==================== -->
+    <main class="main-grid">
+
+        <!-- Center Column: Playlist Cards -->
+        <section class="content-area custom-scrollbar">
+            <!-- Page Header -->
+            <div class="page-header">
+                <span class="page-header-label">Editor's Choice</span>
+                <h2 class="page-header-title">音乐榜单发现</h2>
+            </div>
+
+            <!-- Error/Success Alerts -->
+            <div id="errorAlert" th:text="${errormessage}" style="display:none;"></div>
+            <div id="successAlert" th:text="${success}" style="display:none;"></div>
+
+            <!-- Playlist Cards Container -->
+            <div class="custom-scrollbar" style="flex: 1; overflow-y: auto;scrollbar-width: none">
+
+                <!-- Thymeleaf Loop for Playlists -->
+                <div th:each="ranking, stat : ${publishRanks?.list}" class="playlist-card"
+                    data-rank-id="${ranking.rankId}">
+
+                    <!-- Main Content: Cover + Info -->
+                    <div class="card-main">
+                        <!-- Cover Image with Play Overlay -->
+                        <div class="card-cover">
+                            <div class="cover-placeholder"
+                                th:text="${ranking.rankName != null ? ranking.rankName.substring(0,1) : '榜'}"
+                                th:style="'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);'">
+                                榜
+                            </div>
+                            <div class="play-overlay">
+                                <div class="play-overlay-btn">
+                                    <span class="material-symbols-outlined">play_arrow</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Info Section -->
+                        <div class="card-info">
+                            <h3 class="card-title" th:text="${ranking.rankName}">午夜赛博霓虹</h3>
+                            <div class="card-meta">
+                                发布者: <span th:text="${ranking.username}">零度脉冲</span>
+                            </div>
+                            <div class="card-meta">
+                                更新时间：<span th:text="${ranking.publishTime}">2024-05-20 04:32</span>
+                            </div>
+
+                            <!-- Action Buttons: Like & Collect -->
+                            <div class="action-buttons">
+                                <button class="action-btn vote-btn" th:data-rank-id="${ranking.rankId}">
+                                    <span class="material-symbols-outlined">favorite</span>
+                                </button>
+                                <button class="action-btn collect-btn" th:data-rank-id="${ranking.rankId}">
+                                    <span class="material-symbols-outlined">star</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Song List -->
+                    <div class="song-list">
+                        <th:block th:if="${ranking.rankSongList != null and ranking.rankSongList.size() > 0}">
+                            <div th:each="song : ${ranking.rankSongList}" class="song-item">
+                                <div class="song-info">
+                                    <span class="song-name" th:text="${song?.songName}">Neon District</span>
+                                    <span class="song-artist" th:text="${song?.singerName}">Lazerhawk</span>
+                                </div>
+                                <button class="play-song-btn play-btn" th:data-song-id="${song?.songId}"
+                                    th:data-song-name="${song?.songName}" th:data-singer-name="${song?.singerName}">
+                                    <span class="material-symbols-outlined">play_arrow</span>
+                                </button>
+                            </div>
+                        </th:block>
+                        <th:block th:unless="${ranking.rankSongList != null and ranking.rankSongList.size() > 0}">
+                            <div style="padding: 12px; font-size: 14px; color: #6b7280;">暂无歌曲</div>
+                        </th:block>
+                    </div>
+
+                    <!-- Footer: Tags + View Comments Button -->
+                    <div class="card-footer">
+                        <!-- Rank Tags Container -->
+                        <div class="rank-tags-container"
+                            th:if="${ranking.rankTagsList != null and ranking.rankTagsList.size() > 0}">
+                            <th:block th:each="tag, tagStat : ${ranking.rankTagsList}" th:if="${tagStat.index < 3}">
+                                <span class="rank-tag-item" th:text="${tag.tagId}" th:title="'标签ID: ' + ${tag.tagId}"
+                                    th:data-tag-index="${tagStat.index}" th:data-tag-id="${tag.tagId}">标签</span>
+                            </th:block>
+                        </div>
+
+                        <!-- View Comments Button -->
+                        <button class="btn-view-comments comment-toggle" th:data-rank-id="${ranking.rankId}"
+                            onclick="document.body.classList.replace('sidebar-closed', 'sidebar-open')">
+                            <span class="material-symbols-outlined">chat_bubble</span>
+                            查看评论
+                        </button>
+                    </div>
+
+                    <!-- AI Review FAB Button -->
+                    <button class="ai-fab ai-review-btn" th:data-rank-id="${ranking.rankId}"
+                        th:data-rank-name="${ranking.rankName}">
+                        <span class="material-symbols-outlined">auto_awesome</span>
+                        <div class="ai-fab-tooltip">AI 锐评</div>
+                    </button>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination" th:if="${publishRanks != null}">
+                    <button class="page-btn" th:data-page="${publishRanks.pageNum - 1}"
+                        th:disabled="${publishRanks.pageNum == 1}">上一页</button>
+                    <button th:each="i : ${#numbers.sequence(1, publishRanks?.pages ?: 1)}"
+                        th:class="${publishRanks.pageNum == i ? 'active page-btn' : 'page-btn'}" th:data-page="${i}"
+                        th:text="${i}">1</button>
+                    <button class="page-btn" th:data-page="${publishRanks.pageNum + 1}"
+                        th:disabled="${publishRanks.pageNum == publishRanks.pages}">下一页</button>
+                </div>
+
+                <!-- Empty State -->
+                <div th:if="${#lists.isEmpty(publishRanks?.list)}" class="empty-data">
+                    暂无榜单数据
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Column: Information Modules -->
+        <aside class="right-sidebar custom-scrollbar scrollbar-hide">
+
+            <!-- AI Critique Module -->
+            <div class="glass-card ai-critique-module">
+                <div class="module-header">
+                    <h3 class="module-title">
+                        <span class="material-symbols-outlined">auto_awesome</span>
+                        AI 锐评
+                    </h3>
+                    <span class="module-badge">Powered by AI</span>
+                </div>
+                <div class="module-content ai-review-cards custom-scrollbar">
+                    <div class="empty-state ai-review-empty">
+                        <p>请点击AI锐评按钮生成属于您的专属锐评</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Friends Recommendations Module -->
+            <div class="glass-card friends-module">
+                <h3 class="module-title" style="margin-bottom: 7px;">推荐好友</h3>
+                <div class="friend-item">
+
+                    <div class="friend-info">
+                        <div class="friend-name">Echo.Wav</div>
+                        <div class="friend-desc">共同爱好: Techno</div>
+                    </div>
+                    <button class="btn-add-friend">
+                        <span class="material-symbols-outlined">person_add</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- AI Assistant Chat Module -->
+            <div class="glass-card ai-assistant-module">
+                <!-- Chat Header -->
+                <div class="chat-header">
+                    <div class="ai-avatar-wrapper">
+                        <div class="ai-avatar">
+                            <img alt="AI Assistant"
+                                src="https://lh3.googleusercontent.com/aida/ADBb0ujtGbWvQ-vX-Pc1ElqsyISOCtbUDGLapHiTkNl07nTNG-p8FUclNlnwVeZF8_5TrKesXqHILsWz-yeY0tRJT37ottSK6GGyFDDZD02-zS8oTy9qrHTeM7hWbnLRHGNTZO1IGX6a_1JO4cyULFIuxBKkhH2zZrS3B92E3NU0aoWkdCYmO_mO-wpY8iNEmsrn3kQ9rkqw9ZeWxhWpEbi65RSUJwCqxiXfkWAt1BMxMIYMWxZJfm8ENHvNK0ghtEKj2Dwc4CNG6BKx0w" />
+                        </div>
+                        <div class="online-indicator"></div>
+                    </div>
+                    <div class="chat-header-info">
+                        <h4>AI 推荐助手</h4>
+                        <p>在线 - 随时为您服务</p>
+                    </div>
+                </div>
+
+                <!-- Chat Messages Area -->
+                <div class="chat-messages scrollbar-hide">
+                    <!-- Prompt Icon -->
+                    <div class="chat-prompt">
+                        <span class="material-symbols-outlined">auto_awesome</span>
+                        <p>告诉您的喜好，我为您推荐精彩内容</p>
+                    </div>
+
+                    <!-- Welcome Message Bubble -->
+                    <div class="chat-bubble">
+                        <p>你好！我是你的AI推荐助手。告诉我你想听什么歌、看什么电影，或者点击上方标签浏览推荐内容。</p>
+                    </div>
+                </div>
+
+                <!-- Input Area -->
+                <div class="chat-input-area">
+                    <div class="chat-input-wrapper">
+                        <input type="text" class="chat-input" placeholder="输入你的喜好或需求...">
+                        <button class="btn-send-message">
+                            <span class="material-symbols-outlined">send</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+    </main>
+
+    <!-- ==================== Comments Drawer Sidebar ==================== -->
+    <div id="comments-sidebar">
+        <!-- Drawer Header -->
+        <div class="drawer-header">
+            <h3 class="drawer-title">榜单评论</h3>
+            <button class="btn-close-drawer"
+                onclick="document.body.classList.replace('sidebar-open', 'sidebar-closed')">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <!-- Comments List -->
+        <div class="drawer-comments drawerCommentList custom-scrollbar" id="drawerCommentList">
+            <!-- Comments will be loaded dynamically here -->
+        </div>
+
+        <!-- Input Area -->
+        <div class="drawer-input-area">
+            <div class="input-wrapper">
+                <textarea class="comment-textarea custom-scrollbar" id="drawerCommentInput"
+                    placeholder="分享你的听后感..."></textarea>
+                <button class="btn-submit-comment" id="drawerSubmitBtn">发布评论</button>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Music Player Container (Required for existing JS) -->
+    <div id="music-player-container"></div>
+
+    <!-- ==================== JavaScript Code (Complete Preservation) ==================== -->
+    <script th:src="@{/player/music-player.js}"></script>
+
+    <script>
+        // ===================== 全局核心配置（统一初始化）=====================
+        function getUrlParam(paramName) {
+            const reg = new RegExp("(^|&)" + paramName + "=([^&]*)(&|$)");
+            const paramMatch = window.location.search.substr(1).match(reg);
+            return paramMatch ? decodeURIComponent(paramMatch[2]) : null;
+        }
+
+        function getUserIdFromToken(token) {
+            if (!token) return null;
+            try {
+                const payload = token.split('.')[1];
+                const decodedPayload = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
+                const payloadObj = JSON.parse(decodedPayload);
+                return payloadObj.userId || payloadObj.uid || null;
+            } catch (error) {
+                console.error("解析Token失败:", error);
+                return null;
+            }
+        }
+
+        let token = getUrlParam("token");
+        let userId = getUrlParam("userId") || getUserIdFromToken(token);
+        let category = parseInt(getUrlParam("category")) || 1;
+        let pageNum = parseInt(getUrlParam("pageNum")) || 1;
+        let pageSize = parseInt(getUrlParam("pageSize")) || 4;
+        let musicPlayer = null;
+
+        console.log("初始化参数：", { token, userId, category, pageNum, pageSize });
+
+        function getTargetPublishPath(category) {
+            return "/music/api/mine/my";
+        }
+        function getTargetVotePath(category) {
+            return category === 1 ? "/music/api/rank/vote" : "/music/api/workrank/vote";
+        }
+        function getTargetLovePath(category) {
+            return category === 1 ? "/music/api/rank/love" : "/music/api/workrank/love";
+        }
+
+        function showErrorTip(msg) {
+            let el = document.getElementById('errorAlert');
+            if (!el) {
+                el = document.createElement('div');
+                el.id = 'errorAlert';
+                el.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:10px 20px;background:#ff4444;color:#fff;border-radius:4px;z-index:9999;';
+                document.body.appendChild(el);
+            }
+            el.innerText = msg;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 2000);
+        }
+
+        function showSuccessTip(msg) {
+            let el = document.getElementById('successAlert');
+            if (!el) {
+                el = document.createElement('div');
+                el.id = 'successAlert';
+                el.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);padding:10px 20px;background:#00C851;color:#fff;border-radius:4px;z-index:9999;';
+                document.body.appendChild(el);
+            }
+            el.innerText = msg;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 2000);
+        }
+
+        function padStartCompat(str, length, padChar) {
+            str = str.toString();
+            while (str.length < length) {
+                str = padChar + str;
+            }
+            return str;
+        }
+
+        function initMusicPlayer() {
+            if (musicPlayer) return;
+            try {
+                if (typeof MusicPlayer === 'undefined') {
+                    console.warn("MusicPlayer未定义，跳过播放器初始化");
+                    return;
+                }
+                musicPlayer = new MusicPlayer({
+                    container: 'music-player-container',
+                    token: token,
+                    userId: userId
+                });
+                console.log("播放器初始化成功");
+            } catch (e) {
+                console.error("播放器初始化失败:", e);
+                showErrorTip("播放器加载失败：" + e.message);
+            }
+        }
+
+        function playSong(song) {
+            if (!song) {
+                showErrorTip("歌曲信息为空！");
+                return;
+            }
+            if (!musicPlayer) {
+                initMusicPlayer();
+            }
+            try {
+                musicPlayer.playSong(song);
+                showSuccessTip(`开始播放：${song.songName}`);
+            } catch (e) {
+                console.error("播放歌曲失败:", e);
+                showErrorTip("播放失败：" + e.message);
+            }
+        }
+
+        function playSongFromData(btn) {
+            const songId = btn.dataset.songId;
+            const songName = btn.dataset.songName;
+            const singerName = btn.dataset.singerName;
+
+            if (!songId) {
+                showErrorTip("歌曲ID为空，无法播放！");
+                return;
+            }
+
+            playSong({
+                songId: songId,
+                songName: songName || "未知歌曲",
+                singerName: singerName || "未知歌手"
+            });
+        }
+
+        function openSearch() {
+            const searchUrl = `/music/api/rank/sou?token=${encodeURIComponent(token)}&category=${category}&userId=${userId}`;
+            window.location.href = searchUrl;
+        }
+
+        function goToPage(page) {
+            if (isNaN(page) || page < 1) return;
+            const jumpUrl = `/music/api/rank/publish?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}&pageNum=${page}&pageSize=${pageSize}`;
+            window.location.href = jumpUrl;
+        }
+
+        function voteForRanking(rankId, btn) {
+            console.log('切换榜单投票状态，rankId:', rankId);
+            if (!token) {
+                showErrorTip("请先登录后再投票！");
+                return;
+            }
+
+            btn.style.pointerEvents = 'none';
+            btn.style.opacity = '0.7';
+
+            axios.post(getTargetVotePath(category), null, {
+                params: {
+                    token: token,
+                    rankId: rankId,
+                    userId: userId
+                }
+            })
+                .then(response => {
+                    if (response.data.code === 200 || response.data.success) {
+                        if (btn.classList.contains('voted')) {
+                            btn.classList.remove('voted');
+                            btn.querySelector('.material-symbols-outlined').style.fontVariationSettings = "'FILL' 0";
+                            showSuccessTip("取消点赞成功！");
+                        } else {
+                            btn.classList.add('voted');
+                            btn.querySelector('.material-symbols-outlined').style.fontVariationSettings = "'FILL' 1";
+                            showSuccessTip("点赞成功！");
+                        }
+                    } else {
+                        showErrorTip("操作失败：" + (response.data.msg || "后端处理失败"));
+                    }
+                })
+                .catch(error => {
+                    showErrorTip("操作失败：" + (error.response?.data?.msg || "接口异常"));
+                })
+                .finally(() => {
+                    btn.style.pointerEvents = 'auto';
+                    btn.style.opacity = '1';
+                });
+        }
+
+        function collectRanking(rankId, btn) {
+            console.log('切换榜单收藏状态，rankId:', rankId);
+            if (!token) {
+                showErrorTip("请先登录后再收藏！");
+                return;
+            }
+
+            btn.style.pointerEvents = 'none';
+            btn.style.opacity = '0.7';
+
+            axios.post(getTargetLovePath(category), null, {
+                params: {
+                    token: token,
+                    rankId: rankId,
+                    userId: userId
+                }
+            })
+                .then(response => {
+                    if (response.data.code === 200 || response.data.success) {
+                        if (btn.classList.contains('collected')) {
+                            btn.classList.remove('collected');
+                            btn.querySelector('.material-symbols-outlined').style.fontVariationSettings = "'FILL' 0";
+                            showSuccessTip("取消收藏成功！");
+                        } else {
+                            btn.classList.add('collected');
+                            btn.querySelector('.material-symbols-outlined').style.fontVariationSettings = "'FILL' 1";
+                            showSuccessTip("收藏成功！");
+                        }
+                    } else {
+                        showErrorTip("操作失败：" + (response.data.msg || "后端处理失败"));
+                    }
+                })
+                .catch(error => {
+                    showErrorTip("操作失败：" + (error.response?.data?.msg || error.message));
+                })
+                .finally(() => {
+                    btn.style.pointerEvents = 'auto';
+                    btn.style.opacity = '1';
+                });
+        }
+
+        function openCommentDrawer(rankId) {
+            console.log('打开评论抽屉, rankId:', rankId);
+            const panel = document.getElementById('comments-sidebar');
+
+            if (!panel) {
+                showErrorTip("评论抽屉组件未找到！");
+                return;
+            }
+
+            panel.dataset.currentRankId = rankId;
+
+            const input = document.getElementById('drawerCommentInput');
+            if (input) input.value = '';
+
+            document.body.classList.replace('sidebar-closed', 'sidebar-open');
+
+            loadCommentsToDrawer(rankId);
+        }
+
+        function closeCommentDrawer() {
+            console.log('关闭评论抽屉');
+            document.body.classList.replace('sidebar-open', 'sidebar-closed');
+        }
+
+        function toggleComments(rankId) {
+            const panel = document.getElementById('comments-sidebar');
+
+            if (panel && document.body.classList.contains('sidebar-open') && panel.dataset.currentRankId === String(rankId)) {
+                closeCommentDrawer();
+            } else {
+                openCommentDrawer(rankId);
+            }
+        }
+
+        function loadCommentsToDrawer(rankId) {
+            console.log('加载评论列表到抽屉, rankId:', rankId);
+            const commentList = document.getElementById('drawerCommentList');
+            if (!commentList) return;
+
+            if (!token) {
+                commentList.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">请先登录后查看评论</p>';
+                return;
+            }
+
+            commentList.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">加载中...</p>';
+
+            axios.get(`/music/api/rank/list`, {
+                params: {
+                    token: token,
+                    rankId: rankId,
+                    userId: userId
+                }
+            })
+                .then(response => {
+                    console.log('加载评论响应:', response.data);
+                    if (response.data.code === 200 || response.data.success) {
+                        const comments = response.data.data || response.data;
+                        renderCommentsToDrawer(commentList, comments);
+                    } else {
+                        commentList.innerHTML = `<p style="color: #ff4444; text-align: center; padding: 20px;">查询评论失败：${response.data.msg || '未知错误'}</p>`;
+                    }
+                })
+                .catch(error => {
+                    console.error('加载评论失败:', error);
+                    commentList.innerHTML = `<p style="color: #ff4444; text-align: center; padding: 20px;">加载评论失败：${error.response?.data?.msg || error.message}</p>`;
+                });
+        }
+
+        function renderCommentsToDrawer(container, comments) {
+            if (!comments || comments.length === 0) {
+                container.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">暂无评论</p>';
+                return;
+            }
+
+            container.innerHTML = '';
+            comments.forEach(comment => {
+                const commentItem = document.createElement('div');
+                commentItem.className = 'comment-item';
+                commentItem.dataset.comId = comment.comId;
+                commentItem.dataset.rankId = comment.rankId;
+                commentItem.dataset.userId = comment.userId;
+                commentItem.innerHTML = `
+<div class="comment-avatar">
+<img alt="User Avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKeToot9FaAXFlRaHCuFqG8cG3GJ3dogc8OAeXUbWq3KIkC93g_uwNi9o1RGHhDUnzr_Doc6wu2YReCrwZHGSSD-WKVEj4BjLZousm7Wt_OVxvQ-hxVW1gRv6Qnr9yU0Bv_H1PgXrHbNYvsBVj1zafwVAFV-5MYQWzKU5XmDsAnSnhl1Xy1nDHBFG7qTm8T9oHCtLjM_-0ZKjKCRwlkUiJahXs1PTCYX38nPWIX5ONmF3kRwA_MNnl0OnregTXTFHfyM8qrPUuolk"/>
+</div>
+<div class="comment-content">
+<div class="comment-header">
+<span class="comment-author">${comment.username || '匿名用户'}</span>
+<span class="comment-time">${formatTime(comment.comTime)}</span>
+${userId && String(comment.userId) === String(userId) ? '<button class="comment-delete-btn" data-com-id="' + comment.comId + '" data-rank-id="' + comment.rankId + '"><span class="material-symbols-outlined">delete</span></button>' : ''}
+</div>
+<p class="comment-text">${comment.comContent || ''}</p>
+</div>
+`;
+
+                container.appendChild(commentItem);
+            });
+        }
+
+        function submitComment(rankId) {
+            console.log('提交评论, rankId:', rankId);
+
+            const input = document.getElementById('drawerCommentInput');
+
+            if (!input) {
+                showErrorTip("评论输入框未找到！");
+                return;
+            }
+
+            const content = input.value.trim();
+
+            if (!content) {
+                showErrorTip("评论内容不能为空！");
+                return;
+            }
+
+            if (!token || !userId || isNaN(userId)) {
+                showErrorTip("请先登录后再评论！");
+                return;
+            }
+
+            axios.post(`/music/api/rank/pubcomment`, null, {
+                params: {
+                    token: token,
+                    rankId: rankId,
+                    userId: userId,
+                    content: content,
+                    parentId: null
+                }
+            })
+                .then(response => {
+                    console.log('提交评论成功:', response.data);
+                    if (response.data.code === 200 || response.data.success) {
+                        showSuccessTip("评论发表成功！");
+                        input.value = '';
+                        loadCommentsToDrawer(rankId);
+                    } else {
+                        showErrorTip("评论发表失败：" + (response.data.msg || '未知错误'));
+                    }
+                })
+                .catch(error => {
+                    console.error('提交评论失败:', error);
+                    showErrorTip("评论发表失败：" + (error.response?.data?.msg || error.message));
+                });
+        }
+
+        function toggleCommentLike(commentId, btn) {
+            console.log('切换评论点赞状态，commentId:', commentId);
+
+            if (!token) {
+                showErrorTip("请先登录后再点赞！");
+                return;
+            }
+
+            const likeCountEl = btn.querySelector('.comment-like-count');
+            const originalCount = Number(likeCountEl.textContent) || 0;
+
+            btn.style.pointerEvents = 'none';
+
+            if (btn.classList.contains('liked')) {
+                axios.post(`/music/api/rank/deleteLike`, null, {
+                    params: {
+                        token: token,
+                        comId: commentId
+                    }
+                })
+                    .then(response => {
+                        if (response.data.code === 200 || response.data.success) {
+                            btn.classList.remove('liked');
+                            likeCountEl.textContent = Math.max(0, originalCount - 1);
+                            showSuccessTip("取消点赞成功！");
+                        } else {
+                            showErrorTip("取消点赞失败：" + (response.data.msg || "未知错误"));
+                        }
+                    })
+                    .catch(error => {
+                        showErrorTip("取消点赞失败：" + (error.response?.data?.msg || error.message));
+                    })
+                    .finally(() => {
+                        btn.style.pointerEvents = 'auto';
+                    });
+            } else {
+                axios.post(`/music/api/rank/like`, null, {
+                    params: {
+                        token: token,
+                        comId: commentId
+                    }
+                })
+                    .then(response => {
+                        if (response.data.code === 200 || response.data.success) {
+                            btn.classList.add('liked');
+                            likeCountEl.textContent = originalCount + 1;
+                            showSuccessTip("点赞成功！");
+                        } else {
+                            showErrorTip("点赞失败：" + (response.data.msg || "未知错误"));
+                        }
+                    })
+                    .catch(error => {
+                        showErrorTip("点赞失败：" + (error.response?.data?.msg || error.message));
+                    })
+                    .finally(() => {
+                        btn.style.pointerEvents = 'auto';
+                    });
+            }
+        }
+
+        function deleteComment(commentId, rankId) {
+            console.log('删除评论，commentId:', commentId);
+
+            if (!confirm('确定要删除这条评论吗？')) {
+                return;
+            }
+
+            axios.delete(`/music/api/rank/deleteComment`, {
+                params: {
+                    token: token,
+                    comId: commentId,
+                    userId: userId
+                }
+            })
+                .then(response => {
+                    if (response.data.code === 200 || response.data.success) {
+                        showSuccessTip("删除评论成功！");
+                        if (rankId) {
+                            loadCommentsToDrawer(rankId);
+                        }
+                    } else {
+                        showErrorTip("删除评论失败：" + (response.data.msg || "未知错误"));
+                    }
+                })
+                .catch(error => {
+                    showErrorTip("删除评论失败：" + (error.response?.data?.msg || error.message));
+                });
+        }
+
+        function formatTime(time) {
+            if (!time) return '';
+            const date = new Date(time);
+            if (isNaN(date.getTime())) return '未知时间';
+            const year = date.getFullYear();
+            const month = padStartCompat(date.getMonth() + 1, 2, '0');
+            const day = padStartCompat(date.getDate(), 2, '0');
+            const hour = padStartCompat(date.getHours(), 2, '0');
+            const minute = padStartCompat(date.getMinutes(), 2, '0');
+            return `${year}-${month}-${day} ${hour}:${minute}`;
+        }
+
+        function renderAiReviewToSidebar(aiContent, rankName) {
+            console.log('渲染AI锐评到侧边栏, 榜单:', rankName);
+
+            const cardsContainer = document.querySelector('.ai-review-cards');
+            if (!cardsContainer) {
+                console.error('AI锐评卡片容器未找到！');
+                return;
+            }
+
+            cardsContainer.innerHTML = `
+<div style=" padding-left: 2px; padding-top: 4px; padding-bottom: 4px; margin-bottom: 2px;">
+<p style="font-size: 14px; color: #dfe2eb; line-height: 1.6; font-family: Manrope, sans-serif;border-top:solid 1px grey;padding-top:5px">${aiContent || '暂无锐评内容'}</p>
+</div>
+`;
+
+            console.log('AI锐评内容已渲染到侧边栏');
+        }
+
+        function showAiReviewLoading(rankName) {
+            const cardsContainer = document.querySelector('.ai-review-cards');
+            if (!cardsContainer) return;
+
+            cardsContainer.innerHTML = `
+<div style="flex: 1; display: flex; align-items: center; justify-content: center; text-align: center; padding: 16px;">
+<p style="font-size: 12px; color: #6b7280; font-style: italic; line-height: 1.6; font-family: Manrope, sans-serif;">
+AI正在分析「${rankName || '未知榜单'}」，请稍候...
+</p>
+</div>
+`;
+        }
+
+        function hideAiReviewLoading() {
+            // Loading state is replaced when content is rendered
+        }
+
+        function requestAiReview(myRankWithSongs, btn) {
+            console.log('请求AI锐评, 榜单ID:', myRankWithSongs.rankId);
+
+            if (!token) {
+                showErrorTip("请先登录后再使用AI锐评！");
+                return;
+            }
+
+            btn.style.pointerEvents = 'none';
+            btn.style.opacity = '0.7';
+
+            showAiReviewLoading(myRankWithSongs.rankName);
+
+            axios.post('/music/AiComment/ai', myRankWithSongs, {
+                params: {
+                    rankId: myRankWithSongs.rankId,
+                    token: token
+                }
+            })
+                .then(response => {
+                    console.log('AI锐评响应:', response.data);
+                    if (response.data.code === 200 && response.data.data != null) {
+                        renderAiReviewToSidebar(response.data.data, myRankWithSongs.rankName);
+                        showSuccessTip("AI锐评生成成功！");
+                    } else {
+                        showErrorTip("AI锐评失败：" + (response.data.msg || "未知错误"));
+                    }
+                })
+                .catch(error => {
+                    console.error('AI锐评请求失败:', error);
+                    showErrorTip("AI服务异常：" + (error.response?.data?.msg || error.message));
+                })
+                .finally(() => {
+                    btn.style.pointerEvents = 'auto';
+                    btn.style.opacity = '1';
+                    hideAiReviewLoading();
+                });
+        }
+
+        function bindAllEvents() {
+            document.addEventListener('click', function (e) {
+                const target = e.target;
+
+                // Search button
+                if (target.closest('#navSearch')) {
+                    openSearch();
+                    return;
+                }
+
+                // Play button
+                const playBtn = target.closest('.play-btn');
+                if (playBtn) {
+                    playSongFromData(playBtn);
+                    return;
+                }
+
+                // Vote button
+                const voteBtn = target.closest('.vote-btn');
+                if (voteBtn) {
+                    const rankId = voteBtn.dataset.rankId;
+                    if (rankId) {
+                        voteForRanking(rankId, voteBtn);
+                    }
+                    return;
+                }
+
+                // Collect button
+                const collectBtn = target.closest('.collect-btn');
+                if (collectBtn) {
+                    const rankId = collectBtn.dataset.rankId;
+                    if (rankId) {
+                        collectRanking(rankId, collectBtn);
+                    }
+                    return;
+                }
+
+                // AI Review button
+                const aiReviewBtn = target.closest('.ai-review-btn');
+                if (aiReviewBtn) {
+                    const rankId = aiReviewBtn.dataset.rankId;
+                    const rankName = aiReviewBtn.dataset.rankName;
+
+                    const rankItem = aiReviewBtn.closest('[data-rank-id]');
+                    if (!rankItem) {
+                        showErrorTip("榜单元素未找到！");
+                        return;
+                    }
+
+                    const songRows = rankItem.querySelectorAll('.song-item');
+                    const rankSongList = [];
+                    songRows.forEach(row => {
+                        const songNameCol = row.querySelector('.song-name');
+                        const artistNameCol = row.querySelector('.song-artist');
+
+                        rankSongList.push({
+                            songName: songNameCol ? songNameCol.textContent.trim() : '',
+                            singerName: artistNameCol ? artistNameCol.textContent.trim() : '',
+                            ranking: 0
+                        });
+                    });
+
+                    const myRankWithSongs = {
+                        rankId: parseInt(rankId),
+                        rankName: rankName,
+                        rankSongList: rankSongList,
+                        rankTagsList: []
+                    };
+
+                    requestAiReview(myRankWithSongs, aiReviewBtn);
+                    return;
+                }
+
+                // Comment toggle button
+                const commentToggle = target.closest('.comment-toggle');
+                if (commentToggle) {
+                    const rankId = commentToggle.dataset.rankId;
+                    if (rankId) {
+                        toggleComments(rankId);
+                    }
+                    return;
+                }
+
+                // Drawer close button
+                if (target.closest('.btn-close-drawer')) {
+                    closeCommentDrawer();
+                    return;
+                }
+
+                // Comment submit
+                const drawerSubmit = target.closest('#drawerSubmitBtn');
+                if (drawerSubmit) {
+                    const panel = document.getElementById('comments-sidebar');
+                    const rankId = panel ? panel.dataset.currentRankId : null;
+                    if (rankId) {
+                        submitComment(rankId);
+                    }
+                    return;
+                }
+
+                // Comment like
+                const commentLikeBtn = target.closest('.comment-like-btn');
+                if (commentLikeBtn) {
+                    const comId = commentLikeBtn.dataset.comId;
+                    if (comId) {
+                        toggleCommentLike(comId, commentLikeBtn);
+                    }
+                    return;
+                }
+
+                // Comment delete
+                const commentDeleteBtn = target.closest('.comment-delete-btn');
+                if (commentDeleteBtn) {
+                    const comId = commentDeleteBtn.dataset.comId;
+                    const rankId = commentDeleteBtn.dataset.rankId;
+                    if (comId && rankId) {
+                        deleteComment(comId, rankId);
+                    }
+                    return;
+                }
+
+                // Pagination
+                const pageBtn = target.closest('.page-btn');
+                if (pageBtn && !pageBtn.disabled) {
+                    const page = pageBtn.dataset.page;
+                    if (page) {
+                        goToPage(parseInt(page));
+                    }
+                    return;
+                }
+
+                // Navigation buttons
+                if (target.closest('#navIndex')) {
+                    window.location.href = `/music/index.html?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}`;
+                    return;
+                }
+
+                if (target.closest('#navMyRank')) {
+                    const targetPath = getTargetPublishPath(category);
+                    const jumpUrl = `${targetPath}?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}&pageNum=1&pageSize=10`;
+                    window.location.href = jumpUrl;
+                    return;
+                }
+
+                if (target.closest('#navHotRank')) {
+                    const hotRankUrl = `/music/hotrank.html?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}`;
+                    window.location.href = hotRankUrl;
+                    return;
+                }
+
+                if (target.closest('#navMyLove')) {
+                    const myLoveUrl = `/music/api/mine/mylove?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}&pageNum=1`;
+                    window.location.href = myLoveUrl;
+                    return;
+                }
+
+                if (target.closest('#navAdd')) {
+                    if (!token || !userId || isNaN(userId)) {
+                        showErrorTip("参数缺失，请刷新页面重试！");
+                        return;
+                    }
+                    let addPagePath = category === 1 ? "/music/rank.html" : "/music/workrank.html";
+                    const jumpUrl = `${addPagePath}?token=${encodeURIComponent(token)}&userId=${userId}&category=${category}`;
+                    window.location.href = jumpUrl;
+                    return;
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log("DOM加载完成，开始初始化页面");
+
+            // 1. 初始化播放器
+            initMusicPlayer();
+
+            // 2. 绑定所有事件（核心修复）
+            bindAllEvents();
+
+            // 3. 添加 ESC 键关闭抽屉功能
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' || e.keyCode === 27) {
+                    if (document.body.classList.contains('sidebar-open')) {
+                        closeCommentDrawer();
+                    }
+                }
+            });
+
+            // 4. 页面加载校验
+            if (!token || token.trim() === '' || !userId || isNaN(userId)) {
+                showErrorTip("登录信息失效，请重新登录！");
+                setTimeout(() => window.location.href = "/music.html", 1500);
+                return;
+            }
+
+            console.log("页面加载成功");
+        });
+
+    </script>
+
+</body>
+
+</html>

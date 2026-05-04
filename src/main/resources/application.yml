@@ -23,7 +23,7 @@ spring:
     url: jdbc:mysql://localhost:3306/music_db?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
     username: root  # 你的MySQL账号（默认root）
     # 解释：localhost=本地数据库，3306=MySQL默认端口，music_db=你的数据库名（需自己在MySQL中建）
-    password: 280939  # 你的MySQL密码
+    password: "123456" # 你的MySQL密码
 
 
 

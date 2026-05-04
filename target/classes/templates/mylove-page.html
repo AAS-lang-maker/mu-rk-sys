@@ -1,0 +1,2389 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script th:src="@{/js/axios.min.js}"></script>
+    <script th:src="@{/js/request.js}"></script>
+    <title>我的收藏</title>
+    <link rel="icon" href="data:;base64,iVBORw0KGgo">
+    <link rel="stylesheet" th:href="@{/player/music-player.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #10141a;
+            color: #dfe2eb;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #4d4635;
+            border-radius: 10px;
+        }
+
+        .glass-panel {
+            background: rgba(49, 53, 60, 0.6);
+            backdrop-filter: blur(20px);
+        }
+
+        .gold-gradient {
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+        }
+
+        .gold-glow {
+            box-shadow: 0px 0px 16px rgba(235, 194, 73, 0.3);
+        }
+
+        /* ========== 左侧导航栏 (search-page 标准样式) ========== */
+        .sidebar-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 288px;
+            height: 100vh;
+            background-color: #0a0b0e;
+            border-right: 1px solid rgba(245, 158, 11, 0.15);
+            display: flex;
+            flex-direction: column;
+            padding: 48px 16px;
+            z-index: 40;
+            padding-bottom: calc(96px + 48px);
+        }
+
+        .nav-brand {
+            padding: 0 16px;
+            margin-bottom: 32px;
+        }
+
+        .nav-brand h1 {
+            font-size: 18px;
+            font-weight: bold;
+            color: #facc15;
+            letter-spacing: -0.9px;
+            text-transform: none;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .nav-brand p {
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            font-size: 10px;
+            color: #737373;
+            margin-top: 4px;
+        }
+
+        .nav-menu {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 0 8px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 24px;
+            color: #737373;
+            text-decoration: none;
+            transition: all 0.3s ease-in-out;
+            border-radius: 8px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        .nav-item:hover {
+            color: #d4d4d4;
+            background-color: rgba(38, 38, 38, 0.4);
+        }
+
+        .nav-item:hover .nav-icon {
+            color: #facc15;
+        }
+
+        .nav-item.active {
+            color: #facc15;
+            background-color: rgba(245, 158, 11, 0.1);
+            border-radius: 0 9999px 9999px 0;
+        }
+
+        .nav-item.active .nav-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+
+        .nav-icon {
+            font-size: 20px;
+            transition: color 0.3s ease;
+        }
+
+        .nav-text {
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            font-size: 10px;
+        }
+
+        .nav-footer {
+            padding: 16px 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            margin-top: auto;
+        }
+
+        .create-rank-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+            color: #3d2e00;
+            font-weight: bold;
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(240, 198, 77, 0.1);
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        .create-rank-btn:hover {
+            transform: scale(0.95);
+            box-shadow: 0 10px 30px rgba(240, 198, 77, 0.2);
+        }
+
+        .create-rank-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* ==================== Main Content Area ==================== */
+        .main-content-area {
+            margin-left: 271px;
+            margin-right: 0;
+            margin-bottom: 96px;
+            min-height: 100vh;
+            padding: 32px;
+            display: grid;
+            grid-template-columns: 7fr 5fr;
+            gap: 32px;
+            overflow-y: auto;
+        }
+
+        .left-section {
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .page-header-left h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: #dfe2eb;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+
+        .page-header-left p {
+            color: rgba(209, 197, 175, 0.6);
+            font-weight: 500;
+            margin-top: 4px;
+        }
+
+        .my-tags-btn {
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+            padding: 12px 20px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #241a00;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            filter: brightness(1);
+        }
+
+        .my-tags-btn:hover {
+            filter: brightness(1.1);
+            transform: scale(0.98);
+        }
+
+        .my-tags-btn .material-symbols-outlined {
+            font-size: 18px;
+        }
+
+        /* ==================== Playlist Card ==================== */
+        .playlist-feed {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .playlist-card {
+            background-color: #1c2026;
+            border-radius: 32px;
+            padding: 32px;
+            border: 1px solid rgba(77, 70, 53, 0.1);
+            transition: all 0.5s ease;
+            position: relative;
+        }
+
+        .playlist-card:hover {
+            border-color: rgba(255, 228, 164, 0.2);
+        }
+
+        .card-header {
+            display: flex;
+            gap: 32px;
+            align-items: flex-start;
+            margin-bottom: 32px;
+        }
+
+        .card-cover {
+            width: 180px;
+            height: 180px;
+            border-radius: 24px;
+            overflow: hidden;
+            flex-shrink: 0;
+            border: 2px solid rgba(255, 228, 164, 0.4);
+            box-shadow: 0 0 15px rgba(240, 198, 77, 0.4);
+            position: relative;
+            cursor: pointer;
+        }
+
+        .card-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .card-cover-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-cover:hover .card-cover-overlay {
+            opacity: 1;
+        }
+
+        .card-cover-overlay .material-symbols-outlined {
+            color: #ffe4a4;
+            font-size: 60px;
+            font-variation-settings: 'FILL' 1;
+        }
+
+        .card-info {
+            flex-grow: 1;
+            padding-top: 8px;
+        }
+
+        .card-info h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: #dfe2eb;
+            margin-bottom: 12px;
+        }
+
+        .card-meta {
+            font-size: 0.875rem;
+            color: #d1c5af;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .action-btn {
+            width: 40px;
+            height: 40px;
+            background-color: #31353c;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(223, 226, 235, 0.6);
+            border: none;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .action-btn:hover {
+            color: #ffe4a4;
+        }
+
+        .action-btn .material-symbols-outlined {
+            font-size: 20px;
+        }
+
+        /* ==================== Action Button Active State ==================== */
+        .action-btn.active {
+            background-color: rgba(255, 228, 164, 0.15);
+        }
+
+        .action-btn.active .material-symbols-outlined {
+            color: #ffe4a4 !important;
+            font-variation-settings: 'FILL' 1;
+        }
+
+        .action-btn.active:hover {
+            transform: scale(1.05);
+        }
+
+        /* ==================== Song List ==================== */
+        .song-list-section {
+            margin-bottom: 48px;
+            padding-left: 8px;
+            padding-right: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .song-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            border-radius: 16px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .song-item:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .song-item-left {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .song-name {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: #dfe2eb;
+        }
+
+        .singer-name {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: rgba(209, 197, 175, 0.5);
+            font-weight: 700;
+        }
+
+        .play-icon-hidden {
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            background:none;
+            border:none;
+        }
+
+        .song-item:hover .play-icon-hidden {
+            opacity: 1;
+            color: #ffe4a4;
+        }
+
+        .play-icon-hidden .material-symbols-outlined {
+            font-size: 20px;
+        }
+
+        /* ==================== View Comments Button ==================== */
+        .view-comments-btn {
+            background-color: rgba(49, 53, 60, 0.5);
+            padding: 12px 20px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #d1c5af;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .view-comments-btn:hover {
+            background-color: #31353c;
+        }
+
+        .view-comments-btn:hover .material-symbols-outlined {
+            color: #ffe4a4;
+        }
+
+        .view-comments-btn .material-symbols-outlined {
+            font-size: 18px;
+            transition: color 0.2s ease;
+        }
+
+        /* ==================== Right Panel (Fixed) ==================== */
+        .right-panel {
+            position: fixed;
+            top: 10px;
+            right: 15px;
+            bottom: 106px;
+            width: calc((100% - 256px - 32px) * 5 / 12);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .panel-module {
+            background-color: #1c2026;
+            border-radius: 32px;
+            border: 1px solid rgba(77, 70, 53, 0.15);
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .panel-module.glass {
+            background: rgba(49, 53, 60, 0.6);
+            backdrop-filter: blur(20px);
+        }
+
+        .module-header {
+            padding: 5px;
+            border-bottom: 1px solid rgba(77, 70, 53, 0.1);
+            background: rgba(38, 42, 49, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .module-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .module-icon-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: rgba(255, 228, 164, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffe4a4;
+            border: 1px solid rgba(255, 228, 164, 0.2);
+        }
+
+        .module-icon-circle .material-symbols-outlined {
+            font-size: 20px !important;
+        }
+
+        .module-title {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: #dfe2eb;
+        }
+
+        .module-body {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .friend-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .friend-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .friend-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 228, 164, 0.2);
+        }
+
+        .friend-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .friend-info p:first-child {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: #dfe2eb;
+        }
+
+        .friend-item:hover .friend-info p:first-child {
+            color: #ffe4a4;
+            transition: color 0.2s ease;
+        }
+
+        .friend-info p:last-child {
+            font-size: 10px;
+            color: rgba(209, 197, 175, 0.6);
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+
+        .add-friend-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background-color: #31353c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffe4a4;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .add-friend-btn:hover {
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+            color: #0a0e14;
+            box-shadow: 0px 0px 16px rgba(235, 194, 73, 0.3);
+        }
+
+        .add-friend-btn .material-symbols-outlined {
+            font-size: 20px;
+        }
+
+        /* AI Module */
+        .ai-module {
+            flex-grow: 1;
+            max-height: 500px;
+            height: 500px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ai-status-dot {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-indicator {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #22c55e;
+            box-shadow: 0 0 8px #22c55e;
+        }
+
+        .status-text {
+            font-size: 9px;
+            color: rgba(209, 197, 175, 0.7);
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+        }
+
+        .ai-chat-area {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        .ai-bubble {
+            max-width: 300px;
+            background-color: #31353c;
+            padding: 16px;
+            border-radius: 32px;
+            border-top-left-radius: 0;
+            border: 1px solid rgba(77, 70, 53, 0.2);
+            text-align: left;
+            position: relative;
+        }
+
+        .ai-bubble p {
+            font-size: 0.875rem;
+            line-height: 1.6;
+            color: #dfe2eb;
+        }
+
+        .ai-input-area {
+            padding: 20px;
+            background: rgba(24, 28, 34, 0.3);
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .ai-input {
+            width: 100%;
+            background-color: #31353c;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 56px 14px 20px;
+            font-size: 0.875rem;
+            color: #dfe2eb;
+            font-family: 'Manrope', sans-serif;
+        }
+
+        .ai-input::placeholder {
+            color: rgba(209, 197, 175, 0.3);
+        }
+
+        .ai-input:focus {
+            outline: none;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .send-btn {
+            position: absolute;
+            right: 6px;
+            top: 6px;
+            bottom: 6px;
+            width: 44px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+            color: #241a00;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0px 0px 16px rgba(235, 194, 73, 0.3);
+            transition: transform 0.2s ease;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .send-btn .material-symbols-outlined {
+            font-size: 20px;
+            font-variation-settings: 'FILL' 1;
+        }
+
+        /* ==================== Comment Drawer ==================== */
+        .comment-drawer {
+            position: fixed;
+            top: 0;
+            right: 0;
+            height: 100vh;
+            width: 33.333%;
+            background-color: rgba(16, 20, 26, 0.95);
+            backdrop-filter: blur(40px);
+            border-left: 1px solid rgba(77, 70, 53, 0.2);
+            box-shadow: -10px 0 40px rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            transform: translateX(100%);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .comment-drawer.open {
+            transform: translateX(0);
+        }
+
+        .drawer-header {
+            padding: 24px;
+            border-bottom: 1px solid rgba(77, 70, 53, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .drawer-header h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #ffe4a4;
+            letter-spacing: -0.02em;
+        }
+
+        .drawer-close-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            color: #d1c5af;
+            transition: background-color 0.2s ease;
+        }
+
+        .drawer-close-btn:hover {
+            background-color: #31353c;
+        }
+
+        .drawer-close-btn .material-symbols-outlined {
+            font-size: 20px;
+        }
+
+        .drawer-comments-list {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        .comment-entry {
+            display: flex;
+            gap: 16px;
+        }
+
+        .comment-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+            flex-shrink: 0;
+            border: 1px solid rgba(255, 228, 164, 0.2);
+        }
+
+        .comment-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .comment-body {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .comment-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .comment-user {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: #dfe2eb;
+        }
+
+        .comment-time {
+            font-size: 10px;
+            color: rgba(209, 197, 175, 0.5);
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+        }
+
+        .comment-text {
+            font-size: 0.875rem;
+            color: rgba(209, 197, 175, 0.8);
+            line-height: 1.6;
+        }
+
+        .drawer-footer {
+            padding: 24px;
+            background: rgba(24, 28, 34, 0.5);
+            border-top: 1px solid rgba(77, 70, 53, 0.15);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .comment-textarea {
+            width: 100%;
+            background-color: #31353c;
+            border: 1px solid rgba(77, 70, 53, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 0.875rem;
+            color: #dfe2eb;
+            font-family: 'Manrope', sans-serif;
+            resize: none;
+            height: 96px;
+        }
+
+        .comment-textarea::placeholder {
+            color: rgba(209, 197, 175, 0.4);
+        }
+
+        .comment-textarea:focus {
+            outline: none;
+            box-shadow: 0 0 0 1px rgba(255, 228, 164, 0.4);
+        }
+
+        .submit-comment-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+            color: #241a00;
+            font-weight: 700;
+            font-size: 0.875rem;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0px 0px 16px rgba(235, 194, 73, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .submit-comment-btn:hover {
+            filter: brightness(1.1);
+        }
+
+        .submit-comment-btn:active {
+            transform: scale(0.98);
+        }
+
+        .submit-comment-btn .material-symbols-outlined {
+            font-size: 18px;
+            font-variation-settings: 'FILL' 1;
+        }
+
+        /* ==================== Bottom Player Bar ==================== */
+        .bottom-player-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            z-index: 50;
+            height: 96px;
+            background-color: rgba(28, 32, 38, 0.9);
+            backdrop-filter: blur(32px);
+            border-top: 1px solid rgba(77, 70, 53, 0.2);
+            box-shadow: 0px -20px 40px rgba(0, 0, 0, 0.4);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 48px;
+        }
+
+        .player-left {
+            width: 23.333%;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .player-cover {
+            width: 56px;
+            height: 56px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid rgba(77, 70, 53, 0.3);
+        }
+
+        .player-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .player-track-info p:first-child {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: #dfe2eb;
+        }
+
+        .player-track-info p:last-child {
+            font-size: 0.75rem;
+            color: rgba(255, 228, 164, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 700;
+            font-family: 'Manrope', sans-serif;
+        }
+
+        .player-center {
+            width: 33.333%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            margin-right: 357px;
+        }
+
+        .player-controls {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .control-btn {
+            color: rgba(223, 226, 235, 0.4);
+            transition: color 0.2s ease, transform 0.2s ease;
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-btn:hover {
+            color: #dfe2eb;
+        }
+
+        .control-btn .material-symbols-outlined {
+            font-size: 28px;
+        }
+
+        .play-main-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: #f0c64d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #241a00;
+            box-shadow: 0 0 20px rgba(240, 198, 77, 0.4);
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .play-main-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .play-main-btn:active {
+            transform: scale(0.95);
+        }
+
+        .play-main-btn .material-symbols-outlined {
+            font-size: 30px;
+            margin-left: 4px;
+            font-variation-settings: 'FILL' 1;
+        }
+
+        .progress-bar-area {
+            width: 100%;
+            max-width: 448px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .time-label {
+            font-size: 10px;
+            color: #d1c5af;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+        }
+
+        .progress-container {
+            height: 4px;
+            flex-grow: 1;
+            background-color: #31353c;
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: #ffe4a4;
+            box-shadow: 0 0 16px rgba(235, 194, 73, 0.3);
+            width: 45%;
+        }
+
+        .player-right {
+            width: 33.333%;
+        }
+
+        /* ==================== Pagination ==================== */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 40px;
+            pointer-events: auto;
+            gap: 8px;
+        }
+
+        .pagination button {
+            background: #1c2026;
+            border: 1px solid rgba(77, 70, 53, 0.3);
+            color: #dfe2eb;
+            border-radius: 8px;
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Manrope', sans-serif;
+            font-size: 0.875rem;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background-color: #31353c;
+            border-color: rgba(255, 228, 164, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .pagination button.active {
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+            color: #0a0e14;
+            font-weight: 700;
+            border-color: transparent;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ==================== Empty State ==================== */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #d1c5af;
+        }
+
+        .empty-state h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #dfe2eb;
+        }
+
+        .empty-state p {
+            font-size: 1rem;
+        }
+
+        /* ==================== Alerts ==================== */
+        #errorAlert,
+        #successAlert {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            border-radius: 8px;
+            z-index: 9999;
+            font-family: 'Manrope', sans-serif;
+            font-size: 0.875rem;
+        }
+
+        #errorAlert {
+            background: #ff4444;
+            color: #fff;
+        }
+
+        #successAlert {
+            top: 60px;
+            background: #00C851;
+            color: #fff;
+        }
+    </style>
+    <script th:src="@{/player/music-player.js}"></script>
+</head>
+
+<body>
+    <!-- 提示框元素 -->
+    <div id="errorAlert"></div>
+    <div id="successAlert"></div>
+
+    <!-- ==================== Left Sidebar Navigation ==================== -->
+    <aside class="sidebar-nav">
+        <div class="nav-brand">
+            <h1>The Digital Conductor</h1>
+            <p>Premium Music Vault</p>
+        </div>
+
+        <nav class="nav-menu">
+            <button class="nav-item" id="navIndex">
+                <span class="material-symbols-outlined nav-icon">home</span>
+                <span class="nav-text">首页</span>
+            </button>
+            <button class="nav-item" id="navHome">
+                <span class="material-symbols-outlined nav-icon">grid_view</span>
+                <span class="nav-text">主页</span>
+            </button>
+            <button class="nav-item" id="navSearch">
+                <span class="material-symbols-outlined nav-icon">search</span>
+                <span class="nav-text">搜索榜单</span>
+            </button>
+            <button class="nav-item" id="navMyRank">
+                <span class="material-symbols-outlined nav-icon">queue_music</span>
+                <span class="nav-text">我的榜单</span>
+            </button>
+            <button class="nav-item" id="navHotRank">
+                <span class="material-symbols-outlined nav-icon">local_fire_department</span>
+                <span class="nav-text">热门榜单</span>
+            </button>
+            <button class="nav-item active" id="navMyLove">
+                <span class="material-symbols-outlined nav-icon" style="font-variation-settings: 'FILL' 1;">favorite</span>
+                <span class="nav-text">我的收藏</span>
+            </button>
+        </nav>
+
+        <div class="nav-footer">
+            <button class="create-rank-btn" id="navAdd">+ 创建榜单</button>
+        </div>
+    </aside>
+
+    <!-- ==================== Main Content Area ==================== -->
+    <main class="main-content-area">
+        <!-- Left Section: Collection List -->
+        <section class="left-section">
+            <!-- Page Header -->
+            <header class="page-header">
+                <div class="page-header-left">
+                    <h2>我的收藏</h2>
+                    <p>您珍藏的所有声音档案都在这里。</p>
+                </div>
+                <button class="my-tags-btn gold-gradient gold-glow">
+                    <span class="material-symbols-outlined">label</span>
+                    My tags
+                </button>
+            </header>
+
+            <!-- Playlist Feed with Thymeleaf Loop -->
+            <div class="playlist-feed">
+                <div th:each="ranking, stat : ${myloveSongs.list}" class="playlist-card"
+                    th:data-rank-id="${ranking.rankId}">
+                    <!-- Card Header: Cover + Info -->
+                    <div class="card-header">
+                        <div class="card-cover">
+                            <img alt="Publisher" src="https://tse4-mm.cn.bing.net/th/id/OIP-C.YzVD8zb817n7AdFqtsY46wHaHS?w=183&h=180&c=7&r=0&o=5&dpr=2&pid=1.7">
+                            <div class="card-cover-overlay">
+                                <span class="material-symbols-outlined">play_circle</span>
+                            </div>
+                        </div>
+                        <div class="card-info">
+                            <h3 th:text="${ranking.rankName}">榜单标题</h3>
+                            <div class="card-meta">
+                                <p th:text="|发布者: ${ranking.username}|">发布者：用户名</p>
+                                <p th:text="|更新时间: ${ranking.publishTime}|">更新时间：2024-05-20 04:32</p>
+                            </div>
+                            <div class="card-actions">
+                                <button class="action-btn" th:data-rank-id="${ranking.rankId}" onclick="toggleVote(this)">
+                                    <span class="material-symbols-outlined">favorite</span>
+                                </button>
+                                <button class="action-btn" th:data-rank-id="${ranking.rankId}" onclick="toggleLove(this)">
+                                    <span class="material-symbols-outlined">star</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Song List -->
+                    <div class="song-list-section">
+                        <div class="song-item" th:each="song : ${ranking.rankSongList}" th:data-song-id="${song.songId}">
+                            <div class="song-item-left">
+                                <span class="song-name" th:text="${song?.songName}">歌曲名称</span>
+                                <span class="singer-name" th:text="${song.singerName}">歌手名称</span>
+                            </div>
+                            <button class="play-btn play-icon-hidden" th:data-song-id="${song.songId}"
+                                th:data-song-name="${song.songName}"
+                                th:data-singer-name="${song.singerName}">
+                                <span class="material-symbols-outlined">play_arrow</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- View Comments Button -->
+                    <div style="display: flex; justify-content: flex-start;">
+                        <button class="view-comments-btn" onclick="document.getElementById('comment-drawer').classList.add('open')">
+                            <span class="material-symbols-outlined">chat</span>
+                            查看评论
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination" th:if="${myloveSongs != null}">
+                <button th:disabled="${myloveSongs.pageNum == 1}"
+                    th:data-page="${myloveSongs.pageNum - 1}">上一页</button>
+
+                <button th:each="i : ${#numbers.sequence(1, myloveSongs.pages)}"
+                    th:class="${myloveSongs.pageNum == i ? 'active' : ''}" th:data-page="${i}"
+                    th:text="${i}">1</button>
+
+                <button th:disabled="${myloveSongs.pageNum == myloveSongs.pages}"
+                    th:data-page="${myloveSongs.pageNum + 1}">下一页</button>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state"
+                th:if="${myloveSongs == null or myloveSongs.list == null or myloveSongs.list.isEmpty()}">
+                <h3>暂无收藏</h3>
+                <p>您还没有收藏任何歌单</p>
+            </div>
+        </section>
+
+        <!-- Right Section: Reserved for fixed panel -->
+        <section style="position: relative;"></section>
+    </main>
+
+    <!-- ==================== Right Fixed Panel ==================== -->
+    <div class="right-panel">
+        <!-- Common Friends Module -->
+        <div class="panel-module glass">
+            <div class="module-header">
+                <div class="module-header-left">
+                    <div class="module-icon-circle">
+                        <span class="material-symbols-outlined">group</span>
+                    </div>
+                    <h3 class="module-title">共同好友推荐</h3>
+                </div>
+            </div>
+            <div class="module-body">
+                <div class="friend-item">
+                    <div class="friend-left">
+
+                        <div class="friend-info">
+                            <p>Cyber_Walker</p>
+                            <p>共同爱好：Techno</p>
+                        </div>
+                    </div>
+                    <button class="add-friend-btn gold-glow">
+                        <span class="material-symbols-outlined">person_add</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Recommendation Assistant Module -->
+        <div class="panel-module ai-module glass">
+            <div class="module-header" style="background: rgba(38, 42, 49, 0.5);">
+                <div class="module-header-left">
+                    <div class="module-icon-circle">
+                        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+                    </div>
+                    <div>
+                        <h3 class="module-title">AI 推荐助手</h3>
+                        <div class="ai-status-dot">
+                            <span class="status-indicator"></span>
+                            <span class="status-text">在线</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="ai-chat-area">
+                <div class="ai-bubble">
+                    <p>你好，KINETIC_USER！我是你的私人音乐策展助手。今天想听点什么？</p>
+                </div>
+            </div>
+            <div class="ai-input-area">
+                <div class="input-wrapper">
+                    <input type="text" class="ai-input" placeholder="描述你想要的心情或风格...">
+                    <button class="send-btn gold-glow">
+                        <span class="material-symbols-outlined">send</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== Comment Drawer ==================== -->
+    <div class="comment-drawer" id="comment-drawer">
+        <!-- Drawer Header -->
+        <div class="drawer-header">
+            <h3>榜单评论</h3>
+            <button class="drawer-close-btn" onclick="document.getElementById('comment-drawer').classList.remove('open')">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <!-- Comments List -->
+        <div class="drawer-comments-list" id="comment-list">
+            <!-- Comment Item 1 -->
+            <div class="comment-entry">
+                <div class="comment-avatar">
+                    <img alt="avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYFiPONoMVIQKy6-lIS_7xOaziYWSq6p-9TYC79am_RUHavIG6xvPdaA4NP-lhQimzJ-1-q6BJaZ2ldfbLgUoiey6-mF2a1mOpJxaLHplZuMtF85dDBAmARKGrZmThu28t-8JK1HWGmFyE8S-y3TI1gW49vwmImWRfwy8E7VqZywo6AhuHGFpfR2dFycBpLe4ULnP3DNmWjNZM5X54ACuyzBwQOyQDdrdBeVkNUqKoOVmQUtWQcjKCVl9yQKRjrPAA_eqUF4DJIjU">
+                </div>
+                <div class="comment-body">
+                    <div class="comment-top">
+                        <span class="comment-user">Cyber_Walker</span>
+                        <span class="comment-time">2小时前</span>
+                    </div>
+                    <p class="comment-text">这套歌单的深夜氛围感拉满了，特别适合加班的时候听，很有赛博朋克的代入感。</p>
+                </div>
+            </div>
+
+            <!-- Comment Item 2 -->
+            <div class="comment-entry">
+                <div class="comment-avatar">
+                    <img alt="avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4c2H2dN9oBGOhtbhL89Hmj0l0X9EKli74nX9Twua8lo9hnu-IJbBeg-QgUO31cYThfKzrjJKOgrAI3sAVC1rG42P2ax2-ZwHPSNednLQsnYP3TlQ0besuRy4jj3G65gO0JfmtEUIy1EvrNkylGN69txi-Vxojh7G9qmpvwKhazkOYaCibjdlyGTVpXWr9A_T53icclp9gdbCr9Tal-_l4YtBgKweDo3mcofzCtNKAKWmxdRv8y9-8cHRnNUXgPCXrYcAmeXS5Fz8">
+                </div>
+                <div class="comment-body">
+                    <div class="comment-top">
+                        <span class="comment-user">Lofi_Rain</span>
+                        <span class="comment-time">昨天</span>
+                    </div>
+                    <p class="comment-text">太赞了，期待博主更新更多的类似曲目！</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Drawer Footer (Comment Input) -->
+        <div class="drawer-footer">
+            <textarea class="comment-textarea" placeholder="分享你的想法..."></textarea>
+            <button class="submit-comment-btn gold-glow">
+                <span class="material-symbols-outlined">send</span>
+                发布评论
+            </button>
+        </div>
+    </div>
+
+    <!-- ==================== Bottom Player Bar ==================== -->
+
+
+    <!-- Music Player Container (Hidden, for JS initialization) -->
+    <div id="music-player-container"></div>
+
+    <script>
+        // ===================== 全局核心配置（完全复用我的榜单页）=====================
+        function getUrlParam(paramName) {
+            const reg = new RegExp("(^|&)" + paramName + "=([^&]*)(&|$)");
+            const paramMatch = window.location.search.substr(1).match(reg);
+            return paramMatch ? decodeURIComponent(paramMatch[2]) : null;
+        }
+
+        function getUserIdFromToken(token) {
+            if (!token) return null;
+            try {
+                const payload = token.split('.')[1];
+                const decodedPayload = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
+                const payloadObj = JSON.parse(decodedPayload);
+                return payloadObj.userId || payloadObj.uid || null;
+            } catch (error) {
+                console.error("解析Token失败:", error);
+                return null;
+            }
+        }
+
+        let token = getUrlParam("token") || localStorage.getItem('token') || '';
+        let userId = getUrlParam("userId") || getUrlParam("user_id") || getUserIdFromToken(token) || localStorage.getItem('user_id') || '';
+        let musicPlayer = null;
+
+        function showErrorTip(msg) {
+            let el = document.getElementById('errorAlert');
+            if (!el) {
+                el = document.createElement('div');
+                el.id = 'errorAlert';
+                el.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:10px 20px;background:#ff4444;color:#fff;border-radius:4px;z-index:9999;';
+                document.body.appendChild(el);
+            }
+            el.innerText = msg;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 2000);
+        }
+
+        function showSuccessTip(msg) {
+            let el = document.getElementById('successAlert');
+            if (!el) {
+                el = document.createElement('div');
+                el.id = 'successAlert';
+                el.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);padding:10px 20px;background:#00C851;color:#fff;border-radius:4px;z-index:9999;';
+                document.body.appendChild(el);
+            }
+            el.innerText = msg;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 2000);
+        }
+
+        function padStartCompat(str, length, padChar) {
+            str = str.toString();
+            while (str.length < length) {
+                str = padChar + str;
+            }
+            return str;
+        }
+
+        // ===================== 播放器核心逻辑（完全复用我的榜单页）=====================
+        function initMusicPlayer() {
+            if (musicPlayer) return;
+            try {
+                musicPlayer = new MusicPlayer({
+                    container: 'music-player-container',
+                    token: token,
+                    userId: userId
+                });
+                console.log("播放器初始化成功");
+            } catch (e) {
+                console.error("播放器初始化失败:", e);
+                showErrorTip("播放器加载失败：" + e.message);
+            }
+        }
+
+        function playSong(song) {
+            if (!song) {
+                showErrorTip("歌曲信息为空！");
+                return;
+            }
+            if (!musicPlayer) {
+                initMusicPlayer();
+            }
+            try {
+                musicPlayer.playSong(song);
+                showSuccessTip(`开始播放：${song.songName}`);
+            } catch (e) {
+                console.error("播放歌曲失败:", e);
+                showErrorTip("播放失败：" + e.message);
+            }
+        }
+
+        function playSongFromData(btn) {
+            const songId = btn.dataset.songId;
+            const songName = btn.dataset.songName;
+            const singerName = btn.dataset.singerName;
+
+            if (!songId) {
+                showErrorTip("歌曲ID为空，无法播放！");
+                return;
+            }
+
+            playSong({
+                songId: songId,
+                songName: songName || "未知歌曲",
+                singerName: singerName || "未知歌手"
+            });
+        }
+
+        // ===================== 评论区功能（完全复用我的榜单页）=====================
+        function toggleComments(rankId) {
+            const container = document.getElementById(`comment-container-${rankId}`);
+            if (!container) {
+                showErrorTip("评论容器未找到！");
+                return;
+            }
+            const toggleBtn = container.previousElementSibling;
+
+            if (container.classList.contains('show')) {
+                container.classList.remove('show');
+                toggleBtn.textContent = '查看评论';
+            } else {
+                container.classList.add('show');
+                toggleBtn.textContent = '收起评论';
+                loadComments(rankId);
+            }
+        }
+
+        function loadComments(rankId) {
+            console.log('加载评论列表，rankId:', rankId);
+            const commentList = document.getElementById(`comment-list-${rankId}`);
+            if (!commentList) return;
+
+            if (!token) {
+                commentList.innerHTML = '<p style="color: rgba(209, 197, 175, 0.7); text-align: center;">请先登录后查看评论</p>';
+                return;
+            }
+
+            commentList.innerHTML = '<p style="color: rgba(209, 197, 175, 0.7); text-align: center;">加载中...</p>';
+
+            axios.get(`/music/api/rank/list`, {
+                params: {
+                    token: token,
+                    rankId: rankId,
+                    userId: userId
+                }
+            })
+                .then(response => {
+                    console.log('加载评论响应:', response.data);
+                    if (response.data.code === 200 || response.data.success) {
+                        const comments = response.data.data || response.data;
+                        renderComments(commentList, comments);
+                    } else {
+                        commentList.innerHTML = `<p style="color: rgba(209, 197, 175, 0.7); text-align: center;">查询评论失败：${response.data.msg || '未知错误'}</p>`;
+                        console.error('评论查询失败:', response.data);
+                    }
+                })
+                .catch(error => {
+                    console.error('加载评论失败:', error);
+                    commentList.innerHTML = `<p style="color: rgba(209, 197, 175, 0.7); text-align: center;">加载评论失败：${error.response?.data?.msg || error.message}</p>`;
+                });
+        }
+
+        function renderComments(container, comments) {
+            if (!comments || comments.length === 0) {
+                container.innerHTML = '<p style="color: rgba(209, 197, 175, 0.7); text-align: center;">暂无评论</p>';
+                return;
+            }
+
+            container.innerHTML = '';
+            comments.forEach(comment => {
+                if (!comment || !comment.comId) {
+                    console.warn('发现无效评论数据，已跳过:', comment);
+                    return;
+                }
+
+                const commentItem = document.createElement('div');
+                commentItem.className = 'comment-entry';
+                commentItem.style.cssText = 'display:flex;gap:16px;padding:16px 0;border-bottom:1px solid rgba(77,70,53,0.15);';
+
+                commentItem.innerHTML = `
+                <div class="comment-avatar" style="width:40px;height:40px;border-radius:50%;overflow:hidden;flex-shrink:0;border:1px solid rgba(255,228,164,0.2);">
+                    <img alt="avatar" src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=user%20avatar&image_size=square" style="width:100%;height:100%;object-fit:cover;">
+                </div>
+                <div class="comment-body" style="flex-grow:1;display:flex;flex-direction:column;gap:4px;">
+                    <div class="comment-top" style="display:flex;justify-content:space-between;align-items:center;">
+                        <span class="comment-user" style="font-size:0.875rem;font-weight:700;color:#dfe2eb;">${comment.username || '匿名用户'}</span>
+                        <span class="comment-time" style="font-size:10px;color:rgba(209,197,175,0.5);text-transform:uppercase;font-weight:700;letter-spacing:-0.03em;">${formatTime(comment.comTime)}</span>
+                    </div>
+                    <p class="comment-text" style="font-size:0.875rem;color:rgba(209,197,175,0.8);line-height:1.6;">${comment.comContent || ''}</p>
+                    <div class="comment-actions-bar">
+                        ${comment.userId === parseInt(userId) ?
+                            `<button class="comment-delete-btn" data-comment-id="${comment.comId}" style="background:transparent;border:none;color:rgba(209,197,175,0.6);padding:4px 8px;border-radius:8px;font-size:12px;cursor:pointer;">删除</button>` : ''
+                        }
+                    </div>
+                </div>
+            `;
+
+                container.appendChild(commentItem);
+            });
+        }
+
+        function submitComment(rankId) {
+            console.log('提交评论,rankId:', rankId);
+            const input = document.getElementById(`comment-input-${rankId}`);
+            if (!input) {
+                showErrorTip("评论输入框未找到！");
+                return;
+            }
+            const content = input.value.trim();
+
+            if (!content) {
+                showErrorTip("评论内容不能为空！");
+                return;
+            }
+
+            if (!token || !userId || isNaN(userId)) {
+                showErrorTip("请先登录后再评论！");
+                return;
+            }
+
+            const url = `/music/api/rank/pubcomment?token=${encodeURIComponent(token)}&rankId=${rankId}&userId=${userId}&content=${encodeURIComponent(content)}&parentId=null`;
+
+            axios.post(url, null)
+                .then(response => {
+                    console.log('提交评论响应:', response.data);
+                    if (response.data.code === 200 || response.data.success) {
+                        showSuccessTip("评论发表成功！");
+                        input.value = '';
+                        loadComments(rankId);
+                    } else {
+                        showErrorTip("评论发表失败：" + (response.data.msg || '未知错误'));
+                    }
+                })
+                .catch(error => {
+                    console.error('提交评论失败:', error);
+                    showErrorTip("评论发表失败：" + (error.response?.data?.msg || error.message));
+                });
+        }
+
+        function deleteComment(commentId) {
+            console.log('删除评论，commentId:', commentId);
+
+            if (!confirm('确定要删除这条评论吗？')) {
+                return;
+            }
+
+            axios.delete(`/music/api/rank/deleteComment`, {
+                params: {
+                    token: token,
+                    comId: commentId,
+                    userId: userId
+                }
+            })
+                .then(response => {
+                    console.log('删除评论成功:', response.data);
+                    if (response.data.code === 200 || response.data.success) {
+                        showSuccessTip("删除评论成功！");
+
+                        try {
+                            const commentEl = document.querySelector(`[data-comment-id="${commentId}"]`);
+                            if (commentEl) {
+                                const commentItem = commentEl.closest('.comment-entry');
+                                const commentContainer = commentItem?.closest('[id^="comment-container-"]');
+                                if (commentContainer) {
+                                    const rankId = commentContainer.id.replace('comment-container-', '');
+                                    loadComments(rankId);
+                                    return;
+                                }
+                            }
+
+                            console.log('未找到特定评论容器，使用全局评论刷新');
+                            loadGlobalComments();
+
+                        } catch (error) {
+                            console.error('删除后刷新评论时出错:', error);
+                            loadGlobalComments();
+                        }
+                    } else {
+                        showErrorTip("删除评论失败：" + (response.data.msg || '未知错误'));
+                    }
+                })
+                .catch(error => {
+                    console.error('删除评论失败:', error);
+                    showErrorTip("删除评论失败：" + (error.response?.data?.msg || error.message));
+                });
+        }
+
+        function formatTime(time) {
+            if (!time) return '';
+            const date = new Date(time);
+            if (isNaN(date.getTime())) return '未知时间';
+            const year = date.getFullYear();
+            const month = padStartCompat(date.getMonth() + 1, 2, '0');
+            const day = padStartCompat(date.getDate(), 2, '0');
+            const hour = padStartCompat(date.getHours(), 2, '0');
+            const minute = padStartCompat(date.getMinutes(), 2, '0');
+            return `${year}-${month}-${day} ${hour}:${minute}`;
+        }
+
+        // ===================== 收藏页业务逻辑（修复核心问题）=====================
+        (function () {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const urlToken = urlParams.get('token') || '';
+                const urlUid = urlParams.get('user_id') || urlParams.get('userId') || '';
+                const urlUserName = urlParams.get('userName') || urlParams.get('username') || '';
+                const urlCategory = urlParams.get('category') || '';
+                const urlSuccess = urlParams.get('success') || '';
+
+                if (urlToken) localStorage.setItem('token', urlToken);
+                if (urlUid) localStorage.setItem('user_id', urlUid);
+                if (urlUserName) {
+                    localStorage.setItem('userName', urlUserName);
+                    localStorage.setItem('username', urlUserName);
+                }
+                if (urlCategory) localStorage.setItem('category', urlCategory);
+                if (urlSuccess) localStorage.setItem('success', urlSuccess);
+
+                console.log('✅ 收藏页初始化完成，参数：', {
+                    token: urlToken,
+                    userId: urlUid,
+                    userName: urlUserName,
+                    category: urlCategory,
+                    success: urlSuccess
+                });
+
+                renderUserNameFromLocalStorage();
+            } catch (err) {
+                console.error('❌ 收藏页初始化出错：', err);
+            }
+        })();
+
+        function renderUserNameFromLocalStorage() {
+            console.log('🔍 开始渲染用户名字');
+
+            const userProfileElement = document.querySelector('.user-profile');
+            console.log('🔍 用户配置文件元素:', userProfileElement);
+
+            if (userProfileElement) {
+                console.log('🔍 用户配置文件元素尺寸:', {
+                    width: userProfileElement.offsetWidth,
+                    height: userProfileElement.offsetHeight
+                });
+            }
+
+            const userInfoElement = document.querySelector('.user-info');
+            const userNameElement = document.querySelector('.user-info h3');
+            const userNicknameElement = document.querySelector('.user-info p');
+
+            console.log('🔍 用户信息元素:', userInfoElement);
+            console.log('🔍 用户名字元素:', userNameElement);
+            console.log('🔍 用户昵称元素:', userNicknameElement);
+
+            if (userInfoElement) {
+                console.log('🔍 用户信息元素尺寸:', {
+                    width: userInfoElement.offsetWidth,
+                    height: userInfoElement.offsetHeight
+                });
+            }
+
+            if (userNameElement) {
+                console.log('🔍 当前用户名文本:', userNameElement.textContent);
+            }
+            if (userNicknameElement) {
+                console.log('🔍 当前用户昵称文本:', userNicknameElement.textContent);
+            }
+
+            const storedUserName = localStorage.getItem('userName') || localStorage.getItem('username') || '';
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlUserName = urlParams.get('userName') || urlParams.get('username') || '';
+            const finalUserName = urlUserName || storedUserName || '测试用户';
+
+            console.log('🔍 最终用户名字:', finalUserName);
+
+            if (userNameElement) {
+                userNameElement.textContent = finalUserName;
+                console.log('✅ 已设置用户名:', userNameElement.textContent);
+            }
+            if (userNicknameElement) {
+                userNicknameElement.textContent = finalUserName;
+                console.log('✅ 已设置用户昵称:', userNicknameElement.textContent);
+            }
+
+            if (userInfoElement) {
+                userInfoElement.style.display = 'block';
+                userInfoElement.style.visibility = 'visible';
+                userInfoElement.style.opacity = '1';
+                userInfoElement.style.minWidth = '200px';
+                userInfoElement.style.minHeight = '80px';
+                console.log('✅ 已确保用户信息元素可见');
+            }
+
+            if (userProfileElement) {
+                userProfileElement.style.display = 'flex';
+                userProfileElement.style.alignItems = 'center';
+                console.log('✅ 已确保用户配置文件元素可见');
+            }
+
+            if (finalUserName && finalUserName !== '测试用户') {
+                localStorage.setItem('userName', finalUserName);
+                localStorage.setItem('username', finalUserName);
+                console.log('✅ 已存储用户名字到localStorage');
+            }
+
+            const sidebarUserCardInfo = document.querySelector('.user-card-info');
+            if (sidebarUserCardInfo) {
+                const sidebarNameEl = sidebarUserCardInfo.querySelector('p:first-child');
+                if (sidebarNameEl) {
+                    sidebarNameEl.textContent = finalUserName;
+                }
+            }
+        }
+
+        function initAvatarUpload() {
+            console.log('🔍 初始化头像上传功能');
+
+            const avatarContainer = document.querySelector('.avatar-container');
+            const avatarUpload = document.getElementById('avatar-upload');
+            const userAvatar = document.getElementById('user-avatar');
+
+            console.log('🔍 头像容器:', avatarContainer);
+            console.log('🔍 头像上传输入:', avatarUpload);
+            console.log('🔍 用户头像:', userAvatar);
+
+            if (avatarContainer && avatarUpload) {
+                avatarContainer.addEventListener('click', function (e) {
+                    console.log('🔍 点击头像容器');
+                    avatarUpload.click();
+                });
+
+                avatarUpload.addEventListener('change', function (e) {
+                    console.log('🔍 文件选择变化');
+                    const file = e.target.files[0];
+                    if (file) {
+                        console.log('🔍 选择的文件:', file);
+                        previewAvatar(file);
+                    }
+                });
+            }
+
+            loadAvatarFromLocalStorage();
+        }
+
+        function previewAvatar(file) {
+            console.log('🔍 预览头像:', file);
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const userAvatar = document.getElementById('user-avatar');
+                const sidebarAvatar = document.getElementById('sidebar-user-avatar');
+                if (userAvatar) {
+                    userAvatar.src = e.target.result;
+                    console.log('✅ 头像预览成功');
+                    uploadAvatar(file);
+                }
+                if (sidebarAvatar) {
+                    sidebarAvatar.src = e.target.result;
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function uploadAvatar(file) {
+            console.log('🔍 开始上传头像');
+
+            showUploadingStatus();
+
+            setTimeout(function () {
+                const mockAvatarUrl = URL.createObjectURL(file);
+                console.log('✅ 头像上传成功:', mockAvatarUrl);
+
+                localStorage.setItem('avatarUrl', mockAvatarUrl);
+
+                showSuccessTip('头像上传成功！');
+
+                hideUploadingStatus();
+            }, 1000);
+        }
+
+        function showUploadingStatus() {
+            const avatarContainer = document.querySelector('.avatar-container');
+            if (avatarContainer) {
+                avatarContainer.style.position = 'relative';
+
+                let uploadingOverlay = document.querySelector('.avatar-uploading-overlay');
+                if (!uploadingOverlay) {
+                    uploadingOverlay = document.createElement('div');
+                    uploadingOverlay.className = 'avatar-uploading-overlay';
+                    uploadingOverlay.style.cssText = `
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        bottom: 0;
+                        background: rgba(16, 20, 26, 0.8);
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        z-index: 10;
+                    `;
+                    uploadingOverlay.innerHTML = `
+                        <div style="color: #ffe4a4; font-size: 12px;">上传中...</div>
+                    `;
+                    avatarContainer.appendChild(uploadingOverlay);
+                }
+            }
+        }
+
+        function hideUploadingStatus() {
+            const uploadingOverlay = document.querySelector('.avatar-uploading-overlay');
+            if (uploadingOverlay) {
+                uploadingOverlay.remove();
+            }
+        }
+
+        function loadAvatarFromLocalStorage() {
+            console.log('🔍 从localStorage加载头像');
+            const storedAvatarUrl = localStorage.getItem('avatarUrl');
+            const userAvatar = document.getElementById('user-avatar');
+            const sidebarAvatar = document.getElementById('sidebar-user-avatar');
+
+            console.log('🔍 localStorage中的头像URL:', storedAvatarUrl);
+
+            if (storedAvatarUrl && userAvatar) {
+                userAvatar.src = storedAvatarUrl;
+                console.log('✅ 已从localStorage加载头像');
+            }
+            if (storedAvatarUrl && sidebarAvatar) {
+                sidebarAvatar.src = storedAvatarUrl;
+            }
+        }
+
+        function goToHome() {
+            try {
+                let token = localStorage.getItem('token') || '';
+                let user_id = localStorage.getItem('user_id') || '';
+                let userName = localStorage.getItem('userName') || '';
+
+                if (!token) {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    token = urlParams.get('token') || '';
+                    user_id = urlParams.get('user_id') || urlParams.get('userId') || '';
+                    userName = urlParams.get('userName') || urlParams.get('username') || '';
+
+                    if (token) localStorage.setItem('token', token);
+                    if (user_id) localStorage.setItem('user_id', user_id);
+                    if (userName) localStorage.setItem('userName', userName);
+                }
+
+                if (!token) {
+                    alert('登录信息已失效，请重新登录');
+                    window.location.href = '/music/login.html';
+                    return;
+                }
+
+                const params = new URLSearchParams();
+                if (token) params.append('token', token);
+                if (user_id) params.append('userId', user_id);
+                if (userName) params.append('userName', userName);
+
+                const targetUrl = `/music/index.html?${params.toString()}`;
+                window.location.href = targetUrl;
+
+            } catch (err) {
+                console.error('❌ 跳转首页出错：', err);
+                alert('跳转失败，请刷新页面重试！');
+            }
+        }
+
+        function goToPu() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const token = urlParams.get('token') || localStorage.getItem('token') || '';
+                const userId = urlParams.get('userId') || urlParams.get('user_id') || localStorage.getItem('user_id') || '';
+                const category = localStorage.getItem('category') || '';
+                const success = localStorage.getItem('success') || '';
+
+                console.log('📌 收藏页跳转publish参数：', { token, userId, category, success });
+
+                if (!token || !userId) {
+                    showErrorTip('登录信息失效，请重新登录');
+                    setTimeout(() => window.location.href = '/music/login.html', 1500);
+                    return;
+                }
+
+                const params = new URLSearchParams();
+                params.append('token', encodeURIComponent(token));
+                params.append('userId', encodeURIComponent(userId));
+                if (category) params.append('category', encodeURIComponent(category));
+                if (success) params.append('success', encodeURIComponent(success));
+
+                const targetUrl = `/music/api/rank/publish?${params.toString()}`;
+                console.log('📌 收藏页最终跳转URL：', targetUrl);
+
+                window.location.replace(targetUrl);
+
+            } catch (err) {
+                console.error('❌ 收藏页跳转publish出错：', err);
+                showErrorTip('跳转失败：' + err.message);
+            }
+        }
+
+        function goToPage(page) {
+            const currentToken = localStorage.getItem('token') || getUrlParam('token');
+            const currentUserId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
+            window.location.href = `/music/api/mine/mylove?pageNum=${page}&token=${encodeURIComponent(currentToken)}&userId=${encodeURIComponent(currentUserId)}`;
+        }
+
+        // ===================== 全局评论区功能 =====================
+        function loadGlobalComments() {
+            const commentList = document.getElementById('comment-list');
+            if (!commentList) return;
+
+            if (!token) {
+                commentList.innerHTML = '<p style="color: rgba(209, 197, 175, 0.7); text-align: center;">请先登录后查看评论</p>';
+                return;
+            }
+
+            commentList.innerHTML = '<p style="color: rgba(209, 197, 175, 0.7); text-align: center;">加载中...</p>';
+
+            const firstRankingItem = document.querySelector('.playlist-card');
+            const rankId = firstRankingItem ? firstRankingItem.dataset.rankId : null;
+
+            if (!rankId) {
+                commentList.innerHTML = '<p style="color: rgba(209, 197, 175, 0.7); text-align: center;">暂无收藏榜单，无法加载评论</p>';
+                return;
+            }
+
+            axios.get(`/music/api/rank/list`, {
+                params: {
+                    token: token,
+                    rankId: rankId,
+                    userId: userId
+                }
+            })
+                .then(response => {
+                    console.log('加载全局评论响应:', response.data);
+                    if (response.data.code === 200 || response.data.success) {
+                        const comments = response.data.data || response.data;
+                        renderGlobalComments(commentList, comments);
+                    } else {
+                        commentList.innerHTML = `<p style="color: rgba(209, 197, 175, 0.7); text-align: center;">查询评论失败：${response.data.msg || '未知错误'}</p>`;
+                        console.error('评论查询失败:', response.data);
+                    }
+                })
+                .catch(error => {
+                    console.error('加载评论失败:', error);
+                    commentList.innerHTML = `<p style="color: rgba(209, 197, 175, 0.7); text-align: center;">加载评论失败：${error.response?.data?.msg || error.message}</p>`;
+                });
+        }
+
+        function renderGlobalComments(container, comments) {
+            if (!comments || comments.length === 0) {
+                container.innerHTML = '<p style="color: rgba(209, 197, 175, 0.7); text-align: center;">暂无评论</p>';
+                return;
+            }
+
+            container.innerHTML = '';
+            comments.forEach(comment => {
+                if (!comment || !comment.comId) {
+                    console.warn('发现无效评论数据，已跳过:', comment);
+                    return;
+                }
+
+                const commentItem = document.createElement('div');
+                commentItem.className = 'comment-entry';
+
+                commentItem.innerHTML = `
+                <div class="comment-avatar" style="width:40px;height:40px;border-radius:50%;overflow:hidden;flex-shrink:0;border:1px solid rgba(255,228,164,0.2);">
+                    <img alt="avatar" src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=user%20avatar&image_size=square" style="width:100%;height:100%;object-fit:cover;">
+                </div>
+                <div class="comment-body" style="flex-grow:1;display:flex;flex-direction:column;gap:4px;">
+                    <div class="comment-top" style="display:flex;justify-content:space-between;align-items:center;">
+                        <span class="comment-user" style="font-size:0.875rem;font-weight:700;color:#dfe2eb;">${comment.username || '匿名用户'}</span>
+                        <span class="comment-time" style="font-size:10px;color:rgba(209,197,175,0.5);text-transform:uppercase;font-weight:700;letter-spacing:-0.03em;">${formatTime(comment.comTime)}</span>
+                    </div>
+                    <p class="comment-text" style="font-size:0.875rem;color:rgba(209,197,175,0.8);line-height:1.6;">${comment.comContent || ''}</p>
+                    <div class="comment-actions-bar">
+                        ${comment.userId === parseInt(userId) ?
+                            `<button class="comment-delete-btn" data-comment-id="${comment.comId}" style="background:transparent;border:none;color:rgba(209,197,175,0.6);padding:4px 8px;border-radius:8px;font-size:12px;cursor:pointer;">删除</button>` : ''
+                        }
+                    </div>
+                </div>
+            `;
+
+                container.appendChild(commentItem);
+            });
+        }
+
+        function submitGlobalComment() {
+            const drawerTextarea = document.querySelector('.drawer-footer .comment-textarea');
+            if (!drawerTextarea) {
+                showErrorTip("评论输入框未找到！");
+                return;
+            }
+            const content = drawerTextarea.value.trim();
+
+            if (!content) {
+                showErrorTip("评论内容不能为空！");
+                return;
+            }
+
+            if (!token || !userId || isNaN(userId)) {
+                showErrorTip("请先登录后再评论！");
+                return;
+            }
+
+            const firstRankingItem = document.querySelector('.playlist-card');
+            const rankId = firstRankingItem ? firstRankingItem.dataset.rankId : null;
+
+            if (!rankId) {
+                showErrorTip("暂无收藏榜单，无法发表评论");
+                return;
+            }
+
+            axios.post(`/music/api/rank/pubcomment`, null, {
+                params: {
+                    token: token,
+                    rankId: rankId,
+                    userId: userId,
+                    content: content,
+                    parentId: null
+                }
+            })
+                .then(response => {
+                    console.log('提交评论成功:', response.data);
+                    if (response.data.code === 200 || response.data.success) {
+                        showSuccessTip("评论发表成功！");
+                        drawerTextarea.value = '';
+                        loadGlobalComments();
+                    } else {
+                        showErrorTip("评论发表失败：" + (response.data.msg || '未知错误'));
+                    }
+                })
+                .catch(error => {
+                    console.error('提交评论失败:', error);
+                    showErrorTip("评论发表失败：" + (error.response?.data?.msg || error.message));
+                });
+        }
+
+        // ===================== 事件委托绑定（修复事件优先级）=====================
+        document.addEventListener('DOMContentLoaded', function () {
+            initMusicPlayer();
+
+            loadGlobalComments();
+
+            renderUserNameFromLocalStorage();
+
+            initAvatarUpload();
+
+            // 抽屉外部点击关闭
+            window.addEventListener('click', function(e) {
+                const drawer = document.getElementById('comment-drawer');
+                const openButtons = document.querySelectorAll('[onclick*="comment-drawer"]');
+                let clickedButton = false;
+                openButtons.forEach(btn => { if(btn.contains(e.target)) clickedButton = true; });
+
+                if (!drawer.contains(e.target) && !clickedButton && drawer.classList.contains('open')) {
+                    drawer.classList.remove('open');
+                }
+            });
+
+            // 侧边栏导航按钮绑定
+            document.addEventListener('click', function (e) {
+                const target = e.target;
+
+                if (target.closest('#navIndex')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    let navToken = localStorage.getItem('token') || getUrlParam('token');
+                    let navUserId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
+                    window.location.href = `/music/index.html?token=${encodeURIComponent(navToken)}&userId=${encodeURIComponent(navUserId)}`;
+                    return;
+                }
+
+                if (target.closest('#navHome')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    goToPu();
+                    return;
+                }
+
+                if (target.closest('#navSearch')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    let navToken = localStorage.getItem('token') || getUrlParam('token');
+                    let navUserId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
+                    let navCategory = localStorage.getItem('category') || getUrlParam('category') || '1';
+                    window.location.href = `/music/api/rank/sou?token=${encodeURIComponent(navToken)}&category=${navCategory}&userId=${encodeURIComponent(navUserId)}`;
+                    return;
+                }
+
+                if (target.closest('#navMyRank')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    let navToken = localStorage.getItem('token') || getUrlParam('token');
+                    let navUserId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
+                    window.location.href = `/music/api/mine/myrank?token=${encodeURIComponent(navToken)}&userId=${encodeURIComponent(navUserId)}`;
+                    return;
+                }
+
+                if (target.closest('#navHotRank')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    let navToken = localStorage.getItem('token') || getUrlParam('token');
+                    let navUserId = localStorage.getItem('user_id') || getUrlParam('user_id') || getUrlParam('userId');
+                    window.location.href = `/music/hotrank.html?token=${encodeURIComponent(navToken)}&userId=${encodeURIComponent(navUserId)}`;
+                    return;
+                }
+
+                if (target.closest('#navMyLove')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+                    target.closest('#navMyLove').classList.add('active');
+                    return;
+                }
+            });
+
+            // 播放按钮绑定
+            document.addEventListener('click', function (e) {
+                const playBtn = e.target.closest('.play-btn');
+                if (playBtn) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('播放按钮点击，歌曲ID：', playBtn.dataset.songId);
+                    playSongFromData(playBtn);
+                }
+            });
+
+            // 评论相关按钮绑定
+            document.addEventListener('click', function (e) {
+                const commentToggle = e.target.closest('.comment-toggle');
+                if (commentToggle) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const rankId = commentToggle.dataset.rankId;
+                    toggleComments(rankId);
+                }
+            });
+
+            document.addEventListener('click', function (e) {
+                const commentSubmit = e.target.closest('.comment-submit');
+                if (commentSubmit) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const rankId = commentSubmit.dataset.rankId;
+                    submitComment(rankId);
+                }
+            });
+
+            // 抽屉内发布评论按钮绑定
+            document.addEventListener('click', function (e) {
+                if (e.target.closest('.submit-comment-btn')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    submitGlobalComment();
+                }
+            });
+
+            document.addEventListener('click', function (e) {
+                const commentDelete = e.target.closest('.comment-delete-btn');
+                if (commentDelete) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const commentId = commentDelete.dataset.commentId;
+                    deleteComment(commentId);
+                }
+            });
+
+            // 分页按钮绑定
+            document.addEventListener('click', function (e) {
+                const pageBtn = e.target.closest('.pagination button');
+                if (pageBtn && !pageBtn.disabled) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const page = pageBtn.dataset.page;
+                    goToPage(page);
+                }
+            });
+
+            // 校验登录状态
+            if (!token || !userId || isNaN(userId)) {
+                showErrorTip('登录信息失效，请重新登录');
+                setTimeout(() => window.location.href = '/music/login.html', 1500);
+            }
+        });
+
+        // ===================== 榜单点赞功能（vote接口）=====================
+        function toggleVote(btn) {
+            const rankId = btn.dataset.rankId;
+
+            if (!rankId) {
+                showErrorTip("榜单ID为空，无法点赞！");
+                return;
+            }
+
+            if (!token || !userId || isNaN(userId)) {
+                showErrorTip("请先登录后再点赞！");
+                return;
+            }
+
+            axios.post(`/music/api/rank/vote`, null, {
+                params: {
+                    token: token,
+                    rankId: rankId,
+                    userId: userId
+                }
+            })
+            .then(response => {
+                console.log('点赞响应:', response.data);
+                if (response.data.code === 200 || response.data.success) {
+                    showSuccessTip("点赞成功！");
+                    btn.classList.add('active');
+                    const icon = btn.querySelector('.material-symbols-outlined');
+                    if (icon) {
+                        icon.style.fontVariationSettings = "'FILL' 1";
+                        icon.style.color = '#ffe4a4';
+                    }
+                } else {
+                    showErrorTip("点赞失败：" + (response.data.msg || '未知错误'));
+                }
+            })
+            .catch(error => {
+                console.error('点赞失败:', error);
+                showErrorTip("点赞失败：" + (error.response?.data?.msg || error.message));
+            });
+        }
+
+        // ===================== 榜单收藏功能（love/deleteLove接口）=====================
+        function toggleLove(btn) {
+            const rankId = btn.dataset.rankId;
+
+            if (!rankId) {
+                showErrorTip("榜单ID为空，无法收藏！");
+                return;
+            }
+
+            if (!token || !userId || isNaN(userId)) {
+                showErrorTip("请先登录后再收藏！");
+                return;
+            }
+
+            const isLoved = btn.dataset.loved === 'true';
+            let url;
+            let successMsg;
+
+            if (isLoved) {
+                url = `/music/api/rank/deleteLove?token=${encodeURIComponent(token)}&rankId=${rankId}&userId=${userId}`;
+                successMsg = "已取消收藏";
+            } else {
+                url = `/music/api/rank/love?token=${encodeURIComponent(token)}&rankId=${rankId}&userId=${userId}`;
+                successMsg = "收藏成功";
+            }
+
+            axios.post(url, null)
+            .then(response => {
+                console.log('收藏操作响应:', response.data);
+                if (response.data.code === 200 || response.data.success) {
+                    showSuccessTip(successMsg);
+
+                    if (isLoved) {
+                        btn.dataset.loved = 'false';
+                        btn.classList.remove('active');
+                        const icon = btn.querySelector('.material-symbols-outlined');
+                        if (icon) {
+                            icon.style.fontVariationSettings = "'FILL' 0";
+                            icon.style.color = '';
+                        }
+                    } else {
+                        btn.dataset.loved = 'true';
+                        btn.classList.add('active');
+                        const icon = btn.querySelector('.material-symbols-outlined');
+                        if (icon) {
+                            icon.style.fontVariationSettings = "'FILL' 1";
+                            icon.style.color = '#ffe4a4';
+                        }
+                    }
+                } else {
+                    showErrorTip("操作失败：" + (response.data.msg || '未知错误'));
+                }
+            })
+            .catch(error => {
+                console.error('收藏操作失败:', error);
+                showErrorTip("操作失败：" + (error.response?.data?.msg || error.message));
+            });
+        }
+    </script>
+</body>
+
+</html>
