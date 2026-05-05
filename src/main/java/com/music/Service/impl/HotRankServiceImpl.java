@@ -199,11 +199,14 @@ public class HotRankServiceImpl implements HotRankService {
 
                     String jsonPublicMsg = JSON.toJSONString(publicReport);
 
+
+                    redisTemplate.opsForValue().set("rank:last_top_user", currentTopRankIdStr);
+
+
                     NativeWebSocketServer.sendMessageToAll(jsonPublicMsg);
 
                     log.info("📢 全服广播发送：{}", publicReport.getTitle());
 
-                    redisTemplate.opsForValue().set("rank:last_top_user", currentTopRankIdStr);
                 }
             }
 

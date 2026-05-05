@@ -174,24 +174,13 @@
         </dependency>
 
 <!--        &lt;!&ndash; 1. LangChain4j 的 Spring Boot 启动器 (解决 @AiService 爆红的核心) &ndash;&gt;-->
-<!--        <dependency>-->
-<!--            <groupId>dev.langchain4j</groupId>-->
-<!--            <artifactId>langchain4j</artifactId>-->
-<!--            <version>0.31.0</version>-->
-<!--        </dependency>-->
 
-<!--        &lt;!&ndash; 2. Spring Boot 自动扫描启动器 &ndash;&gt;-->
-<!--        <dependency>-->
-<!--            <groupId>dev.langchain4j</groupId>-->
-<!--            <artifactId>langchain4j-spring-boot-starter</artifactId>-->
-<!--            <version>0.31.0</version>-->
-<!--        </dependency>-->
 
         <!-- 3. 对接 OpenAI / 硅基流动 -->
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-open-ai-spring-boot-starter</artifactId>
-            <version>0.31.0</version>
+            <version>0.33.0</version>
         </dependency>
 
 
@@ -200,6 +189,16 @@
             <groupId>net.jthink</groupId>
             <artifactId>jaudiotagger</artifactId>
             <version>3.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j</artifactId>
+            <version>0.33.0</version>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-spring-boot-starter</artifactId>
+            <version>0.31.0</version>
         </dependency>
 
         <!-- 5. 热部署工具 -->
