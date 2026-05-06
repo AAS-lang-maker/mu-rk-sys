@@ -44,7 +44,7 @@ public class Usercontroller {
     @Operation(summary = "用户登录", description = "用户登录接口")
     public Result<LoginSuccessVo> login(@Valid @RequestBody UserLoginDTO userLoginDTO) {
         Result<LoginSuccessVo> result = userInfoService.login(userLoginDTO);
-     return result;
+        return result;
     }
 
     /*注册逻辑：
@@ -54,25 +54,25 @@ public class Usercontroller {
              4.存在则重定向到登录界面并返回信息：您已经注册，请重新登录
              5.不存在则继续让用户输入密码
              6.注册完成后可直接重定向到首页*/
-     /*@PostMapping("/register")
+    @PostMapping("/register")
     @Operation(summary = "用户注册", description = "用户注册接口")
-        public String register(@Validated UserRegisterDTO userRegisterDTO, RedirectAttributes redirectAttributes) {
-            //Model最没用的一集，由于在注册中要重定向，所以用RedirectAttributes传参数
-            Result<String> result = userInfoService.register(userRegisterDTO);//让Service层校验用户名是否存在
-            if (result.getCode() == 200) {
+    public String register(@Validated UserRegisterDTO userRegisterDTO, RedirectAttributes redirectAttributes) {
+        //Model最没用的一集，由于在注册中要重定向，所以用RedirectAttributes传参数
+        Result<String> result = userInfoService.register(userRegisterDTO);//让Service层校验用户名是否存在
+        if (result.getCode() == 200) {
 
-                redirectAttributes.addFlashAttribute("success", "注册成功，已为您跳转到首页");
-                return "redirect:/login.html";
-            } else {
-                String s2 = "该用户已经存在，请重新进行登录";
-                redirectAttributes.addFlashAttribute("errormessage", s2 + result.getMsg());
-                return "redirect:/login.html";
-            }
+            redirectAttributes.addFlashAttribute("success", "注册成功，已为您跳转到首页");
+            return "redirect:/login.html";
+        } else {
+            String s2 = "该用户已经存在，请重新进行登录";
+            redirectAttributes.addFlashAttribute("errormessage", s2 + result.getMsg());
+            return "redirect:/login.html";
         }
-*/
+    }
+}
     // 这是一个专门给 Apifox/前后端分离用的注册接口
 // 路径加了 /api 前缀，和原来的区分开
-    @PostMapping("/register")
+/*    @PostMapping("/register")
     @ResponseBody // 关键：告诉Spring Boot，我要返回JSON，不要跳页面！
     public Result<String> registerApi(@Validated @RequestBody UserRegisterDTO userRegisterDTO) {
         // 直接调用Service，逻辑和原来一模一样
@@ -89,7 +89,7 @@ public class Usercontroller {
         }
     }
     }
-
+*/
 
 
 

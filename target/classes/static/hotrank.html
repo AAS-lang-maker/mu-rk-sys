@@ -725,6 +725,51 @@
             font-family: 'Space Grotesk', sans-serif;
         }
 
+        /* AI 气泡样式 - 与 publish-page.html 统一 */
+        .ai-bubble {
+            max-width: 300px;
+            background-color: #31353c;
+            padding: 16px;
+            border-radius: 32px;
+            border-top-left-radius: 0;
+            border: 1px solid rgba(77, 70, 53, 0.2);
+            text-align: left;
+            position: relative;
+        }
+
+        .ai-bubble p {
+            font-size: 0.875rem;
+            line-height: 1.6;
+            color: #dfe2eb;
+            margin: 0;
+        }
+
+        .ai-bubble.user-bubble {
+            background-color: rgba(240, 198, 77, 0.15);
+            border-color: rgba(240, 198, 77, 0.3);
+            border-radius: 32px;
+            border-top-right-radius: 0;
+            border-top-left-radius: 32px;
+            align-self: flex-end;
+        }
+
+        .ai-bubble.user-bubble p {
+            color: #ffe4a4;
+        }
+
+        .typing-cursor {
+            display: inline-block;
+            margin-left: 2px;
+            animation: blink 1s infinite;
+            color: #999;
+            font-weight: bold;
+        }
+
+        @keyframes blink {
+            0%,50% { opacity: 1; }
+            51%,100% { opacity: 0; }
+        }
+
         .chat-input-area {
             padding: 16px;
             margin-top: auto;
@@ -1131,6 +1176,65 @@
             transform: scale(0.95);
         }
 
+        .comment-like-btn {
+            background: none;
+            border: none;
+            color: rgba(115, 115, 115, 0.6);
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: all 0.3s ease;
+            font-size: 12px;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .comment-like-btn:hover {
+            color: rgba(240, 198, 77, 0.8);
+            background-color: rgba(240, 198, 77, 0.08);
+        }
+
+        .comment-like-btn.liked {
+            color: #f0c64d;
+        }
+
+        .comment-like-btn.liked:hover {
+            background-color: rgba(255, 228, 164, 0.15);
+        }
+
+        .comment-like-btn:active {
+            transform: scale(0.95);
+        }
+
+        .comment-like-btn i {
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .comment-like-btn:not(.liked) i {
+            opacity: 0.7;
+        }
+
+        .comment-like-btn.liked i {
+            animation: likePop 0.4s ease;
+        }
+
+        @keyframes likePop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        .comment-like-count {
+            font-size: 11px;
+            min-width: 16px;
+            text-align: center;
+            user-select: none;
+        }
+
         .comment-text {
             font-size: 14px;
             color: #d1c5af;
@@ -1491,10 +1595,30 @@
                 max-width: 90vw;
             }
         }
+
+        .typing-cursor {
+            display: inline-block;
+            margin-left: 2px;
+            animation: blink 1s infinite;
+            color: #999;
+            font-weight: bold;
+        }
+
+        @keyframes blink {
+            0%,50% {
+                opacity: 1;
+            }
+            51%,100% {
+                opacity: 0;
+            }
+        }
     </style>
     <script src="./js/axios.min.js"></script>
     <script src="./js/request.js"></script>
     <script src="/music/player/music-player.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="/music/js/music-ai-agent.js"></script>
+    <link rel="stylesheet" href="/css/battle-report.css">
 </head>
 
 <body>
@@ -1594,7 +1718,7 @@
                     <div class="header-left">
                         <div class="avatar-container">
                             <div class="avatar">
-                                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDZITLLyKCAHaG0FLfsJcBLKuCj9sgt5RcDWZvteWbZP9SN7CkTox4DtcpxmKAjepwTXLAwbs14xE7OfQSGpLemb_lhuJFb2JAa3pv2LADcE2qlCJ1I40Fc6Dp3_V_EbNWKxkMj6-XBEnzB95x3U_xawyx6nxthe8Uoi7-fqbwlpaC6GgOVLnbn0Ip2e--STA1d63rTbEmmJmXlYSqUhDYmDS8JlIXF_OHaEiis_u5RfvYEOYP3Dzix3jW6wnjjq40FXdoRpESL1Qg" alt=""/>
+                                <img src="https://th.bing.com/th/id/OIP.HeCfy1wH-100VEDW7dOBTAAAAA?w=137&h=183&c=7&r=0&o=5&dpr=2&pid=1.7" alt=""/>
                             </div>
                             <div class="online-status"></div>
                         </div>
@@ -1609,17 +1733,12 @@
                 </div>
 
                 <div class="chat-messages" id="chatMessages">
-                    <div class="welcome-message">
-                        <span class="material-symbols-outlined welcome-icon">auto_awesome</span>
-                        <p class="welcome-text">告诉您的喜好，我为您推荐精彩内容</p>
+                    <div class="chat-prompt" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px; opacity: 0.4;">
+                        <span class="material-symbols-outlined" style="font-size: 36px; color: #ffe4a4; margin-bottom: 8px; font-variation-settings: 'FILL' 1;">auto_awesome</span>
+                        <p style="font-size: 10px; color: #9ca3af; text-align: center; font-family: 'Manrope', sans-serif;">告诉您的喜好，我为您推荐精彩内容</p>
                     </div>
-                    <div class="message-bubble">
-                        <div class="bubble-content">
-                            <p class="bubble-text">
-                                你好！我是你的AI推荐助手。告诉我你想听什么歌、看什么电影，或者点击上方标签浏览推荐内容。
-                            </p>
-                        </div>
-                        <span class="message-time">JUST NOW</span>
+                    <div class="ai-bubble">
+                        <p>你好！我是你的AI推荐助手。告诉我你想听什么歌、看什么电影，或者点击上方标签浏览推荐内容。</p>
                     </div>
                 </div>
 
@@ -1681,11 +1800,6 @@
         <div class="drawer-header">
             <div class="drawer-title-group">
                 <h2 id="drawer-title">榜单详情</h2>
-                <div class="drawer-meta">
-                    <span>50 首歌曲</span>
-                    <span class="meta-dot"></span>
-                    <span>时长：3小时 12分</span>
-                </div>
             </div>
             <button class="close-btn" onclick="closeDrawer()">
                 <span class="material-symbols-outlined">close</span>
@@ -1919,7 +2033,17 @@
 
         loadAllRankData();
 
-        initChatEvents();
+        // 初始化 MusicAIAgent 实例
+        if (typeof MusicAIAgent !== 'undefined') {
+            const hotrankAgent = new MusicAIAgent({
+                input: '#chatInput',
+                sendButton: '#chatSendBtn',
+                messageContainer: '#chatMessages'
+            });
+            console.log('Hotrank MusicAIAgent 初始化成功');
+        } else {
+            console.warn('MusicAIAgent 未定义，跳过 AI 助手初始化');
+        }
 
         bindButtonEvents();
 
@@ -2245,9 +2369,6 @@
         ` : '';
 
             commentItem.innerHTML = `
-                <div class="comment-avatar">
-                    <img src="${comment.avatar || 'https://via.placeholder.com/40'}" alt=""/>
-                </div>
                 <div class="comment-body">
                     <div class="comment-header">
                         <span class="comment-author">${comment.username || '匿名用户'}</span>
@@ -2255,6 +2376,10 @@
                         ${deleteButtonHtml}
                     </div>
                     <div class="comment-text">${comment.comContent || ''}</div>
+                    <button class="comment-like-btn ${comment.liked ? 'liked' : ''}" onclick="toggleCommentLike('${comment.comId}', this)" title="点赞">
+                        <span class="material-symbols-outlined" style="font-size: 14px;">favorite</span>
+                        <span class="comment-like-count">${comment.likeCount || 0}</span>
+                    </button>
                 </div>
             `;
 
@@ -2315,11 +2440,12 @@
         const likeCountEl = btn.querySelector('.comment-like-count');
         const originalCount = Number(likeCountEl.textContent) || 0;
 
-        axios.post(url, {
-            comId: commentId,
-            userId: userId
-        }, {
-            params: { token: token }
+        axios.post(url, null, {
+            params: {
+                token: token,
+                comId: commentId,
+                userId: userId
+            }
         })
             .then(response => {
                 if (response.data.code === 200 || response.data.success) {
@@ -2504,7 +2630,7 @@
             const username = rank.username || rank.userName || "未知用户";
             const publishTime = rank.publishTime || rank.publish_time || "";
             const voteCount = Number(rank.voteCount || rank.vote_count || 0);
-            const loveCount = Number(rank.loveCount || love_count || 0);
+            const loveCount = Number(rank.loveCount || rank.love_count || 0);
             const songList = rank.rankSongList || rank.rank_song_list || [];
 
             let songsHtml = '<ul class="song-list">';
@@ -2560,10 +2686,10 @@
                             <button class="action-btn" onclick="openComments('${rankId}', '${rankName}')">
                                 <span class="material-symbols-outlined">chat_bubble</span>
                             </button>
-                            <button class="action-btn vote-btn ${rank.isVoted ? 'voted' : ''}" data-rank-id="${rankId}" onclick="voteForRanking('${rankId}', this)">
+                            <button class="action-btn vote-btn ${rank.isVoted ? 'voted' : ''}" data-rank-id="${rankId}">
                                 <span class="material-symbols-outlined">favorite</span>
                             </button>
-                            <button class="action-btn collect-btn ${rank.isCollected ? 'collected' : ''}" data-rank-id="${rankId}" onclick="collectRanking('${rankId}', this)">
+                            <button class="action-btn collect-btn ${rank.isCollected ? 'collected' : ''}" data-rank-id="${rankId}" >
                                 <span class="material-symbols-outlined">bookmark</span>
                             </button>
                         </div>
@@ -2601,104 +2727,6 @@
             renderRankList(rankList);
         };
         rankContainer.appendChild(nextBtn);
-    }
-
-    // ===================== AI智能推荐助手功能 =====================
-    function generateAIResponse(userMessage) {
-        const msg = userMessage.toLowerCase();
-
-        if (msg.includes('推荐') || msg.includes('recommend')) {
-            const recommendations = [
-                '根据你的喜好，我为你推荐以下几首热门歌曲：\n🎵 《孤勇者》- 陈奕迅\n🎵 《稻香》- 周杰伦\n🎵 《起风了》- 买辣椒也用券\n这些歌曲都在当前热榜中表现优异，值得一试！',
-                '为你精选了几首不同风格的推荐：\n🎸 摇滚：《光辉岁月》Beyond\n🎹 流行：《晴天》周杰伦\n🎤 民谣：《成都》赵雷\n希望你喜欢！',
-                '来看看这些宝藏歌曲吧：\n✨ 《漠河舞厅》- 柳爽\n✨ 《错位时空》- 艾辰\n✨ 《白月光与朱砂痣》- 大籽\n每首都有独特的魅力哦~'
-            ];
-            return recommendations[Math.floor(Math.random() * recommendations.length)];
-        }
-
-        if (msg.includes('榜单') || msg.includes('排行') || msg.includes('热门')) {
-            return '📊 当前热门榜单汇聚了最受欢迎的音乐作品！前三名分别是：\n1️⃣ 榜首榜单 - 热度爆表\n2️⃣ 榜眼榜单 - 实力强劲\n3️⃣ 探花榜单 - 品质上乘\n悬停卡片查看每份榜单的详细AI锐评分析哦！';
-        }
-
-        if (msg.includes('你好') || msg.includes('hi') || msg.includes('hello') || msg.includes('嗨')) {
-            const greetings = [
-                '你好呀！😊 我是AI音乐助手，很高兴见到你！有什么音乐相关的问题都可以问我哦~',
-                '嗨！👋 欢迎来到音乐世界！想聊点什么？我可以帮你推荐歌曲、分析榜单或者聊聊音乐知识~',
-                '你好！🎵 今天想听什么类型的音乐？让我来帮你挑选吧！'
-            ];
-            return greetings[Math.floor(Math.random() * greetings.length)];
-        }
-
-        if (msg.includes('谢谢') || msg.includes('感谢') || msg.includes('thank')) {
-            return '不客气！😊 很高兴能帮到你！如果还有其他问题，随时问我哦~ 🎶';
-        }
-
-        const defaultResponses = [
-            '这是个有趣的问题！🤔 作为音乐AI助手，我建议你可以多探索不同类型的音乐，说不定会发现新的喜好呢！有具体的推荐需求吗？',
-            '我理解你的想法！💡 音乐是主观的艺术，每个人的感受都不同。如果你想了解当前流行趋势或需要个性化推荐，我可以帮助你！',
-            '好的呢！🎧 音乐的世界很大，让我们一起探索吧！你可以问我关于歌曲推荐、榜单分析、音乐风格等任何问题~'
-        ];
-        return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
-    }
-
-    function sendChatMessage() {
-        const chatInput = document.getElementById('chatInput');
-        const chatMessages = document.getElementById('chatMessages');
-
-        if (!chatInput || !chatMessages) return;
-
-        const message = chatInput.value.trim();
-        if (!message) {
-            showErrorTip('请输入消息内容！');
-            return;
-        }
-
-        appendMessage(message, 'user');
-
-        chatInput.value = '';
-
-        setTimeout(() => {
-            const aiResponse = generateAIResponse(message);
-            appendMessage(aiResponse, 'ai');
-        }, 500 + Math.random() * 500);
-    }
-
-    function appendMessage(content, type) {
-        const chatMessages = document.getElementById('chatMessages');
-        if (!chatMessages) return;
-
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message-bubble`;
-
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'bubble-content';
-        contentDiv.textContent = content;
-
-        messageDiv.appendChild(contentDiv);
-        chatMessages.appendChild(messageDiv);
-
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-
-    function initChatEvents() {
-        const chatSendBtn = document.getElementById('chatSendBtn');
-        const chatInput = document.getElementById('chatInput');
-
-        if (chatSendBtn) {
-            chatSendBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                sendChatMessage();
-            });
-        }
-
-        if (chatInput) {
-            chatInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    sendChatMessage();
-                }
-            });
-        }
     }
 
     // ===================== 抽屉功能（设计稿样式）=====================
@@ -2907,6 +2935,6 @@
 <div class="drawer-overlay" id="commentDrawerOverlay" style="display:none;" onclick="closeCommentDrawer()"></div>
 <div id="commentDrawerPanel" style="display:none;" data-current-rank-id="">
 </div>
-
+    <script src="/js/battle-report.js"></script>
 </body>
 </html>

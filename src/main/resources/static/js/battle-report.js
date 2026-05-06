@@ -1,6 +1,3 @@
-/* =========================
-   黑金战报系统（全局版）
-========================= */
 
 (function () {
     if (window.__battleReportLoaded__) return;
@@ -48,12 +45,14 @@
 
     // ---------- 显示战报 ----------
     function showBattleReport(data) {
+
         document.getElementById("battleTitle").innerText =
             data.title || "系统战报";
 
         document.getElementById("battleContent").innerHTML = `
-      <p>当前排名：<span class="report-rank">第 ${data.rank || "--"} 名</span></p>
-      <p>上升了 ${data.up || "--"} 位</p>
+        <p style="text-align:center;font-size:16px;">
+            ${data.detail || "排名上升"}
+        </p>
     `;
 
         container.classList.add("active");
@@ -72,6 +71,38 @@
 
     // 暴露全局方法（方便你手动测试）
     window.showBattleReport = showBattleReport;
+
+    function showBroadcast(data) {
+
+        document.getElementById("battleTitle").innerText =
+            data.title || "🔥 全服公告";
+
+        document.getElementById("battleContent").innerHTML = `
+        <div style="
+            font-size:18px;
+            color:#ffd700;
+            text-align:center;
+            line-height:1.6;
+            font-weight:500;
+        ">
+            ${data.detail || "有新的全服动态"}
+        </div>
+    `;
+
+        container.classList.add("active");
+        overlay.classList.add("active");
+
+        // ⭐ 广播粒子更猛一点
+        burstParticles(
+            window.innerWidth / 2,
+            window.innerHeight / 2,
+            50,
+            "#ffd700"
+        );
+
+        clearTimeout(autoCloseTimer);
+        autoCloseTimer = setTimeout(closeBattleReport, 5000);
+    }
 
     // ---------- 关闭 ----------
     function closeBattleReport() {
@@ -154,18 +185,36 @@
         };
 
         ws.onmessage = function (event) {
-            console.log("收到战报:", event.data);
+
+            console.log("收到消息:", event.data);
+
+            let data;
 
             try {
-                const data = JSON.parse(event.data);
-                showBattleReport(data);
+                data = JSON.parse(event.data);
             } catch (e) {
-                showBattleReport({
-                    title: event.data,
-                    rank: "--",
-                    up: "--"
-                });
+                console.error("不是JSON，忽略");
+                return;
             }
+
+            console.log("解析后:", data);
+
+            // ===============================
+            // 🏆 全服广播（SUCCESS）
+            // ===============================
+            if (data.type === "SUCCESS") {
+                showBroadcast(data);
+                return;
+            }
+
+            // ===============================
+            // 🔥 私人战报（INFO）
+            // ===============================
+            if (data.type === "INFO") {
+                showBattleReport(data);
+                return;
+            }
+
         };
 
         ws.onclose = function () {

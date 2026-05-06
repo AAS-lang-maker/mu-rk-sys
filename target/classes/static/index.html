@@ -435,6 +435,65 @@
                 font-size: 26px;
             }
         }
+
+        <style>
+             /* ===== 骨架屏 ===== */
+         .loading-card {
+             position: relative;
+             overflow: hidden;
+         }
+
+        .loading-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -120%;
+            width: 60%;
+            height: 100%;
+            background: linear-gradient(
+                    90deg,
+                    transparent,
+                    rgba(255,255,255,0.08),
+                    transparent
+            );
+            animation: shimmer 1.3s infinite;
+        }
+
+        @keyframes shimmer {
+            100% {
+                left: 130%;
+            }
+        }
+
+        /* ===== 卡片真实显示 ===== */
+        .card-loaded {
+            animation: fadeUp 0.8s ease forwards;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(25px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ===== hover 光效 ===== */
+        .category-card:hover {
+            box-shadow:
+                    0 20px 40px rgba(0,0,0,.45),
+                    0 0 30px rgba(220,198,110,.12);
+        }
+
+        /* ===== 点击进入状态 ===== */
+        .entering {
+            pointer-events: none;
+            opacity: .8;
+        }
+    </style>
     </style>
 </head>
 
@@ -444,10 +503,10 @@
 <header class="header">
     <div class="header-brand">THE DIGITAL CONDUCTOR</div>
     <div class="header-center">
-        <button class="trending-btn">
+        <a href="popular-tags.html" class="trending-btn">
             <span class="trending-icon">&#128293;</span>
             Trending
-        </button>
+        </a>
     </div>
     <div class="header-right">
         <span class="welcome-text">欢迎用户<span id="userName"></span></span>
@@ -469,7 +528,7 @@
     <div class="cards-container">
 
         <!-- 卡片1：歌手明星 -->
-        <div class="category-card" data-category="1">
+        <div class="category-card loading-card" data-category="1">
             <div class="card-icon-wrapper icon-star">&#9733;</div>
             <h2 class="card-title">歌手明星</h2>
             <p class="card-subtitle">歌手明星</p>
@@ -478,7 +537,7 @@
         </div>
 
         <!-- 卡片2：影视游戏 -->
-        <div class="category-card" data-category="2">
+        <div class="category-card loading-card" data-category="2">
             <div class="card-icon-wrapper icon-folder">&#128193;</div>
             <h2 class="card-title">影视游戏</h2>
             <p class="card-subtitle">Film & Games</p>
@@ -512,28 +571,47 @@
         return paramMatch ? decodeURIComponent(paramMatch[2]) : null;
     }
 
-    let token = getUrlParam("token");
-    let userId = getUrlParam("userId");
+    let token = getUrlParam("token") || localStorage.getItem("token");
+    let userId = getUrlParam("userId") || localStorage.getItem("userId");
     let userName = getUrlParam("userName") || " ";
 
-    window.onload = function() {
+    window.onload = function () {
+
         document.getElementById("userName").innerText = userName;
+
         if (!token || !userId) {
             alert("登录信息失效，请重新登录！");
             window.location.href = "/music/login.html";
+            return;
         }
+
+        // 800ms 后卡片加载完成
+        setTimeout(() => {
+            document.querySelectorAll('.loading-card').forEach(card => {
+                card.classList.remove('loading-card');
+                card.classList.add('card-loaded');
+            });
+        }, 800);
     };
 
     document.querySelectorAll('.category-card').forEach(function(card) {
         card.addEventListener('click', function() {
+
             const categoryId = card.getAttribute('data-category');
-            if (!token || !userId) {
-                alert("登录信息失效，请重新登录！");
-                window.location.href = "/music/login.html";
-                return;
-            }
-            const jumpUrl = '/music/api/category/redirect?categoryId=' + categoryId + '&token=' + encodeURIComponent(token) + '&userId=' + userId;
-            window.location.href = jumpUrl;
+
+            card.classList.add("entering");
+            card.querySelector('.card-cta').innerHTML = "正在进入...";
+
+            setTimeout(() => {
+                const jumpUrl =
+                    '/music/api/category/redirect?categoryId='
+                    + categoryId
+                    + '&token=' + encodeURIComponent(token)
+                    + '&userId=' + userId;
+
+                window.location.href = jumpUrl;
+            }, 500);
+
         });
     });
 

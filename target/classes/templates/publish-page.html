@@ -2,22 +2,24 @@
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script th:src="@{/js/axios.min.js}"></script>
     <script th:src="@{/js/request.js}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script th:src="@{/js/music-ai-agent.js}"></script>
     <title>榜单页</title>
-    <link rel="icon" href="data:'base:;base64,iVBORw0KGgo=">
-    <link rel="stylesheet" th:href="@{/player/music-player.css}">
+    <link rel="icon" href="data:'base:;base64,iVBORw0KGgo=" />
+    <link rel="stylesheet" th:href="@{/player/music-player.css}" />
 
     <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
         href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet">
+        rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-        rel="stylesheet">
+        rel="stylesheet" />
 
     <style>
         /* ==================== Design System - CSS Variables ==================== */
@@ -531,9 +533,10 @@
         .card-footer {
             margin-top: 24px;
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-start;
             align-items: center;
             gap: 16px;
+            padding-right: 64px;
         }
 
         .btn-view-comments {
@@ -692,68 +695,6 @@
             font-family: var(--font-body);
         }
 
-        /* Friends Recommendation Module */
-        .friends-module {
-            padding: 12px;
-        }
-
-        .friend-item {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            /*margin-bottom: 16px;*/
-        }
-
-        .friend-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: 1px solid rgba(255, 228, 164, 0.2);
-            padding: 2px;
-            overflow: hidden;
-        }
-
-        .friend-avatar img {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            object-fit: cover;
-            background: var(--surface-container-highest);
-        }
-
-        .friend-info {
-            flex: 1;
-        }
-
-        .friend-name {
-            font-size: 14px;
-            font-weight: bold;
-            color: var(--on-surface);
-        }
-
-        .friend-desc {
-            font-size: 10px;
-            color: #6b7280;
-            margin-top: 2px;
-        }
-
-        .btn-add-friend {
-            color: var(--primary);
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 4px;
-            transition: color 200ms ease;
-        }
-
-        .btn-add-friend:hover {
-            color: white;
-        }
-
-        .btn-add-friend .material-symbols-outlined {
-            font-size: 20px;
-        }
-
         /* AI Assistant Chat Module */
         .ai-assistant-module {
             height: 380px;
@@ -863,6 +804,36 @@
             line-height: 1.6;
             font-style: italic;
             font-family: var(--font-body);
+        }
+
+        .ai-bubble {
+            max-width: 300px;
+            background-color: #31353c;
+            padding: 16px;
+            border-radius: 32px;
+            border-top-left-radius: 0;
+            border: 1px solid rgba(77, 70, 53, 0.2);
+            text-align: left;
+            position: relative;
+        }
+
+        .ai-bubble p {
+            font-size: 0.875rem;
+            line-height: 1.6;
+            color: #dfe2eb;
+        }
+
+        .ai-bubble.user-bubble {
+            background-color: rgba(240, 198, 77, 0.15);
+            border-color: rgba(240, 198, 77, 0.3);
+            border-radius: 32px;
+            border-top-right-radius: 0;
+            border-top-left-radius: 32px;
+            align-self: flex-end;
+        }
+
+        .ai-bubble.user-bubble p {
+            color: #ffe4a4;
         }
 
         .chat-input-area {
@@ -1044,6 +1015,39 @@
 
         .comment-delete-btn .material-symbols-outlined {
             font-size: 16px;
+        }
+
+        .comment-like-btn {
+            color: var(--on-surface-variant);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            transition: color 200ms ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .comment-like-btn:hover {
+            color: var(--primary);
+        }
+
+        .comment-like-btn.liked {
+            color: var(--primary);
+        }
+
+        .comment-like-btn.liked .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .comment-like-btn .material-symbols-outlined {
+            font-size: 16px;
+        }
+
+        .comment-like-count {
+            font-size: 12px;
+            min-width: 12px;
         }
 
         .comment-text {
@@ -1316,6 +1320,7 @@
             gap: 8px;
             flex: 1;
             min-width: 0;
+            max-width: calc(100% - 120px);
         }
 
         /* Rank Tag Item */
@@ -1343,8 +1348,380 @@
             color: var(--primary);
             background: rgba(49, 53, 60, 0.8);
         }
-    </style>
 
+        .typing-cursor {
+            display: inline-block;
+            margin-left: 2px;
+            animation: blink 1s infinite;
+            color: #999;
+            font-weight: bold;
+        }
+
+        @keyframes blink {
+
+            0%,
+            50% {
+                opacity: 1;
+            }
+
+            51%,
+            100% {
+                opacity: 0;
+            }
+        }
+
+        /* Publisher Follow Button */
+        .btn-follow-publisher {
+            padding: 4px 12px;
+            border-radius: var(--radius-full);
+            border: 1px solid var(--primary);
+            background: transparent;
+            color: var(--primary);
+            font-size: 10px;
+            font-family: var(--font-body);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: all 200ms ease;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .btn-follow-publisher:hover {
+            background: rgba(240, 198, 77, 0.15);
+            transform: scale(1.05);
+        }
+
+        .btn-follow-publisher:active {
+            transform: scale(0.95);
+        }
+
+        .btn-follow-publisher.followed {
+            background: #3b362b;
+            color: #241a00;
+            font-weight: bold;
+        }
+
+        .btn-follow-publisher.followed:hover {
+            background: #5e563e;
+            border-color: var(--primary-container);
+        }
+
+        /* Panel Module - 共同收藏榜单模块 */
+        .panel-module {
+            background-color: #1c2026;
+            border-radius: 15px;
+            border: 1px solid rgba(77, 70, 53, 0.15);
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .panel-module.glass {
+            background: rgba(49, 53, 60, 0.6);
+            backdrop-filter: blur(20px);
+        }
+
+        .module-header {
+            padding: 5px;
+            border-bottom: 1px solid rgba(77, 70, 53, 0.1);
+            background: rgba(38, 42, 49, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .module-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .module-icon-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: rgba(255, 228, 164, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffe4a4;
+            border: 1px solid rgba(255, 228, 164, 0.2);
+        }
+
+        .module-icon-circle .material-symbols-outlined {
+            font-size: 20px !important;
+        }
+
+        .module-title {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: #dfe2eb;
+        }
+
+        .module-body {
+            padding: 0 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        /* Rank Item - 榜单列表项 */
+        .rank-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 8px;
+        }
+
+        .rank-item:hover {
+            background-color: rgba(255, 228, 164, 0.08);
+        }
+
+        .rank-item-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .rank-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(240, 198, 77, 0.2) 0%, rgba(255, 228, 164, 0.1) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffe4a4;
+            flex-shrink: 0;
+        }
+
+        .rank-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .rank-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #dfe2eb;
+        }
+
+        .rank-item:hover .rank-name {
+            color: #ffe4a4;
+        }
+
+        .rank-count {
+            font-size: 11px;
+            color: #737373;
+            font-family: 'Manrope', sans-serif;
+        }
+
+        /* Mutual Rank Drawer - 共同收藏榜单详情抽屉 */
+        .drawer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .drawer-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .mutual-rank-drawer {
+            position: fixed;
+            top: 40%;
+            right: 0;
+            transform: translateX(100%) translateY(-50%);
+            height: 80vh;
+            width: 100%;
+            max-width: 500px;
+            background-color: #0a0e14;
+            border-left: 1px solid rgba(143, 118, 26, 0.15);
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+            border-radius: 24px 0 0 24px;
+            overflow: hidden;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .mutual-rank-drawer.active {
+            transform: translateX(0) translateY(-50%);
+        }
+
+        .mutual-rank-drawer .drawer-header {
+            padding: 32px;
+            border-bottom: 1px solid rgba(77, 70, 53, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(28, 32, 38, 0.8);
+        }
+
+        .drawer-title-section {
+            flex: 1;
+        }
+
+        .mutual-rank-drawer .drawer-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #dfe2eb;
+            margin-bottom: 8px;
+        }
+
+        .drawer-meta {
+            font-size: 13px;
+            color: #737373;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .meta-separator {
+            color: #4d4635;
+        }
+
+        .close-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(77, 70, 53, 0.2);
+            color: #9ca3af;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 228, 164, 0.1);
+            color: #ffe4a4;
+            border-color: rgba(255, 228, 164, 0.3);
+        }
+
+        /* Song Row - 歌曲列表行 */
+        .drawer-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 32px;
+        }
+
+        .song-row {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-radius: 8px;
+            transition: background 0.2s ease;
+            gap: 16px;
+        }
+
+        .song-row:hover {
+            background: rgba(49, 53, 60, 0.5);
+        }
+
+        .song-index {
+            font-size: 14px;
+            font-weight: bold;
+            color: #6b7280;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .song-details {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .song-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #dfe2eb;
+        }
+
+        .song-artist {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .song-duration {
+            font-size: 13px;
+            color: #737373;
+            min-width: 40px;
+            text-align: right;
+        }
+
+        .play-song-btn-drawer {
+            opacity: 0;
+            color: var(--on-surface-variant);
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 4px;
+            transition: all 200ms ease;
+        }
+
+        .song-row:hover .play-song-btn-drawer {
+            opacity: 1;
+        }
+
+        .play-song-btn-drawer:hover {
+            color: var(--primary);
+        }
+
+        .play-song-btn-drawer .material-symbols-outlined {
+            font-size: 20px;
+        }
+
+        /* Drawer Footer */
+        .drawer-footer {
+            padding: 20px 32px;
+            border-top: 1px solid rgba(77, 70, 53, 0.1);
+            background: rgba(28, 32, 38, 0.5);
+        }
+
+        .footer-action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #f0c64d 0%, #ffe4a4 100%);
+            color: #241a00;
+            font-size: 14px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .footer-action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(240, 198, 77, 0.3);
+        }
+    </style>
+    <link rel="stylesheet" th:href="@{/css/battle-report.css}">
 </head>
 
 <body class="sidebar-closed" data-mode="connect">
@@ -1408,7 +1785,7 @@
 
                 <!-- Thymeleaf Loop for Playlists -->
                 <div th:each="ranking, stat : ${publishRanks?.list}" class="playlist-card"
-                    data-rank-id="${ranking.rankId}">
+                    th:data-rank-id="${ranking.rankId}">
 
                     <!-- Main Content: Cover + Info -->
                     <div class="card-main">
@@ -1429,8 +1806,13 @@
                         <!-- Info Section -->
                         <div class="card-info">
                             <h3 class="card-title" th:text="${ranking.rankName}">午夜赛博霓虹</h3>
-                            <div class="card-meta">
+                            <div class="card-meta" style="display: flex; align-items: center; gap: 12px;">
                                 发布者: <span th:text="${ranking.username}">零度脉冲</span>
+                                <button class="btn-follow-publisher" th:data-username="${ranking.username}"
+                                    th:data-user-id="${ranking.userId}" th:data-followed="${ranking.Followed}"
+                                    th:classappend="${ranking.Followed ? 'followed' : ''}">
+                                    <span th:text="${ranking.Followed ? '已关注' : '关注'}">关注</span>
+                                </button>
                             </div>
                             <div class="card-meta">
                                 更新时间：<span th:text="${ranking.publishTime}">2024-05-20 04:32</span>
@@ -1467,23 +1849,17 @@
                         </th:block>
                     </div>
 
-                    <!-- Footer: Tags + View Comments Button -->
+                    <!-- Footer: View Comments Button + Tags -->
                     <div class="card-footer">
-                        <!-- Rank Tags Container -->
-                        <div class="rank-tags-container"
-                            th:if="${ranking.rankTagsList != null and ranking.rankTagsList.size() > 0}">
-                            <th:block th:each="tag, tagStat : ${ranking.rankTagsList}" th:if="${tagStat.index < 3}">
-                                <span class="rank-tag-item" th:text="${tag.tagId}" th:title="'标签ID: ' + ${tag.tagId}"
-                                    th:data-tag-index="${tagStat.index}" th:data-tag-id="${tag.tagId}">标签</span>
-                            </th:block>
-                        </div>
-
                         <!-- View Comments Button -->
                         <button class="btn-view-comments comment-toggle" th:data-rank-id="${ranking.rankId}"
                             onclick="document.body.classList.replace('sidebar-closed', 'sidebar-open')">
                             <span class="material-symbols-outlined">chat_bubble</span>
                             查看评论
                         </button>
+
+                        <!-- Rank Tags Container (动态加载) -->
+                        <div class="rank-tags-container" style="display: none;"></div>
                     </div>
 
                     <!-- AI Review FAB Button -->
@@ -1531,20 +1907,19 @@
                 </div>
             </div>
 
-            <!-- Friends Recommendations Module -->
-            <div class="glass-card friends-module">
-                <h3 class="module-title" style="margin-bottom: 7px;">推荐好友</h3>
-                <div class="friend-item">
-
-                    <div class="friend-info">
-                        <div class="friend-name">Echo.Wav</div>
-                        <div class="friend-desc">共同爱好: Techno</div>
-                    </div>
-                    <button class="btn-add-friend">
-                        <span class="material-symbols-outlined">person_add</span>
-                    </button>
-                </div>
-            </div>
+            <!-- Common Collected Ranks Module -->
+            <!--            <div class="panel-module glass">-->
+            <!--                <div class="module-header">-->
+            <!--                    <div class="module-header-left">-->
+            <!--                        <div class="module-icon-circle">-->
+            <!--                            <span class="material-symbols-outlined">library_music</span>-->
+            <!--                        </div>-->
+            <!--                        <h3 class="module-title">共同收藏榜单</h3>-->
+            <!--                    </div>-->
+            <!--                </div>-->
+            <!--                <div class="module-body" id="publish-mutual-ranks-list">-->
+            <!--                </div>-->
+            <!--            </div>-->
 
             <!-- AI Assistant Chat Module -->
             <div class="glass-card ai-assistant-module">
@@ -1553,7 +1928,7 @@
                     <div class="ai-avatar-wrapper">
                         <div class="ai-avatar">
                             <img alt="AI Assistant"
-                                src="https://lh3.googleusercontent.com/aida/ADBb0ujtGbWvQ-vX-Pc1ElqsyISOCtbUDGLapHiTkNl07nTNG-p8FUclNlnwVeZF8_5TrKesXqHILsWz-yeY0tRJT37ottSK6GGyFDDZD02-zS8oTy9qrHTeM7hWbnLRHGNTZO1IGX6a_1JO4cyULFIuxBKkhH2zZrS3B92E3NU0aoWkdCYmO_mO-wpY8iNEmsrn3kQ9rkqw9ZeWxhWpEbi65RSUJwCqxiXfkWAt1BMxMIYMWxZJfm8ENHvNK0ghtEKj2Dwc4CNG6BKx0w" />
+                                src="https://th.bing.com/th/id/OIP.HeCfy1wH-100VEDW7dOBTAAAAA?w=137&h=183&c=7&r=0&o=5&dpr=2&pid=1.7" />
                         </div>
                         <div class="online-indicator"></div>
                     </div>
@@ -1580,7 +1955,7 @@
                 <!-- Input Area -->
                 <div class="chat-input-area">
                     <div class="chat-input-wrapper">
-                        <input type="text" class="chat-input" placeholder="输入你的喜好或需求...">
+                        <input type="text" class="chat-input" placeholder="输入你的喜好或需求..." />
                         <button class="btn-send-message">
                             <span class="material-symbols-outlined">send</span>
                         </button>
@@ -1618,6 +1993,40 @@
     </div>
 
 
+
+    <!-- Mutual Rank Drawer Overlay -->
+    <div id="publish-mutual-rank-overlay" class="drawer-overlay"></div>
+
+    <!-- Mutual Rank Drawer -->
+    <div id="publish-mutual-rank-drawer" class="mutual-rank-drawer">
+        <!-- Drawer Header -->
+        <div class="drawer-header">
+            <div class="drawer-title-section">
+                <h3 class="drawer-title" id="publish-mutual-rank-title">榜单名称</h3>
+                <div class="drawer-meta">
+                    <span id="publish-mutual-rank-song-count">0 首歌曲</span>
+                    <span class="meta-separator">·</span>
+                    <span id="publish-mutual-rank-duration">时长：00:00</span>
+                </div>
+            </div>
+            <button class="close-btn" onclick="closePublishMutualRankDrawer()">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <!-- Drawer Content (Song List) -->
+        <div class="drawer-content" id="publish-mutual-rank-songs">
+            <!-- Songs will be rendered here dynamically -->
+        </div>
+
+        <!-- Drawer Footer -->
+        <div class="drawer-footer">
+            <button class="footer-action-btn play-all-btn">
+                <span class="material-symbols-outlined">play_arrow</span>
+                播放全部
+            </button>
+        </div>
+    </div>
 
     <!-- Music Player Container (Required for existing JS) -->
     <div id="music-player-container"></div>
@@ -1663,6 +2072,12 @@
         }
         function getTargetLovePath(category) {
             return category === 1 ? "/music/api/rank/love" : "/music/api/workrank/love";
+        }
+        function getTargetDeleteVotePath(category) {
+            return category === 1 ? "/music/api/rank/deleteVote" : "/music/api/workrank/deleteVote";
+        }
+        function getTargetDeleteLovePath(category) {
+            return category === 1 ? "/music/api/rank/deleteLove" : "/music/api/workrank/deleteLove";
         }
 
         function showErrorTip(msg) {
@@ -1773,7 +2188,10 @@
             btn.style.pointerEvents = 'none';
             btn.style.opacity = '0.7';
 
-            axios.post(getTargetVotePath(category), null, {
+            const isVoted = btn.classList.contains('voted');
+            const url = isVoted ? getTargetDeleteVotePath(category) : getTargetVotePath(category);
+
+            axios.post(url, null, {
                 params: {
                     token: token,
                     rankId: rankId,
@@ -1814,7 +2232,10 @@
             btn.style.pointerEvents = 'none';
             btn.style.opacity = '0.7';
 
-            axios.post(getTargetLovePath(category), null, {
+            const isCollected = btn.classList.contains('collected');
+            const url = isCollected ? getTargetDeleteLovePath(category) : getTargetLovePath(category);
+
+            axios.post(url, null, {
                 params: {
                     token: token,
                     rankId: rankId,
@@ -1843,6 +2264,92 @@
                     btn.style.pointerEvents = 'auto';
                     btn.style.opacity = '1';
                 });
+        }
+
+        function syncFollowButtonsForUser(targetUserId, isFollowed) {
+            const allFollowButtons = document.querySelectorAll('.btn-follow-publisher');
+
+            allFollowButtons.forEach(btn => {
+                if (btn.dataset.userId === String(targetUserId)) {
+                    if (isFollowed) {
+                        btn.classList.add('followed');
+                        const spanEl = btn.querySelector('span');
+                        if (spanEl) {
+                            spanEl.textContent = '已关注';
+                        } else {
+                            btn.textContent = '已关注';
+                        }
+                    } else {
+                        btn.classList.remove('followed');
+                        const spanEl = btn.querySelector('span');
+                        if (spanEl) {
+                            spanEl.textContent = '关注';
+                        } else {
+                            btn.textContent = '关注';
+                        }
+                    }
+                }
+            });
+
+            console.log(`[同步完成] 用户 ${targetUserId} 的 ${allFollowButtons.length} 个按钮已更新为: ${isFollowed ? '已关注' : '关注'}`);
+        }
+
+        function followPublisher(userId, username, btn) {
+            if (!token) {
+                showErrorTip("请先登录后再关注！");
+                return;
+            }
+
+            btn.style.pointerEvents = 'none';
+            btn.style.opacity = '0.7';
+
+            axios.post('/music/api/friend/follow', null, {
+                params: {
+                    token: token,
+                    UserId: userId
+                }
+            })
+                .then(response => {
+                    if (response.data.code === 200) {
+                        const message = response.data.data || '操作成功';
+                        if (message === '关注成功') {
+                            btn.classList.add('followed');
+                            const spanEl = btn.querySelector('span');
+                            if (spanEl) {
+                                spanEl.textContent = '已关注';
+                            } else {
+                                btn.innerHTML = '已关注';
+                            }
+                            syncFollowButtonsForUser(userId, true);
+                            showSuccessTip(message);
+                        } else if (message === '已取消关注') {
+                            btn.classList.remove('followed');
+                            const spanEl = btn.querySelector('span');
+                            if (spanEl) {
+                                spanEl.textContent = '关注';
+                            } else {
+                                btn.innerHTML = '关注';
+                            }
+                            syncFollowButtonsForUser(userId, false);
+                            showSuccessTip(message);
+                        } else {
+                            showSuccessTip(message);
+                        }
+                    } else {
+                        showErrorTip("操作失败：" + (response.data.msg || "后端处理失败"));
+                    }
+                })
+                .catch(error => {
+                    showErrorTip("操作失败：" + (error.response?.data?.msg || error.message));
+                })
+                .finally(() => {
+                    btn.style.pointerEvents = 'auto';
+                    btn.style.opacity = '1';
+                });
+        }
+
+        function unfollowPublisher(userId, username, btn) {
+            followPublisher(userId, username, btn);
         }
 
         function openCommentDrawer(rankId) {
@@ -1935,6 +2442,10 @@
 <span class="comment-author">${comment.username || '匿名用户'}</span>
 <span class="comment-time">${formatTime(comment.comTime)}</span>
 ${userId && String(comment.userId) === String(userId) ? '<button class="comment-delete-btn" data-com-id="' + comment.comId + '" data-rank-id="' + comment.rankId + '"><span class="material-symbols-outlined">delete</span></button>' : ''}
+<button class="comment-like-btn ${comment.liked ? 'liked' : ''}" data-com-id="${comment.comId}">
+<span class="material-symbols-outlined">thumb_up</span>
+<span class="comment-like-count">${comment.likeCount || 0}</span>
+</button>
 </div>
 <p class="comment-text">${comment.comContent || ''}</p>
 </div>
@@ -2203,6 +2714,21 @@ AI正在分析「${rankName || '未知榜单'}」，请稍候...
                     return;
                 }
 
+                // Follow publisher button
+                const followBtn = target.closest('.btn-follow-publisher');
+                if (followBtn) {
+                    const username = followBtn.dataset.username;
+                    const userId = followBtn.dataset.userId;
+                    if (username && userId) {
+                        if (followBtn.classList.contains('followed')) {
+                            unfollowPublisher(userId, username, followBtn);
+                        } else {
+                            followPublisher(userId, username, followBtn);
+                        }
+                    }
+                    return;
+                }
+
                 // AI Review button
                 const aiReviewBtn = target.closest('.ai-review-btn');
                 if (aiReviewBtn) {
@@ -2232,7 +2758,7 @@ AI正在分析「${rankName || '未知榜单'}」，请稍候...
                         rankId: parseInt(rankId),
                         rankName: rankName,
                         rankSongList: rankSongList,
-                        rankTagsList: []
+                        userTagList: []
                     };
 
                     requestAiReview(myRankWithSongs, aiReviewBtn);
@@ -2335,13 +2861,66 @@ AI正在分析「${rankName || '未知榜单'}」，请稍候...
             });
         }
 
+        function loadRankTags(rankId, containerElement) {
+            if (!rankId || !containerElement) return;
+
+            axios.get(`/music/api/ranks/${rankId}/tags`, {
+                params: {
+                    token: token,
+                    userId: userId
+                }
+            })
+                .then(response => {
+                    console.log('加载榜单标签成功:', rankId, response.data);
+
+                    if (response.data && (response.data.code === 200 || response.data.success)) {
+                        const tags = response.data.data || [];
+                        containerElement.innerHTML = '';
+
+                        if (tags && tags.length > 0) {
+                            const displayTags = tags.slice(0, 3);
+                            displayTags.forEach((tag, index) => {
+                                const tagSpan = document.createElement('span');
+                                tagSpan.className = 'rank-tag-item';
+                                tagSpan.textContent = tag.tagName || tag.tagId || '标签';
+                                tagSpan.title = tag.tagName || tag.tagId || '标签';
+                                tagSpan.dataset.tagIndex = index;
+                                tagSpan.dataset.tagId = tag.tagId;
+                                containerElement.appendChild(tagSpan);
+                            });
+                            containerElement.style.display = 'flex';
+                        } else {
+                            containerElement.style.display = 'none';
+                        }
+                    } else {
+                        containerElement.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('加载榜单标签失败:', rankId, error);
+                    containerElement.style.display = 'none';
+                });
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
             console.log("DOM加载完成，开始初始化页面");
 
             // 1. 初始化播放器
             initMusicPlayer();
 
-            // 2. 绑定所有事件（核心修复）
+            // 2. 初始化 AI 助手
+            if (typeof MusicAIAgent !== 'undefined') {
+                const publishAgent = new MusicAIAgent({
+                    input: '.chat-input',
+                    sendButton: '.btn-send-message',
+                    messageContainer: '.chat-messages'
+                });
+                console.log('MusicAIAgent 初始化成功');
+            } else {
+                console.warn('MusicAIAgent 未定义，跳过 AI 助手初始化');
+            }
+
+            // 3. 绑定所有事件（核心修复）
             bindAllEvents();
 
             // 3. 添加 ESC 键关闭抽屉功能
@@ -2349,6 +2928,11 @@ AI正在分析「${rankName || '未知榜单'}」，请稍候...
                 if (e.key === 'Escape' || e.keyCode === 27) {
                     if (document.body.classList.contains('sidebar-open')) {
                         closeCommentDrawer();
+                    }
+                    // 关闭共同收藏榜单详情抽屉
+                    const mutualRankDrawer = document.getElementById('publish-mutual-rank-drawer');
+                    if (mutualRankDrawer && mutualRankDrawer.classList.contains('active')) {
+                        closePublishMutualRankDrawer();
                     }
                 }
             });
@@ -2361,10 +2945,359 @@ AI正在分析「${rankName || '未知榜单'}」，请稍候...
             }
 
             console.log("页面加载成功");
+
+            // ==================== 共同收藏榜单模块 (Publish Page) ====================
+
+            /**
+             * 当前查看的榜单ID（用于共同收藏查询）
+             * 采用方案A+B结合：页面加载时自动获取第一个榜单的rankId作为默认值，
+             * 同时支持在用户点击榜单时更新此变量（可在榜单点击事件中调用 updateCurrentViewingRankId）
+             */
+            let currentViewingRankId = null;
+
+            /**
+             * 获取页面上第一个榜单卡片的 rankId
+             * @returns {number|null} 第一个榜单的 rankId，如果不存在则返回 null
+             */
+            function getFirstRankIdFromPage() {
+                const firstRankCard = document.querySelector('.playlist-card[data-rank-id]');
+                return firstRankCard ? parseInt(firstRankCard.dataset.rankId) : null;
+            }
+
+            /**
+             * 更新当前查看的榜单ID（可在用户点击榜单时调用）
+             * @param {number} rankId - 榜单ID
+             */
+            function updateCurrentViewingRankId(rankId) {
+                if (rankId) {
+                    currentViewingRankId = rankId;
+                    console.log('更新当前查看的榜单ID:', currentViewingRankId);
+                }
+            }
+
+            /**
+             * 加载共同收藏榜单数据（调用后端 API）
+             * API 接口: GET /api/friend/common-love
+             * 返回数据: CommonLoveVO { commonLoveCount, usernames }
+             */
+            function loadPublishMutualRanks() {
+                // 获取当前查看的榜单ID，如果没有则尝试从页面获取第一个榜单
+                if (!currentViewingRankId) {
+                    currentViewingRankId = getFirstRankIdFromPage();
+                }
+
+                if (!currentViewingRankId) {
+                    console.warn('未找到可用的榜单ID，无法加载共同收藏数据');
+                    renderPublishMutualRanksList(null);
+                    return;
+                }
+
+                console.log('正在加载共同收藏榜单数据...', {
+                    token: token ? '***已隐藏***' : null,
+                    userId: userId,
+                    rankId: currentViewingRankId
+                });
+
+                axios.get('/music/api/friend/common-love', {
+                    params: {
+                        token: token,
+                        userId: userId,
+                        rankId: currentViewingRankId,
+                        limit: 10
+                    }
+                })
+                    .then(function (response) {
+                        console.log('共同收藏数据加载成功:', response.data);
+
+                        if (response.data && response.data.code === 200 && response.data.data) {
+                            renderPublishMutualRanksList(response.data.data);
+                        } else {
+                            console.warn('API 返回异常:', response.data);
+                            renderPublishMutualRanksList(null);
+                        }
+                    })
+                    .catch(function (error) {
+                        console.error('加载共同收藏榜单数据失败:', error);
+
+                        let errorMsg = '加载共同收藏数据失败';
+                        if (error.response) {
+                            console.error('错误响应:', error.response.status, error.response.data);
+                            if (error.response.data && error.response.data.message) {
+                                errorMsg = error.response.data.message;
+                            }
+                        } else if (error.request) {
+                            console.error('无响应，可能是网络问题');
+                            errorMsg = '网络连接失败，请检查网络后重试';
+                        }
+
+                        showErrorTip(errorMsg);
+                        renderPublishMutualRanksList(null);
+                    });
+            }
+
+            /**
+             * 渲染共同收藏榜单列表
+             * @param {Object} data - CommonLoveVO 对象，包含 commonLoveCount 和 usernames
+             * 数据结构: { commonLoveCount: number, usernames: string[] }
+             */
+            function renderPublishMutualRanksList(data) {
+                const listContainer = document.getElementById('publish-mutual-ranks-list');
+
+                if (!listContainer) {
+                    console.error('未找到 publish-mutual-ranks-list 容器');
+                    return;
+                }
+
+                listContainer.innerHTML = '';
+
+                // 空数据或无共同收藏的情况
+                if (!data || !data.commonLoveCount || data.commonLoveCount === 0) {
+                    listContainer.innerHTML = `
+                        <div style="padding: 24px; text-align: center; color: #737373; font-size: 13px;">
+                            <span class="material-symbols-outlined" style="font-size: 32px; display: block; margin-bottom: 8px; opacity: 0.5;">library_music</span>
+                            暂无好友收藏此榜单
+                        </div>
+                    `;
+                    return;
+                }
+
+                // 渲染共同收藏信息卡片
+                const mutualInfoCard = document.createElement('div');
+                mutualInfoCard.className = 'rank-item';
+                mutualInfoCard.style.cursor = 'default';
+
+                // 构建用户名列表HTML
+                let usernamesHtml = '';
+                if (data.usernames && data.usernames.length > 0) {
+                    const displayNames = data.usernames.slice(0, 5); // 最多显示5个用户名
+                    usernamesHtml = displayNames.map(name => `<span class="username-tag">${name}</span>`).join('');
+                    if (data.usernames.length > 5) {
+                        usernamesHtml += `<span class="username-tag">等${data.usernames.length}人</span>`;
+                    }
+                } else {
+                    usernamesHtml = `<span style="color: #a3a3a3;">共 ${data.commonLoveCount} 位好友收藏</span>`;
+                }
+
+                mutualInfoCard.innerHTML = `
+                    <div class="rank-item-left">
+                        <div class="rank-icon">
+                            <span class="material-symbols-outlined">favorite</span>
+                        </div>
+                        <div class="rank-info">
+                            <span class="rank-name">共同收藏 · 当前榜单</span>
+                            <span class="rank-count">${data.commonLoveCount} 位互关好友也收藏了此榜单</span>
+                        </div>
+                    </div>
+                `;
+
+                listContainer.appendChild(mutualInfoCard);
+
+                // 如果有用户名列表，添加好友列表展示区域
+                if (data.usernames && data.usernames.length > 0) {
+                    const userListSection = document.createElement('div');
+                    userListSection.style.cssText = 'margin-top: 12px; padding: 12px; background: rgba(255,255,255,0.5); border-radius: 8px;';
+                    userListSection.innerHTML = `
+                        <div style="font-size: 12px; color: #a3a3a3; margin-bottom: 8px;">收藏好友：</div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                            ${usernamesHtml}
+                        </div>
+                    `;
+                    listContainer.appendChild(userListSection);
+                }
+
+                console.log(`渲染共同收藏信息完成：${data.commonLoveCount} 位好友收藏`);
+            }
+
+            /**
+             * 打开共同收藏榜单详情抽屉
+             * @param {number} rankId - 榜单 ID
+             * @param {string} title - 榜单标题
+             * @param {Object} rankData - 榜单完整数据（可选）
+             */
+            function openPublishMutualRankDrawer(rankId, title, rankData) {
+                const drawer = document.getElementById('publish-mutual-rank-drawer');
+                const overlay = document.getElementById('publish-mutual-rank-overlay');
+                const titleEl = document.getElementById('publish-mutual-rank-title');
+                const songCountEl = document.getElementById('publish-mutual-rank-song-count');
+                const durationEl = document.getElementById('publish-mutual-rank-duration');
+
+                if (!drawer || !overlay) {
+                    console.error('未找到抽屉组件');
+                    return;
+                }
+
+                // 使用传入的榜单数据（rankData），如果未提供则使用基本信息
+                if (rankData) {
+                    // 设置抽屉内容
+                    if (titleEl) titleEl.textContent = title || rankData.rankName || '榜单详情';
+                    if (songCountEl) songCountEl.textContent = `${rankData.songCount || 0} 首歌曲`;
+                    if (durationEl) durationEl.textContent = `时长：${rankData.duration || '00:00'}`;
+
+                    // 渲染歌曲列表
+                    renderPublishMutualRankSongs(rankData.songList || []);
+                } else {
+                    // 如果没有详细数据，显示提示信息
+                    if (titleEl) titleEl.textContent = title || `榜单 #${rankId}`;
+                    if (songCountEl) songCountEl.textContent = '暂无详细信息';
+                    if (durationEl) durationEl.textContent = '';
+
+                    // 显示空状态
+                    renderPublishMutualRankSongs([]);
+                    console.log('打开榜单抽屉（无详细数据）:', rankId);
+                }
+
+                // 显示抽屉和遮罩层
+                overlay.classList.add('active');
+                drawer.classList.add('active');
+                document.body.style.overflow = 'hidden';
+
+                console.log(`打开榜单详情抽屉: ${title || rankData?.rankName || rankId}`);
+            }
+
+            /**
+             * 关闭共同收藏榜单详情抽屉
+             */
+            function closePublishMutualRankDrawer() {
+                const drawer = document.getElementById('publish-mutual-rank-drawer');
+                const overlay = document.getElementById('publish-mutual-rank-overlay');
+
+                if (!drawer || !overlay) return;
+
+                overlay.classList.remove('active');
+                drawer.classList.remove('active');
+                document.body.style.overflow = '';
+
+                console.log('关闭榜单详情抽屉');
+            }
+
+            /**
+             * 渲染抽屉中的歌曲列表
+             * @param {Array} songList - 歌曲数组
+             */
+            function renderPublishMutualRankSongs(songList) {
+                const container = document.getElementById('publish-mutual-rank-songs');
+
+                if (!container) {
+                    console.error('未找到歌曲列表容器');
+                    return;
+                }
+
+                container.innerHTML = '';
+
+                if (!songList || songList.length === 0) {
+                    container.innerHTML = `
+                        <div style="padding: 40px; text-align: center; color: #737373;">
+                            <span class="material-symbols-outlined" style="font-size: 48px; display: block; margin-bottom: 12px; opacity: 0.3;">music_note</span>
+                            暂无歌曲数据
+                        </div>
+                    `;
+                    return;
+                }
+
+                // 渲染每首歌曲
+                songList.forEach((song, index) => {
+                    const songRow = document.createElement('div');
+                    songRow.className = 'song-row';
+
+                    const paddedIndex = String(index + 1).padStart(2, '0');
+
+                    songRow.innerHTML = `
+                        <span class="song-index">${paddedIndex}</span>
+                        <div class="song-details">
+                            <span class="song-title">${song.songName || '未知歌曲'}</span>
+                            <span class="song-artist">${song.singerName || '未知歌手'}</span>
+                        </div>
+                        <span class="song-duration">${song.duration || '0:00'}</span>
+                        <button class="play-song-btn-drawer" onclick="event.stopPropagation(); playSongFromDrawer(${JSON.stringify(song).replace(/"/g, '&quot;')})">
+                            <span class="material-symbols-outlined">play_arrow</span>
+                        </button>
+                    `;
+
+                    container.appendChild(songRow);
+                });
+            }
+
+            /**
+             * 从抽屉中播放歌曲（辅助函数）
+             */
+            function playSongFromDrawer(song) {
+                if (!song) {
+                    showErrorTip("歌曲信息为空！");
+                    return;
+                }
+
+                playSong({
+                    songId: song.songId || song.index,
+                    songName: song.songName,
+                    singerName: song.singerName
+                });
+            }
+
+            // ==================== 初始化调用 ====================
+            // 在页面加载完成后加载共同收藏榜单数据
+            loadPublishMutualRanks();
+
+            // ==================== 初始化关注按钮状态 ====================
+            function initFollowButtonStates() {
+                console.log('[初始化] 开始设置关注按钮初始状态...');
+
+                const allFollowButtons = document.querySelectorAll('.btn-follow-publisher');
+                let initializedCount = 0;
+
+                allFollowButtons.forEach((btn, index) => {
+                    const followedAttr = btn.dataset.followed;
+                    const userId = btn.dataset.userId;
+                    const username = btn.dataset.username;
+
+                    if (followedAttr === 'true') {
+                        btn.classList.add('followed');
+                        const spanEl = btn.querySelector('span');
+                        if (spanEl) {
+                            spanEl.textContent = '已关注';
+                        } else {
+                            btn.textContent = '已关注';
+                        }
+                        initializedCount++;
+
+                        console.log(`[初始化] 按钮 #${index}: 用户 ${username}(ID:${userId}) → 已关注`);
+                    } else {
+                        console.log(`[初始化] 按钮 #${index}: 用户 ${username}(ID:${userId}) → 关注`);
+                    }
+                });
+
+                console.log(`[初始化完成] 共处理 ${allFollowButtons.length} 个按钮，其中 ${initializedCount} 个为已关注状态`);
+            }
+
+            // ==================== 初始化榜单标签 ====================
+            function initRankTagsForAllCards() {
+                console.log('[初始化] 开始加载所有榜单卡片的标签...');
+
+                const allCards = document.querySelectorAll('.playlist-card[data-rank-id]');
+                let loadedCount = 0;
+
+                allCards.forEach((card, index) => {
+                    const rankId = card.dataset.rankId;
+                    const tagsContainer = card.querySelector('.rank-tags-container');
+
+                    if (rankId && tagsContainer) {
+                        loadRankTags(rankId, tagsContainer);
+                        loadedCount++;
+                        console.log(`[初始化] 卡片 #${index}: 正在加载榜单 ${rankId} 的标签`);
+                    }
+                });
+
+                console.log(`[初始化完成] 共发起 ${loadedCount} 个标签加载请求`);
+            }
+
+            // 初始化所有榜单的标签
+            initRankTagsForAllCards();
+
+            // 初始化关注按钮状态
+            initFollowButtonStates();
         });
 
     </script>
-
+    <script th:src="@{/js/battle-report.js}"></script>
 </body>
 
 </html>

@@ -134,7 +134,7 @@ public class SecurityConfig {
 
                         .requestMatchers("/ws-endpoint/**").permitAll()
 
-                        .requestMatchers(
+                        .requestMatchers("src/main/resources/static/hotrank.html",
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",

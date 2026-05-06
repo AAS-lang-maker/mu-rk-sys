@@ -14,7 +14,7 @@ public class SongServiceImpl implements SongService {
     @Autowired
     private SongMapper songMapper;
 
-    @Value("${music.file.path:D:/music/music_files/}")
+    @Value("${music.file.path}")
     private String musicFilePath;
 
     @Override

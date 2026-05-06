@@ -1,0 +1,1869 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>STAR CHART TAG LIBRARY</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Space+Grotesk:wght@300;400;500;600;700&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --surface: #0b0d1b;
+      --primary: #c1fffe;
+      --secondary: #ff51fa;
+      --tertiary: #fffeac;
+      --on-surface: #e3e4f8;
+      --error: #ff6e84;
+      --surface-container-low: #101221;
+      --surface-container-high: #1b1f31;
+      --surface-container-highest: #212538;
+      --outline-variant: #454757;
+      --on-surface-variant: #a8aabd;
+      --primary-5: rgba(193, 255, 254, 0.05);
+      --primary-20: rgba(193, 255, 254, 0.2);
+      --primary-30: rgba(193, 255, 254, 0.3);
+      --primary-60: rgba(193, 255, 254, 0.6);
+      --secondary-5: rgba(255, 81, 250, 0.05);
+      --tertiary-5: rgba(255, 255, 172, 0.05);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--surface);
+      color: var(--on-surface);
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    .cosmic-background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      background: var(--surface);
+      overflow: hidden;
+      z-index: -1;
+    }
+
+    .star-field {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background-image:
+        radial-gradient(2px 2px at 20% 30%, white, transparent),
+        radial-gradient(2px 2px at 40% 70%, white, transparent),
+        radial-gradient(1px 1px at 90% 40%, white, transparent),
+        radial-gradient(2px 2px at 60% 20%, white, transparent),
+        radial-gradient(1px 1px at 10% 80%, white, transparent),
+        radial-gradient(2px 2px at 70% 90%, white, transparent),
+        radial-gradient(1px 1px at 30% 50%, white, transparent),
+        radial-gradient(2px 2px at 85% 15%, white, transparent),
+        radial-gradient(1px 1px at 50% 95%, white, transparent),
+        radial-gradient(2px 2px at 15% 65%, white, transparent);
+      opacity: 0.6;
+    }
+
+    .ambient-glow-top {
+      position: absolute;
+      top: -100px;
+      left: -100px;
+      width: 500px;
+      height: 500px;
+      background: var(--primary-5);
+      filter: blur(120px);
+      border-radius: 50%;
+    }
+
+    .ambient-glow-bottom {
+      position: absolute;
+      bottom: -150px;
+      right: -150px;
+      width: 600px;
+      height: 600px;
+      background: var(--secondary-5);
+      filter: blur(150px);
+      border-radius: 50%;
+    }
+
+    .main-container {
+      min-height: 100vh;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .top-navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 50;
+      padding: 24px 32px;
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+    }
+
+    .back-btn {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(27, 31, 49, 0.6);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--primary-20);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+    }
+
+    .back-btn:hover {
+      background: var(--primary);
+      color: var(--surface);
+      transform: scale(1.05);
+    }
+
+    .back-btn:hover .material-symbols-outlined {
+      transform: translateX(-2px);
+    }
+
+    .back-btn .material-symbols-outlined {
+      font-family: 'Material Symbols Outlined';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 24px;
+      line-height: 1;
+      letter-spacing: normal;
+      text-transform: none;
+      display: inline-block;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+      transition: transform 0.3s ease;
+    }
+
+    .header-section {
+      padding: 140px 48px 32px;
+      text-align: center;
+    }
+
+    .main-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 3.5rem;
+      font-weight: 700;
+      letter-spacing: -0.05em;
+      text-transform: uppercase;
+      color: var(--on-surface);
+      margin-bottom: 16px;
+      line-height: 1.1;
+    }
+
+    .subtitle-text {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.875rem;
+      line-height: 1.625;
+      color: var(--on-surface-variant);
+      opacity: 0.7;
+      max-width: 650px;
+      margin: 0 auto;
+    }
+
+    .tags-cosmos {
+      position: relative;
+      height: calc(100vh - 280px);
+      padding: 32px;
+    }
+
+    .planet-tag {
+      position: absolute;
+      cursor: grab;
+      z-index: 10;
+      animation: drift 8s ease-in-out infinite alternate;
+      animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .planet-tag:active {
+      cursor: grabbing;
+    }
+
+    .planet-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .orbit-ring {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 2px solid currentColor;
+      opacity: 0.3;
+      animation: orbit-spin linear infinite;
+    }
+
+    .orbit-ring.primary-ring {
+      color: var(--primary);
+    }
+
+    .orbit-ring.secondary-ring {
+      color: var(--secondary);
+    }
+
+    .orbit-ring.tertiary-ring {
+      color: var(--tertiary);
+    }
+
+    .planet-core {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      overflow: hidden;
+      box-shadow:
+        0 0 30px currentColor,
+        inset 0 0 20px rgba(0, 0, 0, 0.3);
+      transition: transform 0.3s ease;
+    }
+
+    .planet-core img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .planet-tag:hover .planet-core {
+      transform: scale(1.08);
+    }
+
+    .tag-label {
+      position: absolute;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--on-surface);
+      background: var(--surface-container-high);
+      padding: 6px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--outline-variant);
+      white-space: nowrap;
+      backdrop-filter: blur(10px);
+      pointer-events: auto;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .tag-label:hover {
+      background: var(--surface-container-highest);
+      border-color: var(--primary-30);
+      box-shadow: 0 0 12px rgba(193, 255, 254, 0.3);
+      transform: translateX(-50%) scale(1.05);
+    }
+
+    .tag-label.right:hover {
+      transform: translateY(-50%) scale(1.05);
+    }
+
+    .tag-label.top:hover {
+      transform: translateX(-50%) scale(1.05);
+    }
+
+    .tag-label.bottom-center:hover {
+      transform: translateX(-50%) scale(1.05);
+    }
+
+    .tag-label.bottom {
+      bottom: -28px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .tag-label.right {
+      right: -64px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .tag-label.top {
+      top: -28px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .tag-label.bottom-center {
+      bottom: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .event-horizon-zone {
+      position: absolute;
+      bottom: -32px;
+      right: -32px;
+      width: 320px;
+      height: 320px;
+      z-index: 5;
+    }
+
+    .vortex-outer-glow {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, rgba(255, 81, 250, 0.15) 0%, rgba(11, 13, 27, 0) 70%);
+      filter: blur(100px);
+      opacity: 0.9;
+      border-radius: 50%;
+    }
+
+    .vortex-bg-image {
+      position: absolute;
+      width: 90%;
+      height: 90%;
+      top: 6%;
+      left: 6%;
+      background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><defs><radialGradient id="g"><stop offset="0%" stop-color="%23ff51fa"/><stop offset="50%" stop-color="%23c1fffe" stop-opacity="0.5"/><stop offset="100%" stop-color="%230b0d1b"/></radialGradient></defs><circle cx="100" cy="100" r="100" fill="url(%23g)"/></svg>');
+      opacity: 0.8;
+      animation: spin 120s linear infinite;
+      filter: grayscale(30%) brightness(0.9) contrast(1.2);
+      border-radius: 50%;
+    }
+
+    .accretion-disk-1 {
+      position: absolute;
+      inset: 15%;
+      border-radius: 50%;
+      border: 30px solid transparent;
+      /*background: linear-gradient(45deg, var(--secondary), var(--primary), var(--tertiary), var(--secondary)) border-box;*/
+      mask-composite: exclude;
+      -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      filter: blur(12px);
+      opacity: 0.9;
+      animation: spin 25s linear infinite;
+    }
+
+    .accretion-disk-2 {
+      position: absolute;
+      inset: 20%;
+      border-radius: 50%;
+      border: 50px solid transparent;
+      /*background: linear-gradient(135deg, var(--tertiary), var(--secondary), var(--primary), var(--tertiary)) border-box;*/
+      mask-composite: exclude;
+      -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      filter: blur(24px);
+      opacity: 0.6;
+      animation: spin 40s linear infinite reverse;
+    }
+
+    .event-horizon-core {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 134px;
+      height: 134px;
+      border-radius: 50%;
+      background: #000000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      box-shadow:
+        0 0 45px rgba(255, 81, 250, 0.5),
+        0 0 91px rgba(255, 81, 250, 0.3),
+        inset 0 0 30px rgba(0, 0, 0, 0.8);
+    }
+
+    .danger-icon {
+      font-size: 27px;
+      color: var(--error);
+    }
+
+    .horizon-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 6px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--on-surface-variant);
+      font-weight: 500;
+    }
+
+    .status-pulse {
+      position: absolute;
+      top: -24px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 7px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--secondary);
+      white-space: nowrap;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .outer-orbit-ring {
+      position: absolute;
+      width: 90%;
+      height: 90%;
+      top: 6%;
+      left: 6%;
+      border-radius: 50%;
+      border: 1px solid var(--secondary);
+      opacity: 0.4;
+      animation: spin 90s linear infinite;
+    }
+
+    .status-indicators {
+      position: absolute;
+      bottom: 32px;
+      left: 32px;
+      display: flex;
+      gap: 16px;
+      z-index: 20;
+    }
+
+    .indicator-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 18px;
+      background: rgba(27, 31, 49, 0.4);
+      backdrop-filter: blur(12px);
+      border-radius: 12px;
+      border: 1px solid rgba(69, 71, 87, 0.2);
+    }
+
+    .indicator-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    .indicator-dot.secondary-dot {
+      background: var(--secondary);
+      box-shadow: 0 0 12px var(--secondary);
+    }
+
+    .indicator-dot.tertiary-dot {
+      background: var(--tertiary);
+      box-shadow: 0 0 12px var(--tertiary);
+    }
+
+    .indicator-text {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--on-surface-variant);
+    }
+
+    .control-buttons {
+      position: fixed;
+      top: 96px;
+      right: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      z-index: 50;
+    }
+
+    .control-btn {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(27, 31, 49, 0.6);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--primary-20);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .control-btn:hover {
+      background: var(--primary);
+      color: var(--surface);
+      transform: scale(1.05);
+    }
+
+    .control-btn.rotate-hover:hover .material-symbols-outlined {
+      transform: rotate(180deg);
+    }
+
+    .material-symbols-outlined {
+      font-family: 'Material Symbols Outlined';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 24px;
+      line-height: 1;
+      letter-spacing: normal;
+      text-transform: none;
+      display: inline-block;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+      transition: transform 0.3s ease;
+    }
+
+    @keyframes drift {
+      from {
+        transform: translateY(0) rotate(0deg);
+      }
+      to {
+        transform: translateY(-10px) rotate(1deg);
+      }
+    }
+
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes orbit-spin {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 0.6;
+      }
+      50% {
+        opacity: 1;
+      }
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+      50% {
+        opacity: 0.5;
+        transform: scale(0.8);
+      }
+    }
+
+    .tag-input-edit {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: inherit;
+      font-family: inherit;
+      font-size: inherit;
+      font-weight: inherit;
+      letter-spacing: inherit;
+      text-transform: uppercase;
+      width: 100%;
+      text-align: center;
+      padding: 6px 12px;
+      margin: -6px -12px;
+      border-radius: 20px;
+      transition: all 0.3s ease;
+    }
+
+    .tag-input-edit:focus {
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow:
+        0 0 0 2px var(--primary),
+        0 4px 16px rgba(193, 255, 254, 0.3);
+      animation: edit-focus-pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes edit-focus-pulse {
+      0%, 100% {
+        box-shadow:
+          0 0 0 2px var(--primary),
+          0 4px 16px rgba(193, 255, 254, 0.3);
+      }
+      50% {
+        box-shadow:
+          0 0 0 2px var(--primary),
+          0 4px 24px rgba(193, 255, 254, 0.5);
+      }
+    }
+
+    .tag-label.editing-mode {
+      pointer-events: auto !important;
+      border-color: var(--primary) !important;
+      background: rgba(27, 31, 49, 0.8) !important;
+      transform: translateX(-50%) scale(1.05) !important;
+      z-index: 1000 !important;
+      transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .tag-label.right.editing-mode {
+      transform: translateY(-50%) scale(1.05) !important;
+    }
+
+    /* ==================== 性能优化：GPU 加速属性 ==================== */
+    .planet-tag {
+      will-change: transform;
+    }
+
+    .orbit-ring {
+      will-change: transform;
+    }
+
+    .accretion-disk-1,
+    .accretion-disk-2 {
+      will-change: transform;
+    }
+
+    .planet-core {
+      will-change: transform;
+    }
+
+    /* ==================== 响应式设计：平板设备 (768px - 1024px) ==================== */
+    @media screen and (max-width: 1024px) {
+      .main-title {
+        font-size: 2.5rem;
+      }
+      
+      .planet-container {
+        transform: scale(0.85);
+      }
+      
+      .event-horizon-zone {
+        width: 240px;
+        height: 240px;
+        bottom: -16px;
+        right: -16px;
+      }
+
+      .header-section {
+        padding: 120px 32px 24px;
+      }
+
+      .tags-cosmos {
+        height: calc(100vh - 240px);
+        padding: 24px;
+      }
+    }
+
+    /* ==================== 响应式设计：手机设备 (< 768px) ==================== */
+    @media screen and (max-width: 768px) {
+      .main-title {
+        font-size: 2rem;
+      }
+      
+      .subtitle-text {
+        font-size: 0.875rem;
+      }
+      
+      .planet-tag {
+        transform: scale(0.7);
+      }
+      
+      .event-horizon-zone {
+        width: 180px;
+        height: 180px;
+        bottom: -12px;
+        right: -12px;
+      }
+      
+      .status-indicators {
+        flex-direction: column;
+        gap: 8px;
+        bottom: 16px;
+        left: 16px;
+      }
+      
+      .control-buttons {
+        top: 80px;
+        right: 16px;
+        gap: 12px;
+      }
+      
+      .control-btn {
+        width: 40px;
+        height: 40px;
+      }
+
+      .header-section {
+        padding: 100px 16px 20px;
+      }
+
+      .tags-cosmos {
+        height: calc(100vh - 200px);
+        padding: 16px;
+      }
+
+      .top-navbar {
+        padding: 16px;
+      }
+
+      .back-btn {
+        width: 40px;
+        height: 40px;
+      }
+      
+      .back-btn .material-symbols-outlined {
+        font-size: 20px;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="/css/battle-report.css">
+</head>
+<body>
+  <div class="cosmic-background">
+    <div class="star-field"></div>
+    <div class="ambient-glow-top"></div>
+    <div class="ambient-glow-bottom"></div>
+  </div>
+
+  <div class="main-container">
+    <nav class="top-navbar">
+      <a href="javascript:void(0);" class="back-btn" id="back-to-mylove" title="返回我的收藏">
+        <span class="material-symbols-outlined">arrow_back</span>
+      </a>
+    </nav>
+
+    <header class="header-section">
+      <h1 class="main-title">STAR CHART TAG LIBRARY</h1>
+      <p class="subtitle-text">Navigate through your cosmic markers. Drag planetary tags into the Gravitational Well to decommission sectors or re-align your trajectory.</p>
+    </header>
+
+    <section class="tags-cosmos">
+      <div class="event-horizon-zone">
+        <div class="outer-orbit-ring"></div>
+        <div class="vortex-outer-glow"></div>
+        <div class="vortex-bg-image"></div>
+        <div class="accretion-disk-1"></div>
+        <div class="accretion-disk-2"></div>
+        <div class="event-horizon-core">
+          <span class="material-symbols-outlined danger-icon">dangerous</span>
+          <span class="horizon-title">EVENT HORIZON</span>
+        </div>
+        <div class="status-pulse">GRAVITATIONAL WELL ACTIVE</div>
+      </div>
+    </section>
+
+    <div class="status-indicators">
+      <div class="indicator-card">
+        <div class="indicator-dot secondary-dot"></div>
+        <span class="indicator-text">42 Active Signals Detected</span>
+      </div>
+      <div class="indicator-card">
+        <div class="indicator-dot tertiary-dot"></div>
+        <span class="indicator-text">Calibration: 99.8%</span>
+      </div>
+    </div>
+
+    <div class="control-buttons">
+      <button class="control-btn rotate-hover" title="Refresh Tags">
+        <span class="material-symbols-outlined">autorenew</span>
+      </button>
+      <button class="control-btn" title="Filter Tags">
+        <span class="material-symbols-outlined">filter_list</span>
+      </button>
+      <button class="control-btn" id="add-tag-btn" title="Add New Tag">
+        <span class="material-symbols-outlined">add</span>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = '/music/api/tagsplanet';
+
+    async function request(method, url, data = null) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+      try {
+        const options = {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal
+        };
+
+        const token = localStorage.getItem('token') 
+          || localStorage.getItem('accessToken') 
+          || localStorage.getItem('auth_token')
+          || sessionStorage.getItem('token');
+
+        if (token) {
+          options.headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        if (data && (method === 'POST' || method === 'PUT')) {
+          options.body = JSON.stringify(data);
+        }
+
+        const response = await fetch(API_BASE + url, options);
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          let errorMsg = `请求失败 (${response.status})`;
+          if (response.status === 400) errorMsg = '请求参数错误';
+          if (response.status === 401) {
+            errorMsg = '登录已过期，请重新登录';
+          }
+          if (response.status === 403) errorMsg = '权限不足';
+          if (response.status === 404) errorMsg = '资源不存在';
+          if (response.status === 500) errorMsg = '服务器内部错误';
+          return { success: false, data: null, message: errorMsg };
+        }
+
+        const result = await response.json();
+
+        if (result.code !== undefined && result.code !== 200) {
+          return { success: false, data: null, message: result.message || '操作失败' };
+        }
+
+        return { success: true, data: result.data ?? result, message: result.message || '操作成功' };
+
+      } catch (error) {
+        clearTimeout(timeoutId);
+
+        if (error.name === 'AbortError') {
+          return { success: false, data: null, message: '请求超时，请稍后重试' };
+        }
+
+        console.error('API请求错误:', error);
+        return { success: false, data: null, message: '网络连接失败，请检查网络' };
+      }
+    }
+
+    async function loadUserTags(pageNum = 1, pageSize = 10) {
+      return await request('GET', `/selectpage?pageNum=${pageNum}&pageSize=${pageSize}`);
+    }
+
+    async function addTagToServer(tagName) {
+      return await request('POST', '/add', { tagName });
+    }
+
+    async function deleteTagFromServer(tagId) {
+      return await request('DELETE', `/planet/${tagId}`);
+    }
+
+    async function updateTagOnServer(tagId, tagName) {
+      return await request('PUT', '/update', { tagId, tagName });
+    }
+
+    const MAX_TAGS = 10;
+    const tags = [];
+    let isGlobalLoading = false;
+
+    function setGlobalLoading(loading) {
+      isGlobalLoading = loading;
+
+      const container = document.querySelector('.main-container');
+      if (!container) return;
+
+      const oldOverlay = document.querySelector('.loading-overlay');
+      if (oldOverlay) oldOverlay.remove();
+
+      if (loading) {
+        const overlay = document.createElement('div');
+        overlay.className = 'loading-overlay';
+        overlay.innerHTML = `
+          <div class="loading-spinner"></div>
+          <div class="loading-text">加载中...</div>
+        `;
+
+        Object.assign(overlay.style, {
+          position: 'fixed',
+          top: '0',
+          left: '0',
+          width: '100%',
+          height: '100%',
+          background: 'rgba(11, 13, 27, 0.8)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: '9999',
+          backdropFilter: 'blur(8px)'
+        });
+
+        const spinner = overlay.querySelector('.loading-spinner');
+        Object.assign(spinner.style, {
+          width: '48px',
+          height: '48px',
+          border: '3px solid var(--primary-20)',
+          borderTopColor: 'var(--primary)',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite'
+        });
+
+        const text = overlay.querySelector('.loading-text');
+        Object.assign(text.style, {
+          marginTop: '16px',
+          fontFamily: "'Space Grotesk', sans-serif",
+          fontSize: '14px',
+          color: 'var(--on-surface-variant)',
+          letterSpacing: '0.05em'
+        });
+
+        container.appendChild(overlay);
+      }
+    }
+
+    function setupRefreshButton() {
+      const refreshBtn = document.querySelector('.control-btn.rotate-hover');
+      if (refreshBtn) {
+        refreshBtn.addEventListener('click', async () => {
+          if (refreshBtn.dataset.loading === 'true') return;
+
+          refreshBtn.dataset.loading = 'true';
+          const icon = refreshBtn.querySelector('.material-symbols-outlined');
+
+          if (icon) {
+            icon.style.animation = 'spin 1s linear infinite';
+          }
+
+          showFeedback('正在刷新标签数据...', 'info');
+
+          try {
+            const existingTags = document.querySelectorAll('.planet-tag');
+            existingTags.forEach(tag => tag.remove());
+            tags.length = 0;
+
+            await initializeTagsFromServer();
+            showFeedback('标签数据已刷新', 'success');
+          } catch (error) {
+            console.error('Refresh error:', error);
+            showFeedback('刷新失败，请重试', 'error');
+          } finally {
+            refreshBtn.dataset.loading = 'false';
+            if (icon) {
+              icon.style.animation = '';
+            }
+          }
+        });
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+        e.preventDefault();
+        const refreshBtn = document.querySelector('.control-btn.rotate-hover');
+        if (refreshBtn) refreshBtn.click();
+      }
+    });
+
+    function convertApiDataToTag(apiTag) {
+      const colors = ['primary', 'secondary', 'tertiary'];
+      const sizes = [96, 112, 128, 160];
+      const images = [
+        'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=400',
+        'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=400',
+        'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400',
+        'https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?w=400',
+        'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?w=400',
+        'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=400',
+        'https://images.unsplash.com/photo-1464802686167-b939a6910659?w=400',
+        'https://images.unsplash.com/photo-1509773896068-7fd415d91e2e?w=400'
+      ];
+
+      return {
+        id: String(apiTag.tagId),
+        name: apiTag.tagName,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        size: sizes[Math.floor(Math.random() * sizes.length)],
+        position: {
+          top: Math.floor(Math.random() * 60) + '%',
+          left: Math.floor(Math.random() * 70) + '%'
+        },
+        image: images[Math.floor(Math.random() * images.length)],
+        orbitDuration: (Math.floor(Math.random() * 12) + 8) + 's',
+        animationDelay: -Math.floor(Math.random() * 8),
+        labelPosition: ['bottom', 'top', 'right', 'bottom-center'][Math.floor(Math.random() * 4)]
+      };
+    }
+
+    async function initializeTagsFromServer(isFirstLoad = true) {
+      if (isFirstLoad) {
+        setGlobalLoading(true);
+      }
+      showFeedback('正在加载标签数据...', 'info');
+
+      try {
+        const result = await loadUserTags(1, 10);
+
+        if (result.success && result.data) {
+          const tagList = result.data.records || result.data.list || [];
+
+          if (tagList.length === 0) {
+            showFeedback('暂无标签，点击 + 按钮添加你的第一个标签吧！', 'info');
+          } else {
+            tagList.forEach(apiTag => {
+              const tagData = convertApiDataToTag(apiTag);
+              tags.push(tagData);
+              createTagElement(tagData);
+            });
+
+            showFeedback(`成功加载 ${tagList.length} 个标签`, 'success');
+          }
+
+          // 无论是否有数据，都要初始化编辑和拖拽功能
+          setupEditListeners();
+          initDragAndDrop();
+          updateSignalCount();
+        } else {
+          showFeedback(result.message || '加载标签失败', 'error');
+        }
+      } catch (error) {
+        console.error('加载标签失败:', error);
+        showFeedback('加载标签数据失败，请刷新重试', 'error');
+      } finally {
+        if (isFirstLoad) setGlobalLoading(false);
+      }
+    }
+
+    console.log('Star Chart Tag Library initialized with', tags.length, 'planetary tags');
+
+    // ==================== Task 6: 增加云标签功能 ====================
+
+    function setupAddTagButton() {
+      const addBtn = document.getElementById('add-tag-btn');
+      addBtn.addEventListener('click', showAddTagDialog);
+    }
+
+    async function showAddTagDialog() {
+      if (tags.length >= MAX_TAGS) {
+        showFeedback(`已达到最大标签数量限制（${MAX_TAGS}个），请删除部分标签后再添加`, 'warning');
+        return;
+      }
+
+      const tagName = prompt('请输入新的标签名称:');
+      if (!tagName || !tagName.trim()) return;
+
+      const trimmedName = tagName.trim();
+
+      // 显示加载状态
+      const addBtn = document.getElementById('add-tag-btn');
+      addBtn.disabled = true;
+      addBtn.style.opacity = '0.6';
+      showFeedback('正在添加标签...', 'info');
+
+      try {
+        const result = await addTagToServer(trimmedName);
+
+        if (result.success) {
+          let tagData;
+          if (result.data && result.data.tagId) {
+            tagData = {
+              id: String(result.data.tagId),
+              name: result.data.tagName || trimmedName,
+              ...generateRandomAttributes(tags)
+            };
+          } else {
+            tagData = generateRandomTag(trimmedName, tags);
+          }
+
+          tags.push(tagData);
+          createTagElement(tagData);
+
+          const newTagLabel = document.querySelector(`[data-id="${tagData.id}"] .tag-label`);
+          if (newTagLabel) {
+            newTagLabel.addEventListener('dblclick', handleDoubleClick);
+          }
+
+          updateSignalCount();
+          showFeedback(`标签 "${trimmedName}" 添加成功`, 'success');
+          console.log('New tag added from server:', tagData);
+        } else {
+          if (result.message && (result.message.includes('最大') || result.message.includes('限制'))) {
+            showFeedback(result.message, 'warning');
+          } else {
+            showFeedback(result.message || '添加失败，请重试', 'error');
+          }
+        }
+      } catch (error) {
+        console.error('Add tag error:', error);
+        showFeedback('添加标签失败，请检查网络连接', 'error');
+      } finally {
+        // 恢复按钮状态
+        addBtn.disabled = false;
+        addBtn.style.opacity = '1';
+      }
+    }
+
+    function isOverlapping(pos1, size1, pos2, size2) {
+      const padding = Math.max(size1, size2) * 0.2;
+
+      const rect1 = {
+        left: pos1.left,
+        right: pos1.left + size1 + padding,
+        top: pos1.top,
+        bottom: pos1.top + size1 + 30 + padding
+      };
+
+      const rect2 = {
+        left: pos2.left,
+        right: pos2.left + size2 + padding,
+        top: pos2.top,
+        bottom: pos2.top + size2 + 30 + padding
+      };
+
+      return !(rect1.right < rect2.left ||
+               rect1.left > rect2.right ||
+               rect1.bottom < rect2.top ||
+               rect1.top > rect2.bottom);
+    }
+
+    function generateNonOverlappingPosition(newTagSize, existingTags) {
+      const container = document.querySelector('.tags-cosmos');
+      const containerRect = container.getBoundingClientRect();
+
+      const maxX = containerRect.width - newTagSize - 50;
+      const maxY = containerRect.height - newTagSize - 60;
+
+      const maxAttempts = 10;
+      let bestPosition = null;
+
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        const candidatePos = {
+          left: Math.random() * maxX,
+          top: Math.random() * maxY
+        };
+
+        let hasOverlap = false;
+
+        for (const existingTag of existingTags) {
+          const existingPos = {
+            left: parseFloat(existingTag.position.left) / 100 * containerRect.width,
+            top: parseFloat(existingTag.position.top) / 100 * containerRect.height
+          };
+
+          if (isOverlapping(candidatePos, newTagSize, existingPos, existingTag.size)) {
+            hasOverlap = true;
+            break;
+          }
+        }
+
+        if (!hasOverlap) {
+          return {
+            top: (candidatePos.top / containerRect.height * 100).toFixed(2) + '%',
+            left: (candidatePos.left / containerRect.width * 100).toFixed(2) + '%'
+          };
+        }
+
+        bestPosition = candidatePos;
+      }
+
+      console.warn('Could not find non-overlapping position after', maxAttempts, 'attempts');
+      return {
+        top: (bestPosition.top / containerRect.height * 100).toFixed(2) + '%',
+        left: (bestPosition.left / containerRect.width * 100).toFixed(2) + '%'
+      };
+    }
+
+    function generateRandomAttributes(existingTags = []) {
+      const colors = ['primary', 'secondary', 'tertiary'];
+      const sizes = [96, 112, 128, 160];
+      const images = [
+        'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=400',
+        'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=400',
+        'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400',
+        'https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?w=400',
+        'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?w=400',
+        'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=400',
+        'https://images.unsplash.com/photo-1464802686167-b939a6910659?w=400',
+        'https://images.unsplash.com/photo-1509773896068-7fd415d91e2e?w=400'
+      ];
+
+      const newSize = sizes[Math.floor(Math.random() * sizes.length)];
+
+      let position;
+      if (existingTags.length > 0) {
+        position = generateNonOverlappingPosition(newSize, existingTags);
+      } else {
+        position = {
+          top: Math.floor(Math.random() * 60) + '%',
+          left: Math.floor(Math.random() * 70) + '%'
+        };
+      }
+
+      return {
+        color: colors[Math.floor(Math.random() * colors.length)],
+        size: newSize,
+        position: position,
+        image: images[Math.floor(Math.random() * images.length)],
+        animationDelay: -Math.floor(Math.random() * 8),
+        orbitDuration: (Math.floor(Math.random() * 12) + 8) + 's',
+        labelPosition: ['bottom', 'top', 'right', 'bottom-center'][Math.floor(Math.random() * 4)]
+      };
+    }
+
+    function generateRandomTag(name, existingTags = []) {
+      const colors = ['primary', 'secondary', 'tertiary'];
+      const sizes = [96, 112, 128, 160];
+      const images = [
+        'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=400',
+        'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=400',
+        'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=400',
+        'https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?w=400',
+        'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?w=400',
+        'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=400',
+        'https://images.unsplash.com/photo-1464802686167-b939a6910659?w=400',
+        'https://images.unsplash.com/photo-1509773896068-7fd415d91e2e?w=400'
+      ];
+
+      const newSize = sizes[Math.floor(Math.random() * sizes.length)];
+
+      let position;
+      if (existingTags.length > 0) {
+        position = generateNonOverlappingPosition(newSize, existingTags);
+      } else {
+        position = {
+          top: Math.floor(Math.random() * 60) + '%',
+          left: Math.floor(Math.random() * 70) + '%'
+        };
+      }
+
+      return {
+        id: String(Math.floor(Math.random() * 2000000000) + 1),
+        name: name,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        size: newSize,
+        position: position,
+        image: images[Math.floor(Math.random() * images.length)],
+        animationDelay: -Math.floor(Math.random() * 8),
+        orbitDuration: (Math.floor(Math.random() * 12) + 8) + 's',
+        labelPosition: ['bottom', 'top', 'right', 'bottom-center'][Math.floor(Math.random() * 4)]
+      };
+    }
+
+    function createTagElement(tagData) {
+      const container = document.querySelector('.tags-cosmos');
+
+      const planetTag = document.createElement('div');
+      planetTag.className = 'planet-tag';
+      planetTag.dataset.id = tagData.id;
+      planetTag.style.top = tagData.position.top;
+      planetTag.style.left = tagData.position.left;
+      planetTag.style.animationDelay = tagData.animationDelay + 's';
+
+      const planetContainer = document.createElement('div');
+      planetContainer.className = 'planet-container';
+      planetContainer.style.width = tagData.size + 'px';
+      planetContainer.style.height = tagData.size + 'px';
+
+      const orbitRing = document.createElement('div');
+      orbitRing.className = `orbit-ring ${tagData.color}-ring`;
+      orbitRing.style.animationDuration = tagData.orbitDuration;
+
+      const planetCore = document.createElement('div');
+      planetCore.className = 'planet-core';
+      planetCore.style.color = `var(--${tagData.color})`;
+
+      const img = document.createElement('img');
+      img.src = tagData.image;
+      img.alt = tagData.name;
+      planetCore.appendChild(img);
+
+      const tagLabel = document.createElement('div');
+      tagLabel.className = `tag-label ${tagData.labelPosition}`;
+      tagLabel.style.pointerEvents = 'auto';
+
+      const span = document.createElement('span');
+      span.textContent = tagData.name;
+      tagLabel.appendChild(span);
+
+      planetContainer.appendChild(orbitRing);
+      planetContainer.appendChild(planetCore);
+      planetContainer.appendChild(tagLabel);
+      planetTag.appendChild(planetContainer);
+
+      container.insertBefore(planetTag, container.querySelector('.event-horizon-zone'));
+
+      setupSingleTagEvents(planetTag);
+
+      const newTagLabel = planetTag.querySelector('.tag-label');
+      if (newTagLabel) {
+        newTagLabel.addEventListener('dblclick', handleDoubleClick);
+        console.log('✓ Edit listener attached to NEW tag:', tagData.name);
+      }
+    }
+
+    // ==================== Task 7: 双击编辑功能（针对 .tag-label.top） ====================
+
+    function setupEditListeners() {
+      const allLabels = document.querySelectorAll('.tag-label');
+      allLabels.forEach(label => {
+        label.style.pointerEvents = 'auto';
+        label.addEventListener('dblclick', handleDoubleClick);
+        console.log('✓ Edit listener attached to all tag labels (pointer-events enabled):', label.querySelector('span')?.textContent);
+      });
+    }
+
+    function handleDoubleClick(event) {
+      event.stopPropagation();
+      event.preventDefault();
+
+      const span = event.target;
+      if (span.tagName !== 'SPAN' || !span.textContent) return;
+
+      const currentText = span.textContent.trim();
+      const tagLabel = span.closest('.tag-label');
+      const planetTag = span.closest('.planet-tag');
+      const tagId = planetTag?.dataset.id;
+
+      if (!currentText) {
+        showFeedback('标签名称为空，无法编辑', 'error');
+        return;
+      }
+
+      if (tagLabel.classList.contains('editing-mode')) {
+        return;
+      }
+
+      enterEditMode(span, currentText, tagId, tagLabel);
+    }
+
+    function enterEditMode(span, currentText, tagId, tagLabel) {
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = currentText;
+      input.className = 'tag-input-edit';
+      input.dataset.original = currentText;
+      input.dataset.tagId = tagId || '';
+      input.setAttribute('maxlength', '50');
+      input.setAttribute('autocomplete', 'off');
+      input.setAttribute('spellcheck', 'false');
+
+      tagLabel.classList.add('editing-mode');
+
+      span.replaceWith(input);
+
+      requestAnimationFrame(() => {
+        input.focus();
+        input.select();
+
+        const textLength = input.value.length;
+        if (textLength > 0) {
+          input.setSelectionRange(0, textLength);
+        }
+      });
+
+      const saveHandler = (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          e.stopPropagation();
+          confirmEdit(input, tagId, tagLabel);
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          e.stopPropagation();
+          cancelEdit(input, tagLabel);
+        }
+      };
+
+      input.addEventListener('keydown', saveHandler);
+
+      input.addEventListener('blur', () => {
+        setTimeout(() => {
+          if (input.parentElement) {
+            confirmEdit(input, tagId, tagLabel);
+          }
+        }, 100);
+      });
+    }
+
+    function sanitizeInput(text) {
+      let sanitized = text.trim();
+
+      sanitized = sanitized
+        .replace(/[<>]/g, '')
+        .replace(/\s+/g, ' ')
+        .substring(0, 50);
+
+      return sanitized;
+    }
+
+    function validateInput(value) {
+      if (!value || value.trim().length === 0) {
+        return { valid: false, error: '标签名称不能为空', value: '' };
+      }
+
+      const sanitizedValue = sanitizeInput(value);
+
+      if (sanitizedValue.length === 0) {
+        return { valid: false, error: '输入包含无效字符', value: '' };
+      }
+
+      if (sanitizedValue.length < 2) {
+        return { valid: false, error: '标签名称至少需要2个字符', value: sanitizedValue };
+      }
+
+      return { valid: true, error: null, value: sanitizedValue };
+    }
+
+    async function confirmEdit(input, tagId, tagLabel) {
+      const originalText = input.dataset.original;
+      const newValue = input.value;
+
+      const validation = validateInput(newValue);
+
+      if (!validation.valid) {
+        showFeedback(validation.error || '输入无效', 'warning');
+
+        if (!validation.value) {
+          cancelEdit(input, tagLabel);
+          return;
+        }
+      }
+
+      const finalValue = validation.value || originalText;
+
+      if (finalValue === originalText) {
+        exitEditMode(input, tagLabel, finalValue);
+        return;
+      }
+
+      let numericTagId = '';
+      if (tagId) {
+        numericTagId = tagId.startsWith('tag-') ? tagId.replace('tag-', '') : tagId;
+      }
+
+      if (!numericTagId || isNaN(numericTagId) || numericTagId.length > 10) {
+        showFeedback('标签 ID 无效，无法保存', 'error');
+        console.error('Invalid tagId for update:', tagId);
+        cancelEdit(input, tagLabel);
+        return;
+      }
+
+      showFeedback('正在保存修改...', 'info');
+
+      try {
+        const result = await updateTagOnServer(numericTagId, finalValue);
+
+        if (result.success) {
+          if (tagId) {
+            const tagIndex = tags.findIndex(t => t.id === tagId);
+            if (tagIndex !== -1) {
+              tags[tagIndex].name = finalValue;
+            }
+          }
+
+          exitEditMode(input, tagLabel, finalValue);
+
+          showFeedback(`标签已更新为 "${finalValue}"`, 'success');
+          console.log('✓ Tag updated on server:', { from: originalText, to: finalValue, id: tagId });
+        } else {
+          showFeedback(result.message || '更新失败，请重试', 'error');
+          cancelEdit(input, tagLabel);
+        }
+      } catch (error) {
+        console.error('Update tag error:', error);
+        showFeedback('更新标签失败，请检查网络连接', 'error');
+        cancelEdit(input, tagLabel);
+      }
+    }
+
+    function cancelEdit(input, tagLabel) {
+      const originalText = input.dataset.original || '';
+
+      exitEditMode(input, tagLabel, originalText);
+
+      showFeedback('编辑已取消', 'info');
+      console.log('✓ Edit cancelled, restored to:', originalText);
+    }
+
+    function exitEditMode(input, tagLabel, displayText) {
+      const span = document.createElement('span');
+      span.textContent = displayText;
+
+      if (tagLabel && tagLabel.classList.contains('editing-mode')) {
+        tagLabel.classList.remove('editing-mode');
+      }
+
+      input.replaceWith(span);
+
+      if (tagLabel) {
+        tagLabel.addEventListener('dblclick', handleDoubleClick);
+      }
+    }
+
+    let feedbackStack = [];
+
+    function showFeedback(message, type = 'info') {
+      const feedback = document.createElement('div');
+      feedback.className = `edit-feedback edit-feedback-${type}`;
+      feedback.textContent = message;
+
+      const existingFeedbacks = document.querySelectorAll('.edit-feedback');
+      const stackOffset = existingFeedbacks.length * 60;
+
+      Object.assign(feedback.style, {
+        position: 'fixed',
+        top: (120 + stackOffset) + 'px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        padding: '12px 24px',
+        borderRadius: '12px',
+        fontFamily: "'Space Grotesk', sans-serif",
+        fontSize: '12px',
+        fontWeight: '500',
+        letterSpacing: '0.05em',
+        textTransform: 'uppercase',
+        zIndex: '10000' + existingFeedbacks.length,
+        animation: 'feedback-slide-in 0.3s ease-out forwards',
+        backdropFilter: 'blur(16px)',
+        border: '1px solid'
+      });
+
+      const colors = {
+        success: {
+          bg: 'rgba(76, 175, 80, 0.9)',
+          color: '#ffffff',
+          border: 'rgba(76, 175, 80, 0.5)'
+        },
+        error: {
+          bg: 'rgba(244, 67, 54, 0.9)',
+          color: '#ffffff',
+          border: 'rgba(244, 67, 54, 0.5)'
+        },
+        warning: {
+          bg: 'rgba(255, 152, 0, 0.9)',
+          color: '#1a1a1a',
+          border: 'rgba(255, 152, 0, 0.5)'
+        },
+        info: {
+          bg: 'rgba(13, 71, 161, 0.95)',
+          color: '#c1fffe',
+          border: 'rgba(193, 255, 254, 0.4)'
+        }
+      };
+
+      const style = colors[type] || colors.info;
+      feedback.style.background = style.bg;
+      feedback.style.color = style.color;
+      feedback.style.borderColor = style.border;
+
+      document.body.appendChild(feedback);
+      feedbackStack.push(feedback);
+
+      setTimeout(() => {
+        feedback.style.animation = 'feedback-slide-out 0.3s ease-in forwards';
+        setTimeout(() => {
+          if (feedback.parentNode) {
+            feedback.remove();
+            const index = feedbackStack.indexOf(feedback);
+            if (index > -1) {
+              feedbackStack.splice(index, 1);
+            }
+            repositionRemainingFeedbacks();
+          }
+        }, 300);
+      }, 3000);
+    }
+
+    function repositionRemainingFeedbacks() {
+      const remainingFeedbacks = document.querySelectorAll('.edit-feedback');
+      remainingFeedbacks.forEach((fb, index) => {
+        fb.style.top = (120 + index * 60) + 'px';
+        fb.style.transition = 'top 0.3s ease-out';
+      });
+    }
+
+    const feedbackStyle = document.createElement('style');
+    feedbackStyle.textContent = `
+      @keyframes feedback-slide-in {
+        from {
+          opacity: 0;
+          transform: translateX(-50%) translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(-50%) translateY(0);
+        }
+      }
+
+      @keyframes feedback-slide-out {
+        from {
+          opacity: 1;
+          transform: translateX(-50%) translateY(0);
+        }
+        to {
+          opacity: 0;
+          transform: translateX(-50%) translateY(-20px);
+        }
+      }
+    `;
+    document.head.appendChild(feedbackStyle);
+
+    // ==================== Task 8: 拖拽删除功能（核心交互） ====================
+
+    let draggedTag = null;
+    let dragOffset = { x: 0, y: 0 };
+    let originalPosition = { left: '', top: '' };
+    const blackHole = document.querySelector('.event-horizon-zone');
+
+    function initDragAndDrop() {
+      document.querySelectorAll('.planet-tag').forEach(planet => {
+        setupSingleTagEvents(planet);
+      });
+    }
+
+    function setupSingleTagEvents(planet) {
+      planet.addEventListener('mousedown', startDrag);
+      planet.addEventListener('touchstart', startDrag, { passive: false });
+    }
+
+    function startDrag(e) {
+      if (e.target.closest('.tag-label')) return;
+      
+      e.preventDefault();
+      draggedTag = e.currentTarget;
+      const rect = draggedTag.getBoundingClientRect();
+
+      originalPosition = {
+        left: draggedTag.style.left,
+        top: draggedTag.style.top
+      };
+
+      const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+      const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+      dragOffset.x = clientX - rect.left;
+      dragOffset.y = clientY - rect.top;
+
+      draggedTag.style.animationPlayState = 'paused';
+      draggedTag.style.cursor = 'grabbing';
+      draggedTag.style.zIndex = '1000';
+      draggedTag.style.transition = 'none';
+
+      document.addEventListener('mousemove', onDrag);
+      document.addEventListener('mouseup', endDrag);
+      document.addEventListener('touchmove', onDrag, { passive: false });
+      document.addEventListener('touchend', endDrag);
+    }
+
+    function onDrag(e) {
+      if (!draggedTag) return;
+      e.preventDefault();
+
+      const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+      const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+
+      draggedTag.style.position = 'fixed';
+      draggedTag.style.left = (clientX - dragOffset.x) + 'px';
+      draggedTag.style.top = (clientY - dragOffset.y) + 'px';
+
+      checkProximityToBlackHole(clientX, clientY);
+    }
+
+    function checkProximityToBlackHole(x, y) {
+      if (!blackHole || !draggedTag) return;
+
+      const bhRect = blackHole.getBoundingClientRect();
+      const bhCenterX = bhRect.left + bhRect.width / 2;
+      const bhCenterY = bhRect.top + bhRect.height / 2;
+
+      const distance = Math.sqrt(
+        Math.pow(x - bhCenterX, 2) + Math.pow(y - bhCenterY, 2)
+      );
+
+      const threshold = 150;
+
+      if (distance < threshold) {
+        const scale = 0.5 + (distance / threshold) * 0.5;
+        const rotation = (threshold - distance) * 2;
+        draggedTag.style.transform = `scale(${scale}) rotate(${rotation}deg)`;
+        accelerateAccretionDisk(true);
+      } else {
+        draggedTag.style.transform = '';
+        accelerateAccretionDisk(false);
+      }
+    }
+
+    function accelerateAccretionDisk(isAccelerated) {
+      const disks = blackHole.querySelectorAll('[class*="accretion-disk"]');
+      disks.forEach(disk => {
+        disk.style.animationDuration = isAccelerated ? '2s' : '';
+      });
+    }
+
+    function endDrag(e) {
+      if (!draggedTag) return;
+
+      const clientX = e.type.includes('touch')
+        ? (e.changedTouches[0]?.clientX || 0)
+        : e.clientX;
+      const clientY = e.type.includes('touch')
+        ? (e.changedTouches[0]?.clientY || 0)
+        : e.clientY;
+
+      document.removeEventListener('mousemove', onDrag);
+      document.removeEventListener('mouseup', endDrag);
+      document.removeEventListener('touchmove', onDrag);
+      document.removeEventListener('touchend', endDrag);
+
+      const isInBlackHole = isInsideBlackHole(clientX, clientY);
+
+      if (isInBlackHole) {
+        deleteTagWithAnimation(draggedTag);
+      } else {
+        cancelDelete(draggedTag);
+      }
+
+      draggedTag = null;
+    }
+
+    function isInsideBlackHole(x, y) {
+      const bhRect = blackHole.getBoundingClientRect();
+      const bhCenterX = bhRect.left + bhRect.width / 2;
+      const bhCenterY = bhRect.top + bhRect.height / 2;
+      const radius = bhRect.width / 2;
+
+      const distance = Math.sqrt(
+        Math.pow(x - bhCenterX, 2) + Math.pow(y - bhCenterY, 2)
+      );
+
+      return distance < radius;
+    }
+
+    async function deleteTagWithAnimation(tagElement) {
+      const tagId = tagElement.dataset.id;
+
+      let numericTagId = tagId;
+      if (tagId.startsWith('tag-')) {
+        numericTagId = tagId.replace('tag-', '');
+      }
+
+      if (isNaN(numericTagId) || numericTagId.length > 10) {
+        showFeedback('标签 ID 格式错误，无法删除', 'error');
+        console.error('Invalid tagId format:', tagId);
+        cancelDelete(tagElement);
+        return;
+      }
+
+      showFeedback('正在删除标签...', 'info');
+
+      try {
+        const result = await deleteTagFromServer(numericTagId);
+
+        if (result.success) {
+          tagElement.style.transition = 'all 0.5s cubic-bezier(0.22, 1, 0.36, 1)';
+          tagElement.style.transform = 'scale(0) rotate(720deg)';
+          tagElement.style.opacity = '0';
+
+          triggerBlackHolePulse();
+
+          setTimeout(() => {
+            tagElement.remove();
+
+            const index = tags.findIndex(t => t.id === tagId);
+            if (index !== -1) {
+              tags.splice(index, 1);
+            }
+
+            updateSignalCount();
+            showFeedback('标签已删除', 'success');
+            console.log(`Tag ${tagId} deleted successfully`);
+          }, 500);
+        } else {
+          showFeedback(result.message || '删除失败，请重试', 'error');
+          cancelDelete(tagElement);
+        }
+      } catch (error) {
+        console.error('Delete tag error:', error);
+        showFeedback('删除标签失败，请检查网络连接', 'error');
+        cancelDelete(tagElement);
+      }
+    }
+
+    function triggerBlackHolePulse() {
+      const eventHorizon = blackHole.querySelector('.event-horizon-core');
+      if (eventHorizon) {
+        eventHorizon.style.transition = 'box-shadow 0.3s';
+        eventHorizon.style.boxShadow = '0 0 200px 80px rgba(255, 110, 132, 0.6)';
+        
+        setTimeout(() => {
+          eventHorizon.style.boxShadow = '';
+        }, 300);
+      }
+    }
+
+    function cancelDelete(tagElement) {
+      tagElement.style.transition = 'all 0.3s cubic-bezier(0.22, 1, 0.36, 1)';
+      tagElement.style.transform = '';
+      tagElement.style.opacity = '';
+
+      setTimeout(() => {
+        tagElement.style.position = 'absolute';
+        tagElement.style.left = originalPosition.left;
+        tagElement.style.top = originalPosition.top;
+        tagElement.style.zIndex = '';
+        tagElement.style.cursor = 'grab';
+        tagElement.style.animationPlayState = 'running';
+        tagElement.style.transition = '';
+      }, 300);
+    }
+
+    // ==================== 辅助功能 ====================
+
+    function updateSignalCount() {
+      const signalIndicator = document.querySelectorAll('.indicator-text')[0];
+      if (signalIndicator) {
+        signalIndicator.textContent = `${tags.length} Active Signals Detected`;
+      }
+    }
+
+    // ==================== 初始化函数 ====================
+
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('Star Chart Tag Library initialized with', tags.length, 'tags');
+
+      setupAddTagButton();
+      setupRefreshButton();
+      setupBackButton();
+      initializeTagsFromServer(true);
+    });
+
+    function setupBackButton() {
+      const backBtn = document.getElementById('back-to-mylove');
+      if (backBtn) {
+        backBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+
+          const urlParams = new URLSearchParams(window.location.search);
+          const token = urlParams.get('token') || localStorage.getItem('token') || '';
+          const userId = urlParams.get('userId') || urlParams.get('user_id') || localStorage.getItem('user_id') || '';
+
+          if (!token || !userId) {
+            showFeedback('登录信息缺失，无法返回', 'warning');
+            console.warn('Missing token or userId for navigation');
+            return;
+          }
+
+          const targetUrl = `/music/api/mine/mylove?token=${encodeURIComponent(token)}&userId=${encodeURIComponent(userId)}`;
+          console.log('Navigating to:', targetUrl);
+          window.location.href = targetUrl;
+        });
+      }
+    }
+  </script>
+  <script src="/js/battle-report.js"></script>
+</body>
+</html>

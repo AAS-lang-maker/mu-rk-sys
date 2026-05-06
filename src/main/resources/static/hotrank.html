@@ -2630,7 +2630,7 @@
             const username = rank.username || rank.userName || "未知用户";
             const publishTime = rank.publishTime || rank.publish_time || "";
             const voteCount = Number(rank.voteCount || rank.vote_count || 0);
-            const loveCount = Number(rank.loveCount || love_count || 0);
+            const loveCount = Number(rank.loveCount || rank.love_count || 0);
             const songList = rank.rankSongList || rank.rank_song_list || [];
 
             let songsHtml = '<ul class="song-list">';

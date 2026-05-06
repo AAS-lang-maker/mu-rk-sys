@@ -59,7 +59,7 @@
         select count(*) from love_record where ip=#{ip} and rank_id=#{rankId}
     </select>
     <select id="selectPublishRank" resultMap="MyRankWithSongResultMap">
-        select a.rank_id,a.rank_name,a.vote_count,a.love_count,a.publish_time,
+        select a.rank_id,a.rank_name,a.vote_count,a.love_count,a.publish_time,a.user_id,
                b.rs_id,b.song_id,b.ranking,b.rank_update_time,c.song_name,d.singer_name,u.username
         from (select p.rank_id,p.rank_name,p.publish_time,p.user_id,coalesce(v.total_vote,0) as vote_count,coalesce(l.total_love,0) as love_count
               from personal_rank as p
@@ -81,6 +81,7 @@
         <result property="loveCount" column="love_count"/>
         <result property="username" column="username"/>
         <result property="publishTime" column="publish_time"/>
+        <result property="userId" column="user_id"/>
         <!-- 子查询映射：把同一个榜单下的歌曲映射到songList列表 -->
         <collection property="rankSongList" ofType="com.music.pojo.RankSong">
             <id property="rsId" column="rs_id"/>
@@ -93,7 +94,7 @@
     </resultMap>
     <!-- 模糊查询本质：like+concat和%占位符，keyword拼接 -->
     <select id="selectSearch" resultMap="MyRankWithSongResultMap">
-        select p.rank_id,p.rank_name,p.total_vote as vote_count,p.total_love as love_count
+        select p.rank_id,p.rank_name,p.user_id,p.total_vote as vote_count,p.total_love as love_count
         ,p.publish_time,r.rs_id,r.ranking,r.rank_update_time,r.song_id,s.song_name,si.singer_name,u.username from
         (select pe.rank_id,pe.rank_name,pe.publish_time,pe.user_id,coalesce(v.total_vote,0) as total_vote,coalesce(l.total_love,0) as total_love
         from personal_rank as pe

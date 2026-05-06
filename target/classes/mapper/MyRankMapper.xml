@@ -31,6 +31,7 @@
         <result property="voteCount" column="vote_count"/>
         <result property="loveCount" column="love_count"/>
         <result property="publishTime" column="publish_time"/>
+
         <!-- 子查询映射：把同一个榜单下的歌曲映射到songList列表 -->
         <collection property="rankSongList" ofType="com.music.pojo.RankSong">
             <id property="rsId" column="rs_id"/>
@@ -71,20 +72,25 @@
     <!-- 下方l.rank_id或者pe.rank_id必须有一个取别名，也可以两个都取别名，子查询时相当于生成一个临时表，而sql只会识别出
     临时表中的字段属性，不会辨别此字段来自哪个表，如果不取别名，子表查询出两个相同的rank_id,影响后续外联-->
     <select id="selectLoveSong" resultMap="MyRankWithSongsResultMap">
-   select r.rs_id,r.ranking,r.rank_update_time,r.song_id,p.rank_id,p.rank_name,p.publish_time,s.song_name,si.singer_name from
-   (select l.rank_id as love_rank_id ,l.user_id ,l.love_id,pe.rank_id,pe.rank_name,pe.publish_time from love_record as l
-    left join personal_rank as pe on l.rank_id = pe.rank_id
-    where l.user_id=#{userId} order by pe.publish_time limit #{pageSize} offset #{offset}) as p
-   left join rank_song as r on r.rank_id=p.rank_id
-   left join song as s on r.song_id = s.song_id
-   left join singer as si on s.singer_id = si.singer_id
-   order by r.rank_update_time asc,r.ranking asc
+        select r.rs_id,r.ranking,r.rank_update_time,r.song_id,p.rank_id,p.rank_name,p.publish_time,
+               s.song_name,si.singer_name from
+            (select l.rank_id as love_rank_id ,l.user_id ,l.love_id,pe.rank_id,pe.rank_name,pe.publish_time,
+                    u.username
+             from love_record as l
+                      left join personal_rank as pe on l.rank_id = pe.rank_id
+                      left join user as u on u.user_id=l.user_id
+             where l.user_id=#{userId} order by pe.publish_time limit #{pageSize} offset #{offset}) as p
+                left join rank_song as r on r.rank_id=p.rank_id
+                left join song as s on r.song_id = s.song_id
+                left join singer as si on s.singer_id = si.singer_id
+        order by r.rank_update_time asc,r.ranking asc
     </select>
 
     <resultMap id="MyRankWithSongssResultMap" type="com.music.dto.MyRankWithSong">
         <id property="rankId" column="rank_id"/>
         <result property="rankName" column="rank_name"/>
         <result property="publishTime" column="publish_time"/>
+        <result property="username" column="username"/>
         <collection property="rankSongList" ofType="com.music.pojo.RankSong">
             <id property="rsId" column="rs_id"/>
             <result property="songId" column="song_id"/>

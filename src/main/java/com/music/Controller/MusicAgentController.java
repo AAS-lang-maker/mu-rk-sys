@@ -31,7 +31,7 @@ public class MusicAgentController {
         int userId= UserContext.getUserId();
         log.info("收到用户聊天请求，准备调用AI,用户的userId:{}",userId);
         SseEmitter emitter = new SseEmitter(60000L);
-
+//喵喵喵 去屎吧！！！ 哈哈哈哈世界还是赶紧毁灭的好 哈哈哈哈哈哈哈哈哈
 // 2. 注意,这里的参数名要对上上面的 userMessage，别写成 message
         musicAgentService.chat(userId, userMessage)
                 .onNext(aiContent -> { // 3. 核心改动,这里改名叫 aiContent，别叫 token！

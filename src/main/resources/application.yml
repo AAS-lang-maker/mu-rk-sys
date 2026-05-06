@@ -37,6 +37,7 @@ spring:
 redis:
   host: 172.17.211.108
   port: 6379
+  database: 2
   lettuce:
     pool:
       max-active: 8
@@ -60,7 +61,7 @@ pagehelper:
 # 文件路径
 music:
   file:
-    path: D:/music/music_files/
+    path: src/main/resources/music/
 langchain4j:
   open-ai:
 # 1. 基础对话配置
