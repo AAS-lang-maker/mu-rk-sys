@@ -1,30 +1,18 @@
 package com.music.Controller;
 
 import com.music.Service.UserInfoService;
-import com.music.Service.impl.UserServiceImpl;
-import com.music.Service.UserInfoService;
 import com.music.dto.LoginSuccessVo;
 import com.music.dto.UserLoginDTO;
 import com.music.dto.UserRegisterDTO;
-import com.music.pojo.Category;
 import com.music.utils.Result;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.ognl.Token;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.stereotype.Service;
-import org.springframework.ui.Model;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 
 @Controller
 @RequestMapping("/api/user")
@@ -43,8 +31,7 @@ public class Usercontroller {
     @ResponseBody
     @Operation(summary = "用户登录", description = "用户登录接口")
     public Result<LoginSuccessVo> login(@Valid @RequestBody UserLoginDTO userLoginDTO) {
-        Result<LoginSuccessVo> result = userInfoService.login(userLoginDTO);
-        return result;
+       return userInfoService.login(userLoginDTO);
     }
 
     /*注册逻辑：

@@ -1,8 +1,6 @@
 package com.music.Controller;
 
-import com.music.Service.MusicAgent;
 import com.music.Service.MusicAgentService;
-import com.music.utils.Result;
 import com.music.utils.UserContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,11 +21,8 @@ import java.io.IOException;
 public class MusicAgentController {
     @Autowired
     private MusicAgentService musicAgentService;
-    @Autowired
-    private MusicAgent musicAgent;
     @PostMapping(value = "/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter  chat(@RequestParam("token")String token,
-                           @RequestParam("userMessage")String userMessage){
+    public SseEmitter  chat(@RequestParam("userMessage")String userMessage){
         int userId= UserContext.getUserId();
         log.info("收到用户聊天请求，准备调用AI,用户的userId:{}",userId);
         SseEmitter emitter = new SseEmitter(60000L);

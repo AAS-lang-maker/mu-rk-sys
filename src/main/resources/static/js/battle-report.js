@@ -212,7 +212,6 @@
             // ===============================
             if (data.type === "INFO") {
                 showBattleReport(data);
-                return;
             }
 
         };
