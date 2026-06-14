@@ -1,12 +1,10 @@
 package com.music.Mapper;
 
-import com.github.pagehelper.Page;
-import com.github.yulichang.wrapper.MPJLambdaWrapper;
+
+
 import com.music.pojo.UserTagVO;
 import com.music.pojo.UserTags;
-import lombok.Data;
 import org.apache.ibatis.annotations.*;
-
 import java.util.List;
 
 @Mapper

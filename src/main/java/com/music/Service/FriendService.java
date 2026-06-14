@@ -2,7 +2,6 @@ package com.music.Service;
 
 import com.music.dto.CommonLoveVO;
 import com.music.dto.UserSimpleVO;
-import org.apache.ibatis.annotations.Select;
 
 public interface FriendService {
 

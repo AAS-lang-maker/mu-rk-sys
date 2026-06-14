@@ -5,7 +5,6 @@ import com.music.Mapper.TagsMapper;
 import com.music.Mapper.UserTagsMapper;
 import com.music.Mapper.rankTagRelMapper;
 import com.music.Service.RankTagService;
-import com.music.Service.TagsService;
 import com.music.dto.TagsDTO;
 import com.music.pojo.PersonalRank;
 import com.music.pojo.RankTag;
@@ -14,7 +13,6 @@ import com.music.utils.ThreadLocalUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.util.List;
 

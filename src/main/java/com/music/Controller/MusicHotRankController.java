@@ -1,9 +1,7 @@
 package com.music.Controller;
 
-import com.music.Config.NativeWebSocketServer;
+import com.github.yulichang.toolkit.StrUtils;
 import com.music.Service.HotRankService;
-import com.music.Service.impl.HotRankServiceImpl;
-import com.music.dto.BattleReport;
 import com.music.dto.CommentVo;
 import com.music.dto.MyRankWithSong;
 import com.music.utils.JwtUtils;
@@ -16,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -74,18 +73,28 @@ public class MusicHotRankController {
     @Operation(summary = "获取热门榜单", description = "获取热门榜单")
     public Result<List<MyRankWithSong>> getHotRank(@RequestParam(defaultValue = "0") Integer start, @RequestParam(defaultValue = "4")
                                      Integer end, @RequestParam("token")String token){
-        if(token==null){
+        if(StrUtils.isEmpty(token)){
             return Result.error("token is null!....");
         }
         Set<String> idset = hotRankService.getHotRankId(start,end);
 
         if(idset.isEmpty()){
-            return Result.error("该集合不能为空");
+            return Result.success(Collections.emptyList());
         }
         //通过流处理，将Set中的String转为Long类型rankId，最后把它整体转变为List集合
         //所以整体实现思路是redis的核心Service层，再到Mapper或者Controller层
-        List<Long> rankId=idset.stream().map(Long::valueOf).collect(Collectors.toList());
-        List<MyRankWithSong> list=hotRankService.listById(rankId);
+        List<Long>rankIds;
+        try {
+             rankIds = idset
+                    .stream()
+                    .map(Long::valueOf)
+                    .collect(Collectors.toList());
+        }catch (NumberFormatException e) {
+                // 记录日志并返回友好提示
+                log.error("热门榜单Redis中存在非数字格式的脏数据", e);
+                return Result.error("系统数据异常，请联系管理员");
+            }
+        List<MyRankWithSong> list=hotRankService.getHotRankWithCache(rankIds);
         return Result.success(list);//前端要接受到查询回显的热门榜单集合
     }
     //为什么要这样做，因为Service层的数据全部为Long类型，且Mybatis中通过foreach循环List集合

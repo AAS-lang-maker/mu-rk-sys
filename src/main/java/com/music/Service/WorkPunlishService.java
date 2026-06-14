@@ -5,7 +5,6 @@ import com.music.dto.CommentVo;
 import com.music.dto.MyRankWithSong;
 import com.music.dto.RankAddRequest;
 import com.music.pojo.Comment;
-import com.music.pojo.Singer;
 import com.music.pojo.Song;
 import com.music.pojo.Work;
 

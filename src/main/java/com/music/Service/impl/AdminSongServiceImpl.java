@@ -5,7 +5,6 @@ import com.music.Service.AdminSongService;
 import com.music.dto.ApplySongVo;
 import com.music.pojo.Singer;
 import com.music.pojo.Song;
-
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
@@ -18,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import com.music.utils.NcmDecoder;
 import org.jaudiotagger.audio.AudioFileIO;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.List;

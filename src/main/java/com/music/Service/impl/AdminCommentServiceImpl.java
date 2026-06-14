@@ -4,11 +4,9 @@ import com.github.pagehelper.PageInfo;
 import com.music.Mapper.AdminCommentMapper;
 import com.music.Service.AdminCommentService;
 import com.music.Service.AiAuditService;
-import com.music.dto.CommentVo;
 import com.music.pojo.Comment;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,7 +17,6 @@ public class AdminCommentServiceImpl implements AdminCommentService {
     private AdminCommentMapper adminCommentMapper;
     @Autowired
     private AiAuditService aiAuditService;
-
 
     @Override
     public PageInfo<Comment> selectAllComment(Integer pageSize, Integer pageNum, Integer offset) {

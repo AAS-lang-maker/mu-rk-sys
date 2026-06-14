@@ -67,8 +67,6 @@ public class FriendController {
             return Result.badRequest("Token无效");
         }
 
-        // 2. 调用 Service 进行切换（如果已关注则取消，未关注则关注）
-        // 你需要在 Service 里实现这个逻辑
         boolean isFollowed = friendService.isFollowed(UserId, targetUserId);
         //数据库有了
         if (isFollowed) {
@@ -113,7 +111,6 @@ public class FriendController {
         }
 
         // 2. 调用 Service 查询列表
-        // 假设你的 Service 里有个方法叫 getFriendIds，返回的是 User 对象列表（包含头像、昵称）
         UserSimpleVO master = friendService.getMymaster(currentUserId);
 
         return Result.success(master);

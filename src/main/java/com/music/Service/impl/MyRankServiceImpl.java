@@ -1,7 +1,5 @@
 package com.music.Service.impl;
 
-import com.alibaba.druid.support.logging.LogFactory;
-import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.music.Mapper.MyRankMapper;
 import com.music.Mapper.TagsMapper;
@@ -12,19 +10,11 @@ import com.music.dto.MyRankWithSong;
 import com.music.dto.RankAddRequest;
 import com.music.pojo.*;
 import com.music.utils.ThreadLocalUtil;
-import groovy.util.logging.Log;
-import groovy.util.logging.Slf4j;
-import org.apache.logging.log4j.LogManager;
-import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 @Service
@@ -33,7 +23,6 @@ public class MyRankServiceImpl implements MyRankService {
 private MyRankMapper myRankMapper;
 //private static final Logger log = (Logger) LogManager.getLogger(MyRankServiceImpl.class);
     //查询personl_rank主表
-
     @Autowired
     private TagsMapper tagsMapper;
     @Override

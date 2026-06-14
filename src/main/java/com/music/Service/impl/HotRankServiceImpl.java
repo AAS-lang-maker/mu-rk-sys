@@ -27,11 +27,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -105,9 +102,6 @@ public class HotRankServiceImpl implements HotRankService {
         }
     }
 
-    /**
-     * 更新热度并发送战报
-     */
     // 1. 加上 @Async，确保不阻塞主线程
     @Async("rankTask")
     @Override
@@ -161,7 +155,7 @@ public class HotRankServiceImpl implements HotRankService {
                     rankScript,
                     Collections.singletonList(Hot_Rank_Key),
                             rankId.toString(),
-                            scoreStr // ARGV[2]: 直接传算好的最终分数！
+                            scoreStr
 
                     );
         } catch (Exception e) {
@@ -209,9 +203,7 @@ public class HotRankServiceImpl implements HotRankService {
 
                 }
             }
-
-//喵
-
+//喵 关注塔菲喵
             String personalMsg = null;
             if (oldRank == -1) {
                 personalMsg = "🎉 恭喜！你的榜单首次上榜，排名第 " + (newRank + 1) + "！";
@@ -445,38 +437,51 @@ public class HotRankServiceImpl implements HotRankService {
         int result=musicHotRankMapper.deleteLike(comId,userId);
         return result>0;
     }
-    //豆包更新之后变权威了
-    //下方方法目的：刷新页面之后不会让统统一用户能重复投票，使用redis达到记录用户投票状态的目的
-    private void sychorVoteToRedis(Integer rankId,Integer userId,String votekey){
-        //sychronise翻译为同步，有点像锁但不是，这里本质是一个方法，将redis和mysql同步
-        int x=musicHotRankMapper.countVote(rankId,userId);
-        boolean flag=stringRedisTemplate.hasKey(votekey);
-        if(x>0||flag==false){
-            stringRedisTemplate.opsForValue().set(votekey,"1");
-            log.info("【状态同步】数据库有投票记录，Redis补写Key：{}", votekey);
+    private static final String RANK_DETAIL_KEY_PREFIX = "rank:detail:"; // String：存歌曲详情JSON
+    private static final long CACHE_EXPIRE_MINUTES = 30L;           // 缓存过期时间
+
+    @Override
+    public List<MyRankWithSong> getHotRankWithCache(List<Long> rankIds) {
+        List<MyRankWithSong> finalList = new ArrayList<>();
+        List<Long> missingIds = new ArrayList<>();
+
+        //detail 先查redis再查数据库 不要直接查数据库 太慢了 ！！
+        List<String> cachedJsonList = rankIds.stream()
+                .map(id -> stringRedisTemplate.opsForValue().get(RANK_DETAIL_KEY_PREFIX + id))
+                .toList();
+
+        //解析缓存，并找出未命中的 ID
+        for (int i = 0; i < cachedJsonList.size(); i++) {
+            String json = cachedJsonList.get(i);
+            if (json != null) {
+                finalList.add(JSON.parseObject(json, MyRankWithSong.class));
+            } else {
+                missingIds.add(rankIds.get(i));
+            }
         }
-        if(x<=0||flag==true){
-            stringRedisTemplate.delete(votekey);
-            log.info("【状态同步】数据库无投票记录，Redis删除Key：{}", votekey);
+
+        // 如果有缓存未命中的数据，去数据库批量查询
+        if (!missingIds.isEmpty()) {
+            List<MyRankWithSong> dbList = musicHotRankMapper.listByIds(missingIds);
+
+            // 将查到的数据回填到 Redis 缓存中
+            for (MyRankWithSong song : dbList) {
+                String key = RANK_DETAIL_KEY_PREFIX + song.getRankId();
+                redisTemplate.opsForValue().set(key, JSON.toJSONString(song), CACHE_EXPIRE_MINUTES, java.util.concurrent.TimeUnit.MINUTES);
+                finalList.add(song);
+            }
         }
-    }
-    private void sychorLoveToRedis(Integer rankId,Integer userId,String lovekey){
-        int y=musicHotRankMapper.countLove(rankId,userId);
-        boolean flag=stringRedisTemplate.hasKey(lovekey);
-        if(y>0||flag==false){
-            stringRedisTemplate.opsForValue().set(lovekey,"1");
-            log.info("【状态同步】数据库有投票记录，Redis补写Key：{}", lovekey);
-        }
-        if(y<=0||flag==true){
-            stringRedisTemplate.delete(lovekey);
-            log.info("【状态同步】数据库无投票记录，Redis删除Key：{}", lovekey);
-        }
+
+        // 根据 rankIds 的原始顺序，重新排列 finalList
+        Map<Integer, MyRankWithSong> songMap = finalList.stream()
+                .collect(Collectors.toMap(MyRankWithSong::getRankId, myrankwithsong -> myrankwithsong));
+
+        return rankIds.stream()
+                .map(id -> songMap.get(id.intValue()))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
-    /**
-     * 投票数优先读 Redis，未命中再查库并回填 Redis。
-     * 保持原业务语义：最终计数和数据库一致。
-     */
     private Integer getVoteCount(Integer rankId) {
         String countKey = String.format(Vote_Count_Key, rankId);
         String voteCountStr = stringRedisTemplate.opsForValue().get(countKey);
@@ -492,10 +497,7 @@ public class HotRankServiceImpl implements HotRankService {
         stringRedisTemplate.opsForValue().set(countKey, String.valueOf(safeCount));
         return safeCount;
     }
-    // 1. 定义 ZSet 的 Key
 
-
-    // 2. 修改 increase 方法
     private void increaseVoteCount(Integer rankId) {
         String countKey = String.format(Vote_Count_Key, rankId);
         String value = stringRedisTemplate.opsForValue().get(countKey);
@@ -505,7 +507,7 @@ public class HotRankServiceImpl implements HotRankService {
             int safeCount = dbCount == null ? 0 : dbCount;
             stringRedisTemplate.opsForValue().set(countKey, String.valueOf(safeCount));
 
-            // 【新增】同步 ZSet 初始分数
+
             stringRedisTemplate.opsForZSet().add(HOT_RANK_ZSET_KEY, rankId.toString(), safeCount);
             return;
         }
@@ -513,11 +515,11 @@ public class HotRankServiceImpl implements HotRankService {
         // 计数 +1
         stringRedisTemplate.opsForValue().increment(countKey);
 
-        // 【新增】ZSet 分数 +1
+        // ZSet 分数 +1
         stringRedisTemplate.opsForZSet().incrementScore(HOT_RANK_ZSET_KEY, rankId.toString(), 1);
     }
 
-    // 3. 修改 decrease 方法
+    // 修改 decrease 方法
     private void decreaseVoteCount(Integer rankId) {
         String countKey = String.format(Vote_Count_Key, rankId);
         String value = stringRedisTemplate.opsForValue().get(countKey);
@@ -527,7 +529,7 @@ public class HotRankServiceImpl implements HotRankService {
             int safeCount = dbCount == null ? 0 : dbCount;
             stringRedisTemplate.opsForValue().set(countKey, String.valueOf(safeCount));
 
-            // 【新增】同步 ZSet 初始分数
+            // 同步 ZSet 初始分数
             stringRedisTemplate.opsForZSet().add(HOT_RANK_ZSET_KEY, rankId.toString(), safeCount);
             return;
         }
@@ -536,10 +538,10 @@ public class HotRankServiceImpl implements HotRankService {
 
         if (newValue != null && newValue < 0) {
             stringRedisTemplate.opsForValue().set(countKey, "0");
-            // 【新增】ZSet 分数修正为 0
+            // ZSet 分数修正为 0
             stringRedisTemplate.opsForZSet().add(HOT_RANK_ZSET_KEY, rankId.toString(), 0);
         } else {
-            // 【新增】ZSet 分数 -1
+            // ZSet 分数 -1
             stringRedisTemplate.opsForZSet().incrementScore(HOT_RANK_ZSET_KEY, rankId.toString(), -1);
         }
     }
@@ -587,6 +589,4 @@ public class HotRankServiceImpl implements HotRankService {
             stringRedisTemplate.opsForValue().set(countKey, "0");
         }
     }
-
-
 }

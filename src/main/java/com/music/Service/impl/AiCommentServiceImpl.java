@@ -2,9 +2,7 @@ package com.music.Service.impl;
 
 import com.music.Service.AiCommentService;
 import com.music.dto.MyRankWithSong;
-import com.music.pojo.PersonalRank;
 import com.music.pojo.RankSong;
-import com.music.pojo.RankTags;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;

@@ -13,12 +13,6 @@ import java.util.List;
 @Service
 public class MusicAgentServiceImpl implements MusicAgentService {
     @Autowired
-    private MusicChartService  musicChartService;
-    @Autowired
-    private UserBehaviorService userBehaviorService;
-    @Autowired
-    private UserInterestVetorService userInterestVetorService;
-    @Autowired
     private AiChatLogService aiChatLogService;
     @Autowired
     private MusicAgent assistant;

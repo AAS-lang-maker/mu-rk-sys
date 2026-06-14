@@ -8,16 +8,10 @@ import com.music.dto.TagsDTO;
 import com.music.pojo.Tags;
 import com.music.utils.Result;
 import com.music.utils.ThreadLocalUtil;
-
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import retrofit2.http.Tag;
-
 import java.util.List;
 import java.util.stream.Collectors;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,7 +20,7 @@ import io.swagger.v3.oas.annotations.Operation;
 @RestController
 @RequestMapping("/api/ranks")
 @io.swagger.v3.oas.annotations.tags.Tag(name = "榜单tag管理")
-@RequiredArgsConstructor // Lombok 注解，自动生成构造器
+@RequiredArgsConstructor
 public class RankTagController {
 
     private final RankTagService rankTagService;

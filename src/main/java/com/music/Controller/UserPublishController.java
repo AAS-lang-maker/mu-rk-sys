@@ -3,7 +3,6 @@ package com.music.Controller;
 import com.github.pagehelper.PageInfo;
 import com.music.Service.HotRankService;
 import com.music.Service.UserPublishService;
-import com.music.dto.ApplySongVo;
 import com.music.dto.CommentVo;
 import com.music.dto.MyRankWithSong;
 import com.music.dto.RankAddRequest;

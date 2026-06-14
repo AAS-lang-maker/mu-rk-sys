@@ -12,9 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-
 import java.time.LocalDateTime;
-import java.util.List;
+
 
 @Service
 public class WebMasterLoginServiceImpl implements WebMasterLoginService {

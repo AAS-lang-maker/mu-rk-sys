@@ -1,13 +1,11 @@
 package com.music.Controller;
 
 import com.music.Service.AdminSongService;
-import com.music.Service.SongService;
 import com.music.dto.ApplySongVo;
 import com.music.utils.Result;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;

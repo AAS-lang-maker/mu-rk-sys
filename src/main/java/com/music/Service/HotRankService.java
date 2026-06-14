@@ -2,7 +2,6 @@ package com.music.Service;
 
 import com.music.dto.CommentVo;
 import com.music.dto.MyRankWithSong;
-
 import java.util.List;
 import java.util.Set;
 
@@ -27,4 +26,6 @@ public interface HotRankService {
     boolean insertLike(Integer userId, Integer comId);
 
     boolean deleteLike(Integer comId, Integer userId);
+
+    List<MyRankWithSong> getHotRankWithCache(List<Long> rankIds);
 }

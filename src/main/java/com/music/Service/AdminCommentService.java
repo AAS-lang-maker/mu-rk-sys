@@ -1,7 +1,6 @@
 package com.music.Service;
 
 import com.github.pagehelper.PageInfo;
-import com.music.dto.CommentVo;
 import com.music.pojo.Comment;
 
 public interface AdminCommentService {

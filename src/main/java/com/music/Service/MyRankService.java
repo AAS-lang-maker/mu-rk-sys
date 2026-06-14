@@ -7,7 +7,6 @@ import com.music.dto.MyRankWithSong;
 import com.music.pojo.Singer;
 import com.music.pojo.Song;
 import com.music.pojo.UserInfo;
-
 import java.util.List;
 
 public interface MyRankService {

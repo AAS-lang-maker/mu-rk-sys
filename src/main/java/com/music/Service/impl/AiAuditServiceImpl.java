@@ -34,16 +34,13 @@ public class AiAuditServiceImpl implements AiAuditService {
             log.warn("⚠️ 评论内容为空，返回0分");
             return 0;
         }
-
-        // 🔥 第一步：本地敏感词拦截（脏话直接95分，必拦！）
+        
         for (String word : SENSITIVE_WORDS) {
             if (content.contains(word)) {
                 log.warn("🚨 敏感词命中！内容：{} → 95分", content);
                 return 95;
             }
         }
-
-        // 🔥 第二步：调用AI打分
         try {
             RestTemplate restTemplate = new RestTemplate();
             HttpHeaders headers = new HttpHeaders();
@@ -86,7 +83,6 @@ public class AiAuditServiceImpl implements AiAuditService {
                 return comment.getComContent();
             }
 
-            // 🔥 关键：如果为null，直接反射拿 comment_content 原始值
             java.lang.reflect.Field field = Comment.class.getDeclaredField("commentContent");
             field.setAccessible(true);
             return (String) field.get(comment);

@@ -19,7 +19,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @Tag(name = "个人榜单模块", description = "个人榜单模块相关接口")
@@ -249,7 +248,6 @@ public class MyRankController {
             return Result.error("评论删除失败");
         }
     }
-
 }
 
 

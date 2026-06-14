@@ -1,6 +1,5 @@
 package com.music.Mapper;
 
-import com.music.dto.UserLoginDTO;
 import com.music.pojo.UserInfo;
 import org.apache.ibatis.annotations.Mapper;
 

@@ -7,8 +7,6 @@ import com.music.dto.RankAddRequest;
 import com.music.pojo.Comment;
 import com.music.pojo.Singer;
 import com.music.pojo.Song;
-import com.music.utils.Result;
-
 import java.util.List;
 
 

@@ -33,7 +33,6 @@ public class Usercontroller {
     public Result<LoginSuccessVo> login(@Valid @RequestBody UserLoginDTO userLoginDTO) {
        return userInfoService.login(userLoginDTO);
     }
-
     /*注册逻辑：
              1.接受前端出传递的注册用户信息
              2.看用户名是否在数据库中存在
