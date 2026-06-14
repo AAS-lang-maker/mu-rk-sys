@@ -29,10 +29,10 @@ public class CategoryController {
         @Operation(summary = "根据分类ID重定向", description = "根据分类ID重定向")
         public String selectAllCategoryId(@RequestParam("categoryId") Integer categoryId,
                                           // 从请求头/参数中获取前端传递的Token和UserID（根据你的验证逻辑，从实际存储位置取）
-                                          @RequestParam(value = "token", required = true) String token,
-                                          @RequestParam(value = "userId", required = true) Integer userId,
+                                          @RequestParam(value = "token") String token,
+                                          @RequestParam(value = "userId") Integer userId,
                                           RedirectAttributes redirectAttributes) {
-        if(token==null||token==""){
+        if(token==null||token.isEmpty()){
             redirectAttributes.addFlashAttribute("errormessage","token不能为空");
             return "redirect:/login.html";
         }

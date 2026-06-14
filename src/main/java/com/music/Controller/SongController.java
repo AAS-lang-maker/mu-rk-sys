@@ -29,7 +29,6 @@ public class SongController {
     @GetMapping("/play/{songId}")
     @Operation(summary = "播放歌曲", description = "根据歌曲ID播放歌曲")
     public ResponseEntity<StreamingResponseBody> playSong(
-            @RequestParam("token") String token,
             @PathVariable("songId") Integer songId) {
 
         // 1. 获取歌曲信息

@@ -26,8 +26,7 @@ public class WebMasterLoginController {
     @ResponseBody
     @Operation(summary = "网站管理员登录", description = "网站管理员登录")
     public Result<LoginSuccessVo> admin(@Valid@RequestBody UserLoginDTO userLoginDTO) {
-        Result<LoginSuccessVo> result=webMasterLoginService.selectWebmaster(userLoginDTO);
-        return result;
+        return webMasterLoginService.selectWebmaster(userLoginDTO);
     }
     @PostMapping("/register")
     @Operation(summary = "网站管理员注册", description = "网站管理员注册")

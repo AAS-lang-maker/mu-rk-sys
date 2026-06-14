@@ -9,7 +9,6 @@ import com.music.dto.CommentVo;
 import com.music.dto.MyRankWithSong;
 import com.music.pojo.Comment;
 import com.music.pojo.PersonalRank;
-import com.music.pojo.RankTagVO;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,9 +68,6 @@ public class HotRankServiceImpl implements HotRankService {
     public Integer caculateHotRank(Integer rankId){
         Integer love=getLoveCount(rankId);
         Integer vote = getVoteCount(rankId);
-        //防止空指针？
-        love=love==null?0:love;
-        vote=vote==null?0:vote;
         return love+2*vote;
     }
 
@@ -131,11 +127,11 @@ public class HotRankServiceImpl implements HotRankService {
 
         long timestamp = System.currentTimeMillis()/1000;
 
-        double currentScore = stringRedisTemplate.opsForZSet().score(Hot_Rank_Key, rankId.toString());
+        Double currentScore = stringRedisTemplate.opsForZSet().score(Hot_Rank_Key, rankId.toString());
 
         final long BASE = 10000000000L;
 
-        long oldScoreValue = currentScore==0? 0L : (long) currentScore;
+        long oldScoreValue = currentScore == null ? 0L : currentScore.longValue();
 
         long oldRankScore = oldScoreValue / BASE;
 
@@ -156,7 +152,6 @@ public class HotRankServiceImpl implements HotRankService {
                     Collections.singletonList(Hot_Rank_Key),
                             rankId.toString(),
                             scoreStr
-
                     );
         } catch (Exception e) {
             log.error("执行 Lua 脚本出错：{}", e.getMessage(),e);

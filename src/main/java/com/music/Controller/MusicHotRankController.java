@@ -42,7 +42,7 @@ public class MusicHotRankController {
         // 1. 找到所有散乱的 Key
         Set<String> keys = stringRedisTemplate.keys(oldPattern);
 
-        if (keys == null || keys.isEmpty()) {
+        if (keys.isEmpty()) {
             return "错误：没有找到旧数据，请检查 Key 路径是否正确";
         }
 
@@ -144,7 +144,7 @@ public class MusicHotRankController {
                 return Result.error("likeId不能为空");
             }
             boolean result=hotRankService.insertLove(userId,rankId);
-            if(result==true){
+            if(result){
                 return Result.success();
             }else {
                 return Result.error("点赞榜单失败");
@@ -168,7 +168,7 @@ public class MusicHotRankController {
                 return Result.error("rankId不能为空");
             }
             boolean result=hotRankService.deleteVote(rankId,userId);
-            if(result==true){
+            if(result){
                 return Result.success("success");
             }else{
                 return Result.error("取消点赞失败");
@@ -193,7 +193,7 @@ public class MusicHotRankController {
             }
             log.info("【取消点赞】删除条件：userId={}, rankId={}", userId, rankId);
             boolean result=hotRankService.deleteLove(rankId,userId);
-            if(result==true){
+            if(result){
                 return Result.success("success");
             }else{
                 return Result.error("取消点赞失败");
@@ -232,7 +232,7 @@ public class MusicHotRankController {
                 return Result.error("comId不能为空");
             }
             boolean result=hotRankService.deleteComment(comId,userId);
-            if(result==true){
+            if(result){
                 return Result.success();
             }else{
                 return Result.error("评论删除失败");
@@ -254,7 +254,7 @@ public class MusicHotRankController {
                 return Result.error("likeId不能为空");
             }
             boolean result=hotRankService.insertLike(userId,comId);
-            if(result==true){
+            if(result){
                 return Result.success();
             }else {
                 return Result.error("点赞评论失败");
@@ -278,7 +278,7 @@ public class MusicHotRankController {
                 return Result.error("comId不能为空");
             }
             boolean result=hotRankService.deleteLike(comId,userId);
-            if(result==true){
+            if(result){
                 return Result.success("success");
             }else{
                 return Result.error("取消点赞失败");

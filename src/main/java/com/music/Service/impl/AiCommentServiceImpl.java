@@ -22,6 +22,9 @@ public class AiCommentServiceImpl implements AiCommentService {
     private String apiKey;
     private final static String MODEL="deepseek-ai/Deepseek-V3";
     private final static String API_URL="https://api.siliconflow.cn/v1/chat/completions";
+    private final String comment= "你是一个资格榜单分析师。用户当前是想分析《%s》这个榜单啊，里面的具体歌曲内容如下：" +
+                                     "\\n%s\\n"+"请结合这些歌曲的名称，排名顺序歌手，" +
+                                     "请用温柔的语气给这个榜单做一个犀利，专业的分析评价，并能够进行总结，总结出榜单风格等等。字数20-50字。";
     @Override
     public String getAiComment(MyRankWithSong myRankWithSong) {
      log.info("AI锐评启动，正在分析用户喜欢的榜单：{}",myRankWithSong);
@@ -61,13 +64,9 @@ public class AiCommentServiceImpl implements AiCommentService {
          HttpHeaders headers=new HttpHeaders();
          headers.setContentType(MediaType.APPLICATION_JSON);
          headers.set("Authorization","Bearer "+apiKey);
-         String userContent=String.format("你是一个资格榜单分析师。用户当前是想分析《%s》这个榜单啊，里面的具体歌曲内容如下：" +
-                         "\n%s\n"+"请结合这些歌曲的名称，排名顺序歌手，" +
-                         "请用温柔的语气给这个榜单做一个犀利，专业的分析评价，并能够进行总结，总结出榜单风格等等。字数20-50字。",
+         String userContent=String.format(comment,
                  myRankWithSong.getRankName(),
-                 stringBuilder.toString()
-               //  myRankWithSong.getRankTagsList()
-                 );
+                 stringBuilder);
                  log.debug("发送给AI的prompt: {}", userContent);
          Map<String,Object> body=new HashMap<>();
          body.put("model",MODEL);

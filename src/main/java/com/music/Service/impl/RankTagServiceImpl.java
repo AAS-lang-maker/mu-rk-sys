@@ -1,7 +1,6 @@
 package com.music.Service.impl;
 
 import com.music.Mapper.MyRankMapper;
-import com.music.Mapper.TagsMapper;
 import com.music.Mapper.UserTagsMapper;
 import com.music.Mapper.rankTagRelMapper;
 import com.music.Service.RankTagService;

@@ -4,7 +4,6 @@ import com.music.utils.JwtUtils;
 import com.music.utils.Result;
 import com.music.utils.ThreadLocalUtil; // 记得导入你的托盘工具类
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -38,7 +37,7 @@ public class LoginInterceptor implements HandlerInterceptor {
         }
 
         // 2. 验证 Token 是否有效
-        if (token == null || !jwtUtil.isTokenValid(token)) {
+        if (token == null || !JwtUtils.isTokenValid(token)) {
             // 验证失败：拦截并返回 JSON
             response.setContentType("application/json;charset=utf-8");
             Result<String> result = Result.error("请先登录！");
@@ -62,7 +61,7 @@ public class LoginInterceptor implements HandlerInterceptor {
      * 请求处理完后，一定要把托盘刷干净！
      */
     @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex){
         ThreadLocalUtil.remove();
     }
 }

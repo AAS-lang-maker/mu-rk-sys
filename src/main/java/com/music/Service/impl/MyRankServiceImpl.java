@@ -45,14 +45,12 @@ private MyRankMapper myRankMapper;
 
     @Override
     public List<Singer> selectSinger(Integer categoryId) {
-        List<Singer> singers=myRankMapper.selectSinger(categoryId);
-         return singers;
+        return myRankMapper.selectSinger(categoryId);
     }
 
     @Override
     public List<Song> selectSong(Integer singerId) {
-        List<Song> songs=myRankMapper.selectSong(singerId);
-        return songs;
+        return myRankMapper.selectSong(singerId);
     }
 
 
@@ -83,7 +81,6 @@ private MyRankMapper myRankMapper;
         //log.info("开始编辑榜单：rankId={}, 新名称={}", rankId, rankName);
         myRankMapper.insertNewRankname(rankId,rankName);
         //log.info("主表榜单名更新完成");
-        int deleteCount=myRankMapper.deleteOldRankname(rankId);
         //log.info("删除子表旧数据：rankId={}, 删除行数={}", rankId, deleteCount);
         List<RankAddRequest.RankSongItem> items=dto.getSongItems();
         List<RankSong> newSongs=new ArrayList<>();
@@ -125,8 +122,7 @@ private MyRankMapper myRankMapper;
 
     @Override
     public UserInfo selectByuserId(Integer userId) {
-        UserInfo userInfo=myRankMapper.selectByUserId(userId);
-        return userInfo;
+        return myRankMapper.selectByUserId(userId);
     }
 
     @Override

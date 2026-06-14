@@ -49,12 +49,14 @@ public class TagsServiceImpl implements TagsService {
         }
 
         // 4. 权限校验：必须是本人添加的关联，才能删除
-        if (relation.getUserId() != currentUserId) {
+        if (relation.getUserId().equals(currentUserId)) {
+            // 5. 执行删除（只删关联，不删标签）
+            rankTagRelMapper.deleteById(relation.getRTId());
+        }else {
             throw new RuntimeException("无权取消他人添加的标签！");
         }
 
-        // 5. 执行删除（只删关联，不删标签）
-        rankTagRelMapper.deleteById(relation.getRTId());
+
     }
     @Transactional
     public void add(TagsDTO tagsDTO, Integer userId) {
@@ -108,9 +110,8 @@ public class TagsServiceImpl implements TagsService {
 
         PageHelper.startPage(tagsPageQueryDTO.getPageNum(), tagsPageQueryDTO.getPageSize());
         String tagName = null;
-        if (tagsPageQueryDTO != null) {
-            tagName = tagsPageQueryDTO.getTagName();
-        }
+        tagName = tagsPageQueryDTO.getTagName();
+
         List<UserTagVO> userTagVOList = userTagsMapper.selectUserTagsWithDetail(userId, tagName);
 
         Page<UserTagVO> page =(Page<UserTagVO>) userTagVOList;
@@ -134,8 +135,6 @@ public class TagsServiceImpl implements TagsService {
         // 1. 【关键】获取当前登录用户 ID
         Integer currentUserId = ThreadLocalUtil.get(); // 假设这是你获取用户ID的方法
 
-
-        UserTags tag = userTagsMapper.selectByIdinuser(tagId,currentUserId);
 /*
         // 3. 【权限校验】如果不是本人创建的标签，直接抛异常（或返回错误）
         if (tag == null) {
@@ -169,7 +168,7 @@ public class TagsServiceImpl implements TagsService {
 //用户更新自己的云标签库  //榜单自己也有要一起改哦
     public void update(TagsDTO tagsDTO, Integer userId) {
 
-        Integer targetTagId = null;
+        Integer targetTagId;
 
         Integer oldTagId = tagsDTO.getTagId();
         String newTagName = tagsDTO.getTagName();

@@ -19,6 +19,7 @@ import com.music.utils.NcmDecoder;
 import org.jaudiotagger.audio.AudioFileIO;
 import java.io.File;
 import java.io.IOException;
+import java.rmi.RemoteException;
 import java.util.List;
 
 @Service
@@ -41,7 +42,7 @@ public class AdminSongServiceImpl implements AdminSongService {
         File tempNcm=saveTempFile(file);
         File mp3File=NcmDecoder.decode(tempNcm,storagePath);
         AudioFile audioFile=AudioFileIO.read(mp3File);
-          Tag tag= (Tag) audioFile.getTag();
+          Tag tag= audioFile.getTag();
           String title = "未知歌曲";
           String artist = "未知歌手";
           if (tag != null) {
@@ -71,6 +72,10 @@ public class AdminSongServiceImpl implements AdminSongService {
     // 保存临时文件到系统临时目录
     private File saveTempFile(MultipartFile file) throws IOException {
         String tempDir = System.getProperty("java.io.tmpdir");
+        if (file.getOriginalFilename()==null) {
+            log.error("不能为空");
+            throw new RuntimeException("名字不能为空");
+        }
         File tempFile = new File(tempDir, file.getOriginalFilename());
         file.transferTo(tempFile);
         return tempFile;

@@ -70,7 +70,6 @@ public class MyRankController {
         PageInfo<MyRankWithSong> personalRanks=myRankService.selectMyrank(pageNum,pageSize,offset,userId);
         // 新增：打印PageInfo的所有关键字段
        Song song=new Song();
-       song.getSongId();
         System.out.println(personalRanks.getList());
         model.addAttribute("rankList", personalRanks.getList());
         model.addAttribute("personalRanks",personalRanks);//把这两个必要数据传进URL而不是一次性的Flash，重定向的时候数据也进去了
@@ -85,7 +84,7 @@ public class MyRankController {
     @GetMapping("/edit/{rankId}")//负责重定向
     @Operation(summary = "跳转到编辑页面", description = "跳转到编辑页面")
     public String edit(@PathVariable("rankId") Integer rankId, @RequestParam("token")String token, RedirectAttributes redirectAttributes
-                       ) throws Exception {
+                       ){
         Integer paramuserId=validateToken(token,redirectAttributes);
         if(paramuserId==null){
             return "redirect:/login.html";
@@ -111,7 +110,7 @@ public class MyRankController {
     @ResponseBody
     //查看详情
     public MyRankWithSong getRank(@RequestParam("token")String token,@PathVariable("rankId")Integer rankId,
-                                  RedirectAttributes redirectAttributes)throws Exception{
+                                  RedirectAttributes redirectAttributes){
         Integer paramuserId=validateToken(token,redirectAttributes);
         if(paramuserId==null){
             throw new RuntimeException("token不能为空");
@@ -123,20 +122,16 @@ public class MyRankController {
     @Operation(summary = "获取歌手列表", description = "获取歌手列表")
     @ResponseBody
     //点击添加歌曲的按钮不涉及重定向，URL没有变化，页面也没有刷新
-    public List<Singer> singer(@RequestParam("token") String token, @RequestParam("userId")Integer userId,// 接收前端的token
-                               @RequestParam("categoryId") Integer categoryId,RedirectAttributes redirectAttributes){
-        List<Singer> singers=myRankService.selectSinger(categoryId);
-        return singers;
+    public List<Singer> singer(@RequestParam("categoryId") Integer categoryId){
+        return myRankService.selectSinger(categoryId);
     }
     @GetMapping("/song")
     @ResponseBody
     @Operation(summary = "获取歌曲列表", description = "获取歌曲列表")
-    public List<Song>  song(@RequestParam("token") String token,
-                            @RequestParam("userId") Integer userId,
-                            @RequestParam("singerId") Integer singerId
+    public List<Song>  song(@RequestParam("singerId") Integer singerId
     ){
-        List<Song> songs=myRankService.selectSong(singerId);
-        return songs;
+        return myRankService.selectSong(singerId);
+
     }
     private Integer validateToken(String token,RedirectAttributes redirectAttributes) {
         if (token == null || token.isEmpty()) {
@@ -238,8 +233,7 @@ public class MyRankController {
             if(comId==null){
                 return Result.error("comId不能为空");
             }
-            boolean result=myRankService.deleteComment(comId,userId);
-            if(result==true){
+            if(myRankService.deleteComment(comId,userId)){
                 return Result.success();
             }else{
                 return Result.error("评论删除失败");

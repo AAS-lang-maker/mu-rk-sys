@@ -31,7 +31,7 @@ public class WorkPublishController {
     private WorkPublishServiceImpl workPublishServiceImpl;
     @GetMapping("/publish")
     @Operation(summary = "发布作品", description = "发布作品")
-    public String publish(@RequestParam("token")String token,@RequestParam("userId")Integer userId,
+    public String publish(@RequestParam("token")String token,
                            RedirectAttributes redirectAttributes,@RequestParam("category")Integer category,
                          @RequestParam("pageNum")Integer pageNum, @RequestParam("pageSize")Integer pageSize
                         , Model model) throws Exception {
@@ -39,13 +39,7 @@ public class WorkPublishController {
          redirectAttributes.addFlashAttribute("errormessage","token不能为空");
          return "redirect:/login.html";
      }
-        try {
-            userId=JwtUtils.getUserIdFromToken(token);
-        } catch (Exception e) {
-           e.printStackTrace();
-           redirectAttributes.addAttribute("errormessage","userId不能为空");
-           return "redirect:/login.html";
-        }
+
        Integer offset=(pageNum-1)*pageSize;
        PageInfo<MyRankWithSong> workRank=workPublishServiceImpl.selectAllRank(offset,category,pageNum,pageSize);
        model.addAllAttributes(workRank.getList());
@@ -69,7 +63,7 @@ public class WorkPublishController {
         Integer userId = JwtUtils.getUserIdFromToken(token);
 
         // 修复：字符串判空用equals，避免==""失效
-        if (rankAddRequestDto.getRankName() == null || "".equals(rankAddRequestDto.getRankName())) {
+        if (rankAddRequestDto.getRankName() == null ||rankAddRequestDto.getRankName().isEmpty()) {
             // 修复：addFlashAttribute参数格式（属性名+逗号+提示内容）
             redirectAttributes.addFlashAttribute("errormessage", "榜单名不能为空");
             // 修复：重定向URL拼接（加?开头，&分隔参数）
@@ -93,7 +87,7 @@ public class WorkPublishController {
         }
 
         // 修复：Token校验提示信息错误（匹配实际错误）
-        if (token == null || "".equals(token)) {
+        if (token.isEmpty()) {
             redirectAttributes.addFlashAttribute("errormessage", "登录失效，请重新登录");
             return "redirect:/login.html";
         }
@@ -125,11 +119,8 @@ public class WorkPublishController {
     @ResponseBody
     @Operation(summary = "获取作品", description = "获取作品")
     //点击添加歌曲的按钮不涉及重定向，URL没有变化，页面也没有刷新
-    public List<Work> work(@RequestParam("token") String token, // 接收前端的token
-                             @RequestParam("userId") Integer userId, // 接收前端的userId
-                             @RequestParam("category") Integer categoryId){
-        List<Work> works=workPublishServiceImpl.selectWork(categoryId);
-        return works;
+    public List<Work> work(@RequestParam("category") Integer categoryId){
+        return workPublishServiceImpl.selectWork(categoryId);
     }
 
 
@@ -138,11 +129,8 @@ public class WorkPublishController {
     @GetMapping("/song")
     @ResponseBody
     @Operation(summary = "获取歌曲", description = "获取歌曲")
-    public List<Song>  song(@RequestParam("token") String token,
-                            @RequestParam("userId") Integer userId,
-                            @RequestParam("workId") Integer workId
-    ){     List<Song> songs=workPublishServiceImpl.selectSong(workId);
-        return songs;
+    public List<Song>  song(@RequestParam("workId") Integer workId
+    ){     return workPublishServiceImpl.selectSong(workId);
     }
     @PostMapping("/vote")
     @Operation(summary = "投票", description = "投票")
@@ -313,7 +301,7 @@ public class WorkPublishController {
                 return Result.error("comId不能为空");
             }
             boolean result=workPublishServiceImpl.deleteComment(comId,userId);
-            if(result==true){
+            if(result){
                 return Result.success();
             }else{
                 return Result.error("评论删除失败");
@@ -338,7 +326,7 @@ public class WorkPublishController {
                 return Result.error("likeId不能为空");
             }
             boolean result=workPublishServiceImpl.insertLike(userId,comId);
-            if(result==true){
+            if(result){
                 return Result.success();
             }else {
                 return Result.error("点赞评论失败");
@@ -363,7 +351,7 @@ public class WorkPublishController {
                 return Result.error("comId不能为空");
             }
             boolean result=workPublishServiceImpl.deleteLike(comId,userId);
-            if(result==true){
+            if(result){
                 return Result.success("success");
             }else{
                 return Result.error("取消点赞失败");

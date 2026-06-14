@@ -44,23 +44,11 @@ public class UserPublishController {
             redirectAttributes.addFlashAttribute("errormessage", "token已失效");
             return "redirect:/login.html";
         }
-        if (token.startsWith("Bearer ")) {
-            token = token.substring(7);
-        }
-        Integer userId;
-        try {
-            userId = JwtUtils.getUserIdFromToken(token);
-        } catch (Exception e) {
-            e.printStackTrace();
-            redirectAttributes.addFlashAttribute("errormessage", "token不见啦，请重新登录");
-            return "redirect:/login.html";
-        }
         Integer offset = (pageNum - 1) * pageSize;
         PageInfo<MyRankWithSong> publishRanks = userPublishService.selectPublishRank(category, pageNum, pageSize, offset);
        model.addAttribute("rankList", publishRanks.getList());
        model.addAttribute("publishRanks", publishRanks);
        Song song=new Song();
-       song.getSongId();
        model.addAttribute("song", song);
         model.addAttribute("category", category);
         model.addAttribute("pageNum", pageNum);
@@ -73,13 +61,10 @@ public class UserPublishController {
     @Operation(summary = "添加榜单", description = "添加榜单")
     @ResponseBody
     public Result<Integer> add(@PathVariable("category") Integer category,
-                      @RequestBody RankAddRequest rankAddRequestDto,
-                      HttpServletRequest request,
-                      @RequestHeader("Authorization") String authHeader) throws Exception {
+                      @RequestBody RankAddRequest rankAddRequestDto) throws Exception {
         Integer userId= ThreadLocalUtil.get();
-        String token=(String) request.getAttribute("token");
         // 修复：字符串判空用equals，避免==""失效
-        if (rankAddRequestDto.getRankName() == null || "".equals(rankAddRequestDto.getRankName())) {
+        if (rankAddRequestDto.getRankName() == null ||rankAddRequestDto.getRankName().isEmpty()) {
            return Result.error("榜单名不能为空");
              }
 
@@ -110,23 +95,17 @@ public class UserPublishController {
     @Operation(summary = "获取歌手", description = "获取歌手")
     @ResponseBody
     //点击添加歌曲的按钮不涉及重定向，URL没有变化，页面也没有刷新
-    public List<Singer> singer(@RequestParam("token") String token, // 接收前端的token
-                               @RequestParam("userId") Integer userId, // 接收前端的userId
-                               @RequestParam("category") Integer category) {
-        List<Singer> singers = userPublishService.selectSinger(category
-        );
-        return singers;
+    public List<Singer> singer(@RequestParam("category") Integer category) {
+        return userPublishService.selectSinger(category);
+
     }
 
     @GetMapping("/song")
     @Operation(summary = "获取歌曲", description = "获取歌曲")
     @ResponseBody
-    public List<Song> song(@RequestParam("token") String token,
-                           @RequestParam("userId") Integer userId,
-                           @RequestParam("singerId") Integer singerId
+    public List<Song> song(@RequestParam("singerId") Integer singerId
     ) {
-        List<Song> songs = userPublishService.selectSong(singerId);
-        return songs;
+        return userPublishService.selectSong(singerId);
     }
 
     @PostMapping("/applysong")
@@ -160,7 +139,7 @@ public class UserPublishController {
             // 和热门榜单接口保持同一套投票计分逻辑：
             // 统一走 HotRankService，确保计数、ZSet、排名战报一致
             boolean result=hotRankService.insertVote(userId,rankId);
-            if(result==true){
+            if(result){
                 log.info("投票成功 ");
                 hotRankService.updateHotRank(rankId);
                 return Result.success("点赞成功，战报正在后台生成...");
@@ -189,7 +168,7 @@ public class UserPublishController {
             }
 
             boolean result=userPublishService.insertLove(userId,rankId);
-            if(result==true){
+            if(result){
                 return Result.success();
             }else {
                 return Result.error("收藏榜单失败");
@@ -214,7 +193,7 @@ public class UserPublishController {
                 return Result.error("rankId不能为空");
             }
             boolean result=userPublishService.deleteVote(rankId,userId);
-            if(result==true){
+            if(result){
                 return Result.success("success");
             }else{
                 return Result.error("取消点赞失败");
@@ -240,7 +219,7 @@ public class UserPublishController {
             }
             log.info("【取消点赞】删除条件：userId={}, rankId={}", userId, rankId);
             boolean result=userPublishService.deleteLove(rankId,userId);
-            if(result==true){
+            if(result){
                 return Result.success("success");
             }else{
                 return Result.error("取消点赞失败");
@@ -258,9 +237,6 @@ public class UserPublishController {
             return  "redirect:/login.html";
         }
         Integer userId=JwtUtils.getUserIdFromToken(token);
-        if (userId==null) {
-            return  "redirect:/login.html";
-        }
         if(category==null){
             return "redirect:/index.html";
         }
@@ -282,7 +258,6 @@ public class UserPublishController {
          model.addAttribute("searchRank", searchRank);
          model.addAttribute("ranklist", searchRank.getList());
             Song song=new Song();
-            song.getSongId();
             model.addAttribute("song", song);
          model.addAttribute("token", token);
          model.addAttribute("userId",userId);
@@ -342,7 +317,7 @@ public class UserPublishController {
                 return Result.error("comId不能为空");
             }
             boolean result=userPublishService.deleteComment(comId,userId);
-            if(result==true){
+            if(result){
                 return Result.success();
             }else{
                 return Result.error("评论删除失败");
@@ -364,7 +339,7 @@ public class UserPublishController {
                 return Result.error("likeId不能为空");
             }
             boolean result=userPublishService.insertLike(userId,comId);
-            if(result==true){
+            if(result){
                 return Result.success();
             }else {
                 return Result.error("点赞评论失败");
@@ -388,7 +363,7 @@ public class UserPublishController {
                 return Result.error("comId不能为空");
             }
             boolean result=userPublishService.deleteLike(comId,userId);
-            if(result==true){
+            if(result){
                 return Result.success("success");
             }else{
                 return Result.error("取消点赞失败");

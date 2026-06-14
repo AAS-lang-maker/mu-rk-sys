@@ -88,7 +88,7 @@ public class UserPublishServiceImpl implements UserPublishService {
         ranks.forEach(rank -> {
             rank.setFollowed(userPublishMapper.shifoufriend(userId, rank.getUsername())!=0);
         });
-        PageInfo<MyRankWithSong> pageInfo=new PageInfo();
+        PageInfo<MyRankWithSong> pageInfo=new PageInfo<>();
         Integer total=userPublishMapper.selectTotal(category);
         Integer pages=(total+pageSize-1)/pageSize;
         System.out.println("所有榜单："+ranks.size());
@@ -268,7 +268,7 @@ public class UserPublishServiceImpl implements UserPublishService {
             keyword=null;
         }
         List<MyRankWithSong> list=userPublishMapper.selectSearch(category,pageNum,offset,pageSize,keyword);
-        PageInfo<MyRankWithSong> searchRank=new PageInfo();
+        PageInfo<MyRankWithSong> searchRank=new PageInfo<>();
         Integer total=userPublishMapper.selectSearchTotal(category,keyword);
         Integer pages=(total+pageSize-1)/pageSize;
         searchRank.setList(list);

@@ -77,8 +77,7 @@ public class WorkPublishServiceImpl implements WorkPunlishService {
 
     @Override
     public List<Song> selectSong(Integer workId) {
-        List<Song> songs=workPublishMapper.selectSong(workId);
-        return songs;
+        return workPublishMapper.selectSong(workId);
     }
 
     @Override
@@ -87,11 +86,7 @@ public class WorkPublishServiceImpl implements WorkPunlishService {
         if(record>0)
         { return false;}
         int rows=workPublishMapper.insertVote(rankId,ip);
-        if(rows>0){
-            return true;
-        }else{
-            return false;
-        }
+     return rows>0;
     }
 
     @Override
@@ -100,10 +95,7 @@ public class WorkPublishServiceImpl implements WorkPunlishService {
         if(record1>0)
         { return false;}
         int row1=workPublishMapper.insertLove(userId,ip,rankId);
-        if(row1>0){
-            return true;
-        }
-        return false;
+        return row1>0;
     }
 
     @Override
@@ -115,7 +107,7 @@ public class WorkPublishServiceImpl implements WorkPunlishService {
             keyword=null;
         }
         List<MyRankWithSong> list=workPublishMapper.selectSearch(category,pageNum,offset,pageSize,keyword);
-        PageInfo<MyRankWithSong> searchRank=new PageInfo();
+        PageInfo<MyRankWithSong> searchRank=new PageInfo<>();
         Integer total=workPublishMapper.selectSearchTotal(category,keyword);
         Integer pages=(total+pageSize-1)/pageSize;
         searchRank.setList(list);
