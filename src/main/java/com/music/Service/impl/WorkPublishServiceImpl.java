@@ -71,8 +71,7 @@ public class WorkPublishServiceImpl implements WorkPunlishService {
 
     @Override
     public List<Work> selectWork(Integer categoryId) {
-        List<Work> works=workPublishMapper.selectWork(categoryId);
-        return works;
+        return workPublishMapper.selectWork(categoryId);
     }
 
     @Override

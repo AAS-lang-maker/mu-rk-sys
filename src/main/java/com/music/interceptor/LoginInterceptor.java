@@ -15,10 +15,6 @@ import jakarta.servlet.http.HttpServletResponse;
  */
 @Component
 public class LoginInterceptor implements HandlerInterceptor {
-
-    @Autowired
-    private JwtUtils jwtUtil;
-
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         // 1. 开始多渠道搜寻 Token

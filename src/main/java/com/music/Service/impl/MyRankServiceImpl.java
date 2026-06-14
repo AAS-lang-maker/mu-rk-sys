@@ -97,8 +97,6 @@ private MyRankMapper myRankMapper;
           //  log.info("开始插入新歌曲：rankId={}, 歌曲数量={}", rankId, newSongs.size());
             myRankMapper.insertNewRank(newSongs);
             //log.info("新歌曲插入完成");
-        }else {
-            //log.warn("无有效歌曲数据，跳过插入");
         }
         return true;
     }

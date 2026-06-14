@@ -85,9 +85,7 @@ public class UserPublishServiceImpl implements UserPublishService {
         Integer userId = ThreadLocalUtil.get();
 
         List<MyRankWithSong> ranks=userPublishMapper.selectPublishRank(category,pageSize,offset);
-        ranks.forEach(rank -> {
-            rank.setFollowed(userPublishMapper.shifoufriend(userId, rank.getUsername())!=0);
-        });
+        ranks.forEach(rank ->rank.setFollowed(userPublishMapper.shifoufriend(userId, rank.getUsername())!=0));
         PageInfo<MyRankWithSong> pageInfo=new PageInfo<>();
         Integer total=userPublishMapper.selectTotal(category);
         Integer pages=(total+pageSize-1)/pageSize;
