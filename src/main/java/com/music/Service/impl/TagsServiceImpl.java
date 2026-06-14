@@ -109,7 +109,7 @@ public class TagsServiceImpl implements TagsService {
         }
 
         PageHelper.startPage(tagsPageQueryDTO.getPageNum(), tagsPageQueryDTO.getPageSize());
-        String tagName = null;
+        String tagName ;
         tagName = tagsPageQueryDTO.getTagName();
 
         List<UserTagVO> userTagVOList = userTagsMapper.selectUserTagsWithDetail(userId, tagName);
@@ -121,14 +121,6 @@ public class TagsServiceImpl implements TagsService {
         return new PageResult(total, records);
     }
 
-    /**
-     * 删除标签及其相关的歌曲关联
-     // ... existing code ...
-    // 5. 返回结果
-    /**
-     * 删除标签及其相关的歌曲关联
-     * @param tagId 要删除的标签ID
-     */
     @Transactional(rollbackFor = Exception.class) // 【核心】必须加事务，防止删了一半报错
     public void delete(Integer tagId) {
 

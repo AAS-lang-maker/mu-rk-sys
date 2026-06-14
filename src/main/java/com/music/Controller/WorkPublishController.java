@@ -147,10 +147,6 @@ public class WorkPublishController {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        if (userId == null) {
-            redirectAttributes.addFlashAttribute("errormessage","userId不能为空，请重新登录");
-            return "redirect:/login.html";
-        }
         String ip = request.getRemoteAddr();
         boolean voteResult=workPublishServiceImpl.insertVote(userId,rankId,ip);
         if (voteResult) {
@@ -200,9 +196,6 @@ public class WorkPublishController {
             return  "redirect:/login.html";
         }
         Integer userId=JwtUtils.getUserIdFromToken(token);
-        if (userId==null) {
-            return  "redirect:/login.html";
-        }
         if(category==null){
             return "redirect:/index.html";
         }
