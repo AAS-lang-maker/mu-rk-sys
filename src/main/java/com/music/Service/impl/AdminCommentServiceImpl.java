@@ -105,20 +105,13 @@ public class AdminCommentServiceImpl implements AdminCommentService {
     @Override
     public boolean updateComment1(Integer comId) {
         int rows=adminCommentMapper.deleteComment1(comId);
-        if(rows>0){
-            return true;
-        }else{
-            return false;
-        }
+        return rows>0?true:false;
     }
 
     @Override
     public boolean update2Comment(Integer comId) {
         int rows=adminCommentMapper.deleteComment2(comId);
-        if(rows>0){
-            return true;
-        }else{
-            return false;
-        }
+        return rows>0?true:false;
+
     }
 }

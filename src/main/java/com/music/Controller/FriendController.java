@@ -10,7 +10,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 //查询 和 获取我关注的好友列表
 @RestController
@@ -42,7 +41,7 @@ public class FriendController {
         } catch (Exception e) {
             return Result.badRequest("token无效");
         }
-        if (tokenUserId == null || userId == null || !tokenUserId.equals(userId)) {
+        if (!tokenUserId.equals(userId)) {
             return Result.badRequest("无权访问他人数据");
         }
         if (rankId == null) {

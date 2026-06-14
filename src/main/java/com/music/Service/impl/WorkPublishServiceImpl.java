@@ -52,7 +52,7 @@ public class WorkPublishServiceImpl implements WorkPunlishService {
             return false;
         }
 
-        List<RankSong> ranksongList=new ArrayList<RankSong>();//用集合接受前端榜单数据，因为歌曲和排名有很多，一个用户还可能有多个榜单
+        List<RankSong> ranksongList=new ArrayList<>();//用集合接受前端榜单数据，因为歌曲和排名有很多，一个用户还可能有多个榜单
         //豆包大人教我写最难写的lamda？？表达式
         rankAddRequestDto.getSongItems().forEach(item->{
             RankSong rankSong=new RankSong();

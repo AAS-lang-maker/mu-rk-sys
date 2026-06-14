@@ -4,6 +4,7 @@ import com.music.utils.JwtUtils;
 import com.music.utils.Result;
 import com.music.utils.ThreadLocalUtil; // 记得导入你的托盘工具类
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;

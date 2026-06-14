@@ -52,7 +52,7 @@ public class UserPublishServiceImpl implements UserPublishService {
             return null;
         }
 
-        List<RankSong> ranksongList=new ArrayList<RankSong>();//用集合接受前端榜单数据，因为歌曲和排名有很多，一个用户还可能有多个榜单
+        List<RankSong> ranksongList=new ArrayList<>();//用集合接受前端榜单数据，因为歌曲和排名有很多，一个用户还可能有多个榜单
         //豆包大人教我写最难写的lamda？？表达式
         rankAddRequestDto.getSongItems().forEach(item->{
             RankSong rankSong=new RankSong();
@@ -71,14 +71,12 @@ public class UserPublishServiceImpl implements UserPublishService {
 
     @Override
     public List<Singer> selectSinger(Integer categoryId) {
-        List<Singer> singers=userPublishMapper.selectSinger(categoryId);
-        return singers;
+        return userPublishMapper.selectSinger(categoryId);
     }
 
     @Override
     public List<Song> selectSong(Integer singerId) {
-        List<Song> songs=userPublishMapper.selectSong(singerId);
-        return songs;
+        return userPublishMapper.selectSong(singerId);
     }
 
     @Override
@@ -185,7 +183,7 @@ public class UserPublishServiceImpl implements UserPublishService {
         }
 
         // 分支1：已收藏（执行取消收藏）
-        if (Boolean.FALSE.equals(isFirstLove)) {
+        if (!isFirstLove) {
             log.info("【取消收藏】Redis已存在记录，开始删除数据库+Redis记录");
             try {
                 // 调用Mapper删除（用@Param注解后参数顺序不再敏感，优先保证userId/rankId传对）

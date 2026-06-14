@@ -9,8 +9,6 @@ import java.util.List;
 
 @Mapper
 public interface rankTagRelMapper {
-     @Delete("DELETE FROM rank_tags WHERE tag_id = #{tagId}")
-     void deleteByTagId( Integer tagId) ;
 
      @Select("SELECT * FROM rank_tags WHERE rank_id = #{rankId} AND tag_id = #{tagId} and user_id=#{currentUserId}")
      RankTag selectByRankingIdAndTagId(Integer rankId, Integer tagId,Integer currentUserId);

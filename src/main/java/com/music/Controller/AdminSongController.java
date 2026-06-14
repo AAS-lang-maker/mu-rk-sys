@@ -21,7 +21,7 @@ public class AdminSongController {
     @GetMapping("/redirect-song/{role}")
     public String redirectsong(@RequestParam("token")String token, @PathVariable("role")Integer role,
                                RedirectAttributes redirectAttributes){
-        if(token==null||token==""){
+        if(token==null|| token.isEmpty()){
             redirectAttributes.addFlashAttribute("请您先登录哦");
             return  "redirect:/login.html";
         }
@@ -36,7 +36,7 @@ public class AdminSongController {
     @GetMapping("/selectsong")
     @Operation(summary = "查询所有待审核歌曲", description = "查询所有待审核歌曲")
     public Result<List<ApplySongVo>> selectsong(@RequestParam("token")String token,@RequestParam("role")Integer role) {
-        if(token==null||token==""){
+        if(token==null||token.isEmpty()){
             return Result.error("token失效，请重新登录");
         }
         if(role!=1){
@@ -53,7 +53,7 @@ public class AdminSongController {
     @Operation(summary = "管理员上传歌曲", description = "管理员上传歌曲")
     public Result upload(@RequestParam("token")String token,@RequestParam("file") MultipartFile file,
                          @RequestParam("role")Integer role){
-        if(token==null||token==""){
+        if(token==null||token.isEmpty()){
             return Result.error("token失效，请重新登录");
         }
         if(role!=1){

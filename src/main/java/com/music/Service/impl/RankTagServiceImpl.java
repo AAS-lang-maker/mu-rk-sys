@@ -21,9 +21,6 @@ import java.util.List;
 @Service
 public class RankTagServiceImpl implements RankTagService {
 
-
-    @Autowired
-    private TagsMapper tagsMapper;
     @Autowired
     private rankTagRelMapper rankTagRelMapper;
 
@@ -39,11 +36,6 @@ public class RankTagServiceImpl implements RankTagService {
     @Override
     public void addTag(Integer rankId, TagsDTO tagDTO) {
         Integer userId= ThreadLocalUtil.get();
-      /*  Tags tags = new Tags();
-        tags.setTagId(tagDTO.getTagId());
-        tags.setTagName(tagDTO.getTagName());
-        tags.setUseCount(tagDTO.getUseCount()+1);*/
-
         userTagsMapper.update(userTagsMapper.selectByIdinuser(tagDTO.getTagId(),userId));
 
         RankTag rankTag = new RankTag();
@@ -64,7 +56,6 @@ public class RankTagServiceImpl implements RankTagService {
             return null;
         }
         Integer creatorId= myRankMapper.selectCreatorIdByRankId(rankId);
-        List<Tags> tagsList =  rankTagRelMapper.selectByRankingIdAndUserId(rankId,creatorId);
-        return tagsList;
+        return rankTagRelMapper.selectByRankingIdAndUserId(rankId,creatorId);
     }
 }

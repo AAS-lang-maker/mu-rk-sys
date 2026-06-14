@@ -9,7 +9,6 @@ public interface HotRankService {
     Integer caculateHotRank(Integer rankId);
     void updateHotRank(Integer rankId);
     Set<String> getHotRankId(int start,int end);
-    List<MyRankWithSong> listById(List<Long> rankId);
 
     boolean insertVote(Integer userId, Integer rankId);
 

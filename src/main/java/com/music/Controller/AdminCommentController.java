@@ -21,7 +21,7 @@ public class AdminCommentController {
     @GetMapping("/redirect-comment/{role}")
     public String redirect(@RequestParam("token")String token, RedirectAttributes redirectAttributes,
                          @PathVariable("role") Integer role) {
-        if(token==null||token.equals("")){
+        if(token==null||token.isEmpty()){
             redirectAttributes.addFlashAttribute("请先登录哦");
             return  "redirect:/login.html";
         }
@@ -37,7 +37,7 @@ public class AdminCommentController {
     @Operation(summary = "获取新评论", description = "获取新评论")
     @ResponseBody
     public Result<PageInfo<Comment>> adminnew(@RequestParam("token") String token,@PathVariable("role") Integer role,
-                           RedirectAttributes redirectAttributes, @RequestParam(value = "pageNum",defaultValue = "1") Integer pageNum,
+                                              @RequestParam(value = "pageNum",defaultValue = "1") Integer pageNum,
                            @RequestParam(value = "pageSize",defaultValue = "10") Integer pageSize, Model model) {
         if (token == null) {
             return Result.error("请先登录哦" );
@@ -57,7 +57,7 @@ public class AdminCommentController {
     @Operation(summary = "获取旧评论", description = "获取旧评论")
     @ResponseBody
     public Result<PageInfo<Comment>> adminold(@RequestParam("token") String token, @PathVariable("role") Integer role,
-                                              RedirectAttributes redirectAttributes, @RequestParam(value = "pageNum",defaultValue = "1") Integer pageNum,
+                                              @RequestParam(value = "pageNum",defaultValue = "1") Integer pageNum,
                                               @RequestParam(value = "pageSize",defaultValue = "10") Integer pageSize, Model model) {
         if (token == null) {
             return Result.error("请先登录哦" );
@@ -84,7 +84,7 @@ public class AdminCommentController {
     @Operation(summary = "AI审计", description = "AI审计")
     @ResponseBody
     public Result aiscan(@RequestParam("token")String token,@RequestParam("role")Integer role){
-       if(token==null||token.equals("")){
+       if(token==null||token.isEmpty()){
            return Result.error("请您先登录");
        }
        if(role!=1){
@@ -99,7 +99,7 @@ public class AdminCommentController {
     @ResponseBody
     public Result tongguoComment(@RequestParam("token")String token,@RequestParam("comId")Integer comId,
                                 @RequestParam("role")Integer role) {
-        if (token == null || token.equals("")) {
+        if (token == null || token.isEmpty()) {
             return Result.error("请您先登录");
         }
         if (role != 1) {
@@ -120,7 +120,7 @@ public class AdminCommentController {
     @ResponseBody
     public Result bohuiComment (@RequestParam("token")String token,@RequestParam("comId")Integer comId,
                                 @RequestParam("role")Integer role) {
-        if (token == null || token.equals("")) {
+        if (token == null || token.isEmpty()) {
             return Result.error("请您先登录");
         }
         if (role != 1) {

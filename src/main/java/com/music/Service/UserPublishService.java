@@ -11,7 +11,7 @@ import java.util.List;
 
 
 public interface UserPublishService {
-    public Integer insertRank(Integer categoryId, Integer userId, RankAddRequest rankAddRequestDto);
+    Integer insertRank(Integer categoryId, Integer userId, RankAddRequest rankAddRequestDto);
 
     List<Singer> selectSinger(Integer categoryId);
 

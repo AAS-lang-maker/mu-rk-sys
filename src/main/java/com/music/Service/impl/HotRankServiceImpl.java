@@ -246,22 +246,6 @@ public class HotRankServiceImpl implements HotRankService {
     }
 
     @Override
-    public List<MyRankWithSong> listById(List<Long> rankId) {
-
-        List<MyRankWithSong> result = musicHotRankMapper.listByIds(rankId);
-
-
-        log.info("【查询热门榜单详情】开始，rankId={}", rankId);
-
-        result.forEach(r -> {
-            r.setVoteCount(getVoteCount(r.getRankId()));
-            r.setLoveCount(getLoveCount(r.getRankId()));
-            r.setRankTagVOList(new RankTagVO(r.getRankId(), musicHotRankMapper.selectRankTagsxdj(r.getRankId())));
-            r.setRankTagsList(musicHotRankMapper.selectRankTagslistzfm(r.getRankId()));
-        });
-        return result;
-    }
-    @Override
     public boolean insertVote(Integer userId, Integer rankId) {
         String votekey = String.format(Vote_Key, userId, rankId);
         log.info("【点赞操作】开始，userId={}, rankId={}", userId, rankId);
