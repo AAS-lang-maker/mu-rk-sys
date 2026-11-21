@@ -133,7 +133,7 @@ public class MusicHotRankController {
 
 
     @PostMapping("/love")
-    @Operation(summary = "点赞榜单", description = "点赞榜单")
+    @Operation(summary = "收藏榜单", description = "收藏榜单")
     public Result<String> love(@RequestParam("token")String token,@RequestParam("rankId")Integer rankId){
         if(token == null || token.isEmpty()) {
             return Result.error("token不能为空哦");
